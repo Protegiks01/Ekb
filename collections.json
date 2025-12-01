@@ -3598,5 +3598,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6b6b53c2-e0cc-44e6-93e1-7348ccc47328",
     "timestamp": "2025-12-01 20:35:21.548841",
     "report_generated": false
+  },
+  {
+    "question": "In line 64-65, the same pattern is used for both amounts. If a stack corruption occurs in the first operation, does it propagate to the second, causing both amounts to be incorrect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd3d4373-399f-4f90-a323-122e293a8fb6",
+    "timestamp": "2025-12-01 20:36:54.583012",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly block doesn't have overflow protection. If amount0 = 0 and somehow gt(amount0, 0) returns 1 due to a compiler bug, would sub(0, 1) underflow to type(uint256).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fbaa0bd0-339a-4d94-b5b1-816fb1a45384",
+    "timestamp": "2025-12-01 20:37:08.778201",
+    "report_generated": false
+  },
+  {
+    "question": "In the 'memory-safe' assembly (line 61), if variables amount0/amount1 are stored in memory rather than on stack, could the pointer arithmetic in sub() corrupt adjacent memory slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6112e01c-9e38-4750-92dc-52052e2d4184",
+    "timestamp": "2025-12-01 20:37:22.794117",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly at lines 64-65 modifies amount0 and amount1 in-place. Could this violate Solidity's assumptions about variable mutability, causing the optimizer to generate incorrect code?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ec0d3db-d7bf-41cc-9c02-15c013354abb",
+    "timestamp": "2025-12-01 20:37:37.825088",
+    "report_generated": false
+  },
+  {
+    "question": "If the assembly block is executed in a multicall context where memory layout is non-standard, could 'memory-safe' annotation be violated, causing subsequent calls to read corrupted amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8f64e8e-5de9-46e3-b293-d984e76c4db0",
+    "timestamp": "2025-12-01 20:37:53.724248",
+    "report_generated": false
+  },
+  {
+    "question": "The gt(amount0, 0) operation at line 64 returns 1 or 0. If amount0 is close to type(uint128).max, could sub(amount0, 1) wrap to 0 instead of max-1 due to type mismatches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a67eb5a9-f97b-4811-9059-a2bbf01ee3e9",
+    "timestamp": "2025-12-01 20:38:10.546030",
+    "report_generated": false
+  },
+  {
+    "question": "In line 64, if amount0 is a storage pointer instead of a value (due to Solidity version peculiarities), could the assembly operation corrupt storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6a8d57c-f3dd-420f-9da3-b2c6186f8455",
+    "timestamp": "2025-12-01 20:38:28.191042",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly uses sub() for subtraction. If this is not the EVM SUB opcode but a Solidity helper, could it have unexpected behavior with uint128 types causing truncation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c7affc3-0d7d-4ff5-b444-47cbed225dbf",
+    "timestamp": "2025-12-01 20:38:48.973741",
+    "report_generated": false
+  },
+  {
+    "question": "If amount0 and amount1 are stack variables sharing the same slot due to optimization, could the assembly operations at lines 64-65 overwrite each other, causing both to equal the same value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f5ceabed-1ed1-4b41-8582-7f8b2c2956e0",
+    "timestamp": "2025-12-01 20:39:11.051228",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly doesn't explicitly cast results back to uint128. If sub() returns uint256, could the assignment at line 64 cause a type confusion when passed to withdrawProtocolFees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79d84724-49de-4094-960b-0bbaf8caa867",
+    "timestamp": "2025-12-01 20:39:33.859167",
+    "report_generated": false
+  },
+  {
+    "question": "In the assembly block, if the compiler performs common subexpression elimination on gt(amount0, 0), could the reuse of this value cause one operation to execute twice with stale data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e61c80e9-7f58-4b48-8211-baad9b902c48",
+    "timestamp": "2025-12-01 20:39:57.616963",
+    "report_generated": false
+  },
+  {
+    "question": "The comment says 'leaving those fees saves gas for when more protocol fees are accrued' (line 63). If savedBalances is decremented by more than (amount0, amount1) in withdrawProtocolFees, could this violate the 1 wei invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_11c380e0-bcf4-48ec-9af0-3666edf7843e",
+    "timestamp": "2025-12-01 20:40:23.417773",
+    "report_generated": false
+  },
+  {
+    "question": "In line 64-65, if amount0 = amount1 = 1, both become 0 after assembly. Could this cause withdrawProtocolFees to never be called (line 69 check fails), accumulating only 2 wei forever?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ab30745-4d10-4603-bf11-c9be8cc88460",
+    "timestamp": "2025-12-01 20:40:50.332137",
+    "report_generated": false
+  },
+  {
+    "question": "The call to POSITIONS.getProtocolFees (line 59) reads from Core's savedBalances. If another contract has a savedBalances entry with the same slot (hash collision), could getProtocolFees return inflated amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d68dc555-5575-488d-9577-5398b3936f20",
+    "timestamp": "2025-12-01 20:41:18.120060",
+    "report_generated": false
+  },
+  {
+    "question": "In line 59, getProtocolFees returns (uint128, uint128). If Core.savedBalances stores values as packed uint256, could bit shifting errors cause one token's fees to bleed into the other's?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ade9409d-2fcd-43d7-bd96-d414a3eacc8c",
+    "timestamp": "2025-12-01 20:41:47.455042",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawProtocolFees call at line 70 is external and payable. If POSITIONS is a malicious contract, could it call back into PositionsOwner.withdrawAndRoll to reenter and extract fees multiple times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b35b5596-1062-484a-83b0-79177789a52c",
+    "timestamp": "2025-12-01 20:42:16.583396",
+    "report_generated": false
+  },
+  {
+    "question": "In line 70, withdrawProtocolFees sends to address(BUYBACKS). If POSITIONS implementation has a bug where recipient is ignored and tokens go to msg.sender, could the caller steal protocol fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6ca2c68-b5bc-4f35-9386-bde5ce4535f0",
+    "timestamp": "2025-12-01 20:42:48.065647",
+    "report_generated": false
+  },
+  {
+    "question": "The POSITIONS.getProtocolFees call (line 59) assumes savedBalances uses bytes32(0) as salt. If savedBalances is updated with a different salt via an extension, could getProtocolFees return 0 even with fees accumulated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0fcd9292-017e-4561-a0ab-161aab82462a",
+    "timestamp": "2025-12-01 20:43:19.110226",
+    "report_generated": false
+  },
+  {
+    "question": "In line 70, withdrawProtocolFees is called with explicit amounts. If POSITIONS implementation clamps these to available balance, could it withdraw less than intended, causing savedBalances to drift from reality?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_49fc2103-d051-44e6-8b03-f6018546d67e",
+    "timestamp": "2025-12-01 20:43:51.140954",
+    "report_generated": false
+  },
+  {
+    "question": "The getProtocolFees call at line 59 is a view function. If Core's storage layout has changed due to an upgrade and savedBalances moved slots, could this return garbage data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_919a7bc7-62af-4bf9-9274-792fe846a9ba",
+    "timestamp": "2025-12-01 20:44:24.322108",
+    "report_generated": false
+  },
+  {
+    "question": "In line 59-70, there's a time gap between reading fees and withdrawing. If POSITIONS.withdrawProtocolFees can be called by the actual owner during this gap, could both transactions succeed, double-withdrawing from Core?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12b76e4c-d214-49c1-85c4-3f111dcf7c58",
+    "timestamp": "2025-12-01 20:44:54.189660",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawProtocolFees function (line 70) calls Core.updateSavedBalances with negative amounts. If updateSavedBalances doesn't properly handle underflow when amounts exceed savedBalances, could this cause protocol insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_50d7027f-c411-4ef3-919f-56162344c910",
+    "timestamp": "2025-12-01 20:45:24.517127",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.withdrawProtocolFees (line 186-192), the onlyOwner check assumes owner is PositionsOwner. If ownership was transferred via transferPositionsOwnership, could subsequent withdrawAndRoll calls revert, locking fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c168a32c-cd05-4af0-a521-bfea74c031ca",
+    "timestamp": "2025-12-01 20:45:56.049489",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawProtocolFees implementation uses lock() pattern. If withdrawAndRoll is called during an active lock (nested lock scenario), could CALL_TYPE_WITHDRAW_PROTOCOL_FEES execute with incorrect locker context?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_897c8213-81e2-4f90-b4ca-b82123b2ba88",
+    "timestamp": "2025-12-01 20:46:27.702114",
+    "report_generated": false
+  },
+  {
+    "question": "In line 70, if amount0 or amount1 exceeds the actual savedBalances in Core, would withdrawProtocolFees revert in updateSavedBalances, or could it succeed with incorrect negative balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4f921d9-319d-40f7-9ef9-8ef50b8e5ee8",
+    "timestamp": "2025-12-01 20:46:58.281628",
+    "report_generated": false
   }
 ]
