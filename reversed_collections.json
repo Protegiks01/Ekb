@@ -1498,5 +1498,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_60a5c9e5-bf4f-4b0f-a13f-339ff31a34b9",
     "timestamp": "2025-12-01 17:49:15.687092",
     "report_generated": false
+  },
+  {
+    "question": "Are there scenarios where wrapped addition causes time info for one pool to be stored in another pool's reward rates region?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a6cb7add-60d8-4bc2-b463-8666abdb78d2",
+    "timestamp": "2025-12-01 17:50:35.331623",
+    "report_generated": false
+  },
+  {
+    "question": "If poolId + TIME_BITMAPS_OFFSET wraps past type(uint256).max, could it collide with Solidity's standard storage layout (slots 0-N)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_59863541-a493-44c3-a53f-6cc83808f706",
+    "timestamp": "2025-12-01 17:50:48.556288",
+    "report_generated": false
+  },
+  {
+    "question": "Can wrapping behavior cause REWARD_RATES_BEFORE_OFFSET storage to wrap around and overwrite pool state at low slot numbers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aac33c20-f373-49a6-b0b0-4b326cc4c025",
+    "timestamp": "2025-12-01 17:51:02.759147",
+    "report_generated": false
+  },
+  {
+    "question": "Does the EVM's modulo 2^256 arithmetic in all add operations create a circular storage space where high addresses wrap to low addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f10ddcc9-39c5-4a47-b38c-a12a7eada177",
+    "timestamp": "2025-12-01 17:51:17.244449",
+    "report_generated": false
+  },
+  {
+    "question": "Can the deterministic nature of ORDER_STATE_OFFSET be exploited to predict order storage locations and cause intentional collisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_251bba72-e24c-4069-a0f5-caa4370ea811",
+    "timestamp": "2025-12-01 17:51:32.275768",
+    "report_generated": false
+  },
+  {
+    "question": "What prevents birthday attack scenarios where 2^128 orders could statistically produce hash collisions in the order state slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5cacc54d-c0f0-4a7d-8154-404ff2e8cde6",
+    "timestamp": "2025-12-01 17:51:48.577956",
+    "report_generated": false
+  },
+  {
+    "question": "Is there validation to prevent owner address of 0x0 or salt of 0x0 from creating predictable or colliding hash values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17b89504-13c8-41d9-953c-99ba076463f7",
+    "timestamp": "2025-12-01 17:52:06.100274",
+    "report_generated": false
+  },
+  {
+    "question": "Could a malicious user deliberately choose salt values to maximize collision probability with existing orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d938cbf-8bf2-4f5b-9609-43d5e2d20851",
+    "timestamp": "2025-12-01 17:52:26.442762",
+    "report_generated": false
+  },
+  {
+    "question": "Does the 96-byte input to keccak256 (owner:32, salt:32, orderId:32) provide sufficient collision resistance, or could preimage attacks be feasible?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_20b838e4-9275-42e6-b0a6-6f3fe257e3b8",
+    "timestamp": "2025-12-01 17:52:47.910542",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a possibility of finding an (owner, salt, orderId) combination where keccak256 + ORDER_STATE_OFFSET equals a pool storage slot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d88e1b90-e591-46bc-8ccf-59a90fda5b91",
+    "timestamp": "2025-12-01 17:53:10.712276",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker find two different (owner, salt, orderId) tuples that produce the same keccak256 hash, causing order state collisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8be7f258-a723-41d8-af21-07bdda37bc4b",
+    "timestamp": "2025-12-01 17:53:34.053238",
+    "report_generated": false
+  },
+  {
+    "question": "Does the system handle the case where type(uint52).max time bitmaps are allocated without exceeding available storage space?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8952d864-589f-428c-b1aa-e9b52f102fd8",
+    "timestamp": "2025-12-01 17:53:59.587307",
+    "report_generated": false
+  },
+  {
+    "question": "When REWARD_RATES_BEFORE_OFFSET + 2 * type(uint64).max is added to poolId, could this exceed type(uint256).max for certain poolId values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2f2d648-249a-470e-af66-b6319701f468",
+    "timestamp": "2025-12-01 17:54:28.486021",
+    "report_generated": false
+  },
+  {
+    "question": "What prevents someone from using a time value greater than type(uint64).max, potentially accessing slots beyond the intended TIME_INFOS range?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9a56de64-3159-44b5-bfac-6cf3bbd12c2a",
+    "timestamp": "2025-12-01 17:55:00.616584",
+    "report_generated": false
+  },
+  {
+    "question": "Are there boundary conditions when time approaches type(uint64).max that could cause unexpected behavior given the comment about type(uint64).max range?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d4923af-5dce-4fa7-ad15-e588874ad188",
+    "timestamp": "2025-12-01 17:55:31.074697",
+    "report_generated": false
+  },
+  {
+    "question": "If poolId is set to type(uint256).max - 1, do any of the offset additions result in wrapping to small slot numbers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19bcf879-9648-4ac5-bcea-c3654926061e",
+    "timestamp": "2025-12-01 17:56:04.336199",
+    "report_generated": false
+  },
+  {
+    "question": "Can poolRewardRatesBeforeSlot handle time = type(uint256).max / 2 without the mul(time, 2) operation overflowing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d39f36cc-4598-4409-a2ef-41b27ec09733",
+    "timestamp": "2025-12-01 17:56:37.431345",
+    "report_generated": false
+  },
+  {
+    "question": "What happens when time parameter equals type(uint256).max in poolTimeInfosSlot, causing TIME_INFOS_OFFSET + time to overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b22ef77-b75b-4ce6-b042-f76476a5f371",
+    "timestamp": "2025-12-01 17:57:11.872345",
+    "report_generated": false
+  },
+  {
+    "question": "Does the orderStateSlotFollowedByOrderRewardRateSnapshotSlot function's assumption of consecutive slots (state followed by snapshot) match TWAMM.sol's usage pattern?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a88d6623-7433-4416-bf23-6a912f14b170",
+    "timestamp": "2025-12-01 17:57:47.806221",
+    "report_generated": false
+  },
+  {
+    "question": "When TWAMM.sol constructs OrderId from poolId and other parameters, could it inadvertently create order IDs that hash to pool storage locations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_102cc5ce-ce4b-4fa6-bc29-7a1c30808b6b",
+    "timestamp": "2025-12-01 17:58:23.869669",
+    "report_generated": false
+  },
+  {
+    "question": "Could TWAMM.sol's pattern of reading first slot and calling .next() lead to incorrect data if the storage layout changes the consecutive slot assumption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d986a114-a24a-4397-b9d9-dbb3404eb8aa",
+    "timestamp": "2025-12-01 17:59:00.204494",
+    "report_generated": false
+  },
+  {
+    "question": "Is there validation in TWAMM.sol to ensure that time parameters passed to storage layout functions are within valid ranges (uint64 max for time infos)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e1c3fb5-0470-4f37-a57a-d1de8ade22b9",
+    "timestamp": "2025-12-01 17:59:36.092391",
+    "report_generated": false
+  },
+  {
+    "question": "Can race conditions occur if TWAMM.sol accesses poolTimeInfosSlot for the same pool and time from multiple transactions simultaneously?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a70bb17f-c521-4a0c-bb2e-7a09c3c49e31",
+    "timestamp": "2025-12-01 18:00:11.647315",
+    "report_generated": false
+  },
+  {
+    "question": "Does the assumption that reward rates occupy exactly 2 consecutive slots hold under all circumstances when TWAMM.sol uses storeTwo/loadTwo operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_187f06fb-ef6e-4d56-9f48-dde35d941975",
+    "timestamp": "2025-12-01 18:00:45.716618",
+    "report_generated": false
+  },
+  {
+    "question": "When TWAMM.sol calls poolRewardRatesBeforeSlot with arbitrary time values, could it access slots reserved for other pool data structures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1028eac4-2191-493d-a198-e7b53800a678",
+    "timestamp": "2025-12-01 18:01:20.301158",
+    "report_generated": false
   }
 ]
