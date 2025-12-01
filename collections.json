@@ -2848,5 +2848,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f585d9a3-a3db-4fb8-a7eb-96b49d060cbd",
     "timestamp": "2025-12-01 19:37:57.969866",
     "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 297-300, maxLiquidity per tick is enforced. If multiple positions are added simultaneously in separate transactions at the same tick, can they individually pass the check but collectively exceed maxLiquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e1b06ee7-0f58-4314-9353-8936b9634914",
+    "timestamp": "2025-12-01 19:39:17.038635",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 302-316, tick bitmap is flipped when liquidity transitions between zero and non-zero. If flipTick is called when liquidity is already non-zero, can bitmap corruption occur, making the tick appear uninitialized?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_11c9d1c6-58bc-48bd-bbfc-91e301bc8a09",
+    "timestamp": "2025-12-01 19:39:30.115701",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 309-315, fees per liquidity outside slots are initialized based on liquidityNetNext. If the assembly value v is computed incorrectly (line 310), can these slots be initialized to wrong values, corrupting all position fee calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d1b98a9-4c49-403f-9c39-33a5e40e9aa5",
+    "timestamp": "2025-12-01 19:39:43.535017",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 50-61, registerExtension validates call points using addressToCallPoints. If an attacker registers an extension that returns valid but malicious call points, can they bypass extension isolation through crafted call point addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e9d7624-4683-46ec-8966-57b81af1d01d",
+    "timestamp": "2025-12-01 19:39:58.530956",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 55-56, the function checks if extension is already registered. If the storage slot calculation in CoreStorageLayout.isExtensionRegisteredSlot has a collision vulnerability, can an attacker overwrite existing extension registration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68eda5d5-0c81-4927-8cb9-0b6f8f6fff49",
+    "timestamp": "2025-12-01 19:40:13.503825",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 83, maybeCallBeforeInitializePool is called before pool state is written. If the extension reenters initializePool through this callback, can it read uninitialized pool state and make decisions based on stale data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29ffa542-6ff0-4fcb-95ff-245d4c207983",
+    "timestamp": "2025-12-01 19:40:30.187734",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 100, maybeCallAfterInitializePool is called after the pool is initialized. If this extension call reverts, does the pool remain initialized but in an inconsistent state, violating extension isolation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b9984114-30c1-479a-90e5-fa022d6588e5",
+    "timestamp": "2025-12-01 19:40:47.652852",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 367-368, extension beforeUpdatePosition is called before position updates. If the extension updates position state through reentrancy, can liquidityDelta calculations become desynchronized from actual liquidity changes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8b5acf55-bbcd-4089-8f86-87d89c93a31e",
+    "timestamp": "2025-12-01 19:41:07.391940",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 528, maybeCallBeforeSwap is called before swap execution. If the extension manipulates pool state (fees, liquidity) through accumulateAsFees, can it frontrun the swap to gain unfair advantage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_adab62e0-a2db-4ba4-944e-6680f260b53b",
+    "timestamp": "2025-12-01 19:41:28.509433",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 846, maybeCallAfterSwap is called with balanceUpdate and stateAfter. If the extension reenters to perform another swap, can the nested swap's balanceUpdate corrupt the outer swap's delta tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5c881344-bdc1-4f66-b4cd-e2b93edc5ea5",
+    "timestamp": "2025-12-01 19:41:52.154377",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 469, maybeCallBeforeCollectFees is called before fee collection. If the extension artificially increases fees per liquidity through accumulateAsFees during this callback, can the position claim inflated fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5be9ba4-f795-408b-a093-5319e6016cdd",
+    "timestamp": "2025-12-01 19:42:17.333093",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 502, maybeCallAfterCollectFees receives the collected amounts. If the extension performs token operations based on these amounts, can reentrancy cause double-collection before flash accounting settles?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6b6e0023-3923-47c3-90f5-b7ebc5d884b8",
+    "timestamp": "2025-12-01 19:42:43.014946",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 446-447, maybeCallAfterUpdatePosition is called with position update details. If the extension stores these details and the position update is later reverted, can the extension's state become inconsistent with core state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2df9ebcf-4ac1-4cc2-85ce-cbc59ce34004",
+    "timestamp": "2025-12-01 19:43:09.930174",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 63-69, readPoolState and writePoolState use CoreStorageLayout slots. If the PoolId value exceeds expected bounds, can storage slot calculation overflow and corrupt unrelated storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f78aac3b-154e-47aa-ac75-9427e6fa6939",
+    "timestamp": "2025-12-01 19:43:37.584013",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 139-169, updateSavedBalances uses extensive assembly for storage operations. If the calldatacopy at line 157 copies more than 96 bytes, can it overwrite the computed storage slot, causing storage corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd69edb7-fdbc-4720-b0b6-a65cb98215b1",
+    "timestamp": "2025-12-01 19:44:06.367840",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 236-240, assembly is used to cast amounts to uint256. If _amount0 or _amount1 are passed as negative values through ABI manipulation, can the assembly casting produce incorrect uint256 values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57fcf4fe-efce-4713-bdb5-88799cd4b284",
+    "timestamp": "2025-12-01 19:44:36.898945",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 247-250, assembly is used to cast liquidity from uint128 to uint256. If the _liquidity value has dirty upper bits, can the assembly load produce incorrect liquidity values for fee calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bbfd225c-2ee2-4cbc-bbb1-5ca0907030ef",
+    "timestamp": "2025-12-01 19:45:08.263098",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 383-385, assembly is used to set position storage slot. If the positionSlot calculation is incorrect, can positions be stored at wrong slots, allowing attackers to modify other users' positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_88f89d42-9057-4c47-80b4-a54b251effce",
+    "timestamp": "2025-12-01 19:45:40.754036",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 454-457, assembly is used to pack and store extraData. If _extraData has non-zero upper bits, can the bit manipulation at line 459 corrupt other parts of the position storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f41be52a-2fa3-4827-a897-d59e4045d6ac",
+    "timestamp": "2025-12-01 19:46:14.100284",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 515-521, swap parameters are loaded from calldata using assembly. If calldataload reads beyond calldata bounds, can uninitialized memory be interpreted as swap parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a438787-3563-41c0-9b03-41dcabf7911a",
+    "timestamp": "2025-12-01 19:46:47.390977",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 548-550, assembly is used to compute XOR for direction determination. If isToken1 or isExactOut have dirty upper bits, can the XOR produce incorrect direction, swapping in the wrong direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a108930a-17cd-4275-8a8a-1e15d8753134",
+    "timestamp": "2025-12-01 19:47:22.750922",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 630-632, assembly is used to cast amountRemaining to priceImpactAmount. If amountRemaining is exactly type(int128).max + 1, can the cast produce incorrect uint128 values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f490afb1-0bef-4e34-bfdf-399f482ead6e",
+    "timestamp": "2025-12-01 19:47:59.428866",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 677-694, assembly is used for multiple calculations in the hitLimit branch. If intermediate values overflow 256 bits during calculations, can silent truncation cause incorrect swap amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ab28d71-2e56-47ef-84db-04cb9e7f07f8",
+    "timestamp": "2025-12-01 19:48:35.832964",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 173-216, _getPoolFeesPerLiquidityInside calculates fees based on tick position. If tick equals tickLower exactly, which branch is taken (line 198 or 201), and can off-by-one errors cause incorrect fee attribution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a21681e9-d9ec-4640-8b8e-713d44cc343f",
+    "timestamp": "2025-12-01 19:49:13.119407",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 197-215, unchecked subtraction is used for fee calculations. If upper0/upper1 are manipulated to be less than lower0/lower1 through extension attacks, can underflow produce massive fake fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd836e4c-268c-4b0e-ac33-4d884876b60f",
+    "timestamp": "2025-12-01 19:49:49.125651",
+    "report_generated": false
   }
 ]
