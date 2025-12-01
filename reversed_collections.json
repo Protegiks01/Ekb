@@ -3148,5 +3148,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_01575bf6-6145-4bc1-b84e-7b7d2d148d96",
     "timestamp": "2025-12-01 20:22:21.459080",
     "report_generated": false
+  },
+  {
+    "question": "If delta calculations revert with Amount0DeltaOverflow or Amount1DeltaOverflow errors, can attackers exploit this to prevent specific price ranges from being used, fragmenting liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6a46dafe-50bd-4949-a964-05ecf6f3c5b7",
+    "timestamp": "2025-12-01 20:23:49.870162",
+    "report_generated": false
+  },
+  {
+    "question": "The `sortAndConvertToFixedSqrtRatios()` function is called before every delta calculation. Can repeated calls with already-sorted values waste gas unnecessarily, enabling griefing attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9547c1e4-adbf-4a38-84df-f6fcfdbf2303",
+    "timestamp": "2025-12-01 20:24:03.328425",
+    "report_generated": false
+  },
+  {
+    "question": "When positions span very large price ranges (requiring both token0 and token1 deltas), can the combined gas cost of multiple delta calculations exceed block gas limits, preventing position withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b866685e-4b32-4ba2-be19-e21e868b400b",
+    "timestamp": "2025-12-01 20:24:17.577503",
+    "report_generated": false
+  },
+  {
+    "question": "Delta functions perform expensive fixed-point operations. Can an attacker craft inputs that maximize gas consumption in delta calculations to DOS swap or position operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c853da2b-a37f-4594-9ea8-538277cf4f56",
+    "timestamp": "2025-12-01 20:24:32.041186",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit delta calculation rounding to create a scenario where taking tokens and settling tokens don't balance exactly, bypassing flash accounting checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f3f9d4e-c7cb-4a76-aa2e-21159e7ffe59",
+    "timestamp": "2025-12-01 20:24:47.592946",
+    "report_generated": false
+  },
+  {
+    "question": "If delta calculations are incorrect by even 1 wei, can this be exploited through flash loans that borrow maximum amounts and repay with the rounded-down delta values, extracting protocol funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7fad3699-e058-4814-b8a6-d76b491b5589",
+    "timestamp": "2025-12-01 20:25:04.244123",
+    "report_generated": false
+  },
+  {
+    "question": "Core.sol's flash accounting tracks deltas as int256. Can conversion from delta function uint128 results to int256 cause overflow when many large operations are batched together?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b37b7e9e-ff0b-4c34-943f-c481fff3de26",
+    "timestamp": "2025-12-01 20:25:22.553577",
+    "report_generated": false
+  },
+  {
+    "question": "When multiple swaps or position operations occur in a single lock context, delta calculations are summed. Can rounding errors accumulate to cause the final settlement check to fail even for valid operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c51d2f89-5afc-48ed-915e-f35346aa9822",
+    "timestamp": "2025-12-01 20:25:43.533698",
+    "report_generated": false
+  },
+  {
+    "question": "Delta calculations determine token amounts that must be settled in Core.sol's flash accounting. Can precision errors in delta functions cause slight imbalances that accumulate over many operations, eventually violating the flash accounting invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a4846582-8d9d-4dd1-8709-51d91f34029c",
+    "timestamp": "2025-12-01 20:26:05.944708",
+    "report_generated": false
+  },
+  {
+    "question": "When delta functions are called with very large liquidity values near uint128.max, can intermediate calculations overflow despite final results fitting in uint128?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18f8d3b2-834f-4018-ae0f-247b3ea47ec1",
+    "timestamp": "2025-12-01 20:26:28.623596",
+    "report_generated": false
+  },
+  {
+    "question": "If an attacker provides `liquidity = 1` (minimum non-zero value), can delta functions return zero due to rounding down, allowing positions to be created that can't be withdrawn?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_61d36964-5acf-4904-87aa-8b47cc0ebaae",
+    "timestamp": "2025-12-01 20:26:53.473323",
+    "report_generated": false
+  },
+  {
+    "question": "When `sqrtRatioLower` is MIN_SQRT_RATIO_RAW and `sqrtRatioUpper` is MAX_SQRT_RATIO_RAW (maximum price range), can delta calculations overflow or produce incorrect amounts that violate pool solvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f79f29f1-df52-4d1c-862f-8b39ea185566",
+    "timestamp": "2025-12-01 20:27:18.723595",
+    "report_generated": false
+  },
+  {
+    "question": "If `liquidity` is type(uint128).max and both sqrtRatio values are at their maximum, can the `shl(128, liquidity)` operation combined with multiplication cause overflow that bypasses checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c9d8e584-c661-4fac-ba22-df12c6918508",
+    "timestamp": "2025-12-01 20:27:45.206896",
+    "report_generated": false
+  },
+  {
+    "question": "What happens in `amount0DeltaSorted()` when `sqrtRatioLower` equals `sqrtRatioUpper`? Can this cause division by zero or return incorrect zero amounts even when liquidity is substantial?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_012cd8a3-e2ea-4067-882b-f7722ded3fba",
+    "timestamp": "2025-12-01 20:28:13.136777",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit the transition between different SqrtRatio encoding formats (0.94 vs 32.62 vs 64.30) to cause precision loss in delta calculations that favors their positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8cabeb21-5dbe-4176-abcb-bff03c22680f",
+    "timestamp": "2025-12-01 20:28:42.238817",
+    "report_generated": false
+  },
+  {
+    "question": "When sqrtRatio values are near MIN_SQRT_RATIO or MAX_SQRT_RATIO, can fixed-point conversions lose precision and cause delta calculations to be systematically biased in one direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d970b5bb-065a-4fe5-9435-f784cd068352",
+    "timestamp": "2025-12-01 20:29:11.947651",
+    "report_generated": false
+  },
+  {
+    "question": "For positions with very small liquidity values, can delta calculations return zero amounts due to precision loss, allowing attackers to create 'dust' positions that can't be withdrawn but still occupy storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_695a0faa-e7b9-449b-a2a7-35f5a54550a5",
+    "timestamp": "2025-12-01 20:29:43.471566",
+    "report_generated": false
+  },
+  {
+    "question": "When price ranges are very narrow (sqrtRatioUpper - sqrtRatioLower ≈ 0), can delta functions return zero amounts even for substantial liquidity, preventing users from withdrawing positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0024d81a-bfaa-455b-b403-fb3bf68396a5",
+    "timestamp": "2025-12-01 20:30:15.782581",
+    "report_generated": false
+  },
+  {
+    "question": "Delta functions perform multiple divisions (by sqrtRatioUpper, sqrtRatioLower, and 2^128). Can the cumulative precision loss from these operations be exploited through carefully chosen liquidity amounts to extract value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eec20ede-cffd-4726-9da7-e81be62ad47e",
+    "timestamp": "2025-12-01 20:30:48.421362",
+    "report_generated": false
+  },
+  {
+    "question": "FixedPointMathLib's `fullMulDivN()` divides by 2^N. Can the N=128 parameter in `amount1DeltaSorted()` cause precision loss that compounds over many operations, eventually leading to pool insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9290928d-fff9-4ad5-a281-8c762234e298",
+    "timestamp": "2025-12-01 20:31:21.994272",
+    "report_generated": false
+  },
+  {
+    "question": "The `rawDiv()` function is used in `amount0DeltaSorted()` line 58. Can this unchecked division cause incorrect results when sqrtRatioLower is very small, leading to massive token amount calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91280972-9a51-4266-84e9-8f0371052523",
+    "timestamp": "2025-12-01 20:31:56.579780",
+    "report_generated": false
+  },
+  {
+    "question": "FixedPointMathLib functions are assumed to handle large values correctly. Can edge cases with maximum uint256 values cause these functions to return incorrect results that delta functions don't validate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e1f4333e-9a86-4192-8b7b-d143a3f5c96e",
+    "timestamp": "2025-12-01 20:32:32.466876",
+    "report_generated": false
+  },
+  {
+    "question": "The `fullMulDivUnchecked()` function is used when roundUp is false. If this function has different overflow behavior than the checked version, can attackers exploit the difference to manipulate delta calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67280d23-042f-45f4-86cb-c5da658a393b",
+    "timestamp": "2025-12-01 20:33:09.121953",
+    "report_generated": false
+  },
+  {
+    "question": "Delta functions rely on `FixedPointMathLib.fullMulDivUp()` and `fullMulDivN()`. Can bugs or precision issues in these external library functions propagate to cause incorrect token amounts in Ekubo's core operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a70b7c8-ef99-4ac3-8313-c66e094e1608",
+    "timestamp": "2025-12-01 20:33:46.847634",
+    "report_generated": false
+  },
+  {
+    "question": "When positions are minted vs burned, opposite rounding directions are used. Can the asymmetry be exploited by repeatedly minting and burning positions to extract value from rounding differences?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_03fa5c01-93cb-46cf-a9e5-53c376c2ec6d",
+    "timestamp": "2025-12-01 20:34:23.479544",
+    "report_generated": false
   }
 ]
