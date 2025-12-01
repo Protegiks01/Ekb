@@ -898,5 +898,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5af3f2e8-775e-4dc7-bee0-45ee0eb92e15",
     "timestamp": "2025-12-01 17:06:35.269581",
     "report_generated": false
+  },
+  {
+    "question": "In `collectFees` (L469) and (L502), can an extension callback trigger fee collection on other positions or pools, enabling fee theft through reentrancy?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_068451dd-32e4-4e66-adfb-1278e9a24731",
+    "timestamp": "2025-12-01 17:07:54.342456",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L528) and (L846), can an extension callback perform a nested swap on the same pool, causing tick crossing logic to become inconsistent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae184d93-b3d9-460b-ae37-e336b7fbf231",
+    "timestamp": "2025-12-01 17:08:07.576777",
+    "report_generated": false
+  },
+  {
+    "question": "In `accumulateAsFees` (L228), can an extension recursively call `accumulateAsFees` before the initial call completes, leading to incorrect fee accumulation or debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_490d64bd-783b-4ad3-b8f0-ab2d6eeb58d8",
+    "timestamp": "2025-12-01 17:08:21.005419",
+    "report_generated": false
+  },
+  {
+    "question": "If an extension's callback fails or reverts, do the Core functions properly rollback state changes, or could partial updates remain committed causing inconsistencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c3cd44c-6e1b-43ed-9eaf-3355553a0e2c",
+    "timestamp": "2025-12-01 17:08:36.065141",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L440), does the `_updatePairDebtWithNative` call correctly update debt tracking such that flash accounting settlement at lock exit verifies the position update was properly paid?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5c932eaf-3776-4dd7-a6a0-527ef11468da",
+    "timestamp": "2025-12-01 17:08:51.258810",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L834), does the debt update ensure that swap amounts are correctly tracked in flash accounting,",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ddab52f-0753-4ffc-8ff5-72941067db1c",
+    "timestamp": "2025-12-01 17:09:07.124779",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` function (lines 74-117), the bitmap storage slot is calculated as `StorageSlot.wrap(bytes32(uint256(id) + 1 + word))` in an unchecked block (line 81). Can an attacker craft a DropKey with a specific `owner`, `token`, and `root` combination that causes `uint256(id) + 1 + word` to overflow, wrapping around to collide with another drop's storage slot or the drop state slot itself, allowing them to mark arbitrary claims as already claimed or corrupt another drop's bitmap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd15fbd4-7e41-4100-85cf-ee8f23c70aae",
+    "timestamp": "2025-12-01 17:09:24.877989",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` (line 78), `IncentivesLib.claimIndexToStorageIndex()` computes `(word, bit) = (index >> 8, uint8(index % 256))`. If a malicious merkle tree includes a ClaimKey with `index = type(uint256).max`, does the `word` calculation overflow or produce an astronomically large value that could collide with unrelated storage slots when added to the dropId in line 81?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ea98b768-cadf-4b3f-bfbd-18d60538fcbd",
+    "timestamp": "2025-12-01 17:09:44.283715",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol, the drop state is stored at slot `bytes32 dropId` (line 26, 55, 93), while bitmaps start at `dropId + 1 + word`. Can two different DropKeys produce `dropId` values that differ by exactly `2^256 - 1 - word` such that the bitmap slot of drop A collides with the state slot of drop B, allowing an attacker to corrupt funded/claimed amounts by claiming from drop A?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2b61cce1-299f-44c2-b13b-5b20771836ea",
+    "timestamp": "2025-12-01 17:10:05.740956",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` (lines 86-88), the merkle proof is verified using `MerkleProofLib.verify(proof, key.root, leaf)` where `leaf = c.toClaimId()`. The `toClaimId()` function in claimKey.sol (lines 19-23) hashes only 96 bytes `(index, account, amount)` without including the DropKey. Can an attacker reuse a valid proof from one drop (with root R1) to claim from a different drop that happens to have the same root R1 but different owner/token, effectively stealing funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_021cc3ce-be7b-4317-a3ec-1244b17dab1b",
+    "timestamp": "2025-12-01 17:10:29.504436",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` (line 87), if `ClaimKey.account` has dirty upper bits (non-zero bits above address space), does `toClaimId()` in claimKey.sol (line 22) produce a different hash than intended, potentially allowing proof verification to pass with manipulated account addresses that don't match the merkle tree?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_40f61722-9d83-4f73-8b0e-81b619353a11",
+    "timestamp": "2025-12-01 17:10:54.877356",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` (line 88), if the merkle proof verification succeeds but the `ClaimKey.amount` is zero, the function will still mark the index as claimed (line 111-114) without transferring any tokens. Can an attacker DoS legitimate claims by pre-claiming all zero-amount indices in the merkle tree, preventing future updates to those bitmap positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_08b52dc0-8e13-4a41-a337-6e0806bff2ae",
+    "timestamp": "2025-12-01 17:11:22.068159",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `fund()` (lines 20-42), tokens are transferred AFTER updating storage (line 39 executes after line 36's sstore). If `key.token` is a malicious ERC20 that reenters `claim()` during the `safeTransferFrom` callback, can an attacker claim tokens before the `funded` amount is actually incremented, allowing them to claim more than the old funded amount permits, bypassing the `remaining >= c.amount` check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c072e16-2ece-44cb-98ac-66a18987e6e7",
+    "timestamp": "2025-12-01 17:11:49.681836",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `refund()` (lines 45-71), the `funded` amount is set to `claimed` amount (line 61) and then tokens are transferred (line 68). If `key.token` reenters `refund()` during the transfer, the second call will see `refundAmount = 0` (line 58) since funded already equals claimed. However, can the token reenter `claim()` during the refund transfer and claim tokens that are currently being refunded, causing the final transfer to fail due to insufficient balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91d3fb7d-54fa-41ff-8d24-9fbe0c7ac571",
+    "timestamp": "2025-12-01 17:12:18.281674",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `refund()` (line 68), `SafeTransferLib.safeTransfer(key.token, key.owner, refundAmount)` transfers the remaining balance to the owner. If `key.owner` is a malicious contract that reenters `fund()` during the receive callback, can it re-fund the drop with a `minimum` value that causes `fundedAmount` calculation (line 31) to underflow or behave unexpectedly, since the drop's funded amount was just set to claimed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7262654d-ea00-4c68-bace-e704e1e8d02d",
+    "timestamp": "2025-12-01 17:12:47.652768",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` (line 103), `dropState.claimed() + c.amount` is computed in an unchecked context (the setClaimed function uses assembly). If multiple claims are processed in quick succession via multicall and the sum of `c.amount` values exceeds `type(uint128).max`, can the claimed amount wrap around to a small value, allowing unlimited claims from the drop?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6bd068a7-8ca0-420e-b599-fadf1ccfe24e",
+    "timestamp": "2025-12-01 17:13:18.851813",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` (line 98), `remaining < c.amount` reverts with InsufficientFunds. However, the calculation `dropState.getRemaining()` in dropState.sol (line 53) uses unchecked subtraction `funded() - claimed()`. If through some storage corruption claimed > funded, does this wrap to a huge positive value, allowing claims that should fail to succeed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6c28f06f-5f89-48f3-982b-ccc0f9a12840",
+    "timestamp": "2025-12-01 17:13:50.420003",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `fund()` (line 31), `fundedAmount = minimum - currentFunded` assumes `currentFunded < minimum`. If an attacker first funds with `minimum = type(uint128).max`, then calls fund again with `minimum = 0`, does the condition on line 30 fail to trigger (since currentFunded is not < 0), but if it did trigger, would line 31 underflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d259318-4bf4-4b4f-8ab7-96bd5d0c0918",
+    "timestamp": "2025-12-01 17:14:23.640361",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` (lines 83-84), the bitmap is checked with `bitmap.isSet(bit)` and reverts if already set. However, the bitmap update (lines 111-114) happens AFTER the token transfer (line 116). If the token transfer reenters `claim()` with the same ClaimKey, the second call will see the bitmap not yet set and pass the check on line 84, allowing double-claiming of the same index.",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_084c21d3-a6a5-495f-831b-3d54b0c9179f",
+    "timestamp": "2025-12-01 17:14:58.044159",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` (line 111), `bitmap.toggle(bit)` flips the bit at position `bit`. If an attacker can claim the same index twice via reentrancy before the bitmap is stored, does toggling twice (bit XOR 1 XOR 1) leave the bit in its original state, allowing unlimited re-claims of the same index?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ced7189e-ccb5-42b0-b877-b0004ea5444c",
+    "timestamp": "2025-12-01 17:15:33.251036",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol, the bitmap for a drop is stored across multiple words starting at `dropId + 1 + word`. If a merkle tree has more than `256 * type(uint256).max` leaves (theoretical maximum indices), can the word calculation overflow such that indices with `word >= 2^96` wrap around and collide with earlier word slots, allowing an attacker to mark unrelated claims as claimed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e67ebf4e-66f5-420d-aea5-2cadec5c270b",
+    "timestamp": "2025-12-01 17:16:09.774078",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `fund()` (line 29), `currentFunded = dropState.funded()` loads the funded amount. If this is the first funding and no drop state exists (all-zero slot), does `funded()` return 0 correctly? Can an attacker exploit the initial state where pool state is uninitialized to bypass the `currentFunded < minimum` check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae5a7086-41e9-4a1d-ad00-a5f24a07b01b",
+    "timestamp": "2025-12-01 17:16:47.286303",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `fund()` (lines 30-41), if `currentFunded >= minimum`, the function returns early with `fundedAmount = 0` and no event is emitted. Can an attacker front-run a legitimate fund() call with their own fund() call that sets funded to exactly the victim's minimum, causing the victim's transaction to succeed but transfer 0 tokens, wasting their gas and potentially locking their approval?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c28779b3-77b5-4ea9-9ea9-a4baf4a86500",
+    "timestamp": "2025-12-01 17:17:21.683190",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `refund()` (line 58), `refundAmount = dropState.getRemaining()` calculates `funded - claimed`. If claimed == funded exactly, refundAmount is 0 and the transfer on line 68 succeeds but sends 0 tokens. However, the Refunded event is still emitted (line 70). Can this be used to grief the owner by forcing them to execute transactions that emit events but don't transfer anything?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1d7588f6-c4e1-41f7-bf59-dbbeb276d655",
+    "timestamp": "2025-12-01 17:17:54.095095",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` (line 97), the check `remaining < c.amount` ensures sufficient funds. However, if multiple claims are submitted simultaneously in the same block via different transactions, can they all pass this check if they read the same pre-state, then all update storage, causing the total claimed amount to exceed funded amount and violating the invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8dace19d-2f90-48f1-8ce8-e789c77bd195",
+    "timestamp": "2025-12-01 17:18:24.472110",
+    "report_generated": false
   }
 ]
