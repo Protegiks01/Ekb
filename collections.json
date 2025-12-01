@@ -2398,5 +2398,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_883572b9-e293-4703-aa85-24450fef925e",
     "timestamp": "2025-12-01 19:03:09.419707",
     "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 48-49, mint() is called before increaseSellAmount. If the mint transaction succeeds but increaseSellAmount fails, does the empty NFT remain in circulation, allowing future attackers to claim it and associate it with malicious orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2c35edcb-6c78-4134-bfde-12405fdf65cf",
+    "timestamp": "2025-12-01 19:04:31.436452",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol line 56, the authorizedForNft modifier checks _isApprovedOrOwner. Can an attacker exploit the ERC721 approval mechanism to gain temporary authorization, modify orders, and then revoke approval before the transaction completes, bypassing ownership checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f671f47a-6823-4766-83aa-22766c0ab8d3",
+    "timestamp": "2025-12-01 19:04:44.740392",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 107-114, collectProceeds uses authorizedForNft but allows arbitrary recipient addresses. Can an approved operator drain proceeds to their own address instead of the NFT owner, violating the position ownership invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f511aa1f-ede9-43ab-88dc-d1397457cf08",
+    "timestamp": "2025-12-01 19:04:58.382536",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 59-66, the realStart calculation uses max(block.timestamp, startTime). If an order's startTime is far in the future but block.timestamp is used, can an attacker create orders with incorrect duration calculations, leading to sale rate manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2075e0ed-3651-4321-8c33-219cf49d675d",
+    "timestamp": "2025-12-01 19:05:12.577581",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 62-64, the function reverts if endTime <= realStart. Can an attacker create orders with endTime equal to block.timestamp at the exact moment, bypassing this check through precise timing and causing division by zero in computeSaleRate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_359eeec3-5623-4c89-90b1-9367c91f0619",
+    "timestamp": "2025-12-01 19:05:27.830360",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol line 66, computeSaleRate divides amount by duration. If duration is extremely small (1 second), can the calculated saleRate exceed uint112 max even with the overflow check, leading to truncation and incorrect order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3052ef4e-26f9-411d-94b0-f4f57c6b337a",
+    "timestamp": "2025-12-01 19:05:44.661352",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 68-70, maxSaleRate provides slippage protection. Can an attacker manipulate block.timestamp through miner cooperation to make realStart smaller, increasing duration and bypassing maxSaleRate checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_460721dc-4315-460f-8215-029620909e49",
+    "timestamp": "2025-12-01 19:06:02.289433",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol line 66, the unchecked block wraps the saleRate calculation. If amount is type(uint128).max and duration is 1, does the left shift in computeSaleRate (amount << 32) cause silent overflow before division, resulting in incorrect sale rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f9d8993-fc1d-42de-9efc-458229e252ee",
+    "timestamp": "2025-12-01 19:06:22.779379",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 73-74, the lock function is called with encoded data. If the CORE contract's lock mechanism is reentered through a malicious token callback, can the locker ID be corrupted, allowing delta manipulation across multiple order operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4d48b670-cc26-43d4-a3f1-6318dc7f8cc7",
+    "timestamp": "2025-12-01 19:06:44.105100",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 134-175, handleLockData processes CALL_TYPE_CHANGE_SALE_RATE and CALL_TYPE_COLLECT_PROCEEDS. If an attacker can manipulate the callType through calldata injection, can they bypass authorization checks and execute unauthorized operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf7dae4d-70c2-47df-a445-e0eb03fe0626",
+    "timestamp": "2025-12-01 19:07:07.027130",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 138-142, updateSaleRate is called with SafeCastLib.toInt112(saleRateDelta). If saleRateDelta is exactly type(int112).min, can the safe cast succeed but cause underflow in the TWAMM extension, corrupting order state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_feffe9c6-3a71-422e-8fc5-bc18e0b3def8",
+    "timestamp": "2025-12-01 19:07:27.384954",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 144-158, the function checks if amount != 0 before processing tokens. If amount is 0 but the order state has been updated in CORE, can this lead to desynchronization between Orders.sol state and TWAMM extension state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b44630e4-0512-4d6d-aa0e-16a7c6ff78c2",
+    "timestamp": "2025-12-01 19:07:46.497472",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 146-151, native token transfers use SafeTransferLib.safeTransferETH. If msg.value is greater than the required amount, is the excess ETH permanently locked in the ACCOUNTANT contract, violating the flash accounting balance invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf538070-7af2-489c-9915-a70d976daf5c",
+    "timestamp": "2025-12-01 19:08:08.055930",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol line 142, CORE.updateSaleRate forwards the request to TWAMM_EXTENSION. If the TWAMM extension is malicious or compromised, can it return manipulated amount values that don't match the actual token transfers, breaking flash accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4e1bf29-1124-4be2-93e8-604fc1ad2055",
+    "timestamp": "2025-12-01 19:08:29.913426",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol line 165, CORE.collectProceeds retrieves proceeds from TWAMM. If virtual orders haven't been executed recently, can stale proceeds data lead to incorrect withdrawal amounts, allowing users to claim more proceeds than they should?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a093a42-7c66-4733-8dcc-47d562477166",
+    "timestamp": "2025-12-01 19:08:52.977611",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 122-128, executeVirtualOrdersAndGetCurrentOrderInfo calls TWAMM_EXTENSION directly without lock. Can this view function's return values be manipulated through TWAMM state updates between the call and subsequent transactions, leading to MEV exploitation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a5e5803e-446a-442e-828b-97906ac8bdca",
+    "timestamp": "2025-12-01 19:09:17.744212",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol line 127, the function uses bytes32(id) as the salt parameter. If two users on different chains create orders with the same ID, can cross-chain replay attacks occur if the TWAMM extension doesn't properly validate chain ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3b1b5030-7081-43a2-8a97-afa1140c5b52",
+    "timestamp": "2025-12-01 19:09:43.180427",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 83-94, decreaseSaleRate performs a negative cast: -int256(uint256(saleRateDecrease)). Can this cast overflow if saleRateDecrease equals type(uint112).max, leading to an incorrect positive delta and unauthorized token withdrawal?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_206b1982-39cd-4c48-9a1f-21c43fcb074c",
+    "timestamp": "2025-12-01 19:10:10.623452",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 147-148, ETH is transferred to ACCOUNTANT address for native token orders. If the ACCOUNTANT contract's receive function has reentrancy bugs, can an attacker reenter Orders.sol and manipulate order state before flash accounting settles?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4afa4cf-edb6-4fb0-b9b0-a6f2d4c1fc10",
+    "timestamp": "2025-12-01 19:10:41.296303",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol line 150, ACCOUNTANT.payFrom is called for ERC20 tokens. If the recipientOrPayer has malicious approval that revokes mid-transaction, can this cause the payFrom to fail silently, leaving deltas unbalanced?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e679b83-2878-42ca-bb20-ab9744bc5785",
+    "timestamp": "2025-12-01 19:11:12.236150",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 153-156, the withdrawal path uses unchecked math for amount casting. If -amount exceeds uint128 max due to precision issues in sale rate calculations, can this truncation cause users to receive less refund than owed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fcd95d2b-8aa1-4cfd-8a62-f53d6e6d74d2",
+    "timestamp": "2025-12-01 19:11:42.889316",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol line 168, ACCOUNTANT.withdraw is called for buy tokens. If the buy token is a malicious ERC777 with tokensReceived hooks, can the recipient reenter collectProceeds and drain all available proceeds before flash accounting completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a078204-be5b-4e24-a458-6bdbe608bceb",
+    "timestamp": "2025-12-01 19:12:13.438187",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 146-151, the code distinguishes between native token (NATIVE_TOKEN_ADDRESS) and ERC20 tokens. If NATIVE_TOKEN_ADDRESS is redefined or manipulated through storage collision, can attackers bypass payment requirements entirely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f821c84-9fda-4ea3-982f-e67549b2a29f",
+    "timestamp": "2025-12-01 19:12:45.693417",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol, the contract inherits PayableMulticallable. If an attacker uses multicall to chain multiple increaseSellAmount calls with the same NFT ID across different orders, can they bypass authorization checks through delegation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28eb8280-2736-4623-bdea-a7572674df94",
+    "timestamp": "2025-12-01 19:13:19.591770",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 98-104, decreaseSaleRate has two overloads with different recipient handling. Can an attacker exploit function selector collisions to call the wrong overload and redirect refunds to unauthorized addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_99182fcf-3dd1-48a6-9ffd-68344f689a6c",
+    "timestamp": "2025-12-01 19:13:54.679483",
+    "report_generated": false
   }
 ]
