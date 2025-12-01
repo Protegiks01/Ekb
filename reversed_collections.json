@@ -5548,5 +5548,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c3710ab9-2d43-4e7b-b1ff-2f455916e494",
     "timestamp": "2025-12-01 23:25:19.703626",
     "report_generated": false
+  },
+  {
+    "question": "Can the period alignment calculation at line 220 produce incorrect startTime values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3c363c3c-021d-4f2f-94ca-e0f0ecc3c53e",
+    "timestamp": "2025-12-01 23:26:49.962009",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if queryStartTime calculation underflows due to large numIntervals * period in line 211?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23f2c9ef-553f-4f8f-aaaf-5a1e020825fb",
+    "timestamp": "2025-12-01 23:27:03.428628",
+    "report_generated": false
+  },
+  {
+    "question": "Is there proper handling of timestamp wrap-around for uint64 casts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_145b14ab-f593-4ad1-a826-a190bb4d9281",
+    "timestamp": "2025-12-01 23:27:17.465614",
+    "report_generated": false
+  },
+  {
+    "question": "Can the multiplication (numIntervals - i) * period overflow for large values in line 34?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7ba6fef-6911-4eba-9a54-6d7da2890149",
+    "timestamp": "2025-12-01 23:27:31.582529",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if earliestObservationTime equals endTime exactly in line 207?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd0df893-2a4c-440b-a874-c00936c513c7",
+    "timestamp": "2025-12-01 23:27:47.264307",
+    "report_generated": false
+  },
+  {
+    "question": "Is there validation that block.timestamp hasn't been manipulated when used as endTime in line 274?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c5e8e9d3-9aa0-484f-95e0-0d20f9bb48b0",
+    "timestamp": "2025-12-01 23:28:03.680252",
+    "report_generated": false
+  },
+  {
+    "question": "Can the timestamp calculation in line 34 (endTime - (numIntervals - i) * period) underflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_758a5d7d-647e-4e0e-a45c-8da27cdf3c79",
+    "timestamp": "2025-12-01 23:28:20.926478",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if startTime is very close to endTime (difference of 1 second)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0ea4c0a6-44f7-42cc-b275-a98d3c4bd884",
+    "timestamp": "2025-12-01 23:28:40.075886",
+    "report_generated": false
+  },
+  {
+    "question": "Can endTime be set to a future timestamp causing extrapolateSnapshot to fail or return invalid data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2c88bd22-0099-436a-8fa7-979342d53494",
+    "timestamp": "2025-12-01 23:29:00.688633",
+    "report_generated": false
+  },
+  {
+    "question": "Is there adequate precision when dividing by (numIntervals - 1) * period in volatility calculations at line 258?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d79f486e-9416-43b3-b845-5c9a085524bf",
+    "timestamp": "2025-12-01 23:29:23.602242",
+    "report_generated": false
+  },
+  {
+    "question": "Can amount1Delta return values that cause downstream calculations to lose significant precision?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ddf6275d-761d-4a3d-8878-089560efd9d8",
+    "timestamp": "2025-12-01 23:29:45.834278",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if tickCumulativeEnd - tickCumulativeStart equals zero, making the tick average zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06d830d3-f03a-4b28-a5ba-d871c05ff695",
+    "timestamp": "2025-12-01 23:30:08.443296",
+    "report_generated": false
+  },
+  {
+    "question": "Can the left shift operation (<< 128) in line 102 overflow for large time differences?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5aff1ffd-6ce6-43a7-8003-6ef96208a6b6",
+    "timestamp": "2025-12-01 23:30:32.929378",
+    "report_generated": false
+  },
+  {
+    "question": "Is there precision loss in the tick subtraction (quote.tick - base.tick) for cross-token pairs in line 115?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6bd10236-e657-4a4f-b7a8-aa4d75f58c56",
+    "timestamp": "2025-12-01 23:30:58.313712",
+    "report_generated": false
+  },
+  {
+    "question": "Can the multiplication uint256(amountBase) * uint256(amountQuote) in line 115 overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_492df1e3-5eb5-4de3-9afc-cec85a2a8701",
+    "timestamp": "2025-12-01 23:31:22.971545",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if amountBase or amountQuote in lines 111-112 are zero or near-zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ee941ff-e4e8-462d-beac-9cf9ca772a2a",
+    "timestamp": "2025-12-01 23:31:48.750350",
+    "report_generated": false
+  },
+  {
+    "question": "Can the sqrt calculation in line 115 lose precision for very small or very large liquidity values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_167e5c2e-38ab-404e-b638-eb5ee8d7034e",
+    "timestamp": "2025-12-01 23:32:15.117264",
+    "report_generated": false
+  },
+  {
+    "question": "Is there risk of precision loss when calculating tick averages via division by time delta in line 105?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8f498061-9af1-4752-824a-2a64f1457d30",
+    "timestamp": "2025-12-01 23:32:42.441152",
+    "report_generated": false
+  },
+  {
+    "question": "Can the division in line 103 ((uint160(endTime - startTime) << 128) / difference) cause precision loss for small time periods?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d578b567-a828-42bd-a1da-52c6d1cfb0d9",
+    "timestamp": "2025-12-01 23:33:11.435657",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if the Oracle reverts during extrapolateSnapshot calls in nested cross-token calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1f62a13a-c9ed-440c-89ba-3d5dfb572770",
+    "timestamp": "2025-12-01 23:33:40.834079",
+    "report_generated": false
+  },
+  {
+    "question": "Can the Oracle's getEarliestSnapshotTimestamp be manipulated to cause incorrect data availability checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e30b1c8a-8735-4f08-b0c7-7bc58e23d1b2",
+    "timestamp": "2025-12-01 23:34:08.914623",
+    "report_generated": false
+  },
+  {
+    "question": "Is there protection against the Oracle returning stale or outdated snapshot data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a4188cba-ff46-4b97-a520-ef55d2787f4a",
+    "timestamp": "2025-12-01 23:34:37.551141",
+    "report_generated": false
+  },
+  {
+    "question": "Can getExtrapolatedSnapshotsForSortedTimestamps in the Oracle be manipulated to return inconsistent observations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f5342e4-e5f1-42e3-b1b5-36e933b5cd70",
+    "timestamp": "2025-12-01 23:35:05.914900",
+    "report_generated": false
+  },
+  {
+    "question": "What prevents the Oracle from returning extremely large secondsPerLiquidityCumulative differences causing liquidity calculation to round to zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_82ae043c-db5b-45b5-b13d-c774936fd14c",
+    "timestamp": "2025-12-01 23:35:31.798941",
+    "report_generated": false
+  },
+  {
+    "question": "Can the Oracle return observations with backwards-moving cumulative values that would underflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0eadff43-9ccc-4da6-a6b1-12d38284d63b",
+    "timestamp": "2025-12-01 23:35:59.601249",
+    "report_generated": false
   }
 ]
