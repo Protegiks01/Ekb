@@ -3298,5 +3298,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_03fa5c01-93cb-46cf-a9e5-53c376c2ec6d",
     "timestamp": "2025-12-01 20:34:23.479544",
     "report_generated": false
+  },
+  {
+    "question": "Rounding direction is determined by `isExactOut` in Core.sol swaps. Can an attacker construct complex multi-hop swaps through the Router that exploit rounding at each hop to extract value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e0c8181c-b74e-486b-98f0-278d7cc00f7c",
+    "timestamp": "2025-12-01 20:35:37.163571",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount1DeltaSorted()` roundUp logic uses `mulmod(difference, liquidityU256, 0x100000000000000000000000000000000)` to detect remainders. Can this modulo check miss cases where rounding is needed due to precision loss in earlier calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_01e67b8f-5285-4b05-a8b6-9328961ff21d",
+    "timestamp": "2025-12-01 20:35:50.748833",
+    "report_generated": false
+  },
+  {
+    "question": "When `roundUp` is true, `amount0DeltaSorted()` adds 1 if there's a remainder (line 47). Can this cause accumulated rounding errors over many tick crossings to eventually exceed the protocol fee cap, causing insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e098eb2-d941-4128-9d4f-2ad901e37430",
+    "timestamp": "2025-12-01 20:36:04.117155",
+    "report_generated": false
+  },
+  {
+    "question": "Delta functions accept a `roundUp` boolean that affects fee calculations. Can an attacker systematically choose swap and position parameters that always give them favorable rounding, accumulating profit over many transactions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7700f6d9-b31a-43f3-8b22-e0c0dfb56e4a",
+    "timestamp": "2025-12-01 20:36:18.320934",
+    "report_generated": false
+  },
+  {
+    "question": "The unchecked multiplication `liquidityX128 := shl(128, liquidity)` combined with fullMulDiv operations can produce intermediate values larger than uint256. Can this be exploited to drain pools through carefully crafted position sizes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_402274cb-766c-4092-8c30-7ed9b5bfd5e6",
+    "timestamp": "2025-12-01 20:36:33.235761",
+    "report_generated": false
+  },
+  {
+    "question": "In unchecked blocks, subtractions like `sqrtRatioUpper - sqrtRatioLower` can underflow. Can this be exploited if a bug in Core.sol or BasePositions.sol passes unsorted sqrtRatio values, causing catastrophic miscalculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d0717127-34e4-4156-b692-4aae24001c84",
+    "timestamp": "2025-12-01 20:36:51.110915",
+    "report_generated": false
+  },
+  {
+    "question": "All delta functions use `unchecked` blocks (lines 38-68, 84-117). Can the lack of overflow checks combined with extreme input values cause silent overflow that Core.sol doesn't detect until pools become insolvent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_006ed4b1-32ff-45c1-bdcc-4b9238fe88dc",
+    "timestamp": "2025-12-01 20:37:08.381765",
+    "report_generated": false
+  },
+  {
+    "question": "The `iszero(iszero(...))` pattern is used for boolean conversion in assembly. Can this pattern fail on non-standard EVM implementations or future EVM upgrades, causing incorrect rounding behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f9934289-855d-4323-b400-133ba8d18bbc",
+    "timestamp": "2025-12-01 20:37:28.157945",
+    "report_generated": false
+  },
+  {
+    "question": "Assembly blocks in delta functions use `shr(128, result)` for overflow detection. Can the compiler optimize this check away in certain contexts, or can unusual EVM behavior cause the check to be bypassed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a4315f1a-1684-4c9a-abef-0c594de56e9e",
+    "timestamp": "2025-12-01 20:37:49.657830",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly error handling in delta functions uses `mstore(0, ...)` and `revert(0x1c, 0x04)`. Can this revert mechanism be exploited if the caller has corrupted memory at slot 0, causing incorrect error signatures to be thrown?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2bcba5da-db24-429b-9b11-860ea15e3cd1",
+    "timestamp": "2025-12-01 20:38:13.293831",
+    "report_generated": false
+  },
+  {
+    "question": "In `amount0DeltaSorted()`, the assembly block computes `add(div(result0, sqrtRatioLower), iszero(iszero(mod(result0, sqrtRatioLower))))`. Can the division by a very small sqrtRatioLower consume excessive gas, causing out-of-gas errors during position withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d53c841a-2750-4776-9694-25899c0561ff",
+    "timestamp": "2025-12-01 20:38:36.829624",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly block in `sortAndConvertToFixedSqrtRatios()` uses `memory-safe` annotation. Can the EVM still corrupt memory outside declared bounds if the calculation produces unexpected values that write to unintended slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a8a32cf-1e6e-45ea-87dd-d434dc5a851c",
+    "timestamp": "2025-12-01 20:39:01.760624",
+    "report_generated": false
+  },
+  {
+    "question": "The SqrtRatio type uses bit masking with BIT_MASK (0xc00000000000000000000000). Can unclean upper bits in SqrtRatio values cause `toFixed()` to produce incorrect fixed-point numbers that delta functions then miscalculate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_669b0f7f-edd2-4312-9d59-32ebb3608fb4",
+    "timestamp": "2025-12-01 20:39:27.636711",
+    "report_generated": false
+  },
+  {
+    "question": "SqrtRatio has MIN_SQRT_RATIO and MAX_SQRT_RATIO bounds. If delta functions receive values outside these bounds that `isValid()` should have caught, can the fixed-point arithmetic overflow or produce negative results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8a21f185-4831-427c-b859-e57f2f20f97a",
+    "timestamp": "2025-12-01 20:39:55.203611",
+    "report_generated": false
+  },
+  {
+    "question": "The `toFixed()` function (sqrtRatio.sol line 102-106) performs bit manipulations `shl(add(2, shr(89, and(sqrtRatio, BIT_MASK))), ...)`. Can incorrect shift amounts cause the fixed-point value to be wildly incorrect, leading to massive token amount miscalculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_49b88643-3c88-4a48-9f30-59d2dc038803",
+    "timestamp": "2025-12-01 20:40:24.393733",
+    "report_generated": false
+  },
+  {
+    "question": "SqrtRatio values use different bit shifts based on magnitude (line 104 of sqrtRatio.sol). Can transitions between representation regions cause discontinuities in delta calculations, allowing attackers to extract value at format boundaries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_99c2cb5c-b3cf-4fe1-b557-9d7e174a9616",
+    "timestamp": "2025-12-01 20:40:54.590543",
+    "report_generated": false
+  },
+  {
+    "question": "The delta functions receive SqrtRatio custom types and convert them via `toFixed()`. Can the dynamic fixed-point representation (0.94, 0.126, 32.62, 64.30 formats based on MSB) cause precision loss that compounds during repeated operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12eb99a7-68cd-41c6-8196-e6ca2d72b11e",
+    "timestamp": "2025-12-01 20:41:26.331722",
+    "report_generated": false
+  },
+  {
+    "question": "In liquidity.sol, the `isPositive` flag controls rounding direction passed to delta functions. Can manipulation of liquidity delta sign be used to always get favorable rounding during position operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_035ea78e-cf12-4c0f-bb8d-498aa21ed969",
+    "timestamp": "2025-12-01 20:41:57.972691",
+    "report_generated": false
+  },
+  {
+    "question": "The `liquidityDeltaToAmountDelta()` function uses different delta calculation branches based on current price. Can an attacker sandwich attacks targeting positions at range boundaries to exploit the transition between branches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ad13c3f7-cfca-4d35-b383-122eab74ec58",
+    "timestamp": "2025-12-01 20:42:30.640010",
+    "report_generated": false
+  },
+  {
+    "question": "Liquidity.sol converts delta function uint128 results to int128 with sign adjustments (line 38-46). Can edge cases where deltas are exactly type(uint128).max cause overflow during int128 casting, resulting in incorrect signed amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e4ba96c-b20f-4fa2-938b-832a55247074",
+    "timestamp": "2025-12-01 20:43:04.310307",
+    "report_generated": false
+  },
+  {
+    "question": "In liquidity.sol lines 38-43, when `sqrtRatio <= sqrtRatioLower`, only token0 delta is calculated. Can an attacker exploit this by creating positions at boundaries where minimal sqrtRatio changes cause large shifts in required token amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_56bab91a-4e44-4ee7-98cb-08cef950a443",
+    "timestamp": "2025-12-01 20:43:39.211198",
+    "report_generated": false
+  },
+  {
+    "question": "The `liquidityDeltaToAmountDelta()` function in liquidity.sol (lines 22-54) calls `amount0Delta()` and `amount1Delta()` multiple times depending on price range. Can this multi-call pattern with different sqrtRatio parameters accumulate rounding errors that favor attackers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb973837-f0a0-41ab-beb2-78e8775ac11f",
+    "timestamp": "2025-12-01 20:44:14.991878",
+    "report_generated": false
+  },
+  {
+    "question": "When BasePositions.sol withdraws positions, it relies on delta functions for amount calculations. Can rounding direction inconsistencies cause users to receive slightly less than they deposited, accumulating losses over many position operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f03c0c7f-305d-4192-a112-5f075638b9f7",
+    "timestamp": "2025-12-01 20:44:51.574632",
+    "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol calculates position values using delta functions when sqrtRatio might be zero (uninitialized pool, line 56-57). Can this edge case cause delta functions to return incorrect amounts, leading to position minting with wrong token ratios?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e64ed0d-c4ea-43c8-89b0-8dddb4c55481",
+    "timestamp": "2025-12-01 20:45:27.824391",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol line 62, deltas are negated: `(uint128(-delta0), uint128(-delta1))`. If delta0 or delta1 is type(int128).min, can the negation overflow and wrap to the same negative value, causing incorrect principal calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e489ee41-361a-471f-afdf-f1ffc675d512",
+    "timestamp": "2025-12-01 20:46:05.580818",
+    "report_generated": false
   }
 ]
