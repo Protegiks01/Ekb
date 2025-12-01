@@ -148,5 +148,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2c17059-60b5-4cc8-995a-c52a99dc69f0",
     "timestamp": "2025-12-01 16:00:11.719108",
     "report_generated": false
+  },
+  {
+    "question": "The getter functions use assembly for gas optimization. Can the gas savings be exploited to make repeated state reads cheaper than storage writes, enabling DOS attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a5ad9573-162d-4027-bae0-aeb723b6f6a5",
+    "timestamp": "2025-12-01 16:07:52.571910",
+    "report_generated": false
+  },
+  {
+    "question": "The TwammPoolState uses a single bytes32 slot (uint32 + uint112 + uint112 = 256 bits exactly). Can this perfect packing cause issues if future upgrades need to add fields?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f661d37-a7c7-4926-8498-2077b8b8db34",
+    "timestamp": "2025-12-01 16:08:05.779658",
+    "report_generated": false
+  },
+  {
+    "question": "On chains with probabilistic finality, can block reorganizations cause TwammPoolState to be reverted after virtual orders execute, leading to inconsistent balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3ccd104d-f719-4de1-afdf-985b3b00aa29",
+    "timestamp": "2025-12-01 16:08:19.844332",
+    "report_generated": false
+  },
+  {
+    "question": "Can MEV searchers observe TwammPoolState updates in the mempool and front-run them to extract value from the predictable virtual order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb2a553c-7636-4567-a681-f779d4f0cfd5",
+    "timestamp": "2025-12-01 16:08:34.070634",
+    "report_generated": false
+  },
+  {
+    "question": "Can block producers censor transactions that update TwammPoolState, preventing virtual order execution and causing TWAMM users to receive worse prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75bcd458-af9a-4ec9-be41-0d2a1cb33fa6",
+    "timestamp": "2025-12-01 16:08:49.073352",
+    "report_generated": false
+  },
+  {
+    "question": "The uint112 sale rates support ~5e33 maximum value. Can realistic token amounts and order durations ever approach this limit, or is it effectively unlimited for practical purposes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_818f36c9-43a5-4a9c-a495-4c765567b893",
+    "timestamp": "2025-12-01 16:09:05.737480",
+    "report_generated": false
+  },
+  {
+    "question": "Can TwammPoolState sale rates be set to values so small that they round to zero in amount calculations, effectively freezing orders without allowing cancellation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1cff9792-e91f-44dc-8dc5-49dd6d96ced7",
+    "timestamp": "2025-12-01 16:09:24.439671",
+    "report_generated": false
+  },
+  {
+    "question": "There is no pause mechanism in TwammPoolState or TWAMM.sol. Can malicious state corruption be stopped before all funds are drained, or is there no emergency recovery path?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31ae4595-26c6-4736-9ffd-1185487d2db9",
+    "timestamp": "2025-12-01 16:09:43.531206",
+    "report_generated": false
+  },
+  {
+    "question": "If the TWAMM extension is upgraded or replaced, can the TwammPoolState for existing pools become orphaned or corrupted, locking user funds permanently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_914a5c12-2b63-4cba-a3d3-b41e7fd63f4e",
+    "timestamp": "2025-12-01 16:10:03.249295",
+    "report_generated": false
+  },
+  {
+    "question": "The TwammPoolState only stores the current sale rates. Can users query historical sale rates to detect manipulation, or is historical data unavailable, making attacks harder to detect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3ffaeb8-ebf1-4da3-a786-a9c478698f62",
+    "timestamp": "2025-12-01 16:10:25.726346",
+    "report_generated": false
+  },
+  {
+    "question": "While TwammPoolState is specific to TWAMM, can other extensions (Oracle, MEVCapture) observe this state and use it to manipulate their own behavior, indirectly affecting TWAMM users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ddf08811-16e2-444e-ada9-15d70c138d87",
+    "timestamp": "2025-12-01 16:10:47.303319",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker craft a TwammPoolState with sale rates that cause the execution loop to perform maximum iterations, reaching the block gas limit and preventing virtual order execution for legitimate users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_430bbd24-48ab-4273-964b-f665a1a56e55",
+    "timestamp": "2025-12-01 16:11:10.687311",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 441-515, if `amount0 != 0 && amount1 != 0` is false but one amount is non-zero, a single-sided swap occurs. Can the TwammPoolState sale rates be manipulated to force single-sided swaps when both should execute?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e0f529d-e2f6-4713-aab6-71409f945e6d",
+    "timestamp": "2025-12-01 16:11:35.949494",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 295, the state is written before calling `updateSavedBalances()` at line 324/333. Can this ordering allow an attacker to observe the new state via a view function call before balances are updated, exploiting the inconsistency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_61e38683-1953-4ad6-863b-28e6af552943",
+    "timestamp": "2025-12-01 16:12:02.379872",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 118-132, `_addConstrainSaleRateDelta()` enforces `MAX_ABS_VALUE_SALE_RATE_DELTA`. Can the sale rates in TwammPoolState exceed this limit through gradual accumulation, bypassing the per-update constraint?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc1e2ad3-1ca0-459c-a09d-ec96f45f64d8",
+    "timestamp": "2025-12-01 16:12:29.129728",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 430-436, `computeAmountFromSaleRate()` is called with `roundUp: false`. Can this consistent rounding down cause accumulated dust to remain in the pool, and can the dust be exploited to extract value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8c99b936-fe8d-4256-bace-7f4549f6527c",
+    "timestamp": "2025-12-01 16:12:58.392685",
+    "report_generated": false
+  },
+  {
+    "question": "The reward rates at TWAMM.sol line 519-535 are accumulated based on sale rates. Can small errors in sale rate extraction compound over many executions, causing reward rates to drift significantly from expected values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c4741b6-edce-4822-b0c8-90116574df46",
+    "timestamp": "2025-12-01 16:13:28.052138",
+    "report_generated": false
+  },
+  {
+    "question": "If both `saleRateToken0` and `saleRateToken1` are zero in TwammPoolState, does the execution loop at TWAMM.sol line 417-574 exit immediately, or does it waste gas iterating over time periods?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ac53fbf-0069-4f8b-a0c9-f4235cdc88b3",
+    "timestamp": "2025-12-01 16:13:59.538141",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 554-558, sale rates are updated when crossing time boundaries. Can misalignment between the TwammPoolState's lastVirtualOrderExecutionTime and the time bitmap boundaries cause sale rates to be applied at wrong times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ad8259be-36f7-46eb-905b-7104ffcf7ed6",
+    "timestamp": "2025-12-01 16:14:35.228715",
+    "report_generated": false
+  },
+  {
+    "question": "Conversely, can very large amounts over very short durations cause sale rates to exceed uint112.max, reverting order placement even when the total amount is valid?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_93094e97-8db5-447d-b5c4-7714f880104e",
+    "timestamp": "2025-12-01 16:15:06.517171",
+    "report_generated": false
+  },
+  {
+    "question": "The uint112 sale rates provide ~5e33 precision. Can this be insufficient for very small amounts over very long durations, causing sale rates to round down to zero and orders to never execute?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_818e6714-cc3a-4234-bd31-c838dceef7c2",
+    "timestamp": "2025-12-01 16:15:36.379706",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMMStorageLayout.sol line 34-36, `twammPoolStateSlot()` returns `StorageSlot.wrap(PoolId.unwrap(poolId))`. Can this direct casting cause storage collisions if PoolId values are not unique across all pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b95425f6-49a4-432f-bddd-3068f63de486",
+    "timestamp": "2025-12-01 16:16:06.617752",
+    "report_generated": false
+  },
+  {
+    "question": "The global using-for directive at lines 6-12 attaches functions to TwammPoolState. Can this cause unexpected behavior if TwammPoolState values are used in external libraries that don't expect these functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b95e1492-7c90-40e8-a0f6-a9ce4617129b",
+    "timestamp": "2025-12-01 16:16:38.099247",
+    "report_generated": false
+  },
+  {
+    "question": "The TwammPoolState is defined as `type TwammPoolState is bytes32` at line 4. Can unsafe unwrapping via `TwammPoolState.unwrap()` cause type confusion if the unwrapped value is used in contexts expecting bytes32?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_458611f4-8bc3-4d12-a504-dbe52eac10ae",
+    "timestamp": "2025-12-01 16:17:11.349238",
+    "report_generated": false
+  },
+  {
+    "question": "The file uses `pragma solidity >=0.8.30` and the project uses experimental Solidity 0.8.31. Can compiler bugs in the experimental version cause the bit manipulation assembly to produce incorrect bytecode?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91ca4382-5361-45eb-975c-c5244670f2f1",
+    "timestamp": "2025-12-01 16:17:46.031729",
+    "report_generated": false
   }
 ]
