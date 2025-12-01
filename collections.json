@@ -3898,5 +3898,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e1b5a4b-c638-43be-9833-110ef4cfe29f",
     "timestamp": "2025-12-01 20:58:12.539032",
     "report_generated": false
+  },
+  {
+    "question": "In BUYBACKS.roll(), if amountToSpend (line 103) is calculated from address(this).balance and someone sends ETH to BUYBACKS between withdrawProtocolFees and roll(), could orders be larger than fees withdrawn?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb350514-6f77-4909-809f-4a8ab4712cd3",
+    "timestamp": "2025-12-01 20:59:32.810496",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() calls at lines 74-75 don't check if BUYBACKS has sufficient allowance to spend tokens. If approveMax() wasn't called for a token, could roll() revert, bricking withdrawAndRoll?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e9238898-478a-4703-ac9f-b75739318ffe",
+    "timestamp": "2025-12-01 20:59:46.018696",
+    "report_generated": false
+  },
+  {
+    "question": "If BUYBACKS.roll() calls back into PositionsOwner via a malicious ORDERS contract, could this create a reentrancy loop that drains protocol fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f6962e7-a2fb-4644-a733-830732608dc5",
+    "timestamp": "2025-12-01 21:00:00.231262",
+    "report_generated": false
+  },
+  {
+    "question": "PositionsOwner inherits Multicallable (line 16). If an attacker crafts a multicall with multiple withdrawAndRoll calls for different token pairs, could this cause state conflicts in BUYBACKS.roll()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_542cbc47-c5ad-4be6-8161-c86c026044cd",
+    "timestamp": "2025-12-01 21:00:14.595135",
+    "report_generated": false
+  },
+  {
+    "question": "The Multicallable pattern allows batched calls. Could an attacker include transferPositionsOwnership and withdrawAndRoll in the same multicall to transfer ownership and extract fees atomically?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_654a8cf8-3378-42b9-970e-87734f4cd223",
+    "timestamp": "2025-12-01 21:00:29.825678",
+    "report_generated": false
+  },
+  {
+    "question": "In a multicall context, if one withdrawAndRoll call modifies savedBalances and a subsequent call reads it, could the second call see inconsistent state due to lack of atomicity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d272246d-2a45-4d99-8064-394fc3e55421",
+    "timestamp": "2025-12-01 21:00:46.351291",
+    "report_generated": false
+  },
+  {
+    "question": "The Multicallable pattern uses delegatecall internally. Could this allow an attacker to execute withdrawAndRoll with PositionsOwner's storage context but malicious msg.sender?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0ecfc534-471a-48ee-86a4-f3b692294f12",
+    "timestamp": "2025-12-01 21:01:04.483018",
+    "report_generated": false
+  },
+  {
+    "question": "If Multicallable doesn't properly handle return data from withdrawAndRoll, could successful fee withdrawals appear to fail, causing users to retry and potentially double-process?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bdabf71c-0922-4780-a883-22f1587f2869",
+    "timestamp": "2025-12-01 21:01:26.679563",
+    "report_generated": false
+  },
+  {
+    "question": "In a multicall batch, if withdrawAndRoll for token pair A succeeds but pair B reverts, does the entire batch revert? Could this be exploited to selectively process some pairs and not others?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1f0385b2-aa9b-4c05-9a97-3a9c6e9cf5fc",
+    "timestamp": "2025-12-01 21:01:49.943721",
+    "report_generated": false
+  },
+  {
+    "question": "The Multicallable pattern from Solady might allow msg.value reuse across calls. Could an attacker call withdrawAndRoll multiple times with single ETH value, exploiting payable functions in POSITIONS or BUYBACKS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_46e204ec-99bf-40b4-ba6c-1ab97fdad84a",
+    "timestamp": "2025-12-01 21:02:14.126384",
+    "report_generated": false
+  },
+  {
+    "question": "If Multicallable allows arbitrary internal calls, could an attacker invoke private/internal functions in PositionsOwner to bypass access controls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_34c3efc0-12ad-434d-8501-fa3183c5e869",
+    "timestamp": "2025-12-01 21:02:39.832976",
+    "report_generated": false
+  },
+  {
+    "question": "In a multicall batch with multiple transferPositionsOwnership calls, could the intermediate ownership states cause unexpected behavior in other calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_30901b9f-b1cb-4ea4-a822-f6a65f49035c",
+    "timestamp": "2025-12-01 21:03:08.095480",
+    "report_generated": false
+  },
+  {
+    "question": "The Multicallable pattern might not clear msg.sender between calls. Could withdrawAndRoll execute with wrong caller context, affecting access controls in POSITIONS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1952a1c9-53db-4b44-8a0c-c1f255f38897",
+    "timestamp": "2025-12-01 21:03:36.239053",
+    "report_generated": false
+  },
+  {
+    "question": "If a multicall contains withdrawAndRoll and a malicious fallback that reenters, could the reentrancy bypass the single-call assumption in withdrawAndRoll?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8033eea1-46d2-4a51-8f9d-4559b3c1de2b",
+    "timestamp": "2025-12-01 21:04:06.336420",
+    "report_generated": false
+  },
+  {
+    "question": "The Multicallable implementation might cache storage reads. Could repeated withdrawAndRoll calls in a batch read stale getProtocolFees values, withdrawing wrong amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b521e68f-c9da-4640-90e5-93d5b4f44057",
+    "timestamp": "2025-12-01 21:04:38.737207",
+    "report_generated": false
+  },
+  {
+    "question": "If Multicallable allows staticcall, could an attacker use it to call withdrawAndRoll in a view-only context, bypassing state change protections?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f181a2d-d4b4-49fe-99ca-488fdb1bc48e",
+    "timestamp": "2025-12-01 21:05:12.326246",
+    "report_generated": false
+  },
+  {
+    "question": "In a multicall batch, if one call sets up state (e.g., configuring BUYBACKS) and another exploits it (withdrawAndRoll), could this bypass time-locks or governance delays?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_26d9cd3a-a42c-42c0-833b-db43307b282a",
+    "timestamp": "2025-12-01 21:05:46.463744",
+    "report_generated": false
+  },
+  {
+    "question": "The Multicallable pattern might not properly propagate reverts. Could a failed withdrawAndRoll in a batch silently fail while appearing successful to the caller?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f15d8fa-0e97-4163-ac54-b3c4156221a5",
+    "timestamp": "2025-12-01 21:06:22.133065",
+    "report_generated": false
+  },
+  {
+    "question": "The owner of PositionsOwner can call transferPositionsOwnership (line 43). If the owner's private key is compromised, could an attacker transfer POSITIONS ownership to themselves and steal all future protocol fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17444e92-ab80-42a0-a440-b0986477bd9c",
+    "timestamp": "2025-12-01 21:06:57.174170",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawAndRoll function (line 51) is external and has no access control. Could an attacker call it repeatedly to grief the system by forcing BUYBACKS to create suboptimal orders at manipulated timestamps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_74083bcb-fe93-48cb-b97d-74e35ac5aff6",
+    "timestamp": "2025-12-01 21:07:33.617233",
+    "report_generated": false
+  },
+  {
+    "question": "If PositionsOwner owner is a multisig, could a malicious signer front-run a legitimate transferPositionsOwnership to steal ownership during the signing process?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6506e4e7-236f-4655-afe0-fa6ee07cba92",
+    "timestamp": "2025-12-01 21:08:10.784461",
+    "report_generated": false
+  },
+  {
+    "question": "The contract inherits Ownable from Solady. If Ownable's transferOwnership has a bug allowing unauthorized transfers, could PositionsOwner control be lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afd51a48-6322-4f33-ae65-4430b5aa7205",
+    "timestamp": "2025-12-01 21:08:48.509906",
+    "report_generated": false
+  },
+  {
+    "question": "In line 44, transferOwnership is called on POSITIONS. If POSITIONS has a different owner than PositionsOwner expects, could this revert, preventing legitimate ownership changes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_374befb3-0a36-4a55-80cb-48d71b809985",
+    "timestamp": "2025-12-01 21:09:29.024524",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawAndRoll function (line 51) can be called by anyone. Could an attacker call it immediately after BUYBACKS configuration changes to create orders with old prices, profiting from arbitrage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a565cb04-d84e-49e0-8887-a17f5fa34b4f",
+    "timestamp": "2025-12-01 21:10:07.907165",
+    "report_generated": false
+  },
+  {
+    "question": "If the owner renounces ownership of PositionsOwner, would transferPositionsOwnership become permanently uncallable, but withdrawAndRoll still work, creating split control?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d23f6d2b-da8c-4df9-b1f8-bc1a42adb950",
+    "timestamp": "2025-12-01 21:10:45.327469",
+    "report_generated": false
   }
 ]
