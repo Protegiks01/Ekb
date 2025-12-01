@@ -5248,5 +5248,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a7043c6-726c-41e7-ad17-61a53010eaaf",
     "timestamp": "2025-12-01 23:02:55.294967",
     "report_generated": false
+  },
+  {
+    "question": "What happens if a uint256 value larger than uint160 max is stored in balanceTuples and retrieved at line 67?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9fb5bf7e-320e-4dbe-9fbf-42858a0a944d",
+    "timestamp": "2025-12-01 23:04:14.755090",
+    "report_generated": false
+  },
+  {
+    "question": "Can the reverse type casting from uint256 to uint160 to address at line 67 result in address collision or data loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c3724247-fbe6-425f-8d8a-90ef9b7860f6",
+    "timestamp": "2025-12-01 23:04:28.173176",
+    "report_generated": false
+  },
+  {
+    "question": "Is the type casting from address to uint160 to uint256 at line 43 safe for all possible address values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f67c1147-e48c-43ae-9da5-2ff32701f6e1",
+    "timestamp": "2025-12-01 23:04:42.137723",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if integrators call functions with tokens that have never been observed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b91edcc2-af21-45ac-b887-8a314e82bac1",
+    "timestamp": "2025-12-01 23:04:56.227851",
+    "report_generated": false
+  },
+  {
+    "question": "Can integrators rely on getOracleTokenAverages returning type(uint128).max for NATIVE_TOKEN_ADDRESS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00b8d4b9-be66-4189-b85f-012b8d810154",
+    "timestamp": "2025-12-01 23:05:11.201848",
+    "report_generated": false
+  },
+  {
+    "question": "Is there guidance on appropriate values for numIntervals and period parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_62bbb476-e2e4-46e1-b30e-dc528c4384e2",
+    "timestamp": "2025-12-01 23:05:27.684585",
+    "report_generated": false
+  },
+  {
+    "question": "How should integrators handle cross-token prices when one token has no oracle data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c398af18-6a38-4260-bb51-30cf7e8bbd01",
+    "timestamp": "2025-12-01 23:05:45.077182",
+    "report_generated": false
+  },
+  {
+    "question": "Can the returned tick values be safely converted to prices without overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57e6263e-ffaa-4bf0-b3fe-c286b90b655a",
+    "timestamp": "2025-12-01 23:06:05.093125",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if integrators use results from different time periods in the same calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_df3fc075-9288-4766-b017-fc068520493f",
+    "timestamp": "2025-12-01 23:06:26.007346",
+    "report_generated": false
+  },
+  {
+    "question": "Is there documentation on how to interpret liquidity values returned in PeriodAverage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d39d356d-1273-4ccc-9638-1511fc55cf9e",
+    "timestamp": "2025-12-01 23:06:48.954761",
+    "report_generated": false
+  },
+  {
+    "question": "Can integrators safely cache PriceFetcher results or must they call view functions each time?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a93d2cba-8618-45d6-b25d-db879a563215",
+    "timestamp": "2025-12-01 23:07:12.311851",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if the Oracle contract is upgraded after PriceFetcher deployment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_596573ff-ad4a-43c1-98ba-253961aa3d87",
+    "timestamp": "2025-12-01 23:07:37.321702",
+    "report_generated": false
+  },
+  {
+    "question": "How should integrators handle the case where getAvailableHistoricalPeriodAverages returns empty arrays?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06f3722c-b2e2-421e-8d0a-c23aff2beefd",
+    "timestamp": "2025-12-01 23:08:03.490142",
+    "report_generated": false
+  },
+  {
+    "question": "Can earliestObservationTime be type(uint256).max causing issues in comparisons?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d94cc2f6-abd9-4228-ab6c-e9519ace2a39",
+    "timestamp": "2025-12-01 23:08:30.914964",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if period is 1 second and numIntervals is very large?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_481f72c5-6bc5-401e-8d84-94eee37b9728",
+    "timestamp": "2025-12-01 23:08:59.628799",
+    "report_generated": false
+  },
+  {
+    "question": "Can the PeriodAverage struct hold all possible valid values without truncation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf7a30c1-8c43-4301-8b85-7216f8744e66",
+    "timestamp": "2025-12-01 23:09:27.135171",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if all observations have the same tick (zero volatility)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a299f217-4dc9-435e-af21-8b2825e9b5ee",
+    "timestamp": "2025-12-01 23:09:54.959350",
+    "report_generated": false
+  },
+  {
+    "question": "Can int32 cast of tick values in line 105 cause overflow for extreme tick values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b8ca2471-0c6e-4a89-9336-7d00657ccedd",
+    "timestamp": "2025-12-01 23:10:24.489633",
+    "report_generated": false
+  },
+  {
+    "question": "What happens when tick values are at MIN_TICK or MAX_TICK boundaries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6acccc9-ee66-4e53-a10b-af2ca91ebb4e",
+    "timestamp": "2025-12-01 23:10:53.278957",
+    "report_generated": false
+  },
+  {
+    "question": "Can the uint128 cast in line 101 truncate larger liquidity values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_053cb981-3482-4c65-b63a-f4b3b573af4b",
+    "timestamp": "2025-12-01 23:11:22.633577",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if liquidity is extremely low causing secondsPerLiquidityCumulative to grow very large?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dc036432-8975-4062-9566-675f9bb8596e",
+    "timestamp": "2025-12-01 23:11:53.586506",
+    "report_generated": false
+  },
+  {
+    "question": "What prevents duplicate tokens in the baseTokens array causing redundant calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8c5abc7-c03e-482f-85d4-5f769556a3a9",
+    "timestamp": "2025-12-01 23:12:25.458538",
+    "report_generated": false
+  },
+  {
+    "question": "Is there validation that baseTokens array is non-empty and contains valid addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6fb19b14-9be1-49fb-97aa-70888f9a728a",
+    "timestamp": "2025-12-01 23:12:55.653803",
+    "report_generated": false
+  },
+  {
+    "question": "Can numIntervals be 1 in getRealizedVolatilityOverPeriod causing division issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02b7a72c-9ad0-47fe-8528-089fa1512448",
+    "timestamp": "2025-12-01 23:13:26.949938",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if observationPeriod is zero in getOracleTokenAverages?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9a6b50c3-0801-4a03-a395-de89cbd31a7c",
+    "timestamp": "2025-12-01 23:13:58.204845",
+    "report_generated": false
   }
 ]
