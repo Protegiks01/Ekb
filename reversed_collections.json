@@ -2548,5 +2548,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_140f6a0f-c829-4d11-8764-40b00e8c9747",
     "timestamp": "2025-12-01 19:11:04.921047",
     "report_generated": false
+  },
+  {
+    "question": "In tickToBitmapWordAndIndex() (line 16), does the sdiv operation handle negative tick values correctly when combined with TICK_BITMAP_STORAGE_OFFSET, or could integer division truncation cause ticks to map to wrong bitmap positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6828d61c-5267-4145-b99b-1383350b4a9e",
+    "timestamp": "2025-12-01 19:12:12.822723",
+    "report_generated": false
+  },
+  {
+    "question": "In tickToBitmapWordAndIndex() (lines 14-20), can the assembly arithmetic (line 16) overflow when tick is near MIN_TICK or MAX_TICK and tickSpacing is large, causing incorrect bitmap addressing that corrupts tick initialization state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6de7de4f-b1ce-45d1-9027-f5ca04866332",
+    "timestamp": "2025-12-01 19:12:26.390990",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount0/1(), when converting between fixed-point representations, can precision loss allow attackers to execute swaps at slightly better prices than intended, accumulating profit over many transactions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a100069b-aec3-4056-8fb5-b70931198f0e",
+    "timestamp": "2025-12-01 19:12:39.999921",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount1() (lines 80-84), does the numerator calculation (shl(128, sub(0, amount))) handle amount == type(int128).min correctly, or could the negation overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8cfc207-b67a-4371-b122-0d0ca6af1c9b",
+    "timestamp": "2025-12-01 19:12:54.208566",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount0() (line 56-59), can the assembly comment claiming 'this can never overflow' be violated if liquidityX128/sqrtRatio + amount somehow exceeds type(uint256).max in edge cases?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_710ea5a0-9ff2-422e-8ed7-7f51f92ee75e",
+    "timestamp": "2025-12-01 19:13:09.046210",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount1() (line 92), when amount > 0, does the assembly floor division correctly compute the quotient, or could bit-shifting errors cause the result to be off by 1, creating rounding exploits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_688890f4-a0ba-451f-9001-8c47c77fc21b",
+    "timestamp": "2025-12-01 19:13:25.222454",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount0() (lines 25-42), when amount is negative and causes the price to increase, can the overflow checks be bypassed using carefully crafted amount values that exploit the unchecked block?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ec7779d-0b96-48af-8782-513fdcaaef9d",
+    "timestamp": "2025-12-01 19:13:43.626071",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount0() (line 22), does the assembly block properly handle the case where liquidity is zero, or could division by zero occur in the calculation at line 58?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04a9c2ff-3d08-4776-aef2-d92292cfad02",
+    "timestamp": "2025-12-01 19:14:03.687384",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount1() (line 98), can toSqrtRatio(sum, false) fail to detect that sum exceeds the valid SqrtRatio range, allowing swaps to push the price beyond MIN/MAX bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4b85459-01dc-4d09-8bf7-271363271cd7",
+    "timestamp": "2025-12-01 19:14:23.967849",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount1() (lines 94-96), when sum overflows type(uint192).max, returning type(uint96).max could allow swaps to complete at incorrect prices that violate pool solvency.",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0d42b959-dfe6-49d6-9c30-c288799531c3",
+    "timestamp": "2025-12-01 19:14:46.777887",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount1() (line 86), does zeroFloorSub() handle the case where quotient > sqrtRatio correctly by returning 0, or could negative results slip through and create invalid SqrtRatio values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4d0ae593-fa9a-42ef-b847-4c22f4f2bad7",
+    "timestamp": "2025-12-01 19:15:10.489751",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount1() (lines 79-88), when amount < 0 and the quotient calculation uses ceiling division (line 83), can this rounding accumulate across tick crossings to shift the price in favor of one token?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e4a2f381-5944-4455-9b31-840f18e24bae",
+    "timestamp": "2025-12-01 19:15:35.213627",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount0() (lines 54-63), when amount > 0, can the assembly division and ceiling logic (lines 58-59) cause the sqrt ratio to undershoot the actual value, leading to price slippage that benefits attackers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c541e686-8efc-4e2f-bd3f-6ca801f46f33",
+    "timestamp": "2025-12-01 19:16:01.611927",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount0() (line 51), when toSqrtRatio() is called with roundUp=true on a value near MAX_FIXED_VALUE_ROUND_UP, could the function overflow and wrap to a low value, causing catastrophic price manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d346dbe4-0e22-4892-87cd-7eb32d128af4",
+    "timestamp": "2025-12-01 19:16:28.682846",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount0() (lines 45-48), does the fullMulDivUp() rounding create opportunities for sandwich attacks where the attacker can exploit the rounding direction to extract value from subsequent swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8b13b73d-cb8c-48c3-83a0-709ded24c80e",
+    "timestamp": "2025-12-01 19:16:57.135284",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount0() (lines 39-41), when product >= liquidityX128, can returning type(uint96).max cause the swap to execute at an invalid price that allows MEV bots to drain the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8173ef0-8412-41c0-92c5-d7f1f284395a",
+    "timestamp": "2025-12-01 19:17:23.637737",
+    "report_generated": false
+  },
+  {
+    "question": "In nextSqrtRatioFromAmount0() (lines 32-34), when amountAbs > type(uint256).max / sqrtRatio, the function returns type(uint96).max without checking if this exceeds MAX_SQRT_RATIO, potentially violating the SqrtRatio bounds invariant during swaps.",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5268a59e-aecd-45f0-a5d5-afcd93064b6f",
+    "timestamp": "2025-12-01 19:17:50.530506",
+    "report_generated": false
+  },
+  {
+    "question": "In addLiquidityDelta() (line 133), does the custom error encoding (shl(224, 0x6d862c50)) match the LiquidityDeltaOverflow() error selector exactly, or could a mismatch cause the error to be unrecognized by calling contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1e219c7a-72f0-4197-b5b8-eacb882ed527",
+    "timestamp": "2025-12-01 19:18:17.246014",
+    "report_generated": false
+  },
+  {
+    "question": "In liquidityDeltaToAmountDelta() (lines 38-52), can precision loss in the amount0Delta/amount1Delta calculations accumulate across multiple position updates to create rounding exploits that drain pool reserves?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3549693b-bed1-4255-b9c3-07d3c992c82e",
+    "timestamp": "2025-12-01 19:18:43.928065",
+    "report_generated": false
+  },
+  {
+    "question": "In maxLiquidity() (line 98), does sortAndConvertToFixedSqrtRatios() validate that both SqrtRatio inputs are valid before conversion, or could invalid SqrtRatio values cause incorrect liquidity calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1954c174-cde8-40f0-8f2a-395b9898c852",
+    "timestamp": "2025-12-01 19:19:11.598945",
+    "report_generated": false
+  },
+  {
+    "question": "In liquidityDeltaToAmountDelta() (line 35), can the absolute value conversion from int128 to uint128 cause issues when liquidityDelta is exactly type(int128).min, potentially creating incorrect token deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a480cb2-db53-4e05-bbea-554ee6913722",
+    "timestamp": "2025-12-01 19:19:40.290823",
+    "report_generated": false
+  },
+  {
+    "question": "In addLiquidityDelta() (line 131), when adding a negative liquidityDelta to zero liquidity, does the underflow check correctly detect the error, or could this allow positions to be burned when no liquidity exists?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9fed2688-c286-45be-8d46-025451b020e5",
+    "timestamp": "2025-12-01 19:20:10.455018",
+    "report_generated": false
+  },
+  {
+    "question": "In addLiquidityDelta() (lines 129-136), can the assembly block overflow check (line 132) be bypassed if the compiler doesn't clean the upper bits of the result, allowing negative liquidity values to pass validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18600e4f-6cf8-4757-82f0-bdc6d77a7b01",
+    "timestamp": "2025-12-01 19:20:41.176993",
+    "report_generated": false
+  },
+  {
+    "question": "In maxLiquidity() (lines 105-113), when both amount0 and amount1 are provided in the active price range, can an attacker manipulate the min() selection to favor one token and extract value by repeatedly minting/burning positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63e88aad-4e6d-4319-babd-db77b308098e",
+    "timestamp": "2025-12-01 19:21:13.831711",
+    "report_generated": false
+  },
+  {
+    "question": "In maxLiquidity() (lines 101-103), does the min(type(uint128).max, ...) cap properly prevent overflow when maxLiquidityForToken0() returns values larger than uint128, or could this allow position minting with impossible liquidity amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_25d5a962-4dcc-4625-8ff2-82e75048c552",
+    "timestamp": "2025-12-01 19:21:47.997031",
+    "report_generated": false
   }
 ]
