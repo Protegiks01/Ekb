@@ -3448,5 +3448,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0891277a-5b0e-498a-8926-357860215678",
     "timestamp": "2025-12-01 20:23:59.833740",
     "report_generated": false
+  },
+  {
+    "question": "In line 53, state(token0, token1) is called. If token0 > token1 lexicographically, does the BUYBACKS contract handle token ordering correctly, or could reversed pairs cause the configuration check to fail incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_69e37d1c-5443-4194-bb05-bffa94b855db",
+    "timestamp": "2025-12-01 20:25:30.128627",
+    "report_generated": false
+  },
+  {
+    "question": "The function at line 54 checks 's0.minOrderDuration() == 0 || s1.minOrderDuration() == 0'. If both tokens are configured but one has minOrderDuration = 1 and the other = 0, would the revert prevent legitimate withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_194c8c5a-010f-448e-b3bb-ac88f7824fb7",
+    "timestamp": "2025-12-01 20:25:43.764116",
+    "report_generated": false
+  },
+  {
+    "question": "In withdrawAndRoll (lines 59-60), getProtocolFees returns uint128 amounts. If protocol fees have accumulated beyond uint128 max (2^128-1) due to overflow in Core accounting, could amount0/amount1 be truncated, losing protocol revenue?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a672a36a-06b2-47e5-a48d-233eddeb2554",
+    "timestamp": "2025-12-01 20:25:57.477606",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly block at lines 61-66 subtracts 1 from amounts if non-zero. If amount0 = 1 and amount1 = 0, after subtraction amount0 = 0. Would this cause withdrawProtocolFees (line 70) to skip token0 withdrawal, leaving 1 wei forever?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca84368a-9510-47b9-952d-028e30401a38",
+    "timestamp": "2025-12-01 20:26:11.743876",
+    "report_generated": false
+  },
+  {
+    "question": "In line 69, the condition 'amount0 != 0 || amount1 != 0' determines if withdrawProtocolFees is called. If the assembly block (lines 61-66) sets both to 0, could the withdrawal be skipped entirely even though fees exist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ee372119-113b-49f4-a9ef-b9ae4d50d847",
+    "timestamp": "2025-12-01 20:26:27.028172",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawProtocolFees call at line 70 sends fees to address(BUYBACKS). If BUYBACKS doesn't have proper ETH handling for native tokens, could native token fees be lost or stuck in the BUYBACKS contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_10ffda16-b925-43f4-ad94-3d0d9428c97d",
+    "timestamp": "2025-12-01 20:26:43.565637",
+    "report_generated": false
+  },
+  {
+    "question": "In lines 74-75, BUYBACKS.roll is called for both tokens regardless of withdrawal success. If withdrawProtocolFees reverts for one token but not the other, could roll() create asymmetric orders with only one token?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_da6f2372-45dc-4e4e-8065-1193a1605c50",
+    "timestamp": "2025-12-01 20:27:01.965053",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawAndRoll function doesn't check return values from roll() at lines 74-75. If roll() fails silently (no revert but returns 0), could protocol fees be withdrawn but never used for buybacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5926862a-ccd7-42e7-b572-d47323d72027",
+    "timestamp": "2025-12-01 20:27:22.351088",
+    "report_generated": false
+  },
+  {
+    "question": "In line 70, withdrawProtocolFees is called with both amount0 and amount1. If only one is non-zero, could the withdrawal trigger unnecessary storage writes in Core, wasting gas or causing subtle state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_90a01022-b9bf-4c68-9d84-385757212905",
+    "timestamp": "2025-12-01 20:27:43.833255",
+    "report_generated": false
+  },
+  {
+    "question": "The function calls getProtocolFees (line 59) and then withdrawProtocolFees (line 70) without atomicity. Could a front-runner exploit this by depositing fees between these calls to manipulate the withdrawal amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65926f25-9223-47fc-9cfb-80f2978b130f",
+    "timestamp": "2025-12-01 20:28:06.425916",
+    "report_generated": false
+  },
+  {
+    "question": "In withdrawAndRoll, if token0 and token1 are the same address (should be prevented elsewhere), would the function double-withdraw fees or create accounting errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9996c51-2da9-4bb4-a340-eeb76dc98d9e",
+    "timestamp": "2025-12-01 20:28:30.318086",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly block at lines 61-66 uses 'memory-safe' annotation. If this annotation is incorrect and the assembly corrupts memory, could subsequent roll() calls at lines 74-75 read corrupted token addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d49cb59-df45-4fa5-b77a-a37480277b0d",
+    "timestamp": "2025-12-01 20:28:55.472080",
+    "report_generated": false
+  },
+  {
+    "question": "In line 59, getProtocolFees returns amounts from Core's savedBalances. If savedBalances has been manipulated via a reentrancy attack in another part of the protocol, could withdrawAndRoll withdraw more than actually accumulated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23d00abf-51d0-45b4-83a0-64d48349d43b",
+    "timestamp": "2025-12-01 20:29:20.745651",
+    "report_generated": false
+  },
+  {
+    "question": "The function doesn't validate token0 != token1. If they're equal, could withdrawProtocolFees decrement savedBalances twice for the same token, causing underflow and protocol insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_10f86546-7e6c-4a7f-b1ae-76c535118350",
+    "timestamp": "2025-12-01 20:29:48.470663",
+    "report_generated": false
+  },
+  {
+    "question": "In withdrawAndRoll (line 51), could an MEV searcher front-run this call with their own withdrawAndRoll to extract fees first, then have the original transaction revert or withdraw 0?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c58264a-2d14-4d76-8736-9f05786170a6",
+    "timestamp": "2025-12-01 20:30:16.882975",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() calls at lines 74-75 happen after withdrawal. If BUYBACKS balance updates are tracked elsewhere, could there be a race where roll() sees stale balances and creates undersized orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_84cae156-c03b-4cd1-ae24-216739dbdcfb",
+    "timestamp": "2025-12-01 20:30:45.795272",
+    "report_generated": false
+  },
+  {
+    "question": "In line 70, if withdrawProtocolFees triggers a callback to an extension (somehow), could the extension reenter withdrawAndRoll to double-withdraw fees before savedBalances is decremented?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_165f812a-5ee6-45f2-8254-a651804a41de",
+    "timestamp": "2025-12-01 20:31:15.855171",
+    "report_generated": false
+  },
+  {
+    "question": "The function checks configuration via state() at line 53 but doesn't verify that BUYBACKS actually owns an NFT (NFT_ID). Could roll() fail if the NFT was somehow burned, leaving fees withdrawn but not buyback orders created?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc143901-de7d-4df2-ab3d-d907f01065c3",
+    "timestamp": "2025-12-01 20:31:48.575933",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly block at line 61 uses 'memory-safe', but performs 'sub(amount0, gt(amount0, 0))'. Could the gt() operation leave dirty upper bits on the stack that corrupt amount0 when assigned back to storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_16868b23-45e4-4868-a4e5-e53de7a39a41",
+    "timestamp": "2025-12-01 20:32:21.573847",
+    "report_generated": false
+  },
+  {
+    "question": "In line 64, 'amount0 := sub(amount0, gt(amount0, 0))' subtracts 1 if amount0 > 0. If amount0 = type(uint128).max, does this correctly reduce to max-1, or could wrapping occur since sub is in assembly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_77f8b57d-4bac-4f88-8f0c-412885637cf5",
+    "timestamp": "2025-12-01 20:32:55.288965",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly at line 65 performs the same operation for amount1. If amount1 = 0, gt(amount1, 0) returns 0, so amount1 := sub(0, 0) = 0. Could compiler optimization remove this as a no-op, causing inconsistent behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_35a03e43-426b-455e-a854-9211568fabf2",
+    "timestamp": "2025-12-01 20:33:24.050388",
+    "report_generated": false
+  },
+  {
+    "question": "In the assembly block (lines 61-66), if amount0 or amount1 is read from a dirty memory slot due to prior function calls, could gt() evaluate incorrectly, causing incorrect subtraction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9364b16e-7bce-4521-917a-345297d91ace",
+    "timestamp": "2025-12-01 20:33:52.936821",
+    "report_generated": false
+  },
+  {
+    "question": "The comment at lines 62-63 says 'this makes sure we do not ever leave the positions contract with less than 1 wei'. If getProtocolFees returns 0 for both tokens, does the assembly leave savedBalances at 1 wei or 0 wei?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac4d06df-027c-4a6a-ae8d-de865010325f",
+    "timestamp": "2025-12-01 20:34:22.077762",
+    "report_generated": false
+  },
+  {
+    "question": "In line 64, 'sub(amount0, gt(amount0, 0))' performs an unchecked subtraction. If amount0 = 1, result is 0. Could this interact poorly with the condition at line 69, causing withdrawProtocolFees never to be called even with fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_32e214e5-63c4-46ca-9f17-8c7c3f05de12",
+    "timestamp": "2025-12-01 20:34:51.428095",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly uses uint128 values but doesn't mask to 128 bits. If the Solidity compiler leaves upper 128 bits dirty in amount0/amount1, could sub() operate on incorrect values, causing over-withdrawal?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6b6b53c2-e0cc-44e6-93e1-7348ccc47328",
+    "timestamp": "2025-12-01 20:35:21.548841",
+    "report_generated": false
   }
 ]
