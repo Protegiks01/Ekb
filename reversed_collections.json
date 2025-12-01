@@ -1648,5 +1648,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1028eac4-2191-493d-a198-e7b53800a678",
     "timestamp": "2025-12-01 18:01:20.301158",
     "report_generated": false
+  },
+  {
+    "question": "Can TWAMM.sol's usage of poolRewardRatesSlot().add(offset) with offset values of 0 or 1 cause it to read/write to unintended consecutive slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b17c90a0-82d2-4558-9963-49169f482dd3",
+    "timestamp": "2025-12-01 18:02:29.519133",
+    "report_generated": false
+  },
+  {
+    "question": "Does the StorageSlot.wrap operation in each function guarantee type safety when returning slots that might be used incorrectly by callers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a96c04f-b2be-4e4f-8c9f-514b425da240",
+    "timestamp": "2025-12-01 18:02:42.839883",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a risk that address(owner) being cast to bytes32 in memory (20 bytes vs 32 bytes) causes alignment or padding issues in the hash?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dfad7d89-77e6-4d24-9a56-fad29482c45f",
+    "timestamp": "2025-12-01 18:02:56.549614",
+    "report_generated": false
+  },
+  {
+    "question": "When OrderId.unwrap is used in the keccak256 computation, does the bytes32-to-memory conversion preserve the exact bit representation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd10df31-6883-4f63-823b-bebcf338f5bc",
+    "timestamp": "2025-12-01 18:03:10.834051",
+    "report_generated": false
+  },
+  {
+    "question": "Could the casting of poolId (bytes32) to uint256 in assembly operations interpret the value differently than intended (e.g., signed vs unsigned)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5bb064ff-9c2b-4016-92e9-8286dfbb98b0",
+    "timestamp": "2025-12-01 18:03:25.719024",
+    "report_generated": false
+  },
+  {
+    "question": "Are there any implicit type conversions between bytes32, uint256, and StorageSlot that could cause data corruption in the assembly blocks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8c2d1972-6afb-42ea-a29f-8f9847892dfe",
+    "timestamp": "2025-12-01 18:03:41.902676",
+    "report_generated": false
+  },
+  {
+    "question": "Does the wrapping of the computed slot back to StorageSlot type preserve all bits correctly without truncation or sign extension issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a1abc49-5869-4fcb-a9a1-bdbd6edf5a09",
+    "timestamp": "2025-12-01 18:03:59.486535",
+    "report_generated": false
+  },
+  {
+    "question": "Is the unwrapping of PoolId to uint256 in twammPoolStateSlot safe, or could it lead to unexpected behavior when the bytes32 value has specific bit patterns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28e5d2dc-7bd1-492a-b10d-c907275cf89e",
+    "timestamp": "2025-12-01 18:04:19.494529",
+    "report_generated": false
+  },
+  {
+    "question": "Can a malicious time parameter in poolRewardRatesBeforeSlot cause mul(time, 2) to overflow and wrap to a small number, pointing to unintended storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc59fecc-5583-45d8-a535-04083a0f0fd2",
+    "timestamp": "2025-12-01 18:04:42.775513",
+    "report_generated": false
+  },
+  {
+    "question": "Are there edge cases where TIME_INFOS_OFFSET + time causes overflow before being added to poolId in poolTimeInfosSlot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_90dc2304-bda8-49ae-a141-78942ca85ebc",
+    "timestamp": "2025-12-01 18:05:04.994706",
+    "report_generated": false
+  },
+  {
+    "question": "Does orderStateSlotFollowedByOrderRewardRateSnapshotSlot's add(keccak256(free, 96), ORDER_STATE_OFFSET) handle overflow correctly when the hash result is near type(uint256).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4fc6049f-9cba-49f1-91e1-b8f10aa3869c",
+    "timestamp": "2025-12-01 18:05:29.314531",
+    "report_generated": false
+  },
+  {
+    "question": "Could the three-level addition in poolRewardRatesBeforeSlot (add(poolId, add(REWARD_RATES_BEFORE_OFFSET, mul(time, 2)))) wrap around silently due to EVM's 256-bit arithmetic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eaeb937d-e2bc-4f42-bfd8-595e181b1632",
+    "timestamp": "2025-12-01 18:05:54.510610",
+    "report_generated": false
+  },
+  {
+    "question": "What happens when mul(time, 2) in poolRewardRatesBeforeSlot causes overflow before being added to REWARD_RATES_BEFORE_OFFSET and poolId?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_314ac9f2-52e5-41be-9db4-13a3e5c1f133",
+    "timestamp": "2025-12-01 18:06:19.738394",
+    "report_generated": false
+  },
+  {
+    "question": "In poolTimeInfosSlot, does the nested add(poolId, add(TIME_INFOS_OFFSET, time)) properly account for potential overflow when time is close to type(uint256).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_194f21ad-e411-412d-9ad6-eb1f6eb91b55",
+    "timestamp": "2025-12-01 18:06:47.087379",
+    "report_generated": false
+  },
+  {
+    "question": "Can the expression add(poolId, TIME_BITMAPS_OFFSET) in poolInitializedTimesBitmapSlot overflow when poolId approaches type(uint256).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b461f95d-e563-4364-8c91-9e55b18120dc",
+    "timestamp": "2025-12-01 18:07:14.054874",
+    "report_generated": false
+  },
+  {
+    "question": "In poolRewardRatesSlot, does the assembly add(poolId, REWARD_RATES_OFFSET) properly handle the case where poolId + REWARD_RATES_OFFSET > type(uint256).max, causing silent wrapping?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9b44d0c6-76fb-450e-8604-f6a4cb7c5703",
+    "timestamp": "2025-12-01 18:07:43.922544",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a guarantee that poolRewardRatesBeforeSlot using mul(time, 2) won't cause collisions with poolTimeInfosSlot for overlapping time values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b398572e-80f2-41e2-b186-5c2da5d03a8c",
+    "timestamp": "2025-12-01 18:08:16.263766",
+    "report_generated": false
+  },
+  {
+    "question": "Could consecutive storage slots used for reward rates (firstSlot and firstSlot+1) overlap with time bitmap storage for a different pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4ab5da6-7705-47cd-b075-e3fb517edad9",
+    "timestamp": "2025-12-01 18:08:49.954146",
+    "report_generated": false
+  },
+  {
+    "question": "What prevents the order state slot computation from colliding with pool-based storage when the keccak256 hash plus ORDER_STATE_OFFSET equals a pool storage location?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d1605749-5662-414b-a045-7cf7540dee20",
+    "timestamp": "2025-12-01 18:09:23.955577",
+    "report_generated": false
+  },
+  {
+    "question": "Can two different pools with carefully chosen poolId values result in the same storage slot for their time infos or reward rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_526595c1-c945-4f97-a12c-cfb8647f5f58",
+    "timestamp": "2025-12-01 18:09:59.489528",
+    "report_generated": false
+  },
+  {
+    "question": "Is there mathematical proof that TIME_INFOS_OFFSET + type(uint64).max will never overlap with REWARD_RATES_BEFORE_OFFSET when added to any valid poolId?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2fe19352-ec66-4a80-9208-bf12fa8c7487",
+    "timestamp": "2025-12-01 18:10:35.978828",
+    "report_generated": false
+  },
+  {
+    "question": "Could TIME_BITMAPS_OFFSET + type(uint52).max overlap with TIME_INFOS_OFFSET when added to a specific poolId value, creating storage collisions between bitmap and time info data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f650ccc-483f-49ea-8f79-1040ce0b38e6",
+    "timestamp": "2025-12-01 18:11:13.825411",
+    "report_generated": false
+  },
+  {
+    "question": "What prevents a poolId from being equal to or near REWARD_RATES_OFFSET (0x6536a49ed1752ddb42ba94b6b00660382279a8d99d650d701d5d127e7a3bbd95), causing the pool state to overwrite its own reward rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f247575b-080e-46f2-a16d-d8ed91885b50",
+    "timestamp": "2025-12-01 18:11:49.754817",
+    "report_generated": false
+  },
+  {
+    "question": "Can the pool state slot at offset 0 (poolId base) collide with reward rates stored at REWARD_RATES_OFFSET when poolId values are adversarially chosen?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e011df94-00fb-417c-b174-3e5b41f36004",
+    "timestamp": "2025-12-01 18:12:25.231314",
+    "report_generated": false
+  },
+  {
+    "question": "In toFixed() (lines 102-106), can the assembly shift computation 'shl(add(2, shr(",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6353c541-69a9-49c9-92b6-731873b77f5f",
+    "timestamp": "2025-12-01 18:13:00.826547",
+    "report_generated": false
   }
 ]
