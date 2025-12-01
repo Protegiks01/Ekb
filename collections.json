@@ -5548,5 +5548,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5f1a09f0-02cf-4d6a-86f6-67704fa4daa6",
     "timestamp": "2025-12-01 23:03:55.421394",
     "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 179), updateDebt() is called with SafeCastLib.toInt128(-amount). If amount is positive (wrap) and exceeds type(int128).max, SafeCastLib.toInt128(-amount) will underflow to a large negative int128 value. Could this cause the debt delta to be reversed, crediting the wrapper when it should be debiting, enabling theft of underlying tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c28bd9a4-2a98-48c2-bdc1-f955db1d83be",
+    "timestamp": "2025-12-01 23:05:04.125771",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (lines 171-177), the function calls Core.updateSavedBalances with delta0 = amount and delta1 = 0. If amount is negative (unwrap) and savedBalances[token0] is already zero or insufficient, updateSavedBalances will revert with SavedBalanceOverflow. Could an attacker intentionally trigger this revert during a complex multi-call operation to grief users or cause partial state updates that leave Core in an inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd92fd84-f286-4a68-aa63-8eaee970482d",
+    "timestamp": "2025-12-01 23:05:17.327952",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 171), Core.updateSavedBalances is called with token0 = address(UNDERLYING_TOKEN) and token1 = address(type(uint160).max). According to Core.sol line 135, this requires token0 < token1. If UNDERLYING_TOKEN address is >= type(uint160).max, updateSavedBalances will revert with SavedBalanceTokensNotSorted. Could deploying TokenWrapper with such a token permanently brick the wrapper?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_49484151-2f7b-4cdb-b9b5-2a398594e8ad",
+    "timestamp": "2025-12-01 23:05:31.488102",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 176), delta1 is hardcoded to 0. In Core.updateSavedBalances (Core.sol lines 129-130), both delta0 and delta1 are int256. If Core's assembly implementation (lines 139-160+) has a bug where delta1 = 0 is treated specially or causes incorrect slot calculations, could the savedBalances storage be corrupted, affecting all TokenWrapper instances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3b39dd4-7e0d-4038-b151-9aeeb5e0158a",
+    "timestamp": "2025-12-01 23:05:45.671852",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 174), salt is hardcoded to bytes32(0). The Core.updateSavedBalances function uses this salt in storage slot calculation (Core.sol line 158: keccak256(lockerAddr, token0, token1, salt)). If multiple different TokenWrapper contracts for the same UNDERLYING_TOKEN all use salt = 0, could their savedBalances collide in storage, causing one wrapper to steal supply from another?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6cbfe46-f62d-4a7f-9553-7bd99686b891",
+    "timestamp": "2025-12-01 23:06:00.677161",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 171-177), after updateSavedBalances modifies storage, the function doesn't verify that the new savedBalances value is consistent with the wrapper's ERC20 totalSupply(). If savedBalances overflows to a lower value due to the addDelta check in Core.sol lines 140-151, could users unwrap more underlying tokens than were actually wrapped, draining the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9dfcb5bb-f80f-439a-a8b8-6bb80196daa8",
+    "timestamp": "2025-12-01 23:06:16.830074",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.totalSupply() (lines 67-76), the supply is read from Core.savedBalances with the same token0/token1/salt as used in handleForwardData. However, savedBalances returns (uint128, uint128) and totalSupply() only returns the first uint128 (supply). If delta1 in updateSavedBalances was ever non-zero by mistake, could the wrapper's actual supply be hidden in the second uint128, causing totalSupply() to underreport and enabling over-unwrapping?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1d348b1b-1de8-4ce7-9b96-6850666af339",
+    "timestamp": "2025-12-01 23:06:34.492381",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 179), updateDebt is called with -amount. According to FlashAccountantLib.updateDebt (FlashAccountantLib.sol lines 272-282), this uses msg.sender (the token wrapper) as the token address for debt tracking. If amount is positive (wrap), debt becomes negative (credit). Could an attacker exploit this by wrapping, then using another forwarded call to settle this debt with a different token, stealing the underlying token?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_370a3ad1-0e9a-4a51-a39b-efc1b109ecc7",
+    "timestamp": "2025-12-01 23:06:54.399972",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 179), SafeCastLib.toInt128(-amount) is used. If amount is exactly type(int128).max + 1 (i.e., 2^127), -amount would be -2^127 - 1, which underflows int128. Could an attacker pass this specific amount to cause updateDebt to receive a positive delta instead of negative, inverting the accounting direction and enabling double-spend of wrapped tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_93bc32d5-156b-4232-9fe7-8c9428f06c6f",
+    "timestamp": "2025-12-01 23:07:16.462295",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 179), updateDebt is called after updateSavedBalances. If updateSavedBalances succeeds but updateDebt reverts (e.g., due to invalid calldata length per IFlashAccountant.sol line 72), could this leave savedBalances incremented without corresponding debt settlement, causing a permanent mismatch between wrapper supply and Core's debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_20c3bd2e-8ba0-47d3-845b-4308775212db",
+    "timestamp": "2025-12-01 23:07:38.951652",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 179), the debt delta is calculated as -amount. For wrap (positive amount), this creates negative debt (credit to locker). For unwrap (negative amount), this creates positive debt (debit to locker). If the Core's flash accounting expects the opposite sign convention for wrapped tokens, could this cause all wrap/unwrap operations to accumulate debt instead of canceling, preventing the lock from completing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6792df81-d186-435a-9aab-ee47f9554aa9",
+    "timestamp": "2025-12-01 23:08:02.350829",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 179), updateDebt uses the calling contract (TokenWrapper) as the token address. If multiple TokenWrapper contracts exist for different UNDERLYING_TOKENs, they all register their debt under their own addresses. Could an attacker exploit cross-wrapper debt settlement by locking once, wrapping in wrapper A, unwrapping in wrapper B, and using the debt from A to pay for B's underlying withdrawal?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_24f81989-7df9-47fc-b526-dfc1bb584bd6",
+    "timestamp": "2025-12-01 23:08:27.522901",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (lines 167-169), the TooEarly check is only performed if amount < 0 (unwrap). Could an attacker deploy a malicious contract that calls handleForwardData with amount = 0, bypassing the time check, and use this as a building block in a complex attack that exploits Core's state machine or causes accounting errors due to zero-amount operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19a89645-e960-4c76-b83c-e22fd77d4ca4",
+    "timestamp": "2025-12-01 23:08:54.016926",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 168), the time check compares block.timestamp < UNLOCK_TIME. In Ethereum, block.timestamp can be manipulated by miners within ~15 second bounds. Could a miner manipulate timestamp to be just before UNLOCK_TIME to prevent legitimate unwraps, or just after to enable early unwrapping, causing griefing or unauthorized early access to locked tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2390b897-b462-43b1-af84-45b9feac2564",
+    "timestamp": "2025-12-01 23:09:21.415632",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (lines 167-169), after reverting TooEarly(), the function doesn't return the wrapped tokens to the user. If a user attempts unwrap before UNLOCK_TIME within a complex multicall operation in Router, could the revert cascade and cause all prior operations to revert too, potentially leaving the user's tokens in unexpected states across multiple pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab0d492a-5736-4717-8f8c-a4b1723f635f",
+    "timestamp": "2025-12-01 23:09:50.395938",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 168), UNLOCK_TIME is an immutable value set at construction. If UNLOCK_TIME is set to 0 or a past timestamp, unwrapping is always allowed. Could an attacker deploy malicious TokenWrapper instances with UNLOCK_TIME = 0 and mislead users into wrapping tokens thinking they're time-locked, then immediately unwrap and steal the underlying tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c2e0b97-c4d2-4774-8179-cb8ce4563fe1",
+    "timestamp": "2025-12-01 23:10:20.986778",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper (line 36), UNLOCK_TIME is public uint256 immutable. If UNLOCK_TIME is set to type(uint256).max at deployment, tokens would be locked forever. Could an attacker create such a 'honeypot' wrapper, attract users to wrap tokens with high APY promises, then reveal that unwrapping is impossible, permanently locking user funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e4fb71c6-3af0-405d-9b12-91d613c59755",
+    "timestamp": "2025-12-01 23:10:52.615788",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper constructor (lines 42-44), there's no validation that _underlyingToken is a valid ERC20 contract or that it has a decimals() function. If _underlyingToken is address(0) or a malicious contract, could the wrapper be constructed successfully but fail during wrap operations when updateSavedBalances tries to interact with the invalid token address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3fb60c5e-810c-4877-ab65-c38ec416f948",
+    "timestamp": "2025-12-01 23:11:25.235637",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper constructor (line 44), UNLOCK_TIME is set without checking if _unlockTime is in the past or reasonable future. If _unlockTime is set to 1 (almost certainly in the past), all unwrap operations would succeed immediately, defeating the time-lock purpose. Should there be a minimum lock period validation to prevent misuse?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2b09577-315f-4db5-bb0d-330c2c5e9995",
+    "timestamp": "2025-12-01 23:11:57.783338",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper constructor (lines 42-43), the contract inherits from UsesCore(core) and BaseForwardee(core), passing the same core reference twice. If core is address(0) or an invalid contract, could the constructor complete successfully but leave CORE and ACCOUNTANT variables pointing to invalid addresses, causing all subsequent operations to revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6884362d-71d4-4fee-8327-7379a99fcf98",
+    "timestamp": "2025-12-01 23:12:31.026324",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper constructor (line 43), UNDERLYING_TOKEN is set from _underlyingToken parameter without any checks. If _underlyingToken is NATIVE_TOKEN_ADDRESS (ETH) or a rebasing token like stETH, could the wrapper's ERC20 balance tracking mechanisms fail to account for balance changes that occur outside of wrap/unwrap operations, breaking the totalSupply invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb0bf296-33ac-46d8-9e7d-71e1782ec19c",
+    "timestamp": "2025-12-01 23:13:02.847669",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper constructor (line 42), the order of inheritance UsesCore(core) BaseForwardee(core) means UsesCore's constructor runs first. If UsesCore constructor had any effects that depend on BaseForwardee setup, could this order cause initialization issues? Similarly, if core contract has callbacks during construction, could reentrancy occur before TokenWrapper is fully initialized?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_be155fbd-1327-4874-935c-97ec847024e2",
+    "timestamp": "2025-12-01 23:13:34.019511",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.totalSupply() (lines 67-76), the function reads savedBalances from Core with token1 = address(type(uint160).max) (line 71). If Core's savedBalances implementation changes or has a bug where this special token1 value is interpreted differently, could totalSupply() return incorrect values, enabling users to unwrap more tokens than the actual supply?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_574f3df5-17c0-4e47-9fb0-bc00dfc8d7e6",
+    "timestamp": "2025-12-01 23:14:05.956605",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.totalSupply() (lines 68-76), savedBalances returns (uint128 supply, uint128 ignored). If there's a bug in Core.sol where the high 128 bits and low 128 bits are swapped during storage (Core.sol line 160: balances := sload(slot)), could totalSupply() read the wrong half of the stored value, causing massive supply discrepancies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1fdf9cbc-6133-4ce6-8bcb-1d52f0021f00",
+    "timestamp": "2025-12-01 23:14:37.567122",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.totalSupply() (line 76), only supply (token0 balance) is returned, ignoring the second uint128. If updateSavedBalances incorrectly writes to delta1 in some edge case, could the true supply be split across both uint128 values, causing totalSupply() to massively underreport and enabling users to unwrap tokens that were supposedly burned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca7f07b4-75e0-451a-9c6a-23f6c6270bd5",
+    "timestamp": "2025-12-01 23:15:07.474083",
+    "report_generated": false
   }
 ]
