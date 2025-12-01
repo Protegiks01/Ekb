@@ -3448,5 +3448,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e489ee41-361a-471f-afdf-f1ffc675d512",
     "timestamp": "2025-12-01 20:46:05.580818",
     "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol (line 58-59) calls `liquidityDeltaToAmountDelta()` which internally uses `amount0Delta()` and `amount1Delta()` with negative liquidity. Can the negation of delta results cause overflow when converting to uint128 for principal amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d08b696f-78d2-4bd0-9d5b-e5bbea677853",
+    "timestamp": "2025-12-01 20:47:18.501858",
+    "report_generated": false
+  },
+  {
+    "question": "Core.sol uses delta function results to determine `amountRemaining` updates (line 679, 689). Can precision loss in delta calculations cause `amountRemaining` to never reach exactly zero, leading to incomplete swaps or locked funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bdb6a70f-f3e1-4db1-860d-44827cef9249",
+    "timestamp": "2025-12-01 20:47:31.701377",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol, delta functions are called inside a lock context with flash accounting. Can reentrant callbacks during token transfers exploit race conditions in delta calculations to manipulate the calculated amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d0c46eb-692e-4abb-985f-af438b143a0c",
+    "timestamp": "2025-12-01 20:47:45.671958",
+    "report_generated": false
+  },
+  {
+    "question": "Core.sol integrates delta calculations with tick crossing logic. Can edge cases where sqrtRatio equals a tick boundary cause delta functions to return zero amounts, preventing proper liquidity updates and corrupting tick state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_980a88e4-faa4-457e-8bc8-b09da4e255dd",
+    "timestamp": "2025-12-01 20:48:01.111535",
+    "report_generated": false
+  },
+  {
+    "question": "The swap loop in Core.sol relies on delta function accuracy for fee distribution. Can systematic rounding errors in delta calculations cause fees to accumulate incorrectly, leading to either protocol revenue loss or LP underpayment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e9fae4f-0b8a-4706-be8c-c883cfac0bbc",
+    "timestamp": "2025-12-01 20:48:16.149547",
+    "report_generated": false
+  },
+  {
+    "question": "Core.sol uses delta function results to update `calculatedAmount` (line 678, 688). If delta functions return values near uint128.max, can the subsequent additions in Core.sol overflow and wrap to small values, causing the swap to appear complete prematurely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7babf52e-2e0f-4403-bfd5-60aa8d115b6e",
+    "timestamp": "2025-12-01 20:48:32.638970",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol (line 699-701), when `sqrtRatioNextFromAmount != sqrtRatio`, delta functions calculate amounts without fees. Can the pre-fee calculation be exploited by choosing sqrtRatio values that cause maximum rounding errors in the attacker's favor?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b200061e-d482-432e-a1b6-d5979e8db743",
+    "timestamp": "2025-12-01 20:48:50.133701",
+    "report_generated": false
+  },
+  {
+    "question": "Core.sol calls `amount0Delta()` and `amount1Delta()` with `isExactOut` mapped to the roundUp parameter (line 668, 700). Can an attacker manipulate swap direction to always get favorable rounding, extracting value through repeated small swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8b76c2e7-b768-4cc3-8124-22b5b3e961a2",
+    "timestamp": "2025-12-01 20:49:09.999018",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap execution (lines 666-673), `amount0DeltaSorted()` and `amount1DeltaSorted()` are called with `stepLiquidity` which can be zero during tick crossing. Can zero liquidity cause division by zero errors in subsequent fee calculations at line 680-682?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3e933db-30da-4131-a859-9e4828e79a2c",
+    "timestamp": "2025-12-01 20:49:31.581556",
+    "report_generated": false
+  },
+  {
+    "question": "Both delta functions perform overflow checks at the end of calculations. Can intermediate overflows during `fullMulDivUp` or `fullMulDivN` operations be missed, causing silent corruption of results that only manifests as insolvency after many transactions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_97eaadf4-caa6-4d8e-ab1f-d5fab7202329",
+    "timestamp": "2025-12-01 20:49:54.827247",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount0DeltaSorted()` and `amount1DeltaSorted()` functions use different mathematical approaches (two divisions vs one multiplication). Can this asymmetry be exploited during swaps where price moves from one region to another, causing token0 and token1 calculations to be inconsistent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_558d6145-7145-423c-8994-d506be6b6dfe",
+    "timestamp": "2025-12-01 20:50:17.723089",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount1DeltaSorted()` function doesn't validate that `sqrtRatioUpper > sqrtRatioLower` despite the 'sorted' assumption in the comment (line 80). Can violating this assumption cause the difference calculation to underflow and produce a huge value that drains pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc851af4-1cf1-4ef4-bfff-6665faf8e74b",
+    "timestamp": "2025-12-01 20:50:42.481326",
+    "report_generated": false
+  },
+  {
+    "question": "In both roundUp branches of `amount1DeltaSorted()`, the overflow check uses `if shr(128, result)`. If the calculation produces exactly 2^128 - 1 (maximum uint128), does this pass the check correctly, or can off-by-one errors cause truncation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f9e5e2e3-a430-453e-9235-23bb543293b7",
+    "timestamp": "2025-12-01 20:51:08.526669",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount1DeltaSorted()` function uses `fullMulDivN(difference, liquidityU256, 128)` (line 92) which divides by 2^128. Can extremely small difference values cause this division to always return zero, preventing users from withdrawing positions in narrow price ranges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79eba8ae-2b35-4287-8821-504af7338e7e",
+    "timestamp": "2025-12-01 20:51:36.685503",
+    "report_generated": false
+  },
+  {
+    "question": "In `amount1DeltaSorted()`, the rounding addition `add(result, iszero(iszero(mulmod(...))))` (lines 95-98) uses double negation for boolean conversion. Can unusual EVM behavior or compiler optimizations cause this to produce values other than 0 or 1, leading to incorrect rounding?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e42d4237-6670-46be-9666-fcacf3e35f1c",
+    "timestamp": "2025-12-01 20:52:05.238864",
+    "report_generated": false
+  },
+  {
+    "question": "The comment on line 94 states 'addition is safe from overflow because the result of fullMulDivN will never equal type(uint256).max'. Is this assumption correct for all possible inputs, or can edge cases with maximum sqrtRatio difference and maximum liquidity violate this?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6a6d72d-acde-462a-9bf6-3c2b62fcfd71",
+    "timestamp": "2025-12-01 20:52:35.330020",
+    "report_generated": false
+  },
+  {
+    "question": "In the roundUp branch of `amount1DeltaSorted()` (lines 91-105), the code uses `mulmod(difference, liquidityU256, 0x100000000000000000000000000000000)` (line 97) to check for remainder. Can this modulo operation with 2^128 miss cases where rounding should occur, leading to systematic underpayment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2729d8e-8f45-4688-9cb9-64f88a7789b3",
+    "timestamp": "2025-12-01 20:53:06.370207",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount1DeltaSorted()` function performs `liquidityU256 := liquidity` (line 88) to convert uint128 to uint256 in assembly. Can dirty upper bits in the liquidity value (from improper cleaning in Core.sol) cause the multiplication in line 92 to produce incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b3a86322-7788-4443-b683-55c176cc41fe",
+    "timestamp": "2025-12-01 20:53:38.495916",
+    "report_generated": false
+  },
+  {
+    "question": "In `amount1DeltaSorted()` (lines 80-117), the function computes `difference = sqrtRatioUpper - sqrtRatioLower` (line 85) in an unchecked block. If sqrtRatioUpper is less than sqrtRatioLower due to a bug in the caller, can this underflow cause a massive difference value that leads to pool insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf0c44a7-c388-4aa6-a039-834eee1c2f96",
+    "timestamp": "2025-12-01 20:54:11.310901",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount1Delta()` function relies on `sortAndConvertToFixedSqrtRatios()` producing correct sorted values. If the sorting logic fails silently, can this cause token1 delta calculations to return negative values that Core.sol interprets as debt when they should be credits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ecbf6f9-dac8-42a4-b862-4a60f01e9f97",
+    "timestamp": "2025-12-01 20:54:46.671960",
+    "report_generated": false
+  },
+  {
+    "question": "In `amount1Delta()`, the function doesn't validate that `liquidity` is non-zero before calling expensive sorting operations. Can this be exploited in a griefing attack where an attacker repeatedly calls position operations with zero liquidity to waste gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac946e2e-3a85-46dd-a3cd-a35ebb5a548f",
+    "timestamp": "2025-12-01 20:55:22.783108",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount1Delta()` function (lines 72-78) has identical structure to `amount0Delta()` but calculates token1 amounts. Can asymmetric rounding behavior between token0 and token1 calculations be exploited during swaps to extract value from the price slippage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2aee201a-df67-482c-a5f4-9b44df4552bc",
+    "timestamp": "2025-12-01 20:55:59.979213",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount0DeltaSorted()` function uses different calculation paths for roundUp true vs false. Can an attacker exploit edge cases where the two paths produce results that differ by more than 1 wei, causing inconsistent behavior in symmetric operations like mint/burn?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b66e066-2c10-4595-a99c-858b8b09ea27",
+    "timestamp": "2025-12-01 20:56:37.945824",
+    "report_generated": false
+  },
+  {
+    "question": "In `amount0DeltaSorted()`, the check `if shr(128, result)` occurs in assembly after all calculations. If the intermediate calculation `result0` overflows but `result` doesn't, can this bypass the overflow check and cause Core.sol to process an incorrect token amount?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8ef811b-7852-4f19-b316-05b7d799dc9e",
+    "timestamp": "2025-12-01 20:57:14.398011",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount0DeltaSorted()` function performs two divisions: first by sqrtRatioUpper, then by sqrtRatioLower (lines 45-47 for roundUp). Can the ordering of these divisions be exploited to accumulate rounding errors that favor one direction, allowing systematic value extraction from pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55d42c10-0be6-4149-98de-9aa6b04f2864",
+    "timestamp": "2025-12-01 20:57:52.812739",
+    "report_generated": false
   }
 ]
