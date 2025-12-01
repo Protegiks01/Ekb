@@ -1048,5 +1048,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8dace19d-2f90-48f1-8ce8-e789c77bd195",
     "timestamp": "2025-12-01 17:18:24.472110",
     "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `fund()` (line 39), `SafeTransferLib.safeTransferFrom(key.token, msg.sender, address(this), fundedAmount)` transfers tokens from the caller. If `key.token` is a malicious ERC20 that returns true but doesn't actually transfer tokens, can the drop be marked as funded without the contract receiving tokens, allowing claims to drain actual tokens from other drops via shared contract balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9cafd412-7bd3-4409-aefe-f869cc5ca2c6",
+    "timestamp": "2025-12-01 17:19:34.895513",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `claim()` (line 116), `SafeTransferLib.safeTransfer(key.token, c.account, c.amount)` sends tokens to the claimant. If `c.account` is a contract that reverts in its receive function or has a gas-intensive fallback, can this cause all claims for this drop to revert, effectively freezing all funds in the drop since the owner can only refund after all claims are processed or fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_840bc670-81f6-4c34-919d-a60d7fd2c401",
+    "timestamp": "2025-12-01 17:19:48.158617",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `refund()` (line 68), tokens are sent to `key.owner`. If the owner is a contract with a broken receive function that always reverts, are the remaining funds permanently locked since refund() is the only way to retrieve unclaimed tokens and there's no alternative withdrawal mechanism?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1383338d-79da-4098-b7b2-b1eab1e61dd6",
+    "timestamp": "2025-12-01 17:20:02.349618",
+    "report_generated": false
+  },
+  {
+    "question": "Incentives.sol inherits Multicallable (line 18). If an attacker uses multicall to batch multiple `claim()` calls for the same drop with different ClaimKeys, can they exploit any state inconsistency between calls since each delegatecall shares the same storage state but might read stale values from earlier operations in the batch?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fe8e3cff-dd7c-4562-9a4b-b2c46e869da4",
+    "timestamp": "2025-12-01 17:20:16.494627",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol with Multicallable, if an attacker batches `fund()` and `claim()` in a single multicall, does the claim() see the updated funded amount immediately, or can race conditions in how delegatecall handles storage updates allow claiming before the fund() update is visible?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d5515e7-f2ae-4426-85e8-f3c04e87b7c6",
+    "timestamp": "2025-12-01 17:20:31.566829",
+    "report_generated": false
+  },
+  {
+    "question": "Incentives.sol inherits ExposedStorage (line 18). If an external contract calls the `sload()` or `sstore()` functions (if exposed), can they directly manipulate drop state, bitmaps, or funded/claimed amounts, bypassing all validation in fund(), claim(), and refund()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70f32a87-7d89-4e6b-baab-2e449e3cd731",
+    "timestamp": "2025-12-01 17:20:47.914440",
+    "report_generated": false
+  },
+  {
+    "question": "In dropKey.sol `toDropId()` (lines 21-25), the drop ID is computed as `keccak256(key, 96)` covering owner, token, and root. If an attacker can find two distinct DropKey structs with different (owner, token, root) that produce the same keccak256 hash (collision), can they create a drop that shares storage with an existing drop, allowing them to claim tokens from one drop using proofs from another?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29f9bcc3-98e6-4541-8640-31fab80c8127",
+    "timestamp": "2025-12-01 17:21:05.944167",
+    "report_generated": false
+  },
+  {
+    "question": "In dropKey.sol `toDropId()` (line 24), the comment assumes owner and token have no dirty upper bits. If an attacker crafts a DropKey where `owner` or `token` has non-zero bits in positions 160-255, does this affect the hash calculation, potentially allowing them to create distinct drops that hash to the same ID when the dirty bits are cleaned during actual token transfers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f530914-2844-4d70-a06a-702a9ff843d8",
+    "timestamp": "2025-12-01 17:21:25.542699",
+    "report_generated": false
+  },
+  {
+    "question": "In dropState.sol `setFunded()` (lines 32-35), funded is packed into the upper 128 bits. If an attacker provides a funded amount where `funded > type(uint128).max` due to arithmetic overflow in fund(), does the shift operation `shl(128, amount)` truncate the value or preserve overflow bits, potentially corrupting the claimed amount in the lower 128 bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b05511ee-61dc-4492-b0d8-27945218f480",
+    "timestamp": "2025-12-01 17:21:46.807939",
+    "report_generated": false
+  },
+  {
+    "question": "In dropState.sol `getRemaining()` (lines 51-54), the calculation `funded() - claimed()` is in an unchecked block. If through any bug claimed exceeds funded, does this underflow to a massive positive value, causing the `remaining < c.amount` check in claim() to pass when it should fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e9c4768-7d5c-4236-9a3c-00e97991f485",
+    "timestamp": "2025-12-01 17:22:08.967346",
+    "report_generated": false
+  },
+  {
+    "question": "In IncentivesLib.sol `getClaimedBitmap()` (lines 41-53), the slot is calculated as `bytes32(uint256(dropId) + 1 + word)` in unchecked context. If `word` is maliciously large (e.g., derived from a huge index in a claim), can this overflow and wrap around to access arbitrary storage slots, potentially reading sensitive data or other drops' states?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22839707-cb65-4428-b1ef-badd1196a36b",
+    "timestamp": "2025-12-01 17:22:32.187278",
+    "report_generated": false
+  },
+  {
+    "question": "In bitmap.sol `leSetBit()` and `geSetBit()` (lines 51-72), the functions use the `clz` opcode which is experimental in Solidity 0.8.31. If the compiler generates incorrect bytecode for `clz` on certain inputs, can this cause bitmap searches to return incorrect bit positions, allowing attackers to manipulate which claims are marked as processed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_48aa4c22-f3da-4bd3-bf32-ebc9d7b434fc",
+    "timestamp": "2025-12-01 17:22:57.343018",
+    "report_generated": false
+  },
+  {
+    "question": "In bitmap.sol `leSetBit()` (line 54), if `index = 255`, the calculation `sub(shl(add(index, 1), 1), 1)` becomes `sub(shl(256, 1), 1)`. Does `shl(256, 1)` correctly produce 0 (due to wraparound), making the mask `sub(0, 1) = type(uint256).max`, or does it produce an unexpected value that causes the bitmap search to return incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1b4bcd1c-e2c2-4d27-9233-a3cfd0db8b8e",
+    "timestamp": "2025-12-01 17:23:22.609373",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol `refund()` (line 46-48), only `key.owner` can call refund. However, if the owner's address is a contract that self-destructs or loses its private key, are the remaining funds permanently locked since there's no alternative recovery mechanism or admin function to rescue tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b9a45186-aebe-45f3-bb14-0d5abe925ec7",
+    "timestamp": "2025-12-01 17:23:47.817961",
+    "report_generated": false
+  },
+  {
+    "question": "In Incentives.sol, there's no function to update a drop's root after creation. If the owner realizes the merkle tree was incorrectly constructed (e.g., excluded legitimate users), can they cancel the old drop and create a new one, or are the funded tokens locked until the owner refunds them, re-funds a new drop, and users submit claims again?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9702026e-1ac9-481a-a990-1c198e1350d8",
+    "timestamp": "2025-12-01 17:24:15.625949",
+    "report_generated": false
+  },
+  {
+    "question": "In IncentivesLib.sol `claimIndexToStorageIndex()` (line 22), if `index = 0`, does `(word, bit) = (0, 0)` correctly access the first bit of the first bitmap word at slot `dropId + 1`, or is there an off-by-one error that causes it to access the drop state slot instead?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04715ad1-9701-4d96-85b0-a6b3f0cc6f33",
+    "timestamp": "2025-12-01 17:24:45.243627",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol, FlashAccountant.sol `lock()` (lines 146-187) stores the locker in transient storage at `_CURRENT_LOCKER_SLOT` and increments the lock ID. If an attacker calls `lock()` repeatedly in a deeply nested fashion (lock -> callback calls lock -> callback calls lock, etc.), can the lock ID overflow from incrementing `id + 1` on each call, causing ID collision where different lock contexts share the same transient storage slots for debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37e8e458-417d-4405-9a18-329ee0ff4f6a",
+    "timestamp": "2025-12-01 17:25:14.970511",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol `lock()` (line 175), after the callback returns, it checks `nonzeroDebtCount` from transient storage. If a malicious locker uses `tstore()` directly (via assembly) during the callback to manually set their `_NONZERO_DEBT_COUNT_OFFSET` to 0, can they bypass the debt settlement check on line 176-181 and exit the lock with non-zero debt, violating the flash accounting balance invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd58479d-5fe0-4f6d-824a-51e58aa1cc62",
+    "timestamp": "2025-12-01 17:25:44.735028",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol `_updatePairDebt()` (lines 96-129), if both `debtChangeA` and `debtChangeB` are 0, the function returns early without updating the non-zero debt count. Can an attacker exploit this by repeatedly calling operations that result in 0 debt changes, causing the `nzdCountChange` tracking to desynchronize from actual debt states, then manipulate debt without detection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f1fbb1d8-6f8f-4f02-afb9-de440d3b8485",
+    "timestamp": "2025-12-01 17:26:14.989433",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol `_accountDebt()` (lines 67-84), the debt slot is calculated as `add(_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET, add(shl(160, id), token))`. If `id` grows large enough that `shl(160, id)` overflows, can debt tracking for different tokens collide, allowing an attacker to settle debt in token A by paying token B?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_69b6ba73-de49-47c1-911f-e9ceec552e81",
+    "timestamp": "2025-12-01 17:26:44.029961",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol `withdraw()` (lines 322-381), token transfers can re-enter (line 361 calls external token). If the re-entrant call acquires a new lock with the same `id` (because IDs increment modulo 2^96), can it manipulate the `nzdCountChange` variable (line 340) that the outer call will use to update the debt count, causing debt tracking corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c8a83aeb-43aa-401b-89f6-e8665dc0824d",
+    "timestamp": "2025-12-01 17:27:12.976343",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `_updatePairDebtWithNative()` (lines 329-355), if `msg.value > 0` and `token0 == NATIVE_TOKEN_ADDRESS`, the debtChange0 is adjusted by subtracting msg.value (line 344). If `debtChange0` is negative (user is withdrawing token0) and msg.value is large, can this cause underflow in the subtraction, wrapping to a massive positive debt that the user cannot settle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72257412-a402-4fbe-95e6-e001e7726eb4",
+    "timestamp": "2025-12-01 17:27:42.046336",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol `completePayments()` (lines 257-319), the payment calculation on lines 283-287 uses `sub(currentBalance, sub(lastBalance, 1))`. If `lastBalance = 1` (minimum non-zero tload value), does subtracting 1 cause it to become 0, then subtracting from currentBalance produces an incorrect payment amount that doesn't reflect actual token transfers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dfe06849-fb90-4be0-8801-46d1967ea838",
+    "timestamp": "2025-12-01 17:28:11.505902",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol `startPayments()` (lines 224-254), if a token's balanceOf() call returns a value > type(uint128).max, the value is stored in transient storage without truncation. Later in completePayments(), if the payment calculation on line 283 produces a value exceeding uint128, the overflow check on line 290 reverts. Can an attacker use a malicious token that reports inflated balances to DoS the payment flow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9518157-9c02-45a1-bcc8-19af8ae27639",
+    "timestamp": "2025-12-01 17:28:39.564113",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol `forward()` (lines 190-221), the locker is temporarily changed to the forwarded address (line 196). If the forwarded contract reenters forward() to forward to a third address, then that third contract exits back through the first forward, does the locker restoration on line 215 restore the wrong locker address, corrupting the lock state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94bae291-a244-4073-8c86-19fdb9fd9b11",
+    "timestamp": "2025-12-01 17:29:08.772477",
+    "report_generated": false
   }
 ]
