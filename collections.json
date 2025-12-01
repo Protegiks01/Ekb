@@ -5398,5 +5398,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0678ee9e-d46d-47cd-9f13-9a393c0fba19",
     "timestamp": "2025-12-01 22:53:28.541679",
     "report_generated": false
+  },
+  {
+    "question": "What happens in Router.sol's handleLockData if balanceUpdate.delta0() is exactly type(int128).min and is negated at line 116 or 123, causing overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_785a3bfd-1624-4e1e-a352-eb4d82fb658a",
+    "timestamp": "2025-12-01 22:54:36.466190",
+    "report_generated": false
+  },
+  {
+    "question": "If a multi-hop route has exactly 256 hops (maximum reasonable array size), can memory allocation for results array at line 168 cause out-of-gas during settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c5419b81-d5c0-41de-b4d2-64207ccb38a6",
+    "timestamp": "2025-12-01 22:54:49.378066",
+    "report_generated": false
+  },
+  {
+    "question": "Can Router.swap be called with poolKey where token0 == token1, and if so, does this bypass validation and allow exploits through identical token swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f6a1df4-5697-4123-8349-de700049efbf",
+    "timestamp": "2025-12-01 22:55:03.287375",
+    "report_generated": false
+  },
+  {
+    "question": "If sqrtRatioLimit in RouteNode is set to exactly MIN_SQRT_RATIO or MAX_SQRT_RATIO, does withDefaultSqrtRatioLimit incorrectly replace these valid limits with different values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3c3b67d8-3345-4b69-99db-acecaf953596",
+    "timestamp": "2025-12-01 22:55:17.210347",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if calculatedAmountThreshold is exactly 0 in a swap where tokens are received (negative deltas), does the slippage check at line 118 pass or fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31172b8c-3cff-4732-9c99-d96ddf59c780",
+    "timestamp": "2025-12-01 22:55:32.076042",
+    "report_generated": false
+  },
+  {
+    "question": "If a swap results in balanceUpdate where both delta0 and delta1 are exactly 0, does the settlement logic at lines 122-147 skip all transfers, potentially allowing zero-delta exploits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_93d8de0f-4a6c-4bda-8ba3-fdb5ed14e649",
+    "timestamp": "2025-12-01 22:55:48.573463",
+    "report_generated": false
+  },
+  {
+    "question": "Can skipAhead parameter be set to type(uint256).max,",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0fb0baf8-52d5-47ca-bfe9-36dc238e379c",
+    "timestamp": "2025-12-01 22:56:06.052513",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transfer() (lines 96-117), the Core contract is exempted from balance checks when msg.sender == address(CORE). Could a malicious actor gain control of the Core contract's transient balance and use transfer() to mint unlimited wrapped tokens to arbitrary addresses, violating the solvency invariant tracked in savedBalances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_259dbd6c-948d-4ce1-803c-5bfdd8dbfea4",
+    "timestamp": "2025-12-01 22:56:26.244454",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transfer() (lines 109-110), when transferring to Core, the code performs coreBalance += amount without checking for uint256 overflow. Could an attacker accumulate transfers to Core that exceed type(uint256).max, causing an overflow that resets coreBalance to a small value and enabling theft of previously deposited tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28d63565-cc12-408b-9e31-050ab9b64090",
+    "timestamp": "2025-12-01 22:56:46.867420",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transfer() (lines 99-107), the balance check and decrement are performed on _balanceOf[msg.sender], but the code at line 98 allows Core to bypass this check. If Core's transient coreBalance is manipulated during a lock callback, could this enable double-spending where the same wrapped tokens are transferred multiple times within a single transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a1e18a7e-64f4-433f-846c-cfae76ecad75",
+    "timestamp": "2025-12-01 22:57:07.919643",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transfer() (lines 111-114), when to != address(0), the code writes _balanceOf[to] += amount. If 'to' is a contract that performs a reentrant call back to transfer() before line 115's event emission, could the reentrancy allow stealing tokens by manipulating the state between balance updates and event logs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3e713f0-3f49-4def-a59f-84bd1bb1b024",
+    "timestamp": "2025-12-01 22:57:30.518577",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transfer() (line 115), the Transfer event is emitted after all state changes. If the Core contract calls transfer() as part of a flash accounting operation and then reverts the parent lock, could the emitted event create an inconsistency between on-chain logs and actual balance state, breaking external indexers and enabling accounting fraud?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_20ddc2af-fea0-4799-8f62-ea2ae9d4ae4f",
+    "timestamp": "2025-12-01 22:57:54.261256",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transferFrom() (lines 127-155), the allowance check at line 129 uses type(uint256).max as infinite allowance. If an attacker approves type(uint256).max and then the same attacker's 'from' address gets a wrapped token balance through wrap(), could they transferFrom() more than their actual balance by exploiting the fact that infinite allowance bypasses further allowance decrements?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_479f788d-1373-4756-b65e-4fc854325e17",
+    "timestamp": "2025-12-01 22:58:19.849104",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transferFrom() (lines 139-145), the balance check occurs after allowance validation. If the 'from' address is Core (which should never have allowances per line 137 comment), could a race condition between handleForwardData() wrap operations and transferFrom() calls enable unauthorized withdrawal of tokens that were just wrapped but not yet fully accounted in _balanceOf?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_59b6a689-afd1-44be-991a-e4c067510fa3",
+    "timestamp": "2025-12-01 22:58:45.530496",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transferFrom() (line 153), the Transfer event uses msg.sender instead of 'from' as the emitter. This is non-standard ERC20 behavior. Could external contracts or indexers that rely on standard Transfer(from, to, amount) events mistrack actual token ownership, potentially enabling double-claim attacks in DeFi protocols that integrate TokenWrapper?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1fc02dbe-7af1-48ef-aef7-9abe8484efc8",
+    "timestamp": "2025-12-01 22:59:13.339407",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transferFrom() (lines 148-152), when transferring to Core, coreBalance is incremented similar to transfer(). If an attacker uses transferFrom() within a malicious forwarded call where they control the original Locker, could they artificially inflate coreBalance and then use handleForwardData() unwrap to drain more underlying tokens than they deposited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4df4c00e-e925-42b7-ac72-000b97f9bf0c",
+    "timestamp": "2025-12-01 22:59:40.476431",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transferFrom() (lines 132-134), allowance is decremented in unchecked block after verifying allowanceCurrent >= amount. If allowanceCurrent equals exactly amount and there's a reentrancy during the transfer that checks the allowance again, could the allowance underflow protection fail due to TOCTOU (time-of-check-time-of-use) vulnerabilities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_74a836e9-9ab8-4782-b0a3-7c0497ce48ce",
+    "timestamp": "2025-12-01 23:00:08.403568",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper (line 56), coreBalance is declared as 'uint256 private transient'. In Solidity 0.8.30+, transient storage is cleared between transactions. If Core performs multiple wrapped token operations within a single lock() call, could the transient nature of coreBalance cause accounting errors where intermediate balance states are lost, breaking flash accounting balance requirements?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_905745bd-3682-4b41-bfbc-233fb8ad7c09",
+    "timestamp": "2025-12-01 23:00:37.273532",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.balanceOf() (lines 60-63), Core's balance returns the transient coreBalance. If an attacker calls balanceOf(CORE) during a nested forward() call where coreBalance has been manipulated, could they use this view function result to make decisions that violate Ekubo's invariants, such as attempting to withdraw more tokens than actually available?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1aefd338-197c-4f71-9f02-9cf6f4550a57",
+    "timestamp": "2025-12-01 23:01:06.659294",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.balanceOf() (lines 60-63), the function returns coreBalance for Core but _balanceOf[account] for others. If there's a reentrancy where balanceOf() is called on Core after a partial transfer but before updateDebt() settles the delta, could this create a window where totalSupply() and sum of all balanceOf() calls are inconsistent, breaking ERC20 accounting invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f3ee4c0-04d3-4d54-bfb6-db6e1eb79478",
+    "timestamp": "2025-12-01 23:01:35.250590",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper (lines 54-56), coreBalance is only modified in transfer() and transferFrom() functions. If Core calls handleForwardData() which modifies savedBalances but doesn't update coreBalance, could there be a mismatch between the transient balance shown by balanceOf(CORE) and the actual debt tracked by Core's delta system, enabling unauthorized token minting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_658cf7c7-bc63-46ac-b388-916de669b23d",
+    "timestamp": "2025-12-01 23:02:03.641526",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transfer() and transferFrom() (lines 110, 149), coreBalance is incremented when to == address(CORE). However, there's no code that decrements coreBalance. If coreBalance grows indefinitely across multiple transfers to Core within a lock, could this cause coreBalance to overflow or create a permanent discrepancy with Core's internal debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c54def3d-3c8d-4142-b6e7-e916a9d43336",
+    "timestamp": "2025-12-01 23:02:32.778532",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (lines 163-182), the function decodes (int256 amount) from data (line 164). If an attacker passes malformed data that's shorter than 32 bytes, could abi.decode revert gracefully or could it read garbage memory values, potentially causing the function to execute with unintended amount values that bypass time lock checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd0f975c-16ae-4936-92a8-41f169f34fde",
+    "timestamp": "2025-12-01 23:03:00.205383",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (lines 167-169), unwrap (negative amount) is only allowed if block.timestamp >= UNLOCK_TIME. However, wrap (positive amount) has no restrictions. Could an attacker wrap tokens repeatedly before UNLOCK_TIME to inflate the savedBalances total supply, then manipulate other Core operations that depend on the wrapper's total supply for calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04ed0a18-fa6a-4205-ad07-d9bc01835830",
+    "timestamp": "2025-12-01 23:03:28.530457",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 171-177), updateSavedBalances() is called with token1 = address(type(uint160).max) and salt = bytes32(0). This unconventional token1 value is used to track total supply. Could a collision occur if another contract or extension also uses type(uint160).max as a token address in savedBalances, causing wrapped token supply to be corrupted by unrelated operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5f1a09f0-02cf-4d6a-86f6-67704fa4daa6",
+    "timestamp": "2025-12-01 23:03:55.421394",
+    "report_generated": false
   }
 ]
