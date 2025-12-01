@@ -898,5 +898,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c3a82c2f-cf75-45ab-a003-eabdd4b8ae57",
     "timestamp": "2025-12-01 17:03:19.021206",
     "report_generated": false
+  },
+  {
+    "question": "The TwammPoolState is stored at `TWAMMStorageLayout.twammPoolStateSlot(poolId)` which equals `PoolId.unwrap(poolId)` directly. Can two pools with similar PoolIds cause storage slot collision, allowing one pool's state to overwrite another's?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c8cd7e38-d838-460e-a13f-3492e68208cb",
+    "timestamp": "2025-12-01 17:04:30.701094",
+    "report_generated": false
+  },
+  {
+    "question": "In `parse()` at line 40-42, all three masks/shifts are applied in sequence. Can a malicious extension call this function during a state update and receive partially updated values that violate TWAMM invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d1a97b8-9628-4d07-84da-086fca8f98bc",
+    "timestamp": "2025-12-01 17:04:43.962482",
+    "report_generated": false
+  },
+  {
+    "question": "The saleRateToken0 packing at line 53 uses `shr(112, shl(144, _saleRateToken0))`. Can this expression be manipulated to pack values exceeding uint112 max if the caller passes a uint256 value with high bits set?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_54fed149-274f-4bf5-8886-5a84b72c9727",
+    "timestamp": "2025-12-01 17:04:58.336984",
+    "report_generated": false
+  },
+  {
+    "question": "In `createTwammPoolState()` line 53, the assembly uses `and(_lastVirtualOrderExecutionTime, 0xffffffff)` to mask the timestamp. If `_lastVirtualOrderExecutionTime` is passed as a value greater than uint32.max, will the mask prevent overflow or will upper bits corrupt adjacent fields?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5254e7c0-3e96-48d2-a550-7dc372722c62",
+    "timestamp": "2025-12-01 17:05:12.659540",
+    "report_generated": false
+  },
+  {
+    "question": "The `realLastVirtualOrderExecutionTime()` function at line 20-24 performs complex arithmetic with `sub(timestamp(), and(sub(and(timestamp(), 0xffffffff), and(state, 0xffffffff)), 0xffffffff))`. Can uint32 wraparound of block.timestamp cause this to return incorrect values, leading to virtual orders executing at wrong times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_77ab1bd8-dcf9-45f0-99d8-961febf592a1",
+    "timestamp": "2025-12-01 17:05:27.983575",
+    "report_generated": false
+  },
+  {
+    "question": "In `parse()` at line 38-44, three fields are extracted in a single assembly block. Can a race condition during concurrent reads cause inconsistent values to be returned if the underlying storage is being written simultaneously?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18b3365f-c9de-4c16-af2f-5f10c4de049c",
+    "timestamp": "2025-12-01 17:05:44.791194",
+    "report_generated": false
+  },
+  {
+    "question": "The `createTwammPoolState()` function at line 52-54 uses `shr(112, shl(144, _saleRateToken0))` to position saleRateToken0. Can incorrect shift amounts cause saleRateToken0 bits to overwrite the lastVirtualOrderExecutionTime or saleRateToken1 fields?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_109633f1-1256-4a1d-a09b-5da7cad7054a",
+    "timestamp": "2025-12-01 17:06:02.692991",
+    "report_generated": false
+  },
+  {
+    "question": "In `createTwammPoolState()` at line 46-56, the assembly packs three fields using OR operations. Can an attacker cause storage corruption by passing values that exceed their intended bit widths (uint32, uint112, uint112), resulting in bit overlap between fields?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_246f9561-654d-4c6b-8a57-73099b25741b",
+    "timestamp": "2025-12-01 17:06:23.125026",
+    "report_generated": false
+  },
+  {
+    "question": "In `saleRateToken1()` at line 32-36, the assembly uses `shr(144, state)` directly. If bits 144-255 are not properly masked during packing in `createTwammPoolState()`, could this return values exceeding uint112 max, causing overflow in subsequent sale rate arithmetic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b42e3845-dfcb-4723-8efa-ed814cbae3b1",
+    "timestamp": "2025-12-01 17:06:46.942044",
+    "report_generated": false
+  },
+  {
+    "question": "In `saleRateToken0()` at line 26-30, the assembly uses `shr(144, shl(112, state))` to extract bits 32-143. Can this bit manipulation be exploited if the upper bits (144-255) contain non-zero values that bleed through after the shifts, causing incorrect sale rate calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fe9c6cfd-c6cc-4b9f-8b99-542a80b85c6d",
+    "timestamp": "2025-12-01 17:07:09.835202",
+    "report_generated": false
+  },
+  {
+    "question": "In `lastVirtualOrderExecutionTime()` at line 14-18, the assembly masks with `0xffffffff` to extract the uint32 timestamp. Can an attacker cause the stored state to have non-zero bits in positions 32-255 that would bypass this mask and return an incorrect timestamp, leading to virtual order execution skipping or double-execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db9a212b-628f-44f0-84ce-b38b470f691a",
+    "timestamp": "2025-12-01 17:07:33.644643",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function returns uint256 but should represent a 64.64 fixed-point number, meaning values are in [0, 2^64) << 64. If due to implementation errors the result exceeds (2^64 << 64), downstream code might misinterpret it. Are there validation checks in TWAMM to ensure exp2() results are in the expected range?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3cc0d71c-9170-40b9-87ed-c746caf3db8b",
+    "timestamp": "2025-12-01 17:07:58.797596",
+    "report_generated": false
+  },
+  {
+    "question": "At line 9, result is initialized to 2^127 (in 256-bit space). After all bit-check multiplications, result is in approximately 127.128 format (127 integer bits, 128 fractional bits). The final shift at line 204 converts this to 64.64. If the shift calculation is off by one, could result end up in 63.65 or 65.63 format instead?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5714e8bb-4439-420e-91fc-194e9e6accb3",
+    "timestamp": "2025-12-01 17:08:25.863534",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function computes 2^x for x in [0, 64). For x = 64, it should return 2^64, but this would overflow the 64.64 format (which has max value 2^64 - 2^-64). The overflow check at line 7 prevents x >= 2^62, but the comment says '5.64 format' which should only support integers up to 31. Is there confusion about the supported input range?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_949f26d8-81ef-4cee-865c-23e10c8a86e6",
+    "timestamp": "2025-12-01 17:08:54.770372",
+    "report_generated": false
+  },
+  {
+    "question": "If (x >> 64) could somehow be 64 or larger (violating assumptions), the subtraction '63 - (x >> 64)' would underflow in the unchecked block, producing a huge positive value. The shift 'result >>= HUGE_VALUE' would shift result to 0. Could this be exploited if x has unclean bits above bit 69?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_32665bb5-d94c-4960-8498-21aec0274012",
+    "timestamp": "2025-12-01 17:09:23.863148",
+    "report_generated": false
+  },
+  {
+    "question": "The shift amount at line 204 is '63 - (x >> 64)'. For x in 5.64 format, the maximum integer part is 2^5 - 1 = 31 (from the 5 integer bits). But the code allows integer parts up to 63 (since it checks x < 2^62, and 2^62 in 5.64 format has integer part 62). Is this a mismatch between the format documentation and implementation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c64af386-5f22-49fa-b020-1f35e0fcfc3d",
+    "timestamp": "2025-12-01 17:09:54.089338",
+    "report_generated": false
+  },
+  {
+    "question": "At line 204, 'result >>= uint256(63 - (x >> 64))' assumes (x >> 64) is in [0, 63]. The overflow check at line 7 ensures x < 2^62, so (x >> 64) < 2^-2, which should be 0. Wait - this seems wrong. If x is 5.64 format, (x >> 64) extracts the integer part. If x < 2^62, the integer part is < 2^-2? This doesn't make sense. Is there a bug in the shift calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1f674f7b-8ec5-4880-8f14-d530508d1ede",
+    "timestamp": "2025-12-01 17:10:23.554499",
+    "report_generated": false
+  },
+  {
+    "question": "None of the exp2() tests verify behavior when the function is called with very small non-zero inputs (e.g., x = 1, representing 2^(2^-64) ≈ 1.00000000000000001). For TWAMM orders with very low exponents, could exp2() return exactly 1.0 due to precision limits, causing price movement to stall?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_96f0f5ea-c23d-4a37-84dd-2cdc2ef1773c",
+    "timestamp": "2025-12-01 17:10:54.681999",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function is tested with inputs up to 2^62 - 1, but the test doesn't verify behavior when exp2() is called in rapid succession with different inputs (as would happen during TWAMM virtual order execution with multiple crossing times). Could there be caching or compiler optimization issues that cause inconsistent results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a1545b57-6257-4c43-8f30-24de0c531095",
+    "timestamp": "2025-12-01 17:11:26.239275",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() tests (exp2.t.sol) verify specific input/output pairs and monotonicity, but don't test integration with TWAMM's full execution flow. Could there be edge cases where exp2() returns valid values that, when used in computeNextSqrtRatio(), cause the final sqrtRatio to violate MIN_SQRT_RATIO or MAX_SQRT_RATIO bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04ada4a4-554f-4630-b835-d573b0b845a3",
+    "timestamp": "2025-12-01 17:11:58.843516",
+    "report_generated": false
+  },
+  {
+    "question": "At x = (3 << 64) / 2 = 1.5, exp2() should return 2^1.5 ≈ 2.828. The test at line 36 verifies this. For TWAMM orders where the calculated exponent is near 1.5, could rounding in the division operation cause x to be slightly different from 1.5, leading to unexpected exp2() results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c6884b03-847b-4ff8-8e95-132aee2f0c29",
+    "timestamp": "2025-12-01 17:12:30.584398",
+    "report_generated": false
+  },
+  {
+    "question": "For input x where only the highest bit is set (x = 0x8000000000000000), exp2() should return 2^0.5 ≈ 1.414. The test at line 32 verifies this returns 21936999301089678046 in 64.64 format. If this constant is incorrect, how would it affect TWAMM orders where the exponent has only high-order fractional bits set?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_143d3397-08e1-4fd7-8f22-041d8ed1cb1d",
+    "timestamp": "2025-12-01 17:13:02.581367",
+    "report_generated": false
+  },
+  {
+    "question": "The test at exp2.t.sol line 47 checks the maximum valid input: exp2(0x400000000000000000 - 1) returns a specific large value. If an attacker can cause the exponent calculation in TWAMM to return exactly this value, and exp2() has a precision error at this boundary, could it cause the result to wrap or overflow when shifted at twamm.sol line 125?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04b49e68-095d-43ee-abdb-820bd68127f0",
+    "timestamp": "2025-12-01 17:13:34.364521",
+    "report_generated": false
+  },
+  {
+    "question": "If exp2() consistently rounds in a particular direction (e.g., always down), TWAMM execution would systematically favor one token over the other. Over multiple blocks, this could create a predictable bias in oracle prices. Could MEV searchers exploit this by executing trades immediately before/after TWAMM executions to profit from the predictable price impact?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_481b39f8-a11d-4e55-a017-0ae4e65faa7f",
+    "timestamp": "2025-12-01 17:14:07.927611",
+    "report_generated": false
+  },
+  {
+    "question": "The TWAMM extension affects pool prices, which the Oracle extension observes. If exp2() errors cause TWAMM to execute at incorrect prices, these incorrect prices get recorded in the Oracle's observation array. Could an attacker exploit exp2() precision issues to manipulate TWAP calculations, affecting downstream protocols that rely on Ekubo oracles?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fbeaf7f2-7b02-4652-a4f2-3f19ffe32ebe",
+    "timestamp": "2025-12-01 17:14:42.344411",
+    "report_generated": false
   }
 ]
