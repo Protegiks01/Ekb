@@ -4948,5 +4948,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8f06eff0-18a1-44b3-8d8f-e8e7b05af958",
     "timestamp": "2025-12-01 22:19:23.589607",
     "report_generated": false
+  },
+  {
+    "question": "At BaseLocker lines 32-35, assembly return bypasses normal return flow. Can this be exploited in multicall contexts where return data is expected in specific formats?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c10953c9-06db-48b2-816d-fbf399453067",
+    "timestamp": "2025-12-01 22:20:34.961631",
+    "report_generated": false
+  },
+  {
+    "question": "In PayableMulticallable.multicall (line 17), the override is payable but doesn't track msg.value distribution. Can an attacker include a call that consumes all msg.value, causing subsequent calls to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4281d4dd-9183-4eac-980f-08ebe925e524",
+    "timestamp": "2025-12-01 22:20:48.091555",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol, if multicall includes multiple lock operations, does each lock create a separate context, or can nested locks corrupt the accountant's debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1b72becf-ed8d-410e-b59a-c93af2a730b2",
+    "timestamp": "2025-12-01 22:21:02.055538",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 91-259), different call types have different return structures. Can multicall misinterpret return data from one call type as another, causing incorrect state updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d15d0dd1-e664-4a8b-8f20-32e737525e20",
+    "timestamp": "2025-12-01 22:21:16.305536",
+    "report_generated": false
+  },
+  {
+    "question": "At PayableMulticallable line 18, Multicallable is inherited from Solady. If Solady's implementation has vulnerabilities in handling failed calls, can this affect Router's safety?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22229c30-a2b3-46aa-afe8-cf6d5acfcb6f",
+    "timestamp": "2025-12-01 22:21:31.684607",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol, if a multicall includes swap followed by refundNativeToken, can the refund withdraw tokens meant for swap settlement, violating flash accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a079d287-13b9-4c02-8427-3e473b3ea7f0",
+    "timestamp": "2025-12-01 22:21:48.789666",
+    "report_generated": false
+  },
+  {
+    "question": "At BaseLocker.lock (lines 44-73), if multicall triggers multiple lock calls, can the assembly memory management cause corruption between nested lock contexts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1338035f-916d-4b97-a7df-f136372d1b9e",
+    "timestamp": "2025-12-01 22:22:06.554258",
+    "report_generated": false
+  },
+  {
+    "question": "In PayableMulticallable, multicall returns bytes[] memory. If one swap in the batch reverts, does this revert the entire batch, or can partial execution lead to inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f9e3d04-9928-45a8-a184-d0a457eed888",
+    "timestamp": "2025-12-01 22:22:26.257401",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 286, lock is called with encoded data. If multicall batches multiple lock calls with overlapping token operations, can debt accumulate incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8918b2fa-0d40-4898-bc5a-fabf0e35edf4",
+    "timestamp": "2025-12-01 22:22:47.436321",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (line 92), callType is decoded from data. Can a multicall exploit this by sending data that decodes to multiple call types simultaneously?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a212aede-75c2-49b5-a0f3-af9134f7f738",
+    "timestamp": "2025-12-01 22:23:08.918870",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol's quote function (lines 419-449), lockAndExpectRevert is used to capture revert data. Can an attacker cause a different revert that bypasses the QuoteReturnValue selector check at line 439?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a7eb9eb7-d04c-47d3-b596-fefaf57fda8e",
+    "timestamp": "2025-12-01 22:23:31.442676",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 436-438, assembly extracts sig from revertData. If revertData.length is less than 4, can this cause an out-of-bounds read?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9a5992e-8c99-469f-be90-d93673d45eed",
+    "timestamp": "2025-12-01 22:23:55.643543",
+    "report_generated": false
+  },
+  {
+    "question": "In quote function (line 439), if sig matches but revertData.length != 68, the check fails. Can a malicious core return data with length 68 but wrong structure to bypass validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14cc7241-7056-4ec2-a5ba-6472ac1e952d",
+    "timestamp": "2025-12-01 22:24:20.945656",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 440-443, assembly loads balanceUpdate and stateAfter from revertData. Can bit alignment issues cause these values to be incorrectly interpreted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d5723ab-7bd4-4913-aaa8-4675b3d6a96f",
+    "timestamp": "2025-12-01 22:24:46.920446",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.lockAndExpectRevert (lines 82-111), if the call succeeds instead of reverting, it reverts with ExpectedRevertWithinLock. Can this be exploited to confuse external contracts about quote validity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e81a4a9-74d6-4c5d-ad36-8619430bbb6c",
+    "timestamp": "2025-12-01 22:25:14.760220",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 257, CALL_TYPE_QUOTE triggers a revert after _swap. If the swap itself reverts for a legitimate reason (e.g., insufficient liquidity), can this be distinguished from the quote revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e135079-ab42-45c6-a21f-ed29ba1d268d",
+    "timestamp": "2025-12-01 22:25:43.399112",
+    "report_generated": false
+  },
+  {
+    "question": "In quote function (lines 445-447), if the revert doesn't match QuoteReturnValue, the original revert is bubbled up. Can an attacker use this to extract information about pool state through failed quotes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_da820119-5d5a-4d91-bf81-a5f7702f61fe",
+    "timestamp": "2025-12-01 22:26:13.086567",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 423, lockAndExpectRevert is called with encoded parameters. If encoding is malformed, can this cause quote to return incorrect results without reverting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c34368ab-bf70-43e2-aa04-c577e7d1b191",
+    "timestamp": "2025-12-01 22:26:43.772574",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (line 255), _swap is called with value=0 for quotes. If the quote is for a native token swap requiring value, does this return accurate results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c25dfbe6-7ffc-42f7-83f2-d40aab43f3f4",
+    "timestamp": "2025-12-01 22:27:17.288834",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 419-449, quote is non-view due to the lock mechanism. Can a malicious caller use quote in a transaction to manipulate state before reverting, bypassing gas costs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a22cf9a2-f923-435f-85e5-9f951329ccab",
+    "timestamp": "2025-12-01 22:27:50.549860",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.lock function (lines 44-73), assembly uses mcopy at line 58. If data.length is manipulated to be extremely large, can this cause memory corruption that affects subsequent lock operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2d1e523-008d-45cf-9c53-ec73515de0f8",
+    "timestamp": "2025-12-01 22:28:23.846790",
+    "report_generated": false
+  },
+  {
+    "question": "At BaseLocker line 26, locked_6416899205 checks msg.sender == ACCOUNTANT. If ACCOUNTANT is a malicious contract, can it repeatedly call locked_6416899205 to create nested locks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd8d63a4-06b3-462c-8460-86ded61e96e3",
+    "timestamp": "2025-12-01 22:28:58.289239",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.lock (lines 61-64), if the call to ACCOUNTANT fails, revert data is copied and bubbled up. Can a malicious accountant return crafted revert data to exploit external contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64d98352-5b08-4125-9e3d-716eba7dd341",
+    "timestamp": "2025-12-01 22:29:34.429222",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 286, lock is called with abi.encode of multiple parameters. Can encoding vulnerabilities allow injection of malicious data into the lock context?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_60d55f76-0592-428a-a7b8-0ff3c9101e3c",
+    "timestamp": "2025-12-01 22:30:08.525224",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.lockAndExpectRevert (lines 82-111), if the lock succeeds unexpectedly, ExpectedRevertWithinLock is thrown. Can this be exploited to bypass validation in contracts that expect specific revert reasons?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9d8d7b7c-e4d5-453a-a0ac-15c394efc157",
+    "timestamp": "2025-12-01 22:30:43.269827",
+    "report_generated": false
   }
 ]
