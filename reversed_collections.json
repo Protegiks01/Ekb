@@ -448,5 +448,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_50872e63-746b-41f2-9f7d-86f19a0725f9",
     "timestamp": "2025-12-01 16:29:39.066049",
     "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 556-557, `addSaleRateDelta()` is called with deltas from TimeInfo. Can the sale rate deltas be in a state where their sum across all time crossings doesn't equal the net change, causing TwammPoolState to diverge from the expected total?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c61cbd7-1cd6-47ee-8634-0c58b3741617",
+    "timestamp": "2025-12-01 16:30:48.834244",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 404, the check `realLastVirtualOrderExecutionTime != block.timestamp` prevents same-block re-execution. Can validators manipulate block timestamps to force this check to fail, allowing denial-of-service on virtual order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6292b15e-751c-43e5-8090-15f3e9004a25",
+    "timestamp": "2025-12-01 16:31:02.737574",
+    "report_generated": false
+  },
+  {
+    "question": "The uint32 lastVirtualOrderExecutionTime provides 1-second precision. Can attackers exploit the fact that multiple blocks can have the same timestamp, causing virtual orders to skip execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5cd3dc0-e037-4a52-b5f8-321b8e0ade4a",
+    "timestamp": "2025-12-01 16:31:16.242314",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMMStorageLayout.sol line 34-36, the slot is computed directly from PoolId. Can hash collisions between different pool configurations cause two pools to share TwammPoolState storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_011d3c64-dc60-4ff4-b85b-d4cb51d0fd48",
+    "timestamp": "2025-12-01 16:31:31.302553",
+    "report_generated": false
+  },
+  {
+    "question": "The TwammPoolState is keyed by PoolId. Can an attacker create multiple pools with similar tokens but different fees, and exploit differences in sale rate packing to cause one pool's state to affect another?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c9fe1f7-2b63-4f27-9a64-903d6212716b",
+    "timestamp": "2025-12-01 16:31:46.557339",
+    "report_generated": false
+  },
+  {
+    "question": "In `createTwammPoolState()` line 50-56, the assembly function returns a value that's immediately unwrapped. Can the compiler optimize away the wrapping/unwrapping in a way that corrupts the packed state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31b61a0e-77b6-4a6e-ac67-524237194cb7",
+    "timestamp": "2025-12-01 16:32:02.550759",
+    "report_generated": false
+  },
+  {
+    "question": "All assembly blocks are marked `memory-safe`. Can these operations violate memory safety assumptions if the stack or memory contains unexpected values from previous operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1d6268cc-b2f4-42d8-98a6-1a6ea44b109f",
+    "timestamp": "2025-12-01 16:32:20.206741",
+    "report_generated": false
+  },
+  {
+    "question": "The `shr(144, shl(112, state))` pattern at line 28-29 performs two shifts. Can the intermediate value after `shl(112, state)` cause an EVM stack overflow or unexpected behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0ddce6ca-3e78-4274-8aab-97563cfc421f",
+    "timestamp": "2025-12-01 16:32:40.093481",
+    "report_generated": false
+  },
+  {
+    "question": "In `realLastVirtualOrderExecutionTime()` line 22, the nested `sub(timestamp(), and(sub(and(...))))` expression has multiple levels. Can the EVM's 256-bit arithmetic cause unexpected wraparound at intermediate steps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_918c8b0f-d8b6-460d-a120-2d5942ca8b75",
+    "timestamp": "2025-12-01 16:33:00.939609",
+    "report_generated": false
+  },
+  {
+    "question": "The `and()` operation at line 53 masks `_lastVirtualOrderExecutionTime` to 32 bits. Can this mask be bypassed if the value is stored in memory with dirty upper bits that are not cleaned before the AND?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ecf6e44-0df9-453e-96f6-4f7f12955b0d",
+    "timestamp": "2025-12-01 16:33:23.630603",
+    "report_generated": false
+  },
+  {
+    "question": "In `createTwammPoolState()` line 52-55, the assembly uses three separate OR operations. Can the order of operations cause earlier ORs to be overwritten by later ones if the bit masks overlap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1d78d73a-ad47-41cf-98e8-670bfca8ebf5",
+    "timestamp": "2025-12-01 16:33:47.215702",
+    "report_generated": false
+  },
+  {
+    "question": "Although TwammPoolState doesn't directly track ownership, the sale rates affect rewards for all orders. Can an attacker manipulate the sale rates to redistribute rewards away from legitimate order owners?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2014a4c-2b5e-4ae4-96e4-ddb93379d6b7",
+    "timestamp": "2025-12-01 16:34:11.675992",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 577, `CORE.updateSavedBalances()` is called after virtual order execution. Can a flash loan callback manipulate TwammPoolState between the swap execution and the balance update, causing accounting inconsistencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c4509b26-7fa0-41c5-ab0e-4599283bd695",
+    "timestamp": "2025-12-01 16:34:37.484744",
+    "report_generated": false
+  },
+  {
+    "question": "The virtual order execution at TWAMM.sol line 456-477 calls `CORE.swap()`, which may trigger flash accounting. Can an attacker use flash loans to manipulate the sale rates during virtual order execution, causing TwammPoolState to be updated with incorrect values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8b0b5220-f190-487a-b7ad-009ea3d37327",
+    "timestamp": "2025-12-01 16:35:04.676844",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 417-574, the execution loop advances time from `realLastVirtualOrderExecutionTime` to `block.timestamp`. Can an attacker force a very large time gap (e.g., by preventing execution for a long time), causing the loop to consume excessive gas or produce incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_277f4aa8-8d86-43c0-9b6e-946b397dfe60",
+    "timestamp": "2025-12-01 16:35:33.606300",
+    "report_generated": false
+  },
+  {
+    "question": "The `realLastVirtualOrderExecutionTime()` provides wraparound-aware timestamp handling. Can an attacker execute a multi-block attack where virtual orders are executed in block N, then the attacker manipulates the state to force re-execution in block N+1?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f9091509-8e5f-4cf2-b925-a716aef59058",
+    "timestamp": "2025-12-01 16:36:02.558798",
+    "report_generated": false
+  },
+  {
+    "question": "The `beforeSwap()`, `beforeUpdatePosition()`, and `beforeCollectFees()` hooks all call `lockAndExecuteVirtualOrders()`. Can one of these hooks fail while leaving TwammPoolState in a partially updated state, violating extension isolation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4845cd8-98d6-4262-88c1-e5e4539c4688",
+    "timestamp": "2025-12-01 16:36:34.522860",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 601, `_executeVirtualOrdersFromWithinLock()` is called from a protected function. Can unauthorized external calls trigger state updates that corrupt TwammPoolState?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8ff2c3e-7e29-4f69-aee9-692d630a4fc0",
+    "timestamp": "2025-12-01 16:37:06.219934",
+    "report_generated": false
+  },
+  {
+    "question": "The TwammPoolState is only used by the TWAMM extension. Can other extensions (Oracle, MEVCapture) indirectly corrupt this state by manipulating shared storage slots or PoolId values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dc2581dd-8ae5-4336-8d56-2902e620c5b8",
+    "timestamp": "2025-12-01 16:37:40.043830",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 522-524, `FixedPointMathLib.rawDiv()` is used to compute reward rate increases. Can zero sale rates from TwammPoolState cause division by zero, reverting the entire virtual order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_56218a7d-9d98-4b81-8d88-8e863f1197f7",
+    "timestamp": "2025-12-01 16:38:13.567855",
+    "report_generated": false
+  },
+  {
+    "question": "The `addSaleRateDelta()` function in twamm.sol line 28-38 performs checked addition. Can the sale rates from TwammPoolState be in a state where adding a valid delta causes overflow, preventing order updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab0d766d-fd1c-41f6-905e-247c83db73e1",
+    "timestamp": "2025-12-01 16:38:45.218652",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 430-436, `computeAmountFromSaleRate()` multiplies the sale rate by time elapsed. Can sale rates extracted from TwammPoolState cause this multiplication to overflow, reverting all virtual order executions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ffa387bb-fbf0-46c9-afbd-3242f0f211ce",
+    "timestamp": "2025-12-01 16:39:15.621824",
+    "report_generated": false
+  },
+  {
+    "question": "If `saleRateToken0` and `saleRateToken1` are both very small but non-zero, can the execution loop iterate many times computing amounts that round down to zero, wasting gas without executing any swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b3215239-d7e2-4603-820f-c99fe4c44d2c",
+    "timestamp": "2025-12-01 16:39:45.681539",
+    "report_generated": false
+  },
+  {
+    "question": "The virtual order execution loop at TWAMM.sol line 417-574 iterates over time periods. Can an attacker place many orders with closely spaced expiration times, causing the TwammPoolState to be updated frequently and running out of gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e33571f5-896f-43f9-9953-b5470b393596",
+    "timestamp": "2025-12-01 16:40:16.550166",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 228, `computeRewardAmount()` is called with `rewardRateInside - rewardRateSnapshot` and `saleRate` from OrderState. Can stale sale rates in TwammPoolState cause this computation to use inconsistent values, allowing users to claim more rewards than earned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2b9fabdc-f9cc-4fd6-98cb-e5463bf3e83d",
+    "timestamp": "2025-12-01 16:40:48.935470",
+    "report_generated": false
   }
 ]
