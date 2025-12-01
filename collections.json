@@ -5248,5 +5248,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bce395c2-61fd-4f17-af10-43ea028c9f06",
     "timestamp": "2025-12-01 22:42:06.447038",
     "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 436, assembly loads sig with mload(add(revertData, 32)). If revertData is malformed, can this load incorrect bytes that bypass selector checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4257d5cd-2067-4d24-8603-102cfcaf748d",
+    "timestamp": "2025-12-01 22:43:16.908428",
+    "report_generated": false
+  },
+  {
+    "question": "In PoolBalanceUpdate.createPoolBalanceUpdate (poolBalanceUpdate.sol lines 20-25), delta1 is masked but delta0 is not. Can dirty bits in delta0 cause corruption when packed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf87c808-40b9-4373-b38e-383ae81aee3b",
+    "timestamp": "2025-12-01 22:43:30.269283",
+    "report_generated": false
+  },
+  {
+    "question": "At BaseLocker line 58, mcopy is used without bounds checking. If len is larger than memory allocation, can this copy garbage data into the call?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fe76423e-91e1-4354-b629-d95fa09fbf29",
+    "timestamp": "2025-12-01 22:43:44.358201",
+    "report_generated": false
+  },
+  {
+    "question": "In SwapParameters.withDefaultSqrtRatioLimit (swapParameters.sol lines 74-81), complex bit operations set default limits. Can overflow in these operations cause invalid sqrtRatio values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_631f593f-baeb-465b-9cc7-41cf2a829291",
+    "timestamp": "2025-12-01 22:43:58.408961",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 440-443, assembly loads balanceUpdate and stateAfter from specific offsets. If revertData structure changes, can this load wrong data without detection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d2048275-91ba-4cbd-9e58-06e9f9870155",
+    "timestamp": "2025-12-01 22:44:13.259122",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol, swap functions (lines 266-353) all eventually call handleLockData. Can inconsistencies in parameter encoding between these functions cause validation bypasses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_425279b0-58a6-4c65-bab0-1910e76d5805",
+    "timestamp": "2025-12-01 22:44:29.503046",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 88, _swap calls withDefaultSqrtRatioLimit. If this function has bugs in SwapParameters manipulation, can it affect both single and multi-hop swaps identically?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1dd4afea-041d-4d51-aa2f-f1a80b9274e3",
+    "timestamp": "2025-12-01 22:44:47.302748",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 94-150 and 151-251), two different code paths handle swaps. Can an attacker exploit differences in validation between single and multi-hop paths?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_110a3a2b-3c4e-4251-b154-bc32da953a95",
+    "timestamp": "2025-12-01 22:45:07.001113",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 360, swap using RouteNode constructs parameters from struct fields. Can struct field ordering issues cause parameters to be misinterpreted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e18e017b-5bf4-451a-8fb0-85e65d35af72",
+    "timestamp": "2025-12-01 22:45:28.317762",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker, both lock and lockAndExpectRevert call ACCOUNTANT with similar assembly. Can differences in error handling between these functions be exploited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d67e26ec-8be3-42a9-8462-7238e51a43b5",
+    "timestamp": "2025-12-01 22:45:51.106997",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 380-388, multihopSwap and multiMultihopSwap use the same handleLockData path but different call types. Can call type confusion allow unauthorized access patterns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2d8632f-095a-446b-8dc2-8c6fb58588c7",
+    "timestamp": "2025-12-01 22:46:14.467010",
+    "report_generated": false
+  },
+  {
+    "question": "In PayableMulticallable, refundNativeToken (lines 25-29) and swap functions both handle ETH. Can calling these in specific sequences in multicall cause ETH to be double-spent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66f81ec8-ef1c-4c80-a98d-ccfd99f20c40",
+    "timestamp": "2025-12-01 22:46:39.507555",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 309, createSwapParameters is called with specific parameter order. If this order differs from other calls to createSwapParameters, can bit packing produce wrong values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca9c868e-359c-4e1a-860d-09bde210bd91",
+    "timestamp": "2025-12-01 22:47:05.413369",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 176-244), multi-hop logic accumulates totalCalculated from tokenAmount.amount. If single-hop logic calculates differently, can this cause settlement inconsistencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_df2c02f9-897f-4116-bb53-ee1fa982d81f",
+    "timestamp": "2025-12-01 22:47:32.909173",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 83-89, _swap is virtual and called from multiple locations. Can a malicious override of _swap affect only specific call sites while leaving others vulnerable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_27d2bf83-c0d1-4d95-968b-1fc8a484f7d6",
+    "timestamp": "2025-12-01 22:48:01.771583",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker construct a route in multihopSwap where the intermediate token is a malicious ERC20 that reenters Router during transfer to manipulate subsequent hop execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dbef058c-d730-47bf-94a7-4926ec6cf011",
+    "timestamp": "2025-12-01 22:48:31.712572",
+    "report_generated": false
+  },
+  {
+    "question": "If a pool's extension calls back to Router.swap during the afterSwap hook, can nested lock contexts cause debt tracking to double-count deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ed79862-bfbf-47c3-80ad-110feb3816d3",
+    "timestamp": "2025-12-01 22:49:03.123912",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit the quote function by repeatedly calling it with different parameters to map pool liquidity distribution without paying gas for state changes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b3a82142-70ff-415a-b675-586381a16bd3",
+    "timestamp": "2025-12-01 22:49:36.211108",
+    "report_generated": false
+  },
+  {
+    "question": "In multi-hop swaps with many small hops, can accumulated rounding errors cause totalCalculated to diverge significantly from actual token amounts, failing slippage unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_233ef310-9371-4d88-ae6f-572d6e4304af",
+    "timestamp": "2025-12-01 22:50:08.484243",
+    "report_generated": false
+  },
+  {
+    "question": "If ACCOUNTANT.withdraw or ACCOUNTANT.payFrom have reentrancy vulnerabilities, can an attacker exploit these through Router's lock callbacks to drain funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5c235a30-eb23-4b46-91dd-a20f6f21014b",
+    "timestamp": "2025-12-01 22:50:41.550247",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker create a pool where token0 or token1 is a proxy that changes implementation mid-swap, causing handleLockData to use wrong token addresses for settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9248c7e3-4d41-417e-8b93-0451c5ef7d95",
+    "timestamp": "2025-12-01 22:51:15.526105",
+    "report_generated": false
+  },
+  {
+    "question": "If msg.value is sent to a swap that doesn't require it, and refundNativeToken isn't called, can the ETH accumulate in Router until another user claims it?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c488b026-b001-4e2b-a06b-4767732749e4",
+    "timestamp": "2025-12-01 22:51:48.898288",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker use multicall to batch a swap with quote calls that manipulate oracle observations, affecting dependent protocols' TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb1285a5-f661-4f72-bdde-ce67a84840d7",
+    "timestamp": "2025-12-01 22:52:21.398751",
+    "report_generated": false
+  },
+  {
+    "question": "In scenarios where token approvals are exactly equal to swap amounts, can precision loss cause payFrom to revert with insufficient allowance, locking user funds in partial swap states?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dc476999-6b83-4fc2-b61d-e303bd6d97b6",
+    "timestamp": "2025-12-01 22:52:54.313614",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit bit-packing in SwapParameters by providing values that overflow uint31 for skipAhead, causing the high bit to flip isToken1 unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0678ee9e-d46d-47cd-9f13-9a393c0fba19",
+    "timestamp": "2025-12-01 22:53:28.541679",
+    "report_generated": false
   }
 ]
