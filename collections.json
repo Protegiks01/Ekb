@@ -4648,5 +4648,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ea97b920-94c8-458b-b5a7-7026f40394bb",
     "timestamp": "2025-12-01 21:57:06.212187",
     "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 226-234, settlement logic checks if totalSpecified is negative or positive. If all swaps are exact output (negative amounts), can totalCalculated also be negative, causing double payment to the user?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d8ba2b0-2598-45e9-95a6-1d3d6b8c39b0",
+    "timestamp": "2025-12-01 21:58:24.403667",
+    "report_generated": false
+  },
+  {
+    "question": "In the multi-hop path (lines 170-244), results array is allocated at line 168. If swaps.length is very large, can this cause out-of-gas errors that leave partial swaps executed without proper settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b68bcc50-1cb9-4a1e-a506-ec169df94478",
+    "timestamp": "2025-12-01 21:58:37.802236",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 210, totalCalculated accumulates the final tokenAmount.amount from each swap route. Can precision loss across many hops cause totalCalculated to be less than expected, failing slippage checks incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e675b17b-27ad-4562-b845-f8642a8649c5",
+    "timestamp": "2025-12-01 21:58:51.268514",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 212-219), specifiedToken and calculatedToken are set only on first iteration (i == 0). If swaps[0] has a different token pair than swaps[1], can this cause TokensMismatch error even for valid splits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a5dc8348-d88c-4853-a9c2-965a4c8af3c7",
+    "timestamp": "2025-12-01 21:59:05.319232",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 189-198, _swap is called with value=0 for all hops. If a route alternates between native and ERC20 tokens, does the lack of value transfer in intermediate hops cause failures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0b07eaf7-8217-4bae-a375-b47e74f2a250",
+    "timestamp": "2025-12-01 21:59:20.332132",
+    "report_generated": false
+  },
+  {
+    "question": "In the multihopSwap function (lines 380-388), only the first swap's route is executed when callType is CALL_TYPE_MULTIHOP_SWAP. Can the caller bypass checks by encoding multiple swaps but having only one executed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c9aacf25-5119-4b85-b36e-1a64beb1fa95",
+    "timestamp": "2025-12-01 21:59:36.134379",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 163-166, swaps array is decoded from calldata for CALL_TYPE_MULTI_MULTIHOP_SWAP. Can a maliciously large swaps array consume all gas during decoding, preventing debt settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c7507e98-8d8c-46d2-8cef-5572d3d7a8a6",
+    "timestamp": "2025-12-01 21:59:54.001779",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 202, 206), if update.delta1() or delta0() equals tokenAmount.amount exactly, the swap is valid. Can rounding in the core cause delta to be off by 1, triggering PartialSwapsDisallowed even when the swap executed correctly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28b88376-7c14-4809-a24a-55c987098a77",
+    "timestamp": "2025-12-01 22:00:13.599461",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 222, slippage check uses totalCalculated. If the route includes a pool with zero liquidity that returns 0 deltas, can totalCalculated be manipulated to always pass slippage checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3cc3ff33-dcad-45c1-9959-fc3f4f032f13",
+    "timestamp": "2025-12-01 22:00:34.734366",
+    "report_generated": false
+  },
+  {
+    "question": "In the multi-hop loop (lines 183-208), j iterates over s.route. If route.length is 0, does the loop skip entirely, allowing totalSpecified to be non-zero while totalCalculated is 0, violating accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bff8e343-86b4-42b6-9dec-c63a6761bc0b",
+    "timestamp": "2025-12-01 22:00:56.496485",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 236-244, both totalCalculated and totalSpecified are settled. If both are exactly 0 (zero-value swaps), can an attacker use this to create lock contexts that bypass debt checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c70f43b4-8a77-4108-8e1f-935566d7cd87",
+    "timestamp": "2025-12-01 22:01:20.016168",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 156-166), swaps array is constructed differently for single vs multi multihop. Can this discrepancy be exploited to execute swaps with different validation levels?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1604b46b-7412-4f7e-8590-bf35959d2516",
+    "timestamp": "2025-12-01 22:01:44.913492",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 386, result is decoded as PoolBalanceUpdate[]. If the core returns a result array with wrong length, can this cause incorrect interpretation of deltas in external contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f5a8a1f8-36aa-478d-93f4-4e4f0ad5b447",
+    "timestamp": "2025-12-01 22:02:10.225869",
+    "report_generated": false
+  },
+  {
+    "question": "In the multi-hop path (lines 201-207), isToken1 determines which delta to check. If the pool returns inverted deltas (delta0 for token1 swap), can this bypass the PartialSwapsDisallowed check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db8efae6-bf04-426a-b5c0-b17406fb3fc1",
+    "timestamp": "2025-12-01 22:02:37.401318",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 247-250, result encoding differs based on callType. Can an attacker manipulate the call type to receive results in a format that external contracts misinterpret, enabling exploits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b864f0a4-7079-4faa-b5da-eabe69b7a05b",
+    "timestamp": "2025-12-01 22:03:06.712090",
+    "report_generated": false
+  },
+  {
+    "question": "In PayableMulticallable.refundNativeToken function (lines 25-29), address(this).balance is sent to msg.sender without checking for reentrancy. Can an attacker call this during a multicall to drain ETH meant for other users' swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1056875d-5ba3-49d2-94af-150c31002647",
+    "timestamp": "2025-12-01 22:03:35.834523",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 141, SafeTransferLib.safeTransferETH is called to send excess ETH to the accountant. If the accountant is a contract with a malicious receive function, can it reenter Router before the lock completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb97f5de-19bd-478e-810a-940606215b55",
+    "timestamp": "2025-12-01 22:04:06.546882",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 134-142), valueDifference is calculated but not validated for overflow. If int256(value) - int256(balanceUpdate.delta0()) overflows, can ETH be incorrectly refunded or trapped?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_075e0389-8230-439a-a1c3-59e97835e5e3",
+    "timestamp": "2025-12-01 22:04:38.149783",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 230, when specifiedToken == NATIVE_TOKEN_ADDRESS and totalSpecified > 0, ETH is sent to the accountant. Can this create a scenario where the accountant's ETH balance causes debt accounting errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ecc745d3-b6c7-4997-9b69-3bbec8636720",
+    "timestamp": "2025-12-01 22:05:10.772037",
+    "report_generated": false
+  },
+  {
+    "question": "In the native token flow (lines 106-110), value is only set for token0 swaps. If a pool has NATIVE_TOKEN_ADDRESS as token1, does the Router fail to send required ETH, causing the swap to revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a261295d-5533-4a45-a5aa-cfd906277cfb",
+    "timestamp": "2025-12-01 22:05:43.655864",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 139, ETH is withdrawn to swapper if valueDifference > 0. Can an attacker front-run a swap with a higher gas price transaction to manipulate valueDifference and steal the refund?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d3f2b8fd-9862-4c86-8547-1ceca61b200d",
+    "timestamp": "2025-12-01 22:06:15.693552",
+    "report_generated": false
+  },
+  {
+    "question": "In PayableMulticallable.multicall (lines 17-19), msg.value is not explicitly tracked across calls. Can an attacker include refundNativeToken as the last call to steal ETH from previous failed calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_182c2ee5-7b75-4524-b211-dd9cd3086f7b",
+    "timestamp": "2025-12-01 22:06:46.087464",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 229-233, the code checks if specifiedToken or calculatedToken equals NATIVE_TOKEN_ADDRESS. Can both tokens be native (address(0)) in a malformed route, causing double ETH transfers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bebdb2dc-c2f7-429e-814d-35f20e1b34ed",
+    "timestamp": "2025-12-01 22:07:17.215362",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (line 107), value is passed to _swap. If params.isExactOut() is true but value is still sent, does the core handle excess ETH correctly or can it lead to locked funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c5253280-21c4-4d8c-b218-180ceef78aaf",
+    "timestamp": "2025-12-01 22:07:48.498167",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 141, if valueDifference overflows to become negative (due to int256 conversion errors), the else if branch sends ETH to accountant. Can this drain the contract's ETH?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_065d6e33-110f-401b-ab2f-3f94094f19c8",
+    "timestamp": "2025-12-01 22:08:19.043576",
+    "report_generated": false
   }
 ]
