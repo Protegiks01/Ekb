@@ -148,5 +148,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d35685bc-f857-458a-af9c-28a340e6551f",
     "timestamp": "2025-12-01 16:00:09.090396",
     "report_generated": false
+  },
+  {
+    "question": "In `_getPoolFeesPerLiquidityInside`, if a tick has been initialized and flipped multiple times, could the fees per liquidity outside values be corrupted such that the inside calculation returns inflated or negative fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_542af72e-f1f3-4fd8-af5f-952d94fcb7ff",
+    "timestamp": "2025-12-01 16:08:01.647441",
+    "report_generated": false
+  },
+  {
+    "question": "In `_getPoolFeesPerLiquidityInside` (L205-206), does loading global fees per liquidity directly from storage risk reading stale values if a swap is in progress but hasn't committed the updated fees yet?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c644d3f-0aa7-4f80-956b-85744d8f5362",
+    "timestamp": "2025-12-01 16:08:14.976733",
+    "report_generated": false
+  },
+  {
+    "question": "In `accumulateAsFees` (L229-230), does the requirement `lockerAddr == poolKey.config.extension()` properly prevent non-extension contracts from accumulating arbitrary fees, and could this check be bypassed through extension impersonation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb512d32-7890-4b13-a569-fd1b5110f770",
+    "timestamp": "2025-12-01 16:08:28.978801",
+    "report_generated": false
+  },
+  {
+    "question": "In `accumulateAsFees` (L236-239, assembly), can the zero-extension of `_amount0` and `_amount1` from uint128 to uint256 introduce errors if the upper 128 bits contain dirty values from memory?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bbfe7059-b246-407b-adb3-a3fddbd6f1ab",
+    "timestamp": "2025-12-01 16:08:44.408661",
+    "report_generated": false
+  },
+  {
+    "question": "In `accumulateAsFees` (L241-242), does the comment 'Note we do not check pool is initialized' create a vulnerability where extensions can burn fees by calling this on uninitialized pools with liquidity = 0?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_83ecc9b4-38e6-4148-b2e1-17dfa3847e52",
+    "timestamp": "2025-12-01 16:08:59.427831",
+    "report_generated": false
+  },
+  {
+    "question": "In `accumulateAsFees` (L254-260), when `liquidity != 0`, does the fee per liquidity calculation `rawDiv(amount0 << 128, liquidity)` risk overflow when amount0 is large, potentially wrapping around and crediting minimal fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d82d9245-bab9-4cbd-95f1-665307e8bb77",
+    "timestamp": "2025-12-01 16:09:15.950083",
+    "report_generated": false
+  },
+  {
+    "question": "In `accumulateAsFees` (L258-259), does storing the updated fee per liquidity directly to the slot risk corrupting the value if a concurrent swap operation is also updating fees, creating a race condition?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ca0b433-f118-42ed-bf0d-6ad52ff7941e",
+    "timestamp": "2025-12-01 16:09:33.528125",
+    "report_generated": false
+  },
+  {
+    "question": "In `accumulateAsFees` (L273), does the `_updatePairDebtWithNative` call correctly account for the case where the extension already owes debt in these tokens, potentially allowing debt to be offset unfairly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3518ab13-53ac-49b9-8f4f-6a77621ce13a",
+    "timestamp": "2025-12-01 16:09:52.949804",
+    "report_generated": false
+  },
+  {
+    "question": "In `accumulateAsFees` (L253-268), if `liquidity = 0`, fees are not distributed but debt is still added (L273). Could an attacker repeatedly accumulate fees on zero-liquidity pools to build up debt without actually distributing fees, breaking flash accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_87b26e6e-2534-4ce5-9277-08e7005e1e5a",
+    "timestamp": "2025-12-01 16:10:13.620175",
+    "report_generated": false
+  },
+  {
+    "question": "In `accumulateAsFees`, does the use of `FixedPointMathLib.rawDiv` for fee per liquidity calculation properly handle precision loss, or could repeated small fee accumulations lead to significant fee leakage over time?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4fd5f2d0-5408-4e30-8874-6e8c255d642d",
+    "timestamp": "2025-12-01 16:10:36.705128",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updateTick` (L285-319), when calculating `liquidityNetNext` at L291, does the `addLiquidityDelta` function properly check for overflow/underflow when `currentLiquidityNet` is near type(uint128).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_761ce291-24c4-49d0-afd5-54c02d99fcae",
+    "timestamp": "2025-12-01 16:11:01.585174",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updateTick` (L293-294), can the checked math operation for `liquidityDeltaNext` be bypassed through careful selection of `currentLiquidityDelta` and `liquidityDelta` values that overflow int128 but appear valid?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5df07e6a-5320-454a-8554-f3de76f11e1b",
+    "timestamp": "2025-12-01 16:11:27.607625",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updateTick` (L297-300), if `liquidityNetNext > maxLiquidity`, the transaction reverts. Could an attacker intentionally add liquidity near the max to grief other users, preventing them from creating positions at popular ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_de19f042-23f2-4ffe-9887-2ee79fe15505",
+    "timestamp": "2025-12-01 16:11:54.965421",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updateTick` (L302), when `(currentLiquidityNet == 0) != (liquidityNetNext == 0)` evaluates to true, does the `flipTick` operation correctly update the bitmap, or could race conditions during concurrent tick updates corrupt the bitmap state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf20737d-4e9a-4117-9818-d61cc90064f5",
+    "timestamp": "2025-12-01 16:12:23.164882",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updateTick` (L305-315), when initializing tick fees per liquidity outside slots, does setting them to `v = gt(liquidityNetNext, 0)` (1 or 0) match the expected semantics, or could this create inconsistencies with the global FPL initialization which uses 1?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75fbbf07-826e-4a40-9aa8-2cd7293f1bdf",
+    "timestamp": "2025-12-01 16:12:52.174187",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updateTick` (L318), does storing the new `TickInfo` properly pack both `liquidityDeltaNext` and `liquidityNetNext` without data corruption, especially when `liquidityDeltaNext` is negative (int128)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9099c2e4-3ada-48ff-88a8-d9a5526a3c9a",
+    "timestamp": "2025-12-01 16:13:22.257352",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updateTick`, if `liquidityDeltaNext` overflows int128 due to accumulated delta changes, could this corruption propagate to liquidity net calculations during tick crossings, causing pool insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2e6e291-65af-4299-b434-47857cb21a22",
+    "timestamp": "2025-12-01 16:13:53.864105",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updateTick` (L293-294), does the computation `isUpper ? currentLiquidityDelta - liquidityDelta : currentLiquidityDelta + liquidityDelta` correctly handle sign changes when transitioning from positive to negative deltas or vice versa?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42153143-6f2d-44b3-ac9d-02bf2848bb25",
+    "timestamp": "2025-12-01 16:14:26.986255",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updateTick` (L303), could an attacker manipulate the `flipTick` call to occur at a strategic time during a multi-block MEV attack, causing the bitmap to reflect incorrect tick initialization states?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4da057fc-66b1-4fcf-bdd9-7c724acbab5d",
+    "timestamp": "2025-12-01 16:15:00.400937",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updatePairDebtWithNative` (L336-354), when `msg.value > 0` and `token0 == NATIVE_TOKEN_ADDRESS`, does the unchecked subtraction `debtChange0 - int256(msg.value)` at L344 risk underflow if debtChange0 is a large negative value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_08313561-c998-4122-85a0-eeaa497c72fc",
+    "timestamp": "2025-12-01 16:15:35.473093",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updatePairDebtWithNative` (L346-353), when `token0 != NATIVE_TOKEN_ADDRESS` and `msg.value > 0`, does the code correctly handle the case where token1 could theoretically be the native token (though sorted tokens should prevent this)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_380b81d2-2c21-4339-8033-3b142b745b75",
+    "timestamp": "2025-12-01 16:16:11.290462",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updatePairDebtWithNative` (L351), does calling `_accountDebt` separately for the native token after calling `_updatePairDebt` for the token pair risk double-counting if token0 or token1 is also the native token?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ea6ac0f-7f86-43b2-8524-f6530c78fdc3",
+    "timestamp": "2025-12-01 16:16:47.830322",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updatePairDebtWithNative` (L341-344), does the comment 'Subtraction is safe because debtChange0 and msg.value are both bounded by int128/uint128' hold true for all call paths, or could extreme edge cases violate this assumption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_27409944-5db1-4276-8b35-f14122956a73",
+    "timestamp": "2025-12-01 16:17:25.255210",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updatePairDebtWithNative`, can an attacker send msg.value in multiple small increments across nested lock calls to cause integer precision issues or debt tracking errors in the flash accounting system?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f12b18e-9c3c-454d-879c-3255db367cf5",
+    "timestamp": "2025-12-01 16:18:01.974863",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L363), does `positionId.validate(poolKey.config)` properly check that tick bounds are within MIN_TICK/MAX_TICK and respect tick spacing, preventing positions with invalid ranges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5eec39a8-bc28-4db6-a569-59c3e4754dee",
+    "timestamp": "2025-12-01 16:18:38.325084",
+    "report_generated": false
   }
 ]
