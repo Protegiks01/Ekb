@@ -1,1 +1,152 @@
-[]
+[
+  {
+    "question": "Are malformed or overwide sale rates rejected early, or can they propagate into the packed state and corrupt execution? (TWAMM.sol:386-592)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae4fae5d-4b19-49a7-89e5-1ad09bde1b54",
+    "timestamp": "2025-12-01 15:49:52.098368",
+    "report_generated": false
+  },
+  {
+    "question": "Does the TWAMM extension validate that saleRateToken0 and saleRateToken1 fit within uint112 before packing state to prevent truncation? (TWAMM.sol:386-592)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ee15167-7d5d-46f2-bfb7-99334e44b884",
+    "timestamp": "2025-12-01 15:50:06.047137",
+    "report_generated": false
+  },
+  {
+    "question": "Can the TWAMM extension attempt to store sale rates larger than uint112, causing silent truncation and incorrect virtual order accounting? (Type definition & TWAMM.sol usage)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94e9356f-c656-4868-9efb-cb33b6cbfe6d",
+    "timestamp": "2025-12-01 15:50:20.083576",
+    "report_generated": false
+  },
+  {
+    "question": "Can parse() and the individual accessor functions decode different values from the same packed state due to bit alignment or masking differences? (twammPoolState.sol:38-44)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2d59879-d1ab-434a-b86c-1d607a32a38e",
+    "timestamp": "2025-12-01 15:50:34.351758",
+    "report_generated": false
+  },
+  {
+    "question": "Can saleRateToken1() exhibit the same masking or extraction failure under edge cases as saleRateToken0()? (twammPoolState.sol:30-34)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b9e2de58-e3e6-46e3-b23f-1ef60ccec69c",
+    "timestamp": "2025-12-01 15:50:50.083654",
+    "report_generated": false
+  },
+  {
+    "question": "Can saleRateToken0() fail to properly mask and extract the intended 112-bit field under edge cases, returning an incorrect sale rate? (twammPoolState.sol:26-30)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b0c135c-b4f5-4db4-b200-1ba6886a7afd",
+    "timestamp": "2025-12-01 15:51:06.806021",
+    "report_generated": false
+  },
+  {
+    "question": "Can createTwammPoolState() mis-pack state if _saleRateToken0 or _saleRateToken1 contain dirty upper bits, corrupting the packed TWAMM pool state? (twammPoolState.sol:46-57)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a15e6745-8ecf-41cc-8e4d-c8c89224b2d2",
+    "timestamp": "2025-12-01 15:51:24.419525",
+    "report_generated": false
+  },
+  {
+    "question": "Does realLastVirtualOrderExecutionTime() correctly handle uint32 timestamp overflow after 2106-02-07, or can virtual orders execute with incorrect deltas or skip execution entirely? (twammPoolState.sol:20-24)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c38ef979-46a6-46b6-8f85-743f21c60d4e",
+    "timestamp": "2025-12-01 15:51:44.531002",
+    "report_generated": false
+  },
+  {
+    "question": "ABI stability: If this type is used across libraries, can ABI mismatch or struct-repacking across compilations break decoding assumptions? (Cross-file integration)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8224fe35-277b-4caf-93bf-74cdb602e76b",
+    "timestamp": "2025-12-01 15:52:06.427290",
+    "report_generated": false
+  },
+  {
+    "question": "Execution delay attack: Can crafted timestamps cause virtual order execution loops to starve, skip ranges, or accumulate unbounded deltas? (TWAMM.sol integration)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6db52d13-97f1-41d4-bfb6-4fc899d09062",
+    "timestamp": "2025-12-01 15:52:29.476582",
+    "report_generated": false
+  },
+  {
+    "question": "Caller-controlled inputs: Can untrusted callers feed malformed sale rates or timestamps into packing via higher-level TWAMM functions to influence execution outcomes? (TWAMM.sol:386-592)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_af7cbe47-2e8f-49ae-a82b-ea10815f9e9c",
+    "timestamp": "2025-12-01 15:52:52.231249",
+    "report_generated": false
+  },
+  {
+    "question": "Validation gap: Is there any runtime check in consuming code to reject malformed packed states that fail structural invariants? (TWAMM.sol integration)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a859d9b-bb03-471d-b78e-9b106b4092bb",
+    "timestamp": "2025-12-01 15:53:17.201035",
+    "report_generated": false
+  },
+  {
+    "question": "Defensive coding: Should createTwammPoolState() explicitly mask inputs to their bit-widths to prevent state pollution from callers? (twammPoolState.sol:46-57)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c0288be-d1ff-4842-8e59-43c87862187e",
+    "timestamp": "2025-12-01 15:53:43.762011",
+    "report_generated": false
+  },
+  {
+    "question": "Encoding symmetry: Is createTwammPoolState() fully inverse to parse() for all bit patterns, or do edge cases exist where round-tripping a state changes values? (twammPoolState.sol:38-57)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17471957-f5a4-411b-a274-de244053d9c8",
+    "timestamp": "2025-12-01 15:54:11.507872",
+    "report_generated": false
+  },
+  {
+    "question": "Year-2106 readiness: Does the TWAMM extension tolerate post-2106 timestamps without locking virtual orders, mispricing flows, or creating execution gaps? (twammPoolState.sol & TWAMM.sol integration)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_03411d20-5c82-48c4-a845-e4e730e9caf0",
+    "timestamp": "2025-12-01 15:54:38.855518",
+    "report_generated": false
+  },
+  {
+    "question": "Temporal invariant: Can lastExecutionTime go backwards across wrap boundaries, causing negative or zero effective time deltas in virtual order processing? (twammPoolState.sol:20-24)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d77d8758-070e-4ee8-876c-b1b5fcc1ee00",
+    "timestamp": "2025-12-01 15:55:08.463472",
+    "report_generated": false
+  },
+  {
+    "question": "State encoding invariant: Is it enforced that lastExecutionTime, saleRateToken0, and saleRateToken1 all fit their declared bit-widths before packing to prevent state corruption? (twammPoolState.sol)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2feab8bc-e359-4989-a487-48d29acd7f9d",
+    "timestamp": "2025-12-01 15:55:38.982501",
+    "report_generated": false
+  },
+  {
+    "question": "TWAMM usage: Are there paths where sale rates derived from amount/duration math overflow uint112 before packing, corrupting downstream execution semantics? (TWAMM.sol usage)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5fbf7aab-4bf3-4627-869d-c68efc4eb093",
+    "timestamp": "2025-12-01 15:56:09.749317",
+    "report_generated": false
+  },
+  {
+    "question": "TWAMM usage: Can the extension attempt to store sale rates exceeding uint112 max, causing silent truncation and mis-accounting of virtual orders? (Type definition & TWAMM.sol usage)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ba3041d-1fb9-4fb1-aea7-5cae60432f4c",
+    "timestamp": "2025-12-01 15:56:42.240682",
+    "report_generated": false
+  },
+  {
+    "question": "parse(): Do parse() and the individual accessor functions always decode identical values from the same packed state, or can bit-alignment or masking differences introduce desynchronization? (twammPoolState.sol:38-44)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8cd8ddc5-f29f-426c-a7cb-b8b33ed17515",
+    "timestamp": "2025-12-01 15:57:15.191187",
+    "report_generated": false
+  },
+  {
+    "question": "saleRateToken1(): Is the symmetric extraction logic guaranteed to isolate exactly its intended 112-bit range across all compiler versions and optimizations? (twammPoolState.sol:30-34)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_76fc0abc-2d13-4602-bfb7-8a72f2913733",
+    "timestamp": "2025-12-01 15:57:48.954735",
+    "report_generated": false
+  },
+  {
+    "question": "saleRateToken0(): Can shr(144, shl(112, state)) mis-extract bits under edge inputs, returning a sale rate that differs from what was originally packed? (twammPoolState.sol:26-30)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1388f719-0e71-49e8-b029-a40c970bf29e",
+    "timestamp": "2025-12-01 15:58:23.524661",
+    "report_generated": false
+  },
+  {
+    "question": "createTwammPoolState(): Can dirty upper bits in _saleRateToken0 or _saleRateToken1 survive shl/shr packing (shr(112, shl(144, _saleRateToken0))) and corrupt the packed state? (twammPoolState.sol:46-57)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a5120c9-6915-449a-b879-9c65a17261bc",
+    "timestamp": "2025-12-01 15:58:58.447486",
+    "report_generated": false
+  },
+  {
+    "question": "realLastVirtualOrderExecutionTime(): Does the uint32 wraparound logic correctly handle the February 2106 timestamp overflow boundary, or can virtual order execution drift, stall, or skip due to incorrect delta computation? (twammPoolState.sol:20-24)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c20fbab-ae3a-40ab-abf5-4b686835fc4c",
+    "timestamp": "2025-12-01 15:59:34.030344",
+    "report_generated": false
+  },
+  {
+    "question": "The `realLastVirtualOrderExecutionTime()` is a view function but reads block.timestamp. Can reentrancy during ",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2c17059-60b5-4cc8-995a-c52a99dc69f0",
+    "timestamp": "2025-12-01 16:00:11.719108",
+    "report_generated": false
+  }
+]
