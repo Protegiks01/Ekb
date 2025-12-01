@@ -448,5 +448,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_93bf333c-112c-41b0-8b7e-2787472d1996",
     "timestamp": "2025-12-01 16:30:15.725285",
     "report_generated": false
+  },
+  {
+    "question": "In `collectFees` (L494), does setting `position.feesPerLiquidityInsideLast = feesPerLiquidityInside` immediately after fee calculation prevent double-claiming, or could transaction reordering allow duplicate fee claims in the same block?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6d04be1-c28f-417f-93c0-fc2077faae87",
+    "timestamp": "2025-12-01 16:31:48.266814",
+    "report_generated": false
+  },
+  {
+    "question": "In `collectFees` (L496-498), does `_updatePairDebt` with negative amounts correctly reduce the locker's debt, and could providing extreme values cause integer overflow in debt accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_494077b8-a4c4-4066-9a55-0b5658a872a0",
+    "timestamp": "2025-12-01 16:32:01.618530",
+    "report_generated": false
+  },
+  {
+    "question": "In `collectFees` (L502), can a malicious extension's `maybeCallAfterCollectFees` callback exploit the collected fee amounts to perform MEV attacks or manipulate oracle prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8afa639d-b802-4deb-8e75-1151c9bd1d33",
+    "timestamp": "2025-12-01 16:32:16.136126",
+    "report_generated": false
+  },
+  {
+    "question": "In `collectFees`, if a position has accumulated fees exceeding uint128.max due to precision issues, does the uint128 cast at L492 silently truncate fees, causing fee loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3839341-565d-4027-a4f0-aca0ce1f7c78",
+    "timestamp": "2025-12-01 16:32:30.488194",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L515-521, assembly), does the manual `calldataload` and `calldatacopy` for extracting pool key and params risk misalignment errors if calldata structure changes or if extra data is appended?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14e38472-7313-42fc-94d6-498591a99f53",
+    "timestamp": "2025-12-01 16:32:46.055451",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L523-524), does the `sqrtRatioLimit.isValid()` check properly validate that the limit is within MIN_SQRT_RATIO and MAX_SQRT_RATIO bounds, preventing swaps that could corrupt pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70e1feda-93e0-4c81-a579-4ba04d2584e4",
+    "timestamp": "2025-12-01 16:33:02.631759",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L528), can a malicious extension's `maybeCallBeforeSwap` callback manipulate pool state or perform sandwich attacks before the swap executes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_790a1851-648e-4ab1-bff0-23a4fbcc37cc",
+    "timestamp": "2025-12-01 16:33:20.812608",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L534), does the `!stateAfter.isInitialized()` check prevent swaps on uninitialized pools, and could a pool's initialization be reverted through storage manipulation to bypass this check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fe8c93cc-484e-4fbe-a154-1eaac75a9721",
+    "timestamp": "2025-12-01 16:33:41.556256",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L541), does the check `stateAfter.sqrtRatio() != sqrtRatioLimit` correctly handle the case where the pool is already at the limit price, preventing no-op swaps that still charge gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b298c793-2870-45e2-b792-de3bf23b0d96",
+    "timestamp": "2025-12-01 16:34:03.884752",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L542-550), does the parsing and zero-extension of pool state (`sqrtRatio`, `tick`, `liquidity`) via assembly risk introducing dirty bits that corrupt subsequent calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_479d0568-9f7c-4840-b3c3-1d0a604a3302",
+    "timestamp": "2025-12-01 16:34:25.720626",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L547-550), does the branchless computation of `increasing` using `xor(isToken1, isExactOut)` correctly determine swap direction in all cases, including edge cases with zero amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ffa3ce3-f42e-47e3-9bab-99c70bb22ded",
+    "timestamp": "2025-12-01 16:34:50.168366",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L552-554), does the check `(sqrtRatioLimit < sqrtRatio) == increasing` properly validate swap direction, and could carefully crafted parameters bypass this check to enable arbitrage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2d7e3b0-c889-4cf4-958c-260ee1e1bb77",
+    "timestamp": "2025-12-01 16:35:15.697517",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L564-808, main swap loop), can the loop iterate an unbounded number of times if tick spacing is maliciously set to 1, causing out-of-gas errors and DOS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6212e7d5-1575-41c8-9644-ca5803c4c6d4",
+    "timestamp": "2025-12-01 16:35:43.735464",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L569-598), for stableswap pools, does the logic correctly determine `stepLiquidity` based on tick range, and could edge cases cause swaps to use zero liquidity incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_05d71f32-662d-4e79-b6ae-ce3551d135f9",
+    "timestamp": "2025-12-01 16:36:11.555628",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L572-577), when `config.isFullRange()`, does setting `nextTick` to MAX_TICK or MIN_TICK without bound checking risk arithmetic overflow in subsequent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7db7488d-291c-4f01-bf1c-539caf71b1ed",
+    "timestamp": "2025-12-01 16:36:40.855126",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L578-597), for stableswap with limited range, does the `inRange` calculation using assembly `and(slt(tick, upper), iszero(slt(tick, lower)))` correctly handle negative tick values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_331f19cd-c170-46db-8637-4a2d106b7b62",
+    "timestamp": "2025-12-01 16:37:11.473754",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L599-613), for concentrated pools, do the `findNextInitializedTick` and `findPrevInitializedTick` calls correctly locate the next tick, or could bitmap corruption cause swaps to skip ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3d5dc28-fef9-4a0c-80f5-3fde327b15a4",
+    "timestamp": "2025-12-01 16:37:43.014325",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L618-619), does the `limitedNextSqrtRatio` calculation correctly bound the next sqrt ratio, and could this allow swaps to exceed the limit through rounding errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a5bb6171-9a2c-43ac-abce-34786417a792",
+    "timestamp": "2025-12-01 16:38:16.013635",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L623-633), when `stepLiquidity == 0`, does setting `sqrtRatioNext = limitedNextSqrtRatio` correctly handle empty pools, and could this enable price manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3305192c-cac4-4832-b937-926d9fefab83",
+    "timestamp": "2025-12-01 16:38:49.743849",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L629-644), when `isExactOut`, does casting `amountRemaining` to int128 (L631) risk overflow if `amountRemaining` exceeds int128 bounds, causing incorrect price impact?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f2038f4-511f-4d89-9fd8-bd9c3bf49c7d",
+    "timestamp": "2025-12-01 16:39:24.907824",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L634-643), when `!isExactOut`, does the fee calculation `computeFee(amountU128, config.fee())` and subtraction risk underflow if the fee exceeds the amount?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3c337c6d-a15b-4649-8f7d-1972f2e64eb2",
+    "timestamp": "2025-12-01 16:40:02.537408",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L646-648), do the `nextSqrtRatioFromAmount0` and `nextSqrtRatioFromAmount1` functions correctly compute the next sqrt ratio without precision loss or overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c1b22769-ed99-4174-9893-db58a89068d3",
+    "timestamp": "2025-12-01 16:40:42.335741",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L650-657, assembly), does the branchless limit check correctly detect when the computed sqrtRatio exceeds the limit in both increasing and decreasing directions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_085dd497-3c2e-4f27-9874-15083c3323cc",
+    "timestamp": "2025-12-01 16:41:21.687833",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L662-695), when `hitLimit`, does the delta calculation properly handle both exact input and exact output cases, and could precision loss cause incorrect fee accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f948bb0d-6c60-4e60-a851-6b20c3a1d8c3",
+    "timestamp": "2025-12-01 16:42:02.397646",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L675-684), in the exact output case when hitting the limit, does `amountBeforeFee` calculation risk overflow when `limitCalculatedAmountDelta` is large?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9361a50-7a52-43c4-a608-63b1fc25c6a9",
+    "timestamp": "2025-12-01 16:42:43.128522",
+    "report_generated": false
   }
 ]
