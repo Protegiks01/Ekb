@@ -1048,5 +1048,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fbeaf7f2-7b02-4652-a4f2-3f19ffe32ebe",
     "timestamp": "2025-12-01 17:14:42.344411",
     "report_generated": false
+  },
+  {
+    "question": "At line 204, 'result >>= uint256(63 - (x >> 64))' performs a shift by a calculated amount. If the Solidity compiler optimizes this shift using assembly (e.g., SHR opcode), could it mishandle edge cases where the shift amount is 0 or 63, causing off-by-one errors in the result?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9216dcb5-7888-4f71-9ebe-40fbc4dfa5a3",
+    "timestamp": "2025-12-01 17:15:59.115569",
+    "report_generated": false
+  },
+  {
+    "question": "The protocol documentation mentions custom assembly blocks and unclean stack values. Although exp2() doesn't use explicit assembly, if it's called from an assembly context (e.g., within CoreLib), could unclean stack values affect the x parameter or result, causing corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c03a273-5655-45d7-bd63-da17c26d62e0",
+    "timestamp": "2025-12-01 17:16:12.494208",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function relies on Solidity's handling of unchecked arithmetic (line 6). In Solidity 0.8.31-pre (experimental), are there known bugs in unchecked block compilation that could cause the bit-check multiplications to produce incorrect results, especially when using the clz opcode elsewhere in the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ad978269-ebc0-4a74-8378-b9ed13aebcf7",
+    "timestamp": "2025-12-01 17:16:26.363459",
+    "report_generated": false
+  },
+  {
+    "question": "At twamm.sol line 128, 'dist(ePowExponent, c)' computes |ePowExponent - c|. If exp2() precision errors cause ePowExponent and c to be nearly equal (within rounding), this distance could round to 0, causing division by zero or extreme price movements. Could an attacker craft order parameters to trigger this?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_48cdb092-8b48-484a-a4f5-a80d66607ded",
+    "timestamp": "2025-12-01 17:16:40.547752",
+    "report_generated": false
+  },
+  {
+    "question": "The TWAMM formula uses exp2() to model continuous exponential price movement. If exp2() has a systematic bias (e.g., always returning values 0.1% too low), this would cause TWAMM prices to converge to sqrtSaleRatio slower than mathematically correct. Could liquidity providers exploit this by placing limit orders that intercept value that should go to TWAMM orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d28b6b42-6bd1-4203-97ac-8dc46c45fad2",
+    "timestamp": "2025-12-01 17:16:55.918052",
+    "report_generated": false
+  },
+  {
+    "question": "If exp2() returns a value that's 1% too high due to precision errors, ePowExponent in TWAMM would be inflated. This would skew the price calculation at twamm.sol line 127-129. For a large TWAMM order, could this 1% error translate to significant fund loss for the order placer, creating an attack where searchers front-run orders expecting to exploit the predictable error?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a48ff621-1f6e-4a4e-8c51-5d63157cd7ee",
+    "timestamp": "2025-12-01 17:17:12.841045",
+    "report_generated": false
+  },
+  {
+    "question": "The bit checks at lines 11-202 process bits in descending order (63 down to 0). This means larger exponential contributions are applied first. Could the ordering cause different accumulated rounding errors compared to processing bits in ascending order, and could an attacker exploit this to manipulate results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c7532a4a-13a6-4206-9085-e95235b6bf8e",
+    "timestamp": "2025-12-01 17:17:31.261320",
+    "report_generated": false
+  },
+  {
+    "question": "At line 200, the final bit check is 'if (x & 0x1 != 0)' (checking bit 0). This is the least significant fractional bit. If this bit is set, result is multiplied by a constant very close to 1. Due to precision limits, could this multiplication be a no-op, causing the least significant bit of x to have no effect on the output?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd043876-7dbc-4df4-8c17-9ce179b791eb",
+    "timestamp": "2025-12-01 17:17:51.169576",
+    "report_generated": false
+  },
+  {
+    "question": "The bit-checking pattern uses '!= 0' rather than '> 0' (e.g., line 11: 'if (x & 0x8000000000000000 != 0)'). In Solidity, these are equivalent for single-bit masks. However, if the mask accidentally includes multiple bits (e.g., due to a typo), the behavior could differ. Have all 64 masks been verified to be exact powers of 2?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64efdbbc-9b17-4383-8aff-61ff541d6cf6",
+    "timestamp": "2025-12-01 17:18:13.494344",
+    "report_generated": false
+  },
+  {
+    "question": "At line 11, the first bit check is 'if (x & 0x8000000000000000 != 0)' (checking bit 63). If x has unclean bits above bit 69 (e.g., bit 255 set), these bits don't affect the bit-check conditions but could affect the overflow check at line 7. Could an attacker pass x with bit 255 set to bypass the overflow check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a7297a36-4f1a-484b-88ac-091c606770f1",
+    "timestamp": "2025-12-01 17:18:36.338959",
+    "report_generated": false
+  },
+  {
+    "question": "The TWAMM extension calls exp2() during beforeSwap hooks (as part of virtual order execution). If a malicious token contract reenters the Core during this hook, could it cause exp2() to be called multiple times with the same parameters, leading to duplicate price movements or accounting errors in TWAMM's order state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d3daba3f-dd1d-439e-b418-cf1d2c25c347",
+    "timestamp": "2025-12-01 17:19:01.109531",
+    "report_generated": false
+  },
+  {
+    "question": "Although exp2() is a pure function with no external calls, it's called within TWAMM's computeNextSqrtRatio(), which is invoked during virtual order execution. If an attacker can trigger reentrancy into TWAMM (e.g., via a malicious token's transfer hook), could they cause exp2() to be called with stale exponent values that lead to incorrect price updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6264eb8-45c5-441b-b0f1-1f6d276e37f6",
+    "timestamp": "2025-12-01 17:19:26.048976",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function uses inline assembly via the 'unchecked' keyword but no explicit assembly blocks. However, the protocol uses experimental Solidity 0.8.31 with the clz opcode. If future compiler updates introduce assembly optimizations to exp2(), could they introduce bugs in the bit-checking logic that alter results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b2c9dfe-c5fd-4e29-a266-bab1d3cc2fbf",
+    "timestamp": "2025-12-01 17:19:52.565769",
+    "report_generated": false
+  },
+  {
+    "question": "If the Solidity compiler (version 0.8.31-pre experimental) has a bug in handling the unchecked block at line 6, it might incorrectly compile the multiplications at lines 12-202. Could this cause exp2() to return incorrect values in production that differ from test results, allowing attackers who discover the discrepancy to manipulate TWAMM execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0ef910dd-4b94-4366-9a56-a14dafb98803",
+    "timestamp": "2025-12-01 17:20:19.408096",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function is pure and has no side effects. However, if a malicious contract uses delegatecall or create2 to deploy exp2() at a predictable address, then self-destructs and redeploys different bytecode at the same address, could subsequent TWAMM calls execute malicious exp2() logic that manipulates prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_25f28398-45df-4480-85d6-27b2034b0b8a",
+    "timestamp": "2025-12-01 17:20:49.370204",
+    "report_generated": false
+  },
+  {
+    "question": "The exponent calculation at twamm.sol line 120 multiplies by timeElapsed (uint32, max ~136 years). For very long-duration orders with high saleRate and low liquidity, exponent could legitimately approach the overflow boundary. Could an attacker create a 136-year TWAMM order that causes exponent to exceed 0x400000000000000000 on first execution, DoS-ing the order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4597b13-5bda-4de2-933e-4dc42a8c3c3a",
+    "timestamp": "2025-12-01 17:21:19.553864",
+    "report_generated": false
+  },
+  {
+    "question": "At twamm.sol line 115, the sqrtSaleRate used in exponent calculation has fees subtracted: 'sqrtSaleRate = sqrtSaleRateWithoutFee - computeFee(...)'. If the fee is large relative to sqrtSaleRateWithoutFee, sqrtSaleRate could underflow to 0, making exponent = 0. Would exp2(0) return 1.0 correctly, or could this edge case cause TWAMM to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4fc60d20-dd9d-4213-8f4b-fb16307f0012",
+    "timestamp": "2025-12-01 17:21:51.153915",
+    "report_generated": false
+  },
+  {
+    "question": "The exponent in TWAMM (twamm.sol line 120) is inversely proportional to liquidity: 'exponent = (...) / liquidity'. If an attacker front-runs a TWAMM execution by adding massive liquidity to the pool, they could force exponent → 0, making exp2() return ≈ 1.0. This would freeze price movement. Could this be used to prevent opposing orders from executing profitably?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_46f0a825-ae5e-46e0-9843-fad612d7ed4b",
+    "timestamp": "2025-12-01 17:22:24.000211",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function only handles inputs in [0, 64) (5.64 format). For negative exponents or values ≥ 64, it reverts. However, TWAMM's exponent calculation at twamm.sol line 120 could theoretically produce negative values if saleRate or timeElapsed are manipulated via integer underflow. Could an attacker exploit this to DoS TWAMM execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8de6b069-09b4-4a49-b3bb-0f885046f3e0",
+    "timestamp": "2025-12-01 17:22:56.882343",
+    "report_generated": false
+  },
+  {
+    "question": "At line 204, the shift amount '63 - (x >> 64)' effectively divides result by 2^(63 - int_part). For x = 32.5 << 64, the shift is 30.5, but shifts must be integers, so it becomes 30. Does this introduce rounding errors where fractional integer parts (e.g., 32.5 vs 33.0) produce unexpected result differences?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14468083-45db-4869-b620-41a27fbd4892",
+    "timestamp": "2025-12-01 17:23:29.667893",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function computes 2^x using a polynomial approximation approach (multiplying by 2^(2^-i) for each set bit). This is different from Taylor series or other common exponential approximations. Could this bit-multiplication approach introduce systematic bias compared to the true exponential, allowing attackers to profit from the deviation in TWAMM price calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8f8d0a7d-3b27-4ccd-9dc3-ce4041ec4d17",
+    "timestamp": "2025-12-01 17:24:01.790974",
+    "report_generated": false
+  },
+  {
+    "question": "At twamm.sol line 125, after exp2() is called, the result is left-shifted: 'exp2(uint128(exponent)) << 64'. This shift happens before the int256 cast. If exp2() returns a value > (type(uint256).max >> 64), the shift overflows. Although this should be impossible given exp2()'s max input, could compiler optimizations or assembly bugs cause unexpected behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_84369b0d-acd6-4dd1-9577-142758b72853",
+    "timestamp": "2025-12-01 17:24:35.044617",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function returns uint256, but at twamm.sol line 125 it's immediately cast to int256: 'int256(uint256(exp2(...)))'. If exp2() returns a value > type(int256).max (i.e., with bit 255 set), the cast makes it negative. Could this cause the ePowExponent to be negative, inverting the price movement direction in TWAMM calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6962915-e646-423a-a59d-b0ce474a32ea",
+    "timestamp": "2025-12-01 17:25:04.721411",
+    "report_generated": false
+  },
+  {
+    "question": "At twamm.sol line 125, the exponent (uint256) is cast to uint128 before passing to exp2(): 'exp2(uint128(exponent))'. If exponent's value is in the range (type(uint128).max, 0x400000000000000000), the cast silently truncates the upper 128 bits. Could an attacker exploit this to pass a truncated exponent that bypasses the overflow check in exp2() but causes incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4d9942ae-bbca-41b5-b0e8-bfff3082b0b7",
+    "timestamp": "2025-12-01 17:25:35.633425",
+    "report_generated": false
+  },
+  {
+    "question": "At twamm.sol line 121, if exponent is exactly at the boundary (0x400000000000000000 - 1), exp2() is called. For values at or above the boundary, it's skipped. Could an attacker repeatedly create orders that force execution to oscillate between these paths, causing inconsistent gas costs that make TWAMM execution unprofitable for searchers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17102ab3-5680-49d0-a4ed-e87183635e53",
+    "timestamp": "2025-12-01 17:26:08.559855",
+    "report_generated": false
   }
 ]
