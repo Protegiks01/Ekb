@@ -2848,5 +2848,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_11e1725c-0f8b-4fcb-b554-3bc15ce4a367",
     "timestamp": "2025-12-01 19:34:42.644118",
     "report_generated": false
+  },
+  {
+    "question": "Line 97 uses `mulmod(difference, liquidityU256, 0x100000000000000000000000000000000)` to check for rounding. Can this modulo operation miss cases where the actual multiplication result needs different rounding?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e67c2d3e-080d-4cc3-8a66-5cdbc5d85511",
+    "timestamp": "2025-12-01 19:59:58.274256",
+    "report_generated": false
+  },
+  {
+    "question": "In line 88, assembly converts `liquidity` to `liquidityU256`. Can type confusion or dirty upper bits cause this conversion to produce incorrect values that affect subsequent multiplication?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a0f80e9-ec32-49e9-a493-938ddb7ff63c",
+    "timestamp": "2025-12-01 20:00:11.574035",
+    "report_generated": false
+  },
+  {
+    "question": "Line 60 uses `shr(128, result)` to check for overflow. Can edge cases where result equals exactly 2^128 - 1 or 2^128 cause this check to incorrectly pass or fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_44d1af7a-6e12-4f73-b816-9f1e9a44feab",
+    "timestamp": "2025-12-01 20:00:25.574041",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly on line 47 computes `add(div(result0, sqrtRatioLower), iszero(iszero(mod(result0, sqrtRatioLower))))`. Can the division by sqrtRatioLower produce a quotient that when incremented exceeds uint128.max, bypassing the overflow check at line 48?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_80c2a667-f2b3-4ecf-bdd4-5796268fa2cc",
+    "timestamp": "2025-12-01 20:00:40.679823",
+    "report_generated": false
+  },
+  {
+    "question": "Line 41 in `amount0DeltaSorted()` uses `shl(128, liquidity)` to compute liquidityX128. Can this shift operation combined with subsequent multiplications in FixedPointMathLib exceed uint256.max and wrap around?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e36a4ccc-fd2e-414a-a029-208cf44389e8",
+    "timestamp": "2025-12-01 20:00:55.836987",
+    "report_generated": false
+  },
+  {
+    "question": "In line 17 of `sortAndConvertToFixedSqrtRatios()`, the expression `mul(sub(sqrtRatioLower, sqrtRatioUpper), gt(sqrtRatioLower, sqrtRatioUpper))` uses unchecked multiplication. Can overflow in this multiplication cause incorrect sorting despite the conditional logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d56d637b-de6e-41f8-b3f2-4e11a3a2e872",
+    "timestamp": "2025-12-01 20:01:13.874490",
+    "report_generated": false
+  },
+  {
+    "question": "If a delta function reverts inside a lock context, can this leave the pool in an inconsistent state that can be exploited in subsequent transactions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47f71277-5e15-4967-a60e-c5812c4a8c74",
+    "timestamp": "2025-12-01 20:01:30.848685",
+    "report_generated": false
+  },
+  {
+    "question": "Can delta function reverts be triggered selectively to cause denial of service for specific price ranges or liquidity amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3866f335-928c-4287-923f-f37af8dacac6",
+    "timestamp": "2025-12-01 20:01:49.153066",
+    "report_generated": false
+  },
+  {
+    "question": "If delta functions revert with overflow errors, can this be exploited to prevent specific users from withdrawing positions while allowing attackers to withdraw?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_58d6bfc7-7c33-4cd2-800d-49304a39dc16",
+    "timestamp": "2025-12-01 20:02:08.287966",
+    "report_generated": false
+  },
+  {
+    "question": "When positions overlap in price ranges, can delta calculations for one position affect the correctness of calculations for other positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_269006fd-347c-4a60-9bdb-db6be1a51fde",
+    "timestamp": "2025-12-01 20:02:29.547019",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker construct a sequence of operations where delta calculation rounding errors compound to produce a net profit despite paying fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ce470735-fce3-4594-99d3-88ee4dea1da2",
+    "timestamp": "2025-12-01 20:02:51.590242",
+    "report_generated": false
+  },
+  {
+    "question": "If Core.sol batches multiple operations in one lock, can delta calculations from one operation affect the correctness of subsequent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf6532e7-8804-4580-aaed-f3eafb18d382",
+    "timestamp": "2025-12-01 20:03:15.031637",
+    "report_generated": false
+  },
+  {
+    "question": "When delta functions are called within complex Router multi-call sequences, can reentrancy or state changes between calls cause delta calculations to be inconsistent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca919c88-8fb6-4a13-b2c6-7278782b0e28",
+    "timestamp": "2025-12-01 20:03:40.505228",
+    "report_generated": false
+  },
+  {
+    "question": "Can experimental compiler optimizations in 0.8.31 cause delta function assembly blocks to be compiled incorrectly, producing wrong results only in specific contexts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b553a829-0e59-49ca-a787-1469b8f6a972",
+    "timestamp": "2025-12-01 20:04:08.003274",
+    "report_generated": false
+  },
+  {
+    "question": "Does Solidity 0.8.31's experimental `clz` opcode interact with delta function calculations? Can bugs in this opcode affect delta calculation correctness?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3be29017-0a36-493a-96b5-66527d74c7a8",
+    "timestamp": "2025-12-01 20:04:36.285051",
+    "report_generated": false
+  },
+  {
+    "question": "Delta functions use assembly with 'memory-safe' annotations. Can Solidity 0.8.31's experimental features or bugs cause these annotations to be incorrect, leading to memory corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_54801d1d-bca8-4412-872b-850d1d931e70",
+    "timestamp": "2025-12-01 20:05:05.858862",
+    "report_generated": false
+  },
+  {
+    "question": "If delta calculations are biased towards overestimating or underestimating token amounts, can this bias be exploited to slowly drain pools over many operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fac3ddd2-28e2-4e81-b2bb-499c6f260152",
+    "timestamp": "2025-12-01 20:05:36.716588",
+    "report_generated": false
+  },
+  {
+    "question": "Can rounding errors in delta calculations cause swap amounts to not balance exactly, violating the constant product invariant (adjusted for fees)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7e5adbb0-dab3-406c-823b-8acede0642aa",
+    "timestamp": "2025-12-01 20:06:09.190931",
+    "report_generated": false
+  },
+  {
+    "question": "If delta calculations allow positions to be withdrawn for more tokens than were deposited (plus fees), can this be exploited to drain pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e4fffb45-23da-4fa1-9dcb-e7747b1e08a5",
+    "timestamp": "2025-12-01 20:06:41.738444",
+    "report_generated": false
+  },
+  {
+    "question": "Can systematic errors in delta calculations cause the sum of all position principals to exceed actual pool reserves, violating the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ba0fc37-8e0d-4b15-a3e8-fd22bc028797",
+    "timestamp": "2025-12-01 20:07:15.162927",
+    "report_generated": false
+  },
+  {
+    "question": "If delta calculations are incorrect when positions are minted, can this be exploited to create positions with inflated claims on pool reserves?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6a75f17-7848-4c5b-bdd7-d1590896ed05",
+    "timestamp": "2025-12-01 20:07:50.506458",
+    "report_generated": false
+  },
+  {
+    "question": "When position NFTs are transferred, the new owner relies on correct principal calculations from delta functions. Can rounding errors cause disputes between principal and claimable amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_badeea43-e483-448a-91af-e34a65136e23",
+    "timestamp": "2025-12-01 20:08:25.927264",
+    "report_generated": false
+  },
+  {
+    "question": "Delta calculations determine principal amounts stored in position NFTs. Can errors cause position metadata to diverge from actual pool state, enabling unauthorized withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ae31c7f-d74f-4000-9a8f-7c80c432e225",
+    "timestamp": "2025-12-01 20:09:02.581105",
+    "report_generated": false
+  },
+  {
+    "question": "When initialized ticks have exact sqrtRatio values, can delta calculations at these boundaries produce off-by-one errors that compound over many crossings?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1ae51a35-a17d-4e77-b77a-855f106cfa1b",
+    "timestamp": "2025-12-01 20:09:40.976825",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker manipulate swap size to ensure tick crossings occur at points where delta calculation rounding favors them?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ca45115-f744-455a-8c4b-cce9a66dd89f",
+    "timestamp": "2025-12-01 20:10:18.429616",
+    "report_generated": false
   }
 ]
