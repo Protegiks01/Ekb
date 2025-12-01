@@ -2698,5 +2698,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8735bf95-b127-4a9f-ad93-26ac7d094e6b",
     "timestamp": "2025-12-01 19:25:51.946039",
     "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 387-407, the position's fees per liquidity inside is fetched before or after tick updates depending on whether liquidity goes to zero. If tick updates revert mid-execution, can the position be left in an inconsistent state with incorrect fee snapshots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f669ccd-a53a-4f1b-ac7e-4d06469dab15",
+    "timestamp": "2025-12-01 19:27:12.106826",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 409-416, active liquidity is updated when the current tick is within position bounds. If the tick is exactly at tickLower or tickUpper, can off-by-one errors cause liquidity to be double-counted or omitted from active tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_340b5f45-f7b3-48ec-aba4-8581b3cf5f3a",
+    "timestamp": "2025-12-01 19:27:25.631225",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 430-438, position state is updated with new liquidity and fees. If liquidityNext is non-zero but the subtraction at line 437 causes feesPerLiquidityInsideLast to underflow, can future fee collections claim excessive fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bac30abb-2ced-4d2e-a2bc-eefc79892bd5",
+    "timestamp": "2025-12-01 19:27:39.086042",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 434-437, position.fees(feesPerLiquidityInside) calculates accrued fees. If feesPerLiquidityInside has been manipulated through extension calls to accumulateAsFees, can positions claim more fees than they earned, draining the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7dc99ecc-b600-41ff-b16c-78281a342a19",
+    "timestamp": "2025-12-01 19:27:53.338215",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 440, _updatePairDebtWithNative is called with delta0 and delta1. If one delta is type(int128).min and msg.value is non-zero, can the unchecked subtraction at line 344 overflow, corrupting debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_97cfab9d-e2c1-4245-bf7a-846213472b0f",
+    "timestamp": "2025-12-01 19:28:08.303958",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 392-398, concentrated pools fetch fees before deleting tick data if liquidity goes to zero. If the tick deletion at _updateTick frees storage, can a malicious actor immediately recreate the tick with attacker-controlled fee values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_874291e1-8784-4f7b-89fb-be6563ac05b7",
+    "timestamp": "2025-12-01 19:28:24.680743",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 417-428, stableswap pools update liquidity differently than concentrated pools. If an attacker switches between concentrated and stableswap through pool config manipulation, can they double-withdraw liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ad36a961-8985-4066-b5d1-a8207d6e71ed",
+    "timestamp": "2025-12-01 19:28:42.488732",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 363-368, extension beforeUpdatePosition hook is called. If the extension performs a reentrant call to updatePosition on the same pool and position, can nested position updates corrupt liquidity delta calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f882b0f9-d50c-481d-bd6f-41c4d43ea5d1",
+    "timestamp": "2025-12-01 19:29:02.290688",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 463-503, collectFees allows any locker to collect fees for their positions. If two positions overlap in tick range and one collects fees, does the fees per liquidity snapshot update affect the other position's pending fees calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9887c8d6-ce4d-44a1-b11d-28581ab96944",
+    "timestamp": "2025-12-01 19:29:23.786637",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 492-494, position.fees() calculates fees based on the difference between current and last fees per liquidity. If feesPerLiquidityInside wraps around due to type(uint256).max overflow, can the subtraction yield incorrect fee amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aaee6d34-50a8-4cca-a950-11a663134c0d",
+    "timestamp": "2025-12-01 19:29:47.624068",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 494, position.feesPerLiquidityInsideLast is updated to current feesPerLiquidityInside. If this update happens before the actual token withdrawal, can reentrancy allow double fee collection by resetting the last snapshot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37a58db7-a8fc-4b6c-ba21-d17c5dc29ae9",
+    "timestamp": "2025-12-01 19:30:10.756300",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 480-490, fees per liquidity inside is calculated differently for stableswap vs concentrated pools. If a pool is misconfigured with wrong isStableswap flag, can users claim fees they didn't earn or lose earned fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f84085f9-7d39-494d-b5b8-46f9993b750a",
+    "timestamp": "2025-12-01 19:30:37.637818",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 496-498, _updatePairDebt is called with negative amounts to reduce debt. If the position has zero fees but the function is called anyway, can the zero amounts bypass validation and allow debt manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f9c11f17-30e2-4d8b-bc10-115bc41b54ed",
+    "timestamp": "2025-12-01 19:31:09.356544",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 228-276, accumulateAsFees is restricted to the pool's extension via line 230. If the extension address is manipulated through storage collision or pool reinitialization, can unauthorized contracts accumulate fake fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5dcf631a-178b-4f9e-ae8b-ad46fc03f31e",
+    "timestamp": "2025-12-01 19:31:39.365696",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 244-268, fees are divided by liquidity and added to global fees per liquidity. If liquidity is 1 (minimum) and amount is type(uint128).max, can the left shift (amount << 128) overflow before division, corrupting fee state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_be071bd4-f227-4e8c-8440-f2ad5df4c4f1",
+    "timestamp": "2025-12-01 19:32:09.082866",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 254-260, the function performs unchecked addition of fees per liquidity. If fees accumulate over billions of swaps, can the uint256 storage overflow, wrapping to zero and causing massive fee loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37f5e439-a391-4784-a9d4-ee9557110413",
+    "timestamp": "2025-12-01 19:32:40.311135",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 242-243, the function allows extensions to accumulate fees even if the pool is uninitialized. Can malicious extensions burn fees to uninitialized pools (liquidity == 0) as a griefing attack, wasting user funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c0ae4b56-d0fb-494f-a2b5-23c50eccfd19",
+    "timestamp": "2025-12-01 19:33:13.835838",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 273, _updatePairDebtWithNative is called to account for the accumulated fees. If the extension provides incorrect amount0/amount1 values not matching actual tokens transferred, can flash accounting break?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd7fb983-0c18-460d-8847-2d4f0f717210",
+    "timestamp": "2025-12-01 19:33:48.313239",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 124-171, updateSavedBalances uses assembly to update stored balances. If the addDelta function at lines 140-151 checks for wrap-around incorrectly, can underflow be misdetected, allowing negative saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31c05f72-13ab-4dc5-9c2f-3e25492381cf",
+    "timestamp": "2025-12-01 19:34:23.134754",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 161-167, saved balances are updated through direct assembly sstore. If the storage slot calculation at line 158 collides with other core storage slots due to keccak hash collision, can critical pool state be overwritten?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f2be1bb3-6b2c-497e-8769-8467336ebaaf",
+    "timestamp": "2025-12-01 19:34:57.931729",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 135, the function requires token0 < token1 for sorting. If an attacker provides equal token addresses (token0 == token1), can this bypass sorting checks and cause storage corruption through incorrect slot calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6255931d-3638-40d7-aa0d-b6e0e8015ad1",
+    "timestamp": "2025-12-01 19:35:33.758120",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 140-151, the addDelta assembly function checks for uint128 overflow. If the sum is exactly uint128.max + 1, does the shr(128, sum) check correctly detect overflow or does off-by-one allow boundary overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4b85687-af9b-4d66-a9de-e29d103640ac",
+    "timestamp": "2025-12-01 19:36:08.653715",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 170, _updatePairDebtWithNative is called after saved balance updates. If the saved balance update succeeds but debt update reverts, can saved balances become desynchronized from actual debt, breaking flash accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_50b6545f-fa46-4bac-9efb-59d0118c5289",
+    "timestamp": "2025-12-01 19:36:45.014087",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 278-319, _updateTick modifies tick info and flips tick bitmaps. If liquidityDelta is type(int128).min and currentLiquidityDelta is type(int128).max, can checked subtraction overflow at line 294, reverting all position operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_824c3480-69c1-4ec4-a2d0-b7d1c09d2fec",
+    "timestamp": "2025-12-01 19:37:21.066889",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 291-295, liquidityNetNext is calculated with addLiquidityDelta and then liquidityDeltaNext is calculated. If these calculations result in liquidityNetNext == 0 but liquidityDeltaNext != 0, can ghost liquidity exist without bitmap initialization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f585d9a3-a3db-4fb8-a7eb-96b49d060cbd",
+    "timestamp": "2025-12-01 19:37:57.969866",
+    "report_generated": false
   }
 ]
