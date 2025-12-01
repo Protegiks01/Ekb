@@ -298,5 +298,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5eec39a8-bc28-4db6-a569-59c3e4754dee",
     "timestamp": "2025-12-01 16:18:38.325084",
     "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L367-368), can a malicious extension's `maybeCallBeforeUpdatePosition` callback reenter Core through another pool operation, exploiting the lock state to corrupt position data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_86781d8e-8376-4805-987d-cbfde2272f25",
+    "timestamp": "2025-12-01 16:19:51.562680",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L372), does the check `!state.isInitialized()` ensure the pool exists, and could a race condition allow position updates between pool initialization and first state write?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3cf0f045-856c-4934-a3f2-9e75f0638533",
+    "timestamp": "2025-12-01 16:20:05.206003",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L375-379), when computing `delta0` and `delta1` via `liquidityDeltaToAmountDelta`, can extreme sqrtRatio values cause the amounts to overflow int128, breaking the assumption that deltas fit in 128 bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5f09e7bf-b0e6-416f-b881-6b91217e06f4",
+    "timestamp": "2025-12-01 16:20:18.834367",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L381-385, assembly), does directly setting `position.slot` risk storage corruption if the `poolPositionsSlot` calculation has an off-by-one error or if the position struct layout changes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_59f656ac-1fa6-45d2-98f8-98ebccbbf200",
+    "timestamp": "2025-12-01 16:20:33.142632",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L387), does `addLiquidityDelta(position.liquidity, liquidityDelta)` properly prevent underflow when `liquidityDelta` is negative and exceeds current liquidity, or could this lead to position liquidity wrapping to type(uint128).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8532590b-41ab-4378-9465-d5413cdf090a",
+    "timestamp": "2025-12-01 16:20:48.404220",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L392-407), when `liquidityNext == 0` for concentrated pools, does fetching `feesPerLiquidityInside` before deleting tick data risk using stale values if ticks were updated between fetch and delete?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_80bee581-1ca4-4145-8df0-1565c45226f0",
+    "timestamp": "2025-12-01 16:21:05.089666",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L400-401), do the `_updateTick` calls for both `tickLower` and `tickUpper` maintain consistency, or could a revert in the second call leave the first tick in an inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dbda4811-19e0-4889-932d-08fdff3845dd",
+    "timestamp": "2025-12-01 16:21:23.068226",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L409-416), when updating pool liquidity if the current tick is within position bounds, does the check `state.tick() >= positionId.tickLower() && state.tick() < positionId.tickUpper()` correctly handle edge cases at tick boundaries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4a12e044-20a3-444a-8471-a8242eed9bb8",
+    "timestamp": "2025-12-01 16:21:42.842925",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L417-428), for stableswap pools, does storing active liquidity in the liquidity slot match the behavior expected by swap operations, and could this deviate from concentrated pool semantics causing logic errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_01318dd4-89b4-4890-8a70-138bbaa63ad8",
+    "timestamp": "2025-12-01 16:22:03.999407",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L430-438), when `liquidityNext == 0`, does zeroing the position allow for fee griefing where an attacker withdraws all liquidity, lets fees accumulate, then re-deposits to claim fees without pro-rata sharing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1e12edb4-ab52-4c86-96fe-e0eff136a1ed",
+    "timestamp": "2025-12-01 16:22:26.771920",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L434-437), does the `position.fees(feesPerLiquidityInside)` calculation correctly compute owed fees, and could integer overflow in `fullMulDivN` cause fee loss when differences are large?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2fd58ccd-4b1e-4d8e-9a00-b68e34439427",
+    "timestamp": "2025-12-01 16:22:50.207969",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L436-437), does subtracting fees from `feesPerLiquidityInside` via `feesPerLiquidityFromAmounts` and then setting `feesPerLiquidityInsideLast` risk precision loss that allows repeated fee claims?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68aaf654-c64f-4d31-afb3-7f923aa0ce2a",
+    "timestamp": "2025-12-01 16:23:15.376258",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L440), does `_updatePairDebtWithNative` correctly handle the case where delta0 or delta1 is zero but msg.value is provided, potentially creating debt inconsistencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ecdc0dfc-44e5-4654-aea8-0b7a6de12d67",
+    "timestamp": "2025-12-01 16:23:41.979273",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L446-447), can a malicious extension's `maybeCallAfterUpdatePosition` callback exploit the updated state to manipulate subsequent operations in the same transaction, such as sandwich attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_615c34ce-cbba-4eb4-b42d-01dae1972094",
+    "timestamp": "2025-12-01 16:24:09.535459",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition`, if a position spans the full tick range (MIN_TICK to MAX_TICK), could the tick update operations fail or behave unexpectedly due to boundary conditions in bitmap operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13f37e6e-109e-4d25-bf85-874d44d95ad6",
+    "timestamp": "2025-12-01 16:24:38.471280",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition`, does the event emission at L443 occur before the after-extension callback, and could this ordering allow extensions to frontrun position update events for MEV extraction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a98a3c6a-22f2-46a9-8f1e-bb13c6bd69df",
+    "timestamp": "2025-12-01 16:25:08.338048",
+    "report_generated": false
+  },
+  {
+    "question": "In `setExtraData` (L451-460), does the function allow any `msg.sender` to set extra data on any position, and could this enable griefing by overwriting position metadata set by the actual position owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca7cc5b1-00bf-446d-b737-6df8a4c739e1",
+    "timestamp": "2025-12-01 16:25:40.001667",
+    "report_generated": false
+  },
+  {
+    "question": "In `setExtraData` (L452), does using `msg.sender` directly without checking lock state allow external contracts to manipulate position metadata outside of locked contexts, breaking flash accounting assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d14b6cec-c69d-45ec-a3ac-0b939bac933f",
+    "timestamp": "2025-12-01 16:26:11.837050",
+    "report_generated": false
+  },
+  {
+    "question": "In `setExtraData` (L459), does the bit manipulation `((firstSlot.load() >> 128) << 128) | (extraData >> 128)` correctly preserve liquidity and feesPerLiquidityInsideLast while only updating extraData, or could bit shifting errors corrupt these values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b323c356-42de-4f20-bfaf-1318328e48b9",
+    "timestamp": "2025-12-01 16:26:44.510368",
+    "report_generated": false
+  },
+  {
+    "question": "In `setExtraData`, can an attacker use this function to set extraData to specific values that trigger bugs in position management contracts or NFT metadata parsers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_96a965cc-c6f6-4227-ad63-87e81ce6bd17",
+    "timestamp": "2025-12-01 16:27:17.877081",
+    "report_generated": false
+  },
+  {
+    "question": "In `collectFees` (L467), does `_requireLocker()` ensure that fees can only be collected during a locked transaction, preventing unauthorized fee claims outside of proper accounting contexts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_306f7faa-cae9-47e7-9e86-f687ebad25eb",
+    "timestamp": "2025-12-01 16:27:52.364497",
+    "report_generated": false
+  },
+  {
+    "question": "In `collectFees` (L469), can a malicious extension's `maybeCallBeforeCollectFees` callback reenter Core to collect fees from other positions, enabling fee theft through reentrancy?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9823f7d0-fcda-4e95-866c-6672ad1101e0",
+    "timestamp": "2025-12-01 16:28:26.735938",
+    "report_generated": false
+  },
+  {
+    "question": "In `collectFees` (L473-477, assembly), does directly setting `position.slot` risk reading corrupted position data if the slot calculation is incorrect or if concurrent operations modify storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ab3dd3c-09cc-4d88-a53e-2c47f5c3afda",
+    "timestamp": "2025-12-01 16:29:03.099402",
+    "report_generated": false
+  },
+  {
+    "question": "In `collectFees` (L480-490), does the different logic for stableswap vs concentrated pools ensure fee calculation consistency, and could exploiting the conditional lead to claiming fees twice or from wrong positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_908f8d3b-0e50-457f-be38-c2e45ee9ee33",
+    "timestamp": "2025-12-01 16:29:39.394793",
+    "report_generated": false
+  },
+  {
+    "question": "In `collectFees` (L492), does `position.fees(feesPerLiquidityInside)` correctly compute fees owed, and could repeated calls to collectFees without intervening position updates claim the same fees multiple times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_93bf333c-112c-41b0-8b7e-2787472d1996",
+    "timestamp": "2025-12-01 16:30:15.725285",
+    "report_generated": false
   }
 ]
