@@ -4498,5 +4498,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_348e3b06-040d-4f9c-8879-9de5a4267e28",
     "timestamp": "2025-12-01 22:08:10.325422",
     "report_generated": false
+  },
+  {
+    "question": "If Positions.sol or Orders.sol use CoreLib which uses ExposedStorageLib to verify position ownership before allowing withdrawals, could a race condition where ExposedStorageLib.sload() reads position data during a transfer enable an attacker to withdraw a position they just transferred away?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_85a55cfb-5afe-47d0-a00c-de6d6cf92296",
+    "timestamp": "2025-12-01 22:09:16.478717",
+    "report_generated": false
+  },
+  {
+    "question": "When OracleLib.getMaximumObservationPeriod() (line 48) calculates the maximum period using timestamps from ExposedStorageLib.sload(), could clock manipulation (e.g., block.timestamp manipulation by miners) combined with precisely timed sload() calls enable an attacker to make the oracle report incorrect maximum periods, affecting lending protocol collateral ratios?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4a3118d3-1e27-4721-a557-2d60b73d175c",
+    "timestamp": "2025-12-01 22:09:29.703903",
+    "report_generated": false
+  },
+  {
+    "question": "OracleLib uses ExposedStorageLib.sload() to read observation snapshots (line 30 of OracleLib.sol). If an attacker could manipulate the timing of when sload() is called relative to Oracle.observe() writes, could they cause ExposedStorageLib to read stale observations, enabling single-block TWAP manipulation attacks on dependent lending protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3c3134d4-0c4a-4640-b560-ca4f476d5645",
+    "timestamp": "2025-12-01 22:09:43.813086",
+    "report_generated": false
+  },
+  {
+    "question": "When multiple contracts (Core, TWAMM, Oracle, MEVCapture, Incentives, RevenueBuybacks) all expose storage via ExposedStorage base contract, could concurrent reads via ExposedStorageLib from different contracts cause gas price spikes, making legitimate user transactions unprofitable and effectively DOSing normal protocol operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0b2afe73-8287-4250-a635-5934704989eb",
+    "timestamp": "2025-12-01 22:09:57.930648",
+    "report_generated": false
+  },
+  {
+    "question": "The triple-slot sload() allocates memory using mload(0x40) at line 44. If this allocation happens during a deeply nested call stack (e.g., extension callback -> lock -> swap -> position update), could memory allocation fail due to stack depth limits, preventing position withdrawals during complex operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f52283f-8ee5-4159-82bb-3981fff72096",
+    "timestamp": "2025-12-01 22:10:13.164556",
+    "report_generated": false
+  },
+  {
+    "question": "If ExposedStorage.sload() (lines 16-19 of ExposedStorage.sol) is called with extremely large calldata containing thousands of slot numbers, could the loop consume excessive gas, causing the staticcall to fail and all functions using ExposedStorageLib to revert, effectively DOSing the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b0e50167-300d-4722-babb-7fb5f948e87d",
+    "timestamp": "2025-12-01 22:10:30.196007",
+    "report_generated": false
+  },
+  {
+    "question": "If the EVM's staticcall semantics change in future network upgrades (e.g., changes to gas costs or reentrancy protections), could ExposedStorageLib's reliance on staticcall behavior break, causing all storage reads to fail and making the entire protocol unusable until an upgrade?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cadaed92-43c0-4fac-9ae4-43d85eca0b20",
+    "timestamp": "2025-12-01 22:10:48.150159",
+    "report_generated": false
+  },
+  {
+    "question": "The sload() functions use shl(224, selector) to left-shift function selectors (lines 11, 27, 45, 60). Could the experimental compiler's implementation of shl have bugs that produce incorrect shifted values, causing the staticcalls to invoke wrong functions in IExposedStorage and return arbitrary data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_980169b3-0a7b-4515-84a1-5ef701688dff",
+    "timestamp": "2025-12-01 22:11:07.756186",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly blocks use 'memory-safe' annotation (lines 10, 25, 43, 59). If the Solidity 0.8.31 experimental compiler has bugs in memory safety analysis, could the assembly code actually corrupt memory despite the annotation, causing ExposedStorageLib to overwrite critical variables used for swap execution or position management?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e0c7bf51-bc88-430e-878d-9f1cc7acd7f2",
+    "timestamp": "2025-12-01 22:11:28.238838",
+    "report_generated": false
+  },
+  {
+    "question": "When Core and TWAMM both inherit from ExposedStorage and expose their storage, could storage layout changes in one contract affect the other? If TWAMM adds new state variables, could this shift TWAMM's storage layout causing ExposedStorageLib reads via TWAMMLib to return data from unexpected slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b29720e8-940f-4eb3-9c4a-5654c483480f",
+    "timestamp": "2025-12-01 22:11:49.425900",
+    "report_generated": false
+  },
+  {
+    "question": "The library enables batch reading of up to 3 consecutive slots. Could an attacker craft slot calculations that span across storage boundaries between different data structures (e.g., reading one slot from pool state and two slots from position data), causing type confusion when the results are interpreted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_214b3ce3-03b9-43fd-8f5e-5044cc82fe04",
+    "timestamp": "2025-12-01 22:12:11.445288",
+    "report_generated": false
+  },
+  {
+    "question": "ExposedStorageLib allows reading any storage slot from contracts implementing IExposedStorage. Could a malicious caller calculate the private storage slot offsets of Core or extensions (e.g., FlashAccountant._CURRENT_LOCKER_SLOT) and use ExposedStorageLib to read these 'private' slots, extracting sensitive information about active lockers or pending settlements?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e05d8f98-dde6-4e2f-afdb-1e05a8063558",
+    "timestamp": "2025-12-01 22:12:35.216309",
+    "report_generated": false
+  },
+  {
+    "question": "If multiple functions in a single transaction use ExposedStorageLib.sload() to read overlapping storage regions (e.g., CoreLib reading pool state while TWAMMLib reads TWAMM pool state for the same poolId), could the repeated staticcalls amplify gas costs, enabling economic DOS attacks during high network congestion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_40a0627c-006c-447e-b676-d9b5e8ec992d",
+    "timestamp": "2025-12-01 22:13:00.037870",
+    "report_generated": false
+  },
+  {
+    "question": "When extension libraries (TWAMMLib, OracleLib, MEVCaptureLib if it existed) all use ExposedStorageLib to read their respective storages, could race conditions occur where one extension's storage read via ExposedStorageLib happens during another extension's state update, violating the extension isolation invariant by exposing mid-update inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_69963ed6-20ac-47bf-8f9f-f98671debf92",
+    "timestamp": "2025-12-01 22:13:25.595559",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.getPoolFeesPerLiquidity() (line 44) and CoreLib.poolState() (line 36) are called sequentially using ExposedStorageLib, could the gap between the two staticcalls allow another transaction to modify storage, causing fees-per-liquidity to be read from before a swap but pool state from after, leading to incorrect fee calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_81a0ad97-6f6e-477a-adbf-d724e536ba90",
+    "timestamp": "2025-12-01 22:13:52.345937",
+    "report_generated": false
+  },
+  {
+    "question": "If a caller passes slot0 == slot1 == slot2 to the triple-slot sload() (line 38), would the function read the same storage slot three times? Could this waste gas and enable a griefing attack where malicious LPs repeatedly query the same position slot, exhausting block gas limits and preventing other users from trading?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1180cd0b-a0dc-4009-8514-3446b8792491",
+    "timestamp": "2025-12-01 22:14:21.037665",
+    "report_generated": false
+  },
+  {
+    "question": "When TWAMMStorageLayout calculations (lines 42, 52, 62, 72 of TWAMMStorageLayout.sol) add offsets to poolId, could the maximum possible poolId value (2^256-1) cause all offset additions to overflow, making every TWAMM storage read via ExposedStorageLib.sload() access slot 0 or other unintended locations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab03faf7-0558-4403-b5aa-f09b1ec6c0a8",
+    "timestamp": "2025-12-01 22:14:51.316056",
+    "report_generated": false
+  },
+  {
+    "question": "The sload() overloads with StorageSlot parameters (lines 71-93) call StorageSlot.unwrap() which performs assembly unwrapping. If the unwrap operation could be made to fail or return unexpected values through type system exploits, could this cause all storage reads to revert, preventing withdrawals and violating the availability invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_de60ad0e-1df2-497a-8737-e74c6d000d71",
+    "timestamp": "2025-12-01 22:15:21.049161",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreStorageLayout.poolPositionsSlot() returns a slot value exactly equal to 2^256-1, could the triple-slot sload() attempt to read slots 2^256-1, 0, and 1 (due to overflow), causing memory corruption when results are loaded from unexpected memory regions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4d2d253a-0838-48fc-a981-44d0573709fc",
+    "timestamp": "2025-12-01 22:15:51.961383",
+    "report_generated": false
+  },
+  {
+    "question": "The library's staticcall operations (lines 14, 31, 50, 63) occur during view functions but could be called within lock() context. If a view function using ExposedStorageLib is called recursively during a lock, could nested staticcalls cause gas estimation failures, preventing users from knowing the exact gas needed to settle flash loans?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3c1ba261-70d7-43e9-b0e4-0a761ebbeba6",
+    "timestamp": "2025-12-01 22:16:22.237597",
+    "report_generated": false
+  },
+  {
+    "question": "FlashAccountant uses transient storage for debt tracking. If ExposedStorageLib.tload() is called with slots calculated from _DEBT_LOCKER_TOKEN_ADDRESS_OFFSET (line 69 of FlashAccountant.sol), could an external contract read pending debts during a flash loan, frontrun the settlement transaction, and manipulate token prices to cause settlement failure?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8416156d-f915-4c1a-84f7-9b2215a56b0b",
+    "timestamp": "2025-12-01 22:16:53.052629",
+    "report_generated": false
+  },
+  {
+    "question": "When CoreLib functions are called during Core.lock() execution, they use ExposedStorageLib to read storage. If the storage reads happen after take() calls but before settle() completes, could ExposedStorageLib expose intermediate token balances that don't reflect finalized deltas, allowing attackers to calculate exact sandwich attack amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e4ed4aa3-75f0-4c2c-ad3f-48b63fadd5da",
+    "timestamp": "2025-12-01 22:17:22.791844",
+    "report_generated": false
+  },
+  {
+    "question": "The dual-slot sload() reads result1 from memory offset add(o, 32) at line 34. If the staticcall returned less than 64 bytes due to a bug in ExposedStorage.sload(), could this read access memory that was never written by the current call, potentially containing leftover data from a previous transaction's flash loan operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e0c4e461-6876-4a70-8374-7f34d2b8ee63",
+    "timestamp": "2025-12-01 22:17:49.477387",
+    "report_generated": false
+  },
+  {
+    "question": "When ExposedStorage.sload() (lines 16-19 of ExposedStorage.sol) returns data, it uses return(0, sub(calldatasize(), 4)) to return all loaded slots. If calldatasize() could be manipulated to be less than 4 (though unlikely), could the sub operation underflow, causing the return to include a massive amount of memory data including sensitive contract state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_396e3522-c21d-43ef-a890-904fcbf410d4",
+    "timestamp": "2025-12-01 22:18:18.082553",
+    "report_generated": false
+  },
+  {
+    "question": "The sload() functions expect exact return data sizes (32, 64, or 96 bytes) but don't verify the actual returned amount. If a malicious IExposedStorage contract returns fewer bytes, could the mload operations (lines 16, 33-34, 52-54) read uninitialized memory as if it were valid storage values, corrupting fee calculations or position data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_edbe8e2e-2b8e-4b80-b5d7-ab36a5f0f4e5",
+    "timestamp": "2025-12-01 22:18:46.460984",
+    "report_generated": false
   }
 ]
