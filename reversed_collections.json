@@ -2998,5 +2998,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ca45115-f744-455a-8c4b-cce9a66dd89f",
     "timestamp": "2025-12-01 20:10:18.429616",
     "report_generated": false
+  },
+  {
+    "question": "If a tick boundary is crossed exactly, can edge cases in delta calculations cause liquidity updates to be incorrect, corrupting the tick's liquidity net value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c33cc5a2-6aa0-4aa1-9da6-ce0d485acb17",
+    "timestamp": "2025-12-01 20:11:36.552289",
+    "report_generated": false
+  },
+  {
+    "question": "When swaps cross multiple ticks, delta functions are called repeatedly with different sqrtRatio values. Can rounding errors accumulate across tick crossings to produce final amounts that violate slippage limits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d68d4e6-f174-4d90-97bc-77d3307d85cd",
+    "timestamp": "2025-12-01 20:11:49.757216",
+    "report_generated": false
+  },
+  {
+    "question": "If multiple LPs simultaneously add/remove liquidity, can race conditions cause delta calculations to be based on stale pool state, leading to incorrect amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6115531-44e6-41df-9cec-3b1cb4b8b3e9",
+    "timestamp": "2025-12-01 20:12:03.630347",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker repeatedly add and remove tiny amounts of liquidity to exploit rounding errors in delta calculations, accumulating profit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_86c453b7-5a63-4a14-9406-6b09cfe4f4e0",
+    "timestamp": "2025-12-01 20:12:17.794595",
+    "report_generated": false
+  },
+  {
+    "question": "When liquidity is removed, delta functions calculate returned token amounts. Can rounding cause users to receive slightly less than their share, with the remainder locked in the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_942bdde5-58e3-4b28-aa9d-58ce17889cbc",
+    "timestamp": "2025-12-01 20:12:32.592328",
+    "report_generated": false
+  },
+  {
+    "question": "When liquidity is added, delta functions calculate required token amounts. Can rounding cause users to deposit slightly more tokens than their position actually represents, with the excess lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2476575d-3196-4257-8960-20ed859b7838",
+    "timestamp": "2025-12-01 20:12:48.866470",
+    "report_generated": false
+  },
+  {
+    "question": "If delta calculations round down user payouts but fees round up, can the cumulative effect cause pool insolvency over many transactions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1e275e30-a76d-433a-a0ef-4570cde7141c",
+    "timestamp": "2025-12-01 20:13:07.098211",
+    "report_generated": false
+  },
+  {
+    "question": "Can systematic errors in delta calculations cause fee accumulation to be incorrect, leading to either protocol revenue loss or excessive fees paid by LPs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2698573-9964-4cd4-aad0-738b83d610d9",
+    "timestamp": "2025-12-01 20:13:27.116506",
+    "report_generated": false
+  },
+  {
+    "question": "When fees are deducted from delta-calculated amounts, can the order of operations cause rounding to favor the protocol or users inconsistently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ede8685-7947-44c7-adfa-debc24dd14dc",
+    "timestamp": "2025-12-01 20:13:47.435394",
+    "report_generated": false
+  },
+  {
+    "question": "Delta calculations determine the base amounts before fees are added. Can attackers exploit the fee calculation that occurs after delta calculations to extract value from rounding?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c5e60eb4-67dd-4147-a579-114e227b30d9",
+    "timestamp": "2025-12-01 20:14:09.841547",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker create pools with extreme price ranges or fee tiers to exploit edge cases in delta calculations that wouldn't exist in normal pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4aedc81f-8e0c-4af9-ab92-09101c1669e3",
+    "timestamp": "2025-12-01 20:14:33.011950",
+    "report_generated": false
+  },
+  {
+    "question": "When positions span multiple pools (through Router multi-hop), can cumulative rounding errors in delta calculations exceed slippage protection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d92e17ba-8a25-4330-bbad-d3873df211bc",
+    "timestamp": "2025-12-01 20:14:57.734183",
+    "report_generated": false
+  },
+  {
+    "question": "If an attacker operates across multiple pools with different token pairs, can they exploit correlation in delta calculation rounding errors to extract net value from the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6964fdff-bb26-4a5d-90d4-943e4711c16f",
+    "timestamp": "2025-12-01 20:15:23.588540",
+    "report_generated": false
+  },
+  {
+    "question": "Do extension call points occur before or after delta calculations? Can this ordering be exploited to cause extensions to see incorrect pre- or post-operation state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3ca24774-9e46-4517-a71c-b3b499581b6b",
+    "timestamp": "2025-12-01 20:15:51.197491",
+    "report_generated": false
+  },
+  {
+    "question": "Can MEVCapture extension auctions be exploited by attackers who know exact delta calculation outcomes before submitting bids?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c16142e5-9b57-4dff-8446-af348f388757",
+    "timestamp": "2025-12-01 20:16:22.174516",
+    "report_generated": false
+  },
+  {
+    "question": "If Oracle extension reads prices based on tick crossings that use delta calculations, can systematic rounding errors corrupt the TWAP oracle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_10862c18-021b-4e07-ac19-439e8a38e38a",
+    "timestamp": "2025-12-01 20:16:54.750688",
+    "report_generated": false
+  },
+  {
+    "question": "When TWAMM virtual orders execute, they rely on delta calculations. Can long-running TWAMM orders accumulate rounding errors that cause the final settlement to be incorrect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3aa7b14-2847-4d35-b693-1093583e3dc1",
+    "timestamp": "2025-12-01 20:17:27.420014",
+    "report_generated": false
+  },
+  {
+    "question": "If multiple attackers simultaneously exploit rounding errors in delta calculations, can the cumulative effect exceed the protocol's fee reserves, causing insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9654df23-fe85-4f11-92aa-73a5b987a667",
+    "timestamp": "2025-12-01 20:18:01.410206",
+    "report_generated": false
+  },
+  {
+    "question": "Can sandwich attacks exploit delta calculation rounding by manipulating price before and after victim transactions to maximize rounding errors in the attacker's favor?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_354f32b4-3ab1-4c43-8e0f-0c0cd9f6a56d",
+    "timestamp": "2025-12-01 20:18:36.434156",
+    "report_generated": false
+  },
+  {
+    "question": "When positions are split across multiple transactions due to gas limits, can attackers exploit delta calculation rounding to profit from the difference between batched and sequential operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_076d3035-7e5a-44fb-a735-f8a7d5f43ae2",
+    "timestamp": "2025-12-01 20:19:13.057491",
+    "report_generated": false
+  },
+  {
+    "question": "Can MEV searchers exploit the deterministic nature of delta calculations to front-run position operations, knowing exactly how much tokens will be required or returned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fbf20e67-ca4c-4317-97e5-613708f542bb",
+    "timestamp": "2025-12-01 20:19:49.509143",
+    "report_generated": false
+  },
+  {
+    "question": "Can price manipulation cause delta functions to calculate amounts that violate the relationship between token0, token1, and the actual pool reserves, leading to insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e478b681-c69e-4ae7-a29a-b7dc5e7ccb95",
+    "timestamp": "2025-12-01 20:20:27.558582",
+    "report_generated": false
+  },
+  {
+    "question": "When TWAMM or other extensions modify virtual liquidity, does this affect delta calculations in ways that allow attackers to extract value from the difference between virtual and real liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_387d1835-32ef-4855-968d-2f233a810578",
+    "timestamp": "2025-12-01 20:21:06.062351",
+    "report_generated": false
+  },
+  {
+    "question": "If an attacker manipulates tick crossing through flash loans, can the resulting sqrtRatio changes cause delta calculations to favor the attacker's subsequent position operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_380fffce-0e78-4f99-b585-e25f6bf2b4ea",
+    "timestamp": "2025-12-01 20:21:43.502549",
+    "report_generated": false
+  },
+  {
+    "question": "Delta functions calculate token amounts based on sqrtRatio values. Can price oracle manipulation cause delta functions to return incorrect amounts that allow attackers to extract value from positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_01575bf6-6145-4bc1-b84e-7b7d2d148d96",
+    "timestamp": "2025-12-01 20:22:21.459080",
+    "report_generated": false
   }
 ]
