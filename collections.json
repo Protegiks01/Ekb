@@ -1348,5 +1348,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_90ae4657-ab69-4b2d-83a1-49e4eae65808",
     "timestamp": "2025-12-01 17:40:26.853397",
     "report_generated": false
+  },
+  {
+    "question": "In Core.sol `_updateTick()` (lines 305-316), fees per liquidity outside slots are initialized to 0 or 1 depending on `liquidityNetNext > 0` (line 310). If the initialization is inconsistent with the current pool state (e.g., setting to 1 when it should be current global fees), can this cause fees per liquidity inside calculations to be wrong, giving incorrect fee amounts to positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa5559bf-5890-47a0-a25d-5495a889c050",
+    "timestamp": "2025-12-01 17:41:47.203142",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol, position storage is accessed via `CoreStorageLayout.poolPositionsSlot()` (line 381). The slot calculation in CoreStorageLayout.sol (lines 100-114) uses a nested keccak256 hash. If the Position struct layout changes or extra data is added, can this cause misalignment in how liquidity, fees, and feesPerLiquidityInsideLast are read/written, corrupting position state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_58de4c42-f7ae-43d3-829f-24b6b093a992",
+    "timestamp": "2025-12-01 17:42:00.913674",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `collectFees()` (lines 463-503), fees are calculated using `position.fees(feesPerLiquidityInside)` (line 492). If the position was updated after the last fee collection but feesPerLiquidityInside hasn't changed (e.g., no swaps occurred), does `feesPerLiquidityInsideLast` get updated to the same value (line 494), causing any fees accrued during the position update itself to be lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6dd5c2f1-5cd1-4cf0-8a2e-9fec379c2f51",
+    "timestamp": "2025-12-01 17:42:14.456195",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `collectFees()` (lines 496-498), debt is reduced by the collected fee amounts (negative deltas). If fees are collected via reentrancy during the position.fees() calculation (if that call somehow triggers external calls), can the debt update be applied twice for the same fees, allowing the collector to withdraw more tokens than they're entitled to?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c0b4331a-e01c-4582-86fa-832a40da32a1",
+    "timestamp": "2025-12-01 17:42:28.656264",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `accumulateAsFees()` (lines 228-276), the function checks that `locker == extension` (line 230). However, if a malicious extension forwards the lock to another address using `forward()`, can that forwarded address call accumulateAsFees() on behalf of the extension, potentially manipulating fee accumulation for arbitrary pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db7dffa4-eed6-4ceb-aff2-877ca3fb4aea",
+    "timestamp": "2025-12-01 17:42:44.005624",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `accumulateAsFees()` (lines 254-268), fees per liquidity are updated using unchecked arithmetic. If `amount0 << 128` or `amount1 << 128` causes overflow (amounts near type(uint128).max), does the division by liquidity on line 259, 265 produce incorrect results, causing fees per liquidity to grow incorrectly and breaking fee distribution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_591df4d3-a6fb-4ebc-a9b0-1fb9f1dcd76a",
+    "timestamp": "2025-12-01 17:43:00.739566",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `accumulateAsFees()` (line 247), if liquidity is 0, the fees are not added to fees per liquidity (line 254 skips the update). However, debt is still updated on line 273. Can an extension repeatedly call accumulateAsFees() with 0 liquidity pools to rack up debt without crediting fees to any LP, then settle the debt using tokens from a different pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_057d2a56-6c24-4434-9f44-80201ae2b91a",
+    "timestamp": "2025-12-01 17:43:19.764455",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `_getPoolFeesPerLiquidityInside()` (lines 180-216), if tick is exactly equal to tickLower or tickUpper, which branch is taken in the conditionals on lines 198, 201, 211? If the boundary condition handling is inconsistent with how ticks are updated during swaps, can positions at tick boundaries receive incorrect fee calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4d115ee-0922-4fef-ad18-6a9c07718761",
+    "timestamp": "2025-12-01 17:43:39.278237",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `_getPoolFeesPerLiquidityInside()` (lines 198-214), the calculations use unchecked subtraction for the three cases (below range, in range, above range). If through storage corruption or overflow any of the fee values wrap, can this cause fees per liquidity inside to be negative (wrapping to huge positive), crediting positions with more fees than exist in the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_474c9b0c-e3c5-4be6-b773-108175bc8db4",
+    "timestamp": "2025-12-01 17:44:01.275030",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `initializePool()` (lines 72-101), extension hooks are called before (line 83) and after (line 100) pool initialization. If the beforeInitializePool hook modifies pool state directly via Core's exposed storage functions, can it cause the pool to be partially initialized, then the initialization on lines 86-96 completes with corrupted state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04dabe92-9473-4bdb-a761-c60ebc8df189",
+    "timestamp": "2025-12-01 17:44:24.428601",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `swap_6269342730()` (line 528), the beforeSwap hook is called. If this hook reenters Core to perform another swap on the same pool, does the second swap see the pool in an inconsistent state (before the first swap's price update is written), allowing price manipulation or sandwich attacks with incorrect starting prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a44c52b-cf73-4d3f-8131-9cb4a3262d21",
+    "timestamp": "2025-12-01 17:44:48.456296",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `swap_6269342730()` (line 846), the afterSwap hook is called. If this hook reverts, does the entire swap transaction revert, including the pool state updates and debt accounting? Can a malicious extension DoS all swaps on its pools by always reverting in afterSwap, freezing liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_74e1b7fe-64e0-4e9f-a455-af89e348f4a9",
+    "timestamp": "2025-12-01 17:45:13.426110",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol, extension hooks are called via `IExtension(extension).maybeCallBefore/AfterX()`. If the extension address is not a valid contract (e.g., an EOA or self-destructed contract), do these calls fail silently, succeed, or revert? Can an attacker create a pool with a zero-code extension to bypass all hooks and security checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cbbc8c6d-d1b6-4472-a0c7-0e32affd4cae",
+    "timestamp": "2025-12-01 17:45:39.892692",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol, if an extension's call point configuration indicates certain hooks are enabled but the extension doesn't implement them correctly, can this cause low-level reverts that don't properly unwind state, leaving the pool in an inconsistent state between the before and after hooks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb5e1a59-f8b3-4fae-ba1e-1bb57bae93af",
+    "timestamp": "2025-12-01 17:46:07.779421",
+    "report_generated": false
+  },
+  {
+    "question": "In ExtensionCallPointsLib (if used), are there checks that extension addresses cannot be the Core contract itself? Can an attacker set up recursive extension hooks where Core.extension points to Core, causing infinite loops or stack overflows during hook calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab88148f-aaa4-4f7f-b361-16a4caacb83a",
+    "timestamp": "2025-12-01 17:46:37.507875",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `initializePool()` (line 73), `poolKey.validate()` is called. If this validation doesn't properly check all parameters (tick spacing, fee tier, extension address), can an attacker create pools with invalid configurations that break invariants, such as tick spacing of 0 causing division by zero in tick bitmap lookups?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c7fe95a-0e90-4326-b61a-0cda01f99019",
+    "timestamp": "2025-12-01 17:47:07.875585",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `initializePool()` (line 90), `sqrtRatio = tickToSqrtRatio(tick)` converts the initial tick to sqrt ratio. If the provided tick is outside the valid range or at an exact boundary, does tickToSqrtRatio() in ticks.sol (line 25) correctly revert, or can invalid sqrt ratios be set, causing subsequent swaps to malfunction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ea35be46-eaa7-4bd4-b104-0a8e43fd773a",
+    "timestamp": "2025-12-01 17:47:40.460193",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `initializePool()` (lines 94-96), fees per liquidity slots are initialized to 1 (not 0). If a position is created at initialization before any swaps, does the fee calculation in collectFees() correctly handle the initial value of 1, or does subtracting 1 from current fees cause underflow or incorrect fee amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f30743e5-f974-4fd5-b15d-5a4df005b8a3",
+    "timestamp": "2025-12-01 17:48:13.522011",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `initializePool()` (line 88), the check `state.isInitialized()` reverts if the pool was already initialized. However, isInitialized() returns true if state is non-zero. If through storage corruption a pool's state is set to a non-zero but invalid value, can this prevent legitimate initialization, permanently locking the pool parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_98d43d22-b210-42c1-8467-37017df7f34e",
+    "timestamp": "2025-12-01 17:48:48.040155",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `initializePool()` (line 91), `createPoolState()` packs sqrtRatio, tick, and liquidity into a single bytes32. If the tick value provided doesn't match the tick derived from sqrtRatio, does the pool start in an inconsistent state where swap logic uses sqrtRatio but tick crossing uses the stored tick value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3018d3d-2413-4dbe-9bb2-40f2b3f6a567",
+    "timestamp": "2025-12-01 17:49:23.963596",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updateSavedBalances()` (lines 124-171), the function requires tokens to be sorted (line 135). If an attacker calls with token0 > token1, the check reverts. However, if token0 == token1, is this checked? Can an attacker save balances for the same token twice in one call, bypassing intended accounting logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7695f455-2b2e-457b-aafd-bbd690b2dd4d",
+    "timestamp": "2025-12-01 17:50:01.090624",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updateSavedBalances()` (lines 139-168), the assembly block implements `addDelta()` which checks for overflow/underflow (lines 146-149). If the sum exactly equals type(uint128).max + 1, does the check `shr(128, sum)` correctly detect overflow, or is there an off-by-one error allowing saved balance to reach type(uint128).max + 1?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a2244184-f701-449b-86cb-213184d15cc8",
+    "timestamp": "2025-12-01 17:50:36.093963",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updateSavedBalances()` (line 158), the storage slot is computed using keccak256 of `(locker, token0, token1, salt)`. If two different salt values happen to cause keccak256 collision (astronomically unlikely but theoretically possible), can two unrelated saved balance operations interfere with each other?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a33e4dd3-338a-46bd-9958-186ead9beb4a",
+    "timestamp": "2025-12-01 17:51:12.195449",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updateSavedBalances()` (lines 161-167), balances are loaded, deltas applied, and stored back. If this function is called with both delta0 and delta1 being zero, does it waste gas loading and storing the same values, or is there an early exit",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31966715-cc71-4e1b-b2e2-830817425379",
+    "timestamp": "2025-12-01 17:51:47.810989",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCaptureRouter._swap (lines 27-43), if poolKey.config.extension() == MEV_CAPTURE, the function forwards the call via CORE.forward() and then transfers ETH via SafeTransferLib.safeTransferETH(address(CORE), value). Could an attacker exploit the ordering here where the forward call executes with value=0, potentially allowing the MEV extension to complete without proper ETH collateral, then the ETH arrives later, enabling a flash accounting bypass?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e568d22-b652-47d4-b93b-cce69683cd2e",
+    "timestamp": "2025-12-01 17:52:21.927504",
+    "report_generated": false
   }
 ]
