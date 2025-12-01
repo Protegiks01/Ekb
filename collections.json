@@ -5698,5 +5698,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca7f07b4-75e0-451a-9c6a-23f6c6270bd5",
     "timestamp": "2025-12-01 23:15:07.474083",
     "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.totalSupply() (line 67), the function is marked external view. If an attacker calls totalSupply() during a reentrancy attack while handleForwardData is executing and savedBalances is in a temporary inconsistent state, could the returned value be used to make malicious decisions, such as calculating incorrect slippage limits for a simultaneous swap operation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1cf4fe10-b132-464c-8c2d-32faf5e7d0b0",
+    "timestamp": "2025-12-01 23:16:15.371440",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.totalSupply() (lines 68-72), the savedBalances call uses owner: address(this), meaning the wrapper tracks its own supply. If the Core contract has a bug where savedBalances[wrapperAddress] can be manipulated by external actors through a different code path, could an attacker inflate or deflate totalSupply to exploit downstream DeFi protocols that use this wrapper as collateral?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_352edddc-9726-49a7-b1e5-77a216f9ae57",
+    "timestamp": "2025-12-01 23:16:28.331046",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.name() (lines 80-82), the function concatenates UNDERLYING_TOKEN.name() with toDate(UNLOCK_TIME). If UNDERLYING_TOKEN.name() returns a maliciously crafted string with control characters or extreme length, could this cause the name() function to consume excessive gas or produce invalid UTF-8 that breaks external contracts parsing the name?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7dc6d577-addc-49b3-b609-2f794b9529bb",
+    "timestamp": "2025-12-01 23:16:42.843648",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.symbol() (lines 86-88), the symbol is constructed as 'g' + UNDERLYING_TOKEN.symbol() + '-' + toQuarter(UNLOCK_TIME). If UNDERLYING_TOKEN.symbol() contains special characters like spaces or quotes, could this create ambiguous symbols that confuse users or cause parsing errors in external DeFi interfaces?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_21d8ffd4-7c9b-4c80-bbbe-4d2cc57fa3e3",
+    "timestamp": "2025-12-01 23:16:58.547930",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.name() (line 81), toDate() is called from TimeDescriptor.sol which uses DateTimeLib.timestampToDate(). If UNLOCK_TIME is an extreme value like type(uint256).max or 0, could toDate() revert or produce nonsensical output, causing all name() calls to fail and breaking ERC20 metadata expectations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8ac70b1-026e-40f3-b96c-cea337d060a9",
+    "timestamp": "2025-12-01 23:17:15.591158",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.symbol() (line 87), toQuarter() performs modulo and division operations on the date (TimeDescriptor.sol lines 26-34). If these operations have integer overflow in the year calculation (year = year % 100), could extremely large UNLOCK_TIME values wrap around to produce misleading symbols like 'gTOKEN-00Q1' when the actual unlock is centuries away?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_171767d5-cf51-4a2e-ae4d-7ffaaf94d28b",
+    "timestamp": "2025-12-01 23:17:33.547440",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.name() and symbol() (lines 80-88), if UNDERLYING_TOKEN's name() or symbol() functions are malicious and perform reentrancy attacks by calling back into TokenWrapper, could this create unexpected state changes? While name/symbol are typically view functions, if the underlying token is malicious, could it exploit any state-modifying bugs exposed during these calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65222089-2526-4e0b-a324-b1fc0ad1098d",
+    "timestamp": "2025-12-01 23:17:53.492177",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.decimals() (lines 91-93), the function delegates to UNDERLYING_TOKEN.decimals(). If UNDERLYING_TOKEN doesn't implement decimals() or returns an invalid value (e.g., > 77), could this cause arithmetic overflows in external contracts that use the wrapper, potentially enabling exploits in DeFi protocols that integrate TokenWrapper?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9eed079f-abe3-44f8-9ac0-944fdc575983",
+    "timestamp": "2025-12-01 23:18:15.000429",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.decimals() (line 92), there's no caching of the decimals value. If UNDERLYING_TOKEN is a malicious contract that returns different decimals() values on each call, could this break external protocols' assumptions about decimal consistency, enabling price manipulation in AMMs or lending protocols that use the wrapper?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_98921859-7960-471b-b5df-e2dc77ec7d6a",
+    "timestamp": "2025-12-01 23:18:37.524214",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.decimals() (line 92), the function is external view. If UNDERLYING_TOKEN's decimals() function has unexpected gas costs or reverts intermittently, could this cause TokenWrapper to be incompatible with certain DeFi protocols that have strict gas limits for metadata queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf0e8b1e-df25-4b1b-a995-242a7d1ac691",
+    "timestamp": "2025-12-01 23:19:00.711952",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.approve() (lines 120-124), the function allows setting allowance to any value including type(uint256).max. If a user accidentally approves type(uint256).max and the spender is compromised, could all of the user's wrapped tokens be stolen? More critically, does this infinite allowance interact unsafely with the Core contract's transient balance system?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_713eb6ee-6f8b-4a3f-b3b3-6eafb65786a9",
+    "timestamp": "2025-12-01 23:19:26.190221",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.approve() (line 121), allowance is set without checking current allowance or requiring zero-approval first. This is vulnerable to the known ERC20 approve race condition. Could an attacker front-run an approval change to spend both the old and new allowance amounts, effectively stealing extra tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a864598-b011-4472-a3d9-f860ec8da55e",
+    "timestamp": "2025-12-01 23:19:51.987196",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.approve() (lines 120-124), there's no event ordering protection. If approve() is called during a reentrancy attack, the Approval event at line 122 could be emitted multiple times with different values in a single transaction, confusing external observers about the true allowance state.",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ed3a6226-e775-4e71-ae74-d80c7358018a",
+    "timestamp": "2025-12-01 23:20:19.256851",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.approve() (line 121), the allowance mapping is updated directly without any checks on spender address. If spender is address(0) or address(CORE), could this create unexpected behavior in transferFrom() where special address logic interferes with allowance-based transfers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6f5a682-8ea6-4401-80e5-b3112431572d",
+    "timestamp": "2025-12-01 23:20:47.496512",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper (line 48), allowance is a public mapping that overrides IERC20.allowance. If there's a mismatch between the allowance mapping and any internal approval logic inherited from base contracts, could this cause discrepancies where transferFrom() passes but the recorded allowance suggests it should fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d5a97e6-4811-498d-88a0-d5b5e4cfd7e4",
+    "timestamp": "2025-12-01 23:21:17.565120",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper (line 52), _balanceOf is private while balanceOf() at line 60 is the public view function. If there's any way to directly modify _balanceOf storage without going through transfer/transferFrom (e.g., via storage collision or delegatecall), could an attacker mint unlimited wrapped tokens without actually wrapping underlying tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f3f131e-b9be-4e3f-b874-e32cc07da4f8",
+    "timestamp": "2025-12-01 23:21:48.717938",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.balanceOf() (lines 60-63), the function has special logic for address(CORE) returning coreBalance. If an external contract caches balanceOf(CORE) and uses it later, but coreBalance is transient and resets between transactions, could the cached value become stale and cause accounting errors in cross-transaction operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64115a92-718e-45bc-87f7-aaa3d1908b27",
+    "timestamp": "2025-12-01 23:22:19.596406",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper (lines 52, 56), _balanceOf is persistent storage while coreBalance is transient. If a transaction is reverted after updating _balanceOf but coreBalance has already been modified, could this create inconsistency where total balances don't sum correctly? Or does the transient nature ensure atomicity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc60c547-c5b2-428e-a47a-789f5902c95a",
+    "timestamp": "2025-12-01 23:22:53.252267",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper, the contract inherits BaseForwardee which implements forwarded_2374103877(). According to BaseForwardee.sol lines 31-32, only ACCOUNTANT can call this function. If handleForwardData() is called by an attacker who gains temporary control of the accountant address (e.g., via delegatecall proxy), could they bypass all access controls and manipulate wrap/unwrap operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1df96df4-88b2-4d6e-aae5-ed6b7d91a086",
+    "timestamp": "2025-12-01 23:23:28.277996",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 163), the function receives a Locker parameter that represents the original locker. However, handleForwardData never uses this parameter. Could there be a security issue where the original locker's permissions should have been verified before allowing wrap/unwrap, enabling unauthorized users to wrap/unwrap tokens on behalf of others?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_454a03ae-1d6d-4abf-83f2-c693f27314da",
+    "timestamp": "2025-12-01 23:24:03.617055",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper, BaseForwardee.forwarded_2374103877() extracts data from msg.data[36:] (BaseForwardee.sol line 34). If the forwarded data is shorter than expected or contains malicious padding, could the data slicing cause abi.decode in handleForwardData (line 164) to read unexpected memory regions, potentially leaking sensitive information or causing exploitable behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c435c6af-84da-4aa1-922a-9fe6060fff61",
+    "timestamp": "2025-12-01 23:24:35.422756",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 182), the function returns bytes(\"\"). According to BaseForwardee.sol lines 38-41, this return data is passed back via assembly return opcode. If handleForwardData were to return non-empty data, could this data be misinterpreted by the calling context in Core's forward implementation, causing state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dde6e2e3-2897-40de-8135-46e0ab1a67d6",
+    "timestamp": "2025-12-01 23:25:05.288827",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper, the contract inherits UsesCore which provides CORE immutable reference (UsesCore.sol line 14). If the Core contract is upgraded or replaced after TokenWrapper deployment but TokenWrapper still references the old CORE address, could this cause permanent incompatibility where wrap/unwrap operations fail due to mismatched savedBalances storage or updateDebt implementations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5f24d79e-d5c8-479c-be32-683ea79b8a45",
+    "timestamp": "2025-12-01 23:25:31.985986",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper, UsesCore provides onlyCore modifier (UsesCore.sol lines 24-27). However, TokenWrapper never uses this modifier on any function. Does this mean any external caller can invoke functions that should be restricted to Core? Or is the security model different, relying on flash accounting to enforce access control?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c82b6f2-f34c-4282-be5a-fd0fc98e3bb4",
+    "timestamp": "2025-12-01 23:25:59.893253",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (lines 171-179), the function calls both updateSavedBalances and updateDebt within the same forwarded call. If these two calls have different success/failure modes and one succeeds while the other reverts, could this leave the wrapper in a partially updated state where supply is changed but debt isn't, breaking flash accounting balance requirements?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e50fc39-77c9-49b8-a75f-c5eb877ad2f8",
+    "timestamp": "2025-12-01 23:26:28.698683",
+    "report_generated": false
   }
 ]
