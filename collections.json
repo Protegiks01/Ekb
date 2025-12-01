@@ -5098,5 +5098,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9d8d7b7c-e4d5-453a-a0ac-15c394efc157",
     "timestamp": "2025-12-01 22:30:43.269827",
     "report_generated": false
+  },
+  {
+    "question": "At BaseLocker line 28, msg.data[36:] extracts callback data. If msg.data.length < 36, does this cause an underflow that corrupts the data passed to handleLockData?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3824521-59e2-4777-b010-22ed80c6285e",
+    "timestamp": "2025-12-01 22:31:52.934382",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 91-259), result is encoded and returned via assembly. Can incorrect result encoding cause the lock function to misinterpret success conditions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c29af34-350d-4994-9d47-e120cb029d42",
+    "timestamp": "2025-12-01 22:32:06.085682",
+    "report_generated": false
+  },
+  {
+    "question": "At BaseLocker lines 68-71, returndatacopy and mstore update the free memory pointer. Can memory expansion attacks cause this to overwrite critical data in subsequent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc03252d-bb16-4660-be26-815162272526",
+    "timestamp": "2025-12-01 22:32:19.593614",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol, handleLockData is marked internal override. If a malicious derived contract overrides this without calling super, can it bypass all swap logic while still receiving tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3b416399-4fe2-4fc6-a699-ee820a41b0e5",
+    "timestamp": "2025-12-01 22:32:34.788141",
+    "report_generated": false
+  },
+  {
+    "question": "At BaseLocker line 30, handleLockData result is returned via assembly. If result length is 0, does this cause issues for callers expecting return data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_27faf0d5-94fd-429b-b4a1-e43d15969af8",
+    "timestamp": "2025-12-01 22:32:49.917630",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.lock (line 54), function selector 0xf83d08ba is hardcoded. If the accountant interface changes, can this cause lock calls to invoke wrong functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3afde6db-2f7c-4091-9b43-91c6f186e6a5",
+    "timestamp": "2025-12-01 22:33:06.232677",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 280-288, lock is called from a public function. Can reentrancy through this call chain before the lock completes allow state manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57aed2ed-ccda-426c-a7f5-33ff3ccebe51",
+    "timestamp": "2025-12-01 22:33:23.844224",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.lockAndExpectRevert (lines 99-101), success triggers a revert with ExpectedRevertWithinLock. Can a contract exploit this to create fake failures that hide successful exploits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afe088cf-d640-48e3-8840-55f7e0f36758",
+    "timestamp": "2025-12-01 22:33:44.118768",
+    "report_generated": false
+  },
+  {
+    "question": "At BaseLocker line 45, result variable is overwritten for calldata storage. Can memory aliasing cause the result to be corrupted if handleLockData modifies memory unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f2dfcf9a-89fb-42b9-af3b-be2cdb6ce2d8",
+    "timestamp": "2025-12-01 22:34:06.343896",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (line 92), abi.decode is used on potentially untrusted data. Can malformed calldata cause decode to succeed but produce invalid call types that bypass validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5203f658-5ea7-4cc5-a489-c8b930b66986",
+    "timestamp": "2025-12-01 22:34:31.009618",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payFrom (lines 52-83), transferFrom is called before completePayments. If transferFrom succeeds but completePayments reverts, can tokens be permanently locked in the accountant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_625dd298-20a5-4ce0-89be-09c36e6f4f3b",
+    "timestamp": "2025-12-01 22:34:54.870917",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 122-147, withdraw and payFrom are called in specific order based on isPriceIncreasing. Can the order be manipulated to withdraw before paying, violating flash accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65a1e8fa-422b-47a4-9061-ab5331ace8f6",
+    "timestamp": "2025-12-01 22:35:20.782788",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdraw (lines 91-108), assembly packs token, recipient, and amount. If packing is incorrect, can tokens be sent to wrong recipients in batch operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22c0d1dc-4dd3-404a-8f32-8802f9c031ee",
+    "timestamp": "2025-12-01 22:35:46.637146",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 232, payFrom is called after all swaps complete. If token approval is insufficient, does the revert happen after partial swaps execute, leaving inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa12a119-b07d-4563-b2df-50c60922ca4f",
+    "timestamp": "2025-12-01 22:36:14.344732",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom (lines 118-189), both tokens are transferred in a single startPayments/completePayments cycle. Can failure in the second transfer leave the first transfer debited incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c47d756-e94d-4e70-b278-f081a0622ad4",
+    "timestamp": "2025-12-01 22:36:43.361293",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 226-244, settlement order is: withdraw/pay specified token, then withdraw/pay calculated token. Can reversing this order via malicious poolKeys cause settlement failures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a6f26e8f-62ac-442c-aff6-aa5786ae00f8",
+    "timestamp": "2025-12-01 22:37:13.833852",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay (lines 15-44), transfer is made directly from msg.sender. If Router doesn't hold the tokens, does this revert, and can it be exploited to bypass payment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6ddfbd8-7877-4e2a-a970-56a0c22fd785",
+    "timestamp": "2025-12-01 22:37:45.428245",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 123, withdraw is called with uint128(-balanceUpdate.delta0()). If delta0 is type(int128).min, can the negation overflow, causing wrong withdrawal amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ed4d5814-4fd3-4015-9518-9c95b58eff9b",
+    "timestamp": "2025-12-01 22:38:17.001658",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo (lines 199-228), two withdrawals are packed in a single call. If the first succeeds but second fails, can partial withdrawals occur without debt updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc040e3b-203f-4e3f-8f40-e4ccaa046464",
+    "timestamp": "2025-12-01 22:38:47.259850",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 134-146, native token refund happens after payFrom. If payFrom reverts, does the refund still execute, or can ETH be trapped?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_df69453e-dc20-4aed-87f2-2ab95d301f85",
+    "timestamp": "2025-12-01 22:39:19.246848",
+    "report_generated": false
+  },
+  {
+    "question": "In SwapParameters type (swapParameters.sol lines 18-39), assembly uses bit shifting to extract fields. Can dirty upper bits cause isToken1 or skipAhead to have unexpected values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_395be81f-1584-45d3-b661-638623dfa1ea",
+    "timestamp": "2025-12-01 22:39:52.756962",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 106, FixedPointMathLib.ternary is used for conditional assignment. If this library function has bit manipulation bugs, can value be set incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f33fd30e-2f7f-4720-91f7-d3d696f24301",
+    "timestamp": "2025-12-01 22:40:26.879856",
+    "report_generated": false
+  },
+  {
+    "question": "In PoolBalanceUpdate type (poolBalanceUpdate.sol lines 8-18), signextend is used for int128 extraction. Can incorrect sign extension cause positive deltas to be interpreted as negative?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fff35d43-83cc-4d3f-8959-6afe965e95d1",
+    "timestamp": "2025-12-01 22:41:00.223820",
+    "report_generated": false
+  },
+  {
+    "question": "At BaseLocker lines 47-71, assembly manipulates free memory pointer. If handleLockData allocates memory, can this corrupt the return data storage location?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_630448dc-c322-41f1-abde-d128e696076e",
+    "timestamp": "2025-12-01 22:41:33.772726",
+    "report_generated": false
+  },
+  {
+    "question": "In SwapParameters.createSwapParameters (swapParameters.sol lines 42-58), bit packing uses or operations. Can overlapping bit fields cause one parameter to overwrite another?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bce395c2-61fd-4f17-af10-43ea028c9f06",
+    "timestamp": "2025-12-01 22:42:06.447038",
+    "report_generated": false
   }
 ]
