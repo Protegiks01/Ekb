@@ -1948,5 +1948,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ed753e3e-8a0f-4ca4-af1e-cf9a39e619d7",
     "timestamp": "2025-12-01 18:27:42.339119",
     "report_generated": false
+  },
+  {
+    "question": "In _getPoolFeesPerLiquidityInside (lines 190-191), the function loads tick fees per liquidity outside using CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot. Could an attacker manipulate this storage layout to cause the function to read from uninitialized slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7b54b8ca-b71b-4ca1-9994-33dd417d98b2",
+    "timestamp": "2025-12-01 18:28:51.166143",
+    "report_generated": false
+  },
+  {
+    "question": "Core._getPoolFeesPerLiquidityInside (line 197) is marked unchecked. Could the arithmetic operations in all three branches (lines 199-200, 209-210, 212-213) underflow in ways that produce valid uint256 results but incorrect fee values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_946cf2d9-7f42-4888-b4a0-de7c632bf235",
+    "timestamp": "2025-12-01 18:29:04.820221",
+    "report_generated": false
+  },
+  {
+    "question": "In _getPoolFeesPerLiquidityInside (line 205-206), the function loads global fees per liquidity using poolFeesPerLiquiditySlot(poolId).loadTwo(). Could the loadTwo() operation read from incorrect consecutive slots if the storage layout is corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f09b95b9-beff-408b-8b14-e401f5e41820",
+    "timestamp": "2025-12-01 18:29:18.076248",
+    "report_generated": false
+  },
+  {
+    "question": "Core._getPoolFeesPerLiquidityInside is called from both updatePosition and collectFees. Could an attacker exploit timing differences between these calls to claim fees multiple times by manipulating tick crossing between the calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_05eeac47-6342-4ce1-9684-d50fef35fc3b",
+    "timestamp": "2025-12-01 18:29:33.779156",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.accumulateAsFees (lines 228-276), line 230 requires lockerAddr == poolKey.config.extension(). Could an attacker deploy a malicious extension that calls accumulateAsFees to inflate fees per liquidity without actually providing tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_465aa45d-9c63-4690-bd5b-8d7893164afc",
+    "timestamp": "2025-12-01 18:29:49.294864",
+    "report_generated": false
+  },
+  {
+    "question": "Core.accumulateAsFees (lines 236-239) uses assembly to zero-extend _amount0 and _amount1 to uint256. If these amounts exceed uint128.max in the function signature, could the assembly truncate high bits, allowing an attacker to accumulate less fees than they owe?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f17a6dad-ad0b-4afb-936e-e4e901d90769",
+    "timestamp": "2025-12-01 18:30:05.261749",
+    "report_generated": false
+  },
+  {
+    "question": "In accumulateAsFees (line 244), the function checks if amount0 != 0 || amount1 != 0 before processing. Could an attacker call with both amounts as 0 to bypass fee accumulation while still updating debt via _updatePairDebtWithNative?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b46e0929-69d3-48dc-99f7-e930f81af3f5",
+    "timestamp": "2025-12-01 18:30:23.773566",
+    "report_generated": false
+  },
+  {
+    "question": "Core.accumulateAsFees (lines 247-250) loads pool liquidity and extends it to uint256 in assembly. If the pool has 0 liquidity, the function skips fee accumulation (line 254). Could an attacker drain a pool to 0 liquidity, call accumulateAsFees to create debt without fees, then restore liquidity to steal funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1697a1b1-2fb9-45d7-8179-3385608e6fdf",
+    "timestamp": "2025-12-01 18:30:42.777711",
+    "report_generated": false
+  },
+  {
+    "question": "In accumulateAsFees (line 259), the function computes fees per liquidity using FixedPointMathLib.rawDiv(amount0 << 128, liquidity). Could an attacker cause amount0 << 128 to overflow, wrapping around to a small value that under-accounts fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eaa51bfd-1086-4f79-96f5-1fea3de50630",
+    "timestamp": "2025-12-01 18:31:03.594400",
+    "report_generated": false
+  },
+  {
+    "question": "Core.accumulateAsFees (line 253) is marked unchecked. Could the addition uint256(slot0.load()) + FixedPointMathLib.rawDiv(...) overflow, causing fees per liquidity to wrap around to a small value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a40d0434-faee-49e6-8f89-fddeb2892f58",
+    "timestamp": "2025-12-01 18:31:25.250439",
+    "report_generated": false
+  },
+  {
+    "question": "In accumulateAsFees (line 265), the second fee slot is loaded using slot0.next(). Could StorageSlot.next() return an incorrect slot that overwrites unrelated storage when the fee is accumulated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eedc4d4f-0634-4c56-9b10-6e0e83bc940d",
+    "timestamp": "2025-12-01 18:31:48.183293",
+    "report_generated": false
+  },
+  {
+    "question": "Core.accumulateAsFees (line 273) calls _updatePairDebtWithNative with int256(amount0) and int256(amount1). Could these casts fail if amounts exceed type(int256).max, causing incorrect debt accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d554b9ba-f73a-4c4b-9bae-f136810c8560",
+    "timestamp": "2025-12-01 18:32:11.552827",
+    "report_generated": false
+  },
+  {
+    "question": "In accumulateAsFees (line 241), the comment says fees are burned if liquidity is 0. Could an attacker intentionally burn fees by timing calls when pools are empty, then claim the fees were paid to satisfy debt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_52b3118d-139d-408c-8d0a-ccd1d7f8e7ed",
+    "timestamp": "2025-12-01 18:32:37.818011",
+    "report_generated": false
+  },
+  {
+    "question": "Core.accumulateAsFees checks locker address matches extension (line 230). Could an attacker use the forward() function to temporarily change the locker address and bypass this check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3ba53597-7af0-44f8-a024-68a49a1e517f",
+    "timestamp": "2025-12-01 18:33:04.495796",
+    "report_generated": false
+  },
+  {
+    "question": "In accumulateAsFees (lines 257-260), if amount0 != 0, the function updates only the first fee slot. Could an attacker repeatedly call with amount0 but never amount1 to create an imbalance in fee accumulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_80db2c96-6906-49e4-941a-f7fa7282a657",
+    "timestamp": "2025-12-01 18:33:33.462744",
+    "report_generated": false
+  },
+  {
+    "question": "Core.accumulateAsFees (line 259) shifts amount by 128 bits before dividing by liquidity. If liquidity is 1, could this produce extremely large fees per liquidity values that overflow when positions collect fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8c2bed8e-9f7b-49d9-8b61-fb130211632f",
+    "timestamp": "2025-12-01 18:34:03.591349",
+    "report_generated": false
+  },
+  {
+    "question": "In accumulateAsFees (lines 228-276), the function doesn't check if the pool is initialized. Could an attacker call this for uninitialized pools to corrupt storage at computed pool slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f2312d5-1891-4ab6-a2ac-0ca8b0bb8c0e",
+    "timestamp": "2025-12-01 18:34:34.538339",
+    "report_generated": false
+  },
+  {
+    "question": "Core.accumulateAsFees emits FeesAccumulated(poolId, _amount0, _amount1) (line 275). Could an attacker monitor these events to front-run fee collection by other LPs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_69fdc6b1-fbfb-47a1-996b-f4df4a0c8760",
+    "timestamp": "2025-12-01 18:35:06.551107",
+    "report_generated": false
+  },
+  {
+    "question": "In accumulateAsFees (line 229), _requireLocker() ensures the call is within a lock. Could nested locks with different IDs cause the extension check (line 230) to pass incorrectly if the locker address is reused?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dc8660f4-4f9f-433a-a59e-fe94fb1f3289",
+    "timestamp": "2025-12-01 18:35:39.311838",
+    "report_generated": false
+  },
+  {
+    "question": "In Core._updateTick (lines 285-319), line 291 loads current tick info and parses liquidityDelta and liquidityNet. Could corrupted storage cause TickInfo.wrap(tickInfoSlot.load()).parse() to return invalid values that bypass maxLiquidity checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6df6dc4-23fe-49d2-92b1-a3b46cf74a28",
+    "timestamp": "2025-12-01 18:36:14.378572",
+    "report_generated": false
+  },
+  {
+    "question": "Core._updateTick (line 293-294) computes liquidityDeltaNext using checked arithmetic currentLiquidityDelta +/- liquidityDelta. Could an attacker craft liquidityDelta values that cause overflow in the checked math, reverting legitimate position updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_726deca4-4ac8-43d6-93fb-dfd236893a17",
+    "timestamp": "2025-12-01 18:36:49.463286",
+    "report_generated": false
+  },
+  {
+    "question": "In _updateTick (line 297), the function checks if liquidityNetNext > maxLiquidity. Could an attacker deposit liquidity up to maxLiquidity - 1, then update the tick again to bypass this check by incrementing liquidityNet by 1?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6064d325-7553-4949-b17d-08d0b6e394b0",
+    "timestamp": "2025-12-01 18:37:24.816534",
+    "report_generated": false
+  },
+  {
+    "question": "Core._updateTick (line 302) checks if (currentLiquidityNet == 0) != (liquidityNetNext == 0) to determine if tick should be flipped. Could an attacker exploit the boundary where liquidityNet transitions from 1 to 0 to avoid bitmap updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a84e6250-dd96-40a6-acc0-197ae223f5bc",
+    "timestamp": "2025-12-01 18:37:59.388284",
+    "report_generated": false
+  },
+  {
+    "question": "In _updateTick (line 303), flipTick is called to update the tick bitmap. Could an attacker flip ticks repeatedly to corrupt the bitmap, making it impossible to find the next initialized tick during swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_40479a19-3dfa-4023-b767-87eed6deb0df",
+    "timestamp": "2025-12-01 18:38:34.804239",
+    "report_generated": false
+  },
+  {
+    "question": "Core._updateTick (lines 305-315) initializes fees per liquidity outside when a tick is flipped. The value v is set to gt(liquidityNetNext, 0) in assembly. Could setting v to 1 instead of 0 for uninitialized ticks cause fee calculations to be incorrect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_636825df-4001-4c5b-b515-ac1689c626d5",
+    "timestamp": "2025-12-01 18:39:11.210810",
+    "report_generated": false
   }
 ]
