@@ -2698,5 +2698,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_25d5a962-4dcc-4625-8ff2-82e75048c552",
     "timestamp": "2025-12-01 19:21:47.997031",
     "report_generated": false
+  },
+  {
+    "question": "In maxLiquidity() (lines 90-119), when sqrtRatio is exactly at sqrtRatioLower or sqrtRatioUpper boundaries, could the boundary condition checks cause the function to select the wrong calculation path, leading to incorrect liquidity caps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5c62e5fb-1a09-4a3b-90ab-2006151d5340",
+    "timestamp": "2025-12-01 19:22:59.759789",
+    "report_generated": false
+  },
+  {
+    "question": "In maxLiquidityForToken1() (line 78), can the left shift by 128 followed by division cause precision loss that allows users to mint more liquidity than their token1 amount should permit, enabling theft from the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e1fbb74-a02d-4470-943d-97ae6363424e",
+    "timestamp": "2025-12-01 19:23:14.761002",
+    "report_generated": false
+  },
+  {
+    "question": "In maxLiquidityForToken0() (line 66), does the division by (sqrtRatioUpper - sqrtRatioLower) handle the case where sqrtRatioUpper == sqrtRatioLower correctly, or could this cause a division-by-zero that reverts legitimate position minting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7089745d-643a-4c19-8e83-656557cd56b4",
+    "timestamp": "2025-12-01 19:23:29.356070",
+    "report_generated": false
+  },
+  {
+    "question": "In maxLiquidityForToken0() (lines 62-67), can the unchecked fullMulDivN() operation overflow when sqrtRatioLower and sqrtRatioUpper are both near MAX_SQRT_RATIO, causing the function to return an inflated liquidity value that breaks pool solvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3cbbabdc-1725-4eec-baed-f69ecd417216",
+    "timestamp": "2025-12-01 19:23:44.781359",
+    "report_generated": false
+  },
+  {
+    "question": "In liquidityDeltaToAmountDelta() (lines 41-47), when sqrtRatio falls between bounds, can rounding differences in amount0Delta vs amount1Delta create arbitrage opportunities where users receive more tokens than they deposit across multiple position updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47a2175d-10de-40f5-adfe-ecbe9d5afb86",
+    "timestamp": "2025-12-01 19:24:02.188578",
+    "report_generated": false
+  },
+  {
+    "question": "In liquidityDeltaToAmountDelta() (lines 37-41), when sqrtRatio <= sqrtRatioLower and liquidityDelta is negative, could the SafeCastLib.toInt128() cast overflow if amount0Delta() returns a value near type(uint128).max, causing position withdrawal to revert and trap user funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2a43c36-1736-4d07-8728-d0b3a3672ada",
+    "timestamp": "2025-12-01 19:24:20.714359",
+    "report_generated": false
+  },
+  {
+    "question": "In liquidityDeltaToAmountDelta() (lines 22-54), can the sign calculation using LibBit.rawToUint() cause incorrect delta signs when liquidityDelta is at boundary values like type(int128).min, potentially allowing LPs to extract tokens without providing liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f59b0fe-af1f-47ef-9783-8fc59ed8cae0",
+    "timestamp": "2025-12-01 19:24:41.956136",
+    "report_generated": false
+  },
+  {
+    "question": "Can cumulative rounding errors from many delta calculations cause the protocol to slowly leak value that manifests as insolvency only after extended operation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1ecc3fdc-4801-46b3-8717-edefc73d9273",
+    "timestamp": "2025-12-01 19:25:03.168552",
+    "report_generated": false
+  },
+  {
+    "question": "If an attacker provides sqrtRatio values in unusual SqrtRatio encoding formats, can the `toFixed()` conversion produce unexpected results that delta functions don't handle correctly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_46497e27-b479-4cd0-842d-3561eaee8ee1",
+    "timestamp": "2025-12-01 19:25:26.696452",
+    "report_generated": false
+  },
+  {
+    "question": "Can extreme sqrtRatio values near MIN_SQRT_RATIO or MAX_SQRT_RATIO cause delta calculations to violate assumptions about value ranges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8e48b6e-ad0a-4ed3-a74a-92c48379339a",
+    "timestamp": "2025-12-01 19:25:50.227267",
+    "report_generated": false
+  },
+  {
+    "question": "If liquidity is at the minimum or maximum bound, can delta calculations overflow or underflow when computing token amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c9be339-f1d4-4d91-9823-a9ba540510c7",
+    "timestamp": "2025-12-01 19:26:17.457065",
+    "report_generated": false
+  },
+  {
+    "question": "When both sqrtRatio values are exactly equal to a tick boundary, can delta calculations produce off-by-one errors in token amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5f78d9ff-a6f1-45a6-9f0a-8ceb1e45ad33",
+    "timestamp": "2025-12-01 19:26:46.637216",
+    "report_generated": false
+  },
+  {
+    "question": "Can delta function gas costs be exploited to make certain price ranges unprofitable to provide liquidity in, fragmenting protocol liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02ded83a-fe5a-4a11-92a7-2508751b302c",
+    "timestamp": "2025-12-01 19:27:16.945606",
+    "report_generated": false
+  },
+  {
+    "question": "If delta calculation reverts are caught and handled in Core.sol, can attackers exploit this to cause selective denial of service?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ad07b26f-af5f-4d12-9dd2-aa8805fe0116",
+    "timestamp": "2025-12-01 19:27:49.330140",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker construct sqrtRatio values that cause delta calculations to consume maximum gas, preventing legitimate operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_48f84845-d7d0-45c3-a237-3beb6acd82ff",
+    "timestamp": "2025-12-01 19:28:24.175138",
+    "report_generated": false
+  },
+  {
+    "question": "If sqrtRatio is cached for gas optimization, can stale cached values cause delta calculations to return incorrect amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_371fac97-a9cb-4dc5-aa1d-d025cc3d9769",
+    "timestamp": "2025-12-01 19:28:59.490645",
+    "report_generated": false
+  },
+  {
+    "question": "Can race conditions where pool state changes during multi-operation transactions cause delta calculations to be based on inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4a5b9156-b1b1-414e-a150-2d9b31492366",
+    "timestamp": "2025-12-01 19:29:36.040111",
+    "report_generated": false
+  },
+  {
+    "question": "Delta functions are pure and don't read state. Can this cause issues if pool state changes between when sqrtRatio is read and when delta is calculated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66271243-acd8-4e4a-8c31-80e1cdbfbd14",
+    "timestamp": "2025-12-01 19:30:12.984289",
+    "report_generated": false
+  },
+  {
+    "question": "If new pool types or fee tiers are added, can delta calculations fail to handle them correctly, causing incorrect token amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9753b783-8f85-4425-b752-6a37d7bc9cd0",
+    "timestamp": "2025-12-01 19:30:49.460124",
+    "report_generated": false
+  },
+  {
+    "question": "Can future additions to Core.sol that call delta functions in new ways expose vulnerabilities not present in current usage patterns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e90f9971-7552-48bd-9fef-57c6a5f32ebd",
+    "timestamp": "2025-12-01 19:31:32.154726",
+    "report_generated": false
+  },
+  {
+    "question": "If FixedPointMathLib or SqrtRatio implementations are upgraded, can changes break delta function assumptions and cause incorrect calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a979a6d-f5d6-4f21-8c44-0998aaf80ff5",
+    "timestamp": "2025-12-01 19:32:10.010220",
+    "report_generated": false
+  },
+  {
+    "question": "If token0 and token1 have different decimal places, can delta calculations fail to account for this, leading to incorrect amount ratios?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_328cf9c9-b709-4bf0-8894-036c2d11352a",
+    "timestamp": "2025-12-01 19:32:47.816190",
+    "report_generated": false
+  },
+  {
+    "question": "When positions are balanced (equal token0/token1 value), should delta calculations also be balanced? Can asymmetries be exploited to create imbalanced positions that drain pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aee0ce3a-e362-4522-b329-1c28f094f0ba",
+    "timestamp": "2025-12-01 19:33:25.065100",
+    "report_generated": false
+  },
+  {
+    "question": "Can differences in calculation precision between `amount0Delta` and `amount1Delta` be exploited to create asymmetric swaps that extract value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5f5617c-ec5d-4f43-8621-bd7f9280c479",
+    "timestamp": "2025-12-01 19:34:03.447097",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly at lines 95-98 computes a complex rounding expression. Can overflow in the `add(result, ...)` operation bypass the overflow check at line 99?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_11e1725c-0f8b-4fcb-b554-3bc15ce4a367",
+    "timestamp": "2025-12-01 19:34:42.644118",
+    "report_generated": false
   }
 ]
