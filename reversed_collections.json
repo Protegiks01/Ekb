@@ -2248,5 +2248,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00646d92-179b-4931-a993-415479b6893f",
     "timestamp": "2025-12-01 18:48:02.658320",
     "report_generated": false
+  },
+  {
+    "question": "In computeAmountFromSaleRate() (lines 42-46), can the rounding logic (line 44) be exploited by setting duration to specific values that cause rounding errors to accumulate and drain TWAMM orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db202eec-c075-412e-b5c9-2efa1edd970d",
+    "timestamp": "2025-12-01 18:49:16.977083",
+    "report_generated": false
+  },
+  {
+    "question": "In addSaleRateDelta() (line 32), does the 'shr(112, result)' check correctly detect both overflow and underflow, or could negative results with clean upper bits slip through validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8400113-d09a-498a-951e-b6f02f6a5b76",
+    "timestamp": "2025-12-01 18:49:29.965262",
+    "report_generated": false
+  },
+  {
+    "question": "In addSaleRateDelta() (lines 28-38), when adding a negative saleRateDelta to saleRate, can the result underflow below zero and wrap to a large positive value, causing TWAMM to execute orders at incorrect rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_30c1318c-8408-4daf-8389-1bd59e18a424",
+    "timestamp": "2025-12-01 18:49:44.184068",
+    "report_generated": false
+  },
+  {
+    "question": "In computeSaleRate() (line 18), does the error encoding (shl(224, 0x83c87460)) exactly match the SaleRateOverflow() error selector, or could a mismatch cause revert handling to fail in calling contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ca8b7fc-b4b1-4606-a83f-e8277f4685f1",
+    "timestamp": "2025-12-01 18:49:58.449091",
+    "report_generated": false
+  },
+  {
+    "question": "In computeSaleRate() (lines 13-22), can the saleRate calculation (line 15) produce values that exceed type(uint112).max when amount is near type(uint224).max, despite the overflow check at line 16?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a6e3bfd9-721a-4c74-b71f-1f6a7cb32990",
+    "timestamp": "2025-12-01 18:50:13.353249",
+    "report_generated": false
+  },
+  {
+    "question": "In searchForNextInitializedTime() (lines 77-79), when nextTime > untilTime, can the correction to set nextTime = untilTime cause the function to return a time that has no initialized orders, breaking TWAMM invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f899433b-308f-453e-90dc-84cda3e058ca",
+    "timestamp": "2025-12-01 18:50:29.733757",
+    "report_generated": false
+  },
+  {
+    "question": "In searchForNextInitializedTime() (lines 71-74), when nextValid == 0 (no valid time exists), does setting nextTime = untilTime and isInitialized = false correctly signal the end of the search, or could this cause TWAMM to execute at wrong times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_146de1c8-19bc-43f2-93b6-bb42878ca06f",
+    "timestamp": "2025-12-01 18:50:48.705194",
+    "report_generated": false
+  },
+  {
+    "question": "In searchForNextInitializedTime() (line 69), does calling nextValidTime() with the same lastVirtualOrderExecutionTime repeatedly produce the expected sequence of times, or could step size changes cause time gaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c4e8d00-fd85-4423-aabf-9f959868959b",
+    "timestamp": "2025-12-01 18:51:08.265360",
+    "report_generated": false
+  },
+  {
+    "question": "In searchForNextInitializedTime() (lines 60-82), when iterating to find the next valid initialized time, can the loop run out of gas before completing, preventing TWAMM virtual order execution and freezing pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_25f37401-5564-4e18-bd57-78053bd9d21d",
+    "timestamp": "2025-12-01 18:51:30.191111",
+    "report_generated": false
+  },
+  {
+    "question": "In findNextInitializedTime() (line 49), can the 'mod(sub(nextIndex, 1), 256)' operation produce incorrect index values when nextIndex is 0, causing time calculations to be off by 256?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9eeebd53-f9b8-4d07-a801-8f6d84f70ff8",
+    "timestamp": "2025-12-01 18:51:53.361778",
+    "report_generated": false
+  },
+  {
+    "question": "In findNextInitializedTime() (line 44), does bitmap.geSetBit() handle empty bitmaps (all bits 0) correctly by returning 0, or could incorrect handling cause the function to return garbage time values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1b73a7ba-af25-4d5d-adc0-b43c9aa4bc52",
+    "timestamp": "2025-12-01 18:52:17.696590",
+    "report_generated": false
+  },
+  {
+    "question": "In findNextInitializedTime() (lines 34-54), when no initialized time is found (nextIndex == 0), does returning the greatest time in the bitmap (line 52) cause TWAMM execution to skip orders unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_38564a71-a77f-468c-96c9-ef13d380c83c",
+    "timestamp": "2025-12-01 18:52:42.715317",
+    "report_generated": false
+  },
+  {
+    "question": "In flipTime() (lines 26-30), when flipping a time bit using XOR (line 29), can concurrent TWAMM order placement cause race conditions that flip the same bit multiple times incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a0bfbe4b-6fd3-4297-95d5-bb7c93656149",
+    "timestamp": "2025-12-01 18:53:09.097650",
+    "report_generated": false
+  },
+  {
+    "question": "In bitmapWordAndIndexToTime() (lines 19-23), does the reverse calculation correctly recover the original time value, or can precision loss in the bit shifts cause time values to drift after round-trip conversion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_74352e81-1ad1-4fef-9a38-31da461e2f5e",
+    "timestamp": "2025-12-01 18:53:36.871691",
+    "report_generated": false
+  },
+  {
+    "question": "In timeToBitmapWordAndIndex() (lines 10-15), can the bit shifts (lines 12-13) produce incorrect word/index values when time is very large, causing TWAMM orders to be stored at wrong bitmap locations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79d685d7-ca89-4c6f-bf01-514ac7b0cd70",
+    "timestamp": "2025-12-01 18:54:04.966263",
+    "report_generated": false
+  },
+  {
+    "question": "In nextValidTime() (lines 47-50), does the modulo operation 'sub(nextTime, mod(nextTime, stepSize))' correctly align nextTime to the step size boundary, or could this produce times that fail isTimeValid() checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e556e029-985a-4726-9e94-0b4385bcce41",
+    "timestamp": "2025-12-01 18:54:34.613767",
+    "report_generated": false
+  },
+  {
+    "question": "In isTimeValid() (line 38), can the 'or(lt(time, currentTime), ...)' logic incorrectly validate times in the past as valid, allowing TWAMM orders to be placed with expiry times that have already passed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cbe0ba4b-48fc-4fc2-9564-a14c58c2e2b9",
+    "timestamp": "2025-12-01 18:55:05.463156",
+    "report_generated": false
+  },
+  {
+    "question": "In computeStepSize() (line 27), when computing stepSize = shl(msb, 1), can msb values >= 256 cause the left shift to overflow and produce incorrect step sizes that break TWAMM order placement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a0bc782c-6d63-44f0-b2e4-a18e72e30b8a",
+    "timestamp": "2025-12-01 18:55:38.601520",
+    "report_generated": false
+  },
+  {
+    "question": "In nextValidTime() (line 63), does the ternary operation correctly return 0 when nextTime exceeds currentTime + type(uint32).max, or could boundary conditions allow invalid times to pass through?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4a5f79bf-2b2a-4529-adec-2d687a8c8632",
+    "timestamp": "2025-12-01 18:56:12.382884",
+    "report_generated": false
+  },
+  {
+    "question": "In nextValidTime() (line 48), can the addition 'add(time, stepSize)' overflow to zero (line 53 check), allowing the function to wrap around and return time 0 instead of detecting that no valid time exists?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5d4cbfe-5f5e-4081-8b1a-82725dca2037",
+    "timestamp": "2025-12-01 18:56:47.092786",
+    "report_generated": false
+  },
+  {
+    "question": "In nextValidTime() (lines 44-64), when computing the next valid time, can the step size change between iterations (lines 54-60) cause the function to skip valid times and prevent TWAMM orders from executing at their intended expiry?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b917e2e-0de0-4b32-8eff-2aa4b651735a",
+    "timestamp": "2025-12-01 18:57:22.561191",
+    "report_generated": false
+  },
+  {
+    "question": "In isTimeValid() (line 38), does the comparison 'lt(sub(time, currentTime), 0x100000000)' correctly enforce that time is within uint32 range of currentTime, or could overflow in the subtraction allow invalid future times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aab00f6d-93e5-4ade-8c9b-a5a412d0d100",
+    "timestamp": "2025-12-01 18:57:59.465288",
+    "report_generated": false
+  },
+  {
+    "question": "In isTimeValid() (lines 34-40), can the validity check (line 38) be bypassed by carefully choosing time values that pass mod(time, stepSize) == 0 but violate the time range constraints?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ee5e2230-07d1-4103-8cf3-0a6601a7be20",
+    "timestamp": "2025-12-01 18:58:37.424508",
+    "report_generated": false
+  },
+  {
+    "question": "In computeStepSize() (line 25), does the 'sub(msb, mod(msb, 4))' operation correctly round down to multiples of 4, or could off-by-one errors cause step sizes to be miscalculated and break TWAMM time validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14c68b8d-9453-405a-b0c9-b17738ab29eb",
+    "timestamp": "2025-12-01 18:59:13.413270",
+    "report_generated": false
+  },
+  {
+    "question": "In computeStepSize() (lines 17-31), when time > currentTime + 4095, can the msb calculation using clz (line 23) produce incorrect results that cause isTimeValid() to accept invalid TWAMM order times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1e10b0ad-6a03-4ddb-81b7-a0205f991603",
+    "timestamp": "2025-12-01 18:59:47.693684",
+    "report_generated": false
   }
 ]
