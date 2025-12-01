@@ -1198,5 +1198,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94bae291-a244-4073-8c86-19fdb9fd9b11",
     "timestamp": "2025-12-01 17:29:08.772477",
     "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol, the `_requireLocker()` function (lines 54-57) checks that `locker.addr() == msg.sender`. However, if an attacker uses delegatecall to invoke Core functions, does msg.sender reflect the delegatecaller or the intermediate contract? Can this be exploited to bypass the locker-only restriction on functions like `updatePosition()`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_07f375c7-6952-4577-ae2d-c40aa3a69d59",
+    "timestamp": "2025-12-01 17:30:16.665325",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `swap_6269342730()` (lines 506-854), when crossing an initialized tick (lines 759-800), the liquidity delta is applied with sign depending on swap direction (lines 763-766). If the swap direction changes mid-execution due to a price limit being hit, can the liquidity delta be applied with the wrong sign, causing the pool's active liquidity to become incorrect and break the sqrt ratio / liquidity relationship?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5f017d5-f070-4723-b069-71101698931e",
+    "timestamp": "2025-12-01 17:30:30.166607",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap logic (line 752-757), when `sqrtRatioNext == nextTickSqrtRatio`, the tick is set to `nextTick - iszero(increasing)`. If `nextTick = MIN_TICK` and `increasing = false`, does the subtraction produce `MIN_TICK - 1`, going out of bounds below the minimum allowed tick and potentially accessing uninitialized storage in the tick bitmap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ac1db98-e322-4cdb-b99b-76d04e8818c3",
+    "timestamp": "2025-12-01 17:30:43.701564",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (lines 785-798), tick fees per liquidity outside are updated by subtracting the current tick's stored value from global fees. If through any overflow bug the tick's stored value exceeds the global fees per liquidity, does the subtraction underflow, wrapping to a massive value that credits incorrect fees to positions crossing that tick?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3712a3da-1b9c-449b-ba32-f6aa2b104cea",
+    "timestamp": "2025-12-01 17:30:58.948394",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (lines 618-619), `limitedNextSqrtRatio` is set to the min/max of `nextTickSqrtRatio` and `sqrtRatioLimit`. If `sqrtRatioLimit` is exactly equal to `nextTickSqrtRatio` but the pool needs to cross the tick to reach that price, does the condition on line 752 evaluate to true, causing tick crossing to occur when the price hasn't actually moved past the tick?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c36db057-8106-4c46-80d2-779c8bc229ed",
+    "timestamp": "2025-12-01 17:31:13.877174",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (lines 662-684), when the swap hits the price limit (hitLimit = true), the fee calculation uses `amount1DeltaSorted` or `amount0DeltaSorted` depending on token direction. If the sorted sqrt ratios (line 663-664) have rounding errors due to the `sortAndConvertToFixedSqrtRatios` conversion, can this cause the calculated fee to be incorrect, leading to fee leakage or overcharging?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ceb1143e-d241-431e-98d4-c109b05ff605",
+    "timestamp": "2025-12-01 17:31:30.262205",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (lines 698-723), when the price moves but doesn't hit the limit, if `sqrtRatioNextFromAmount == sqrtRatio` (line 698), the code enters a branch that consumes the entire input as fees (line 730). Can an attacker craft a swap amount that causes the sqrt ratio calculation to produce exactly the current ratio due to rounding, allowing them to inject fees without moving price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c09871b-c240-4626-9fd7-4823865984a0",
+    "timestamp": "2025-12-01 17:31:48.619937",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (line 726), the code asserts `!isExactOut` when price doesn't move. If through any precision error in `nextSqrtRatioFromAmount0/1`, an exact output swap results in no price movement, does this assertion fail, reverting a legitimate swap and potentially locking funds if this occurs during a liquidation or other critical operation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_62769aea-792a-4ac0-a0af-a9418f3a8b6a",
+    "timestamp": "2025-12-01 17:32:08.398471",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (lines 736-749), fees per liquidity are only updated if `stepFeesPerLiquidity != 0`. If a swap moves price but generates 0 fees due to rounding the fee amount down to 0, are the fees per liquidity not updated, causing a mismatch between actual fees collected and the fees credited to LPs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6318e874-7da1-46af-88f8-a0d9dd59f7d7",
+    "timestamp": "2025-12-01 17:32:29.608415",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (lines 771-776), the global input token fees per liquidity is loaded on the first tick crossing (`feesAccessed == 0`). If an attacker structures a swap that crosses many ticks very quickly, does repeatedly loading and adding to `inputTokenFeesPerLiquidity` (line 745) without storing back until the end (line 830-832) risk losing precision in the accumulated fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_89de1dde-f940-4255-ac54-796fae350116",
+    "timestamp": "2025-12-01 17:32:52.421998",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (lines 811-818), the calculated amount is cast to int128 using `SafeCastLib.toInt128(FixedPointMathLib.max(type(int128).min, calculatedAmount))`. If calculatedAmount exceeds type(int128).max, is it clamped to type(int128).min instead of type(int128).max, inverting the sign of the delta and causing the debt accounting to be backwards?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0712d6d6-7b35-4a30-b7c0-6a87cd1e8ac1",
+    "timestamp": "2025-12-01 17:33:15.999547",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (lines 820-822), the balance update is created with deltas in different orders depending on `isToken1`. If the swap parameters are manipulated such that `isToken1` value changes or is inconsistent with the actual token being swapped, can the deltas be assigned to the wrong tokens, causing delta0 and delta1 to be swapped?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c7fbf408-b62e-45a8-bd7c-8bc01beea379",
+    "timestamp": "2025-12-01 17:33:40.504036",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (lines 569-598), for stableswap pools, the code determines the next tick based on whether the current tick is in the active liquidity range. If tick equals exactly lower or upper boundary, is the `inRange` check on lines 581-583 correct, or is there an off-by-one error that causes the wrong liquidity (0 or active) to be used for the swap step?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd991914-79be-4933-81b1-372d1a2c56a7",
+    "timestamp": "2025-12-01 17:34:07.048633",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (line 639), the fee amount is computed as `computeFee(amountU128, config.fee())`. If `config.fee()` is set to the maximum value and amountU128 is type(uint128).max, can the fee calculation overflow, causing priceImpactAmount on line 642 to be incorrect and allowing swaps to manipulate price without proper fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fec5f238-bc7b-429f-a7be-b8609344a6b5",
+    "timestamp": "2025-12-01 17:34:33.679488",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol swap (lines 645-648), `nextSqrtRatioFromAmount0/1` is called with `priceImpactAmount`. If this function has any rounding error or overflow, can an attacker exploit it to move the price further than the input amount should allow, effectively getting more output tokens than mathematically valid?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2bbcea8d-b098-47f0-a947-c0c98f84dbb7",
+    "timestamp": "2025-12-01 17:35:01.157499",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updatePosition()` (lines 358-448), if `liquidityDelta = 0`, the function returns early without making any state changes (line 374). However, extension hooks are still called (lines 367-368, 446-447). Can a malicious extension use these hooks with zero liquidity delta to corrupt state without detection, since the core assumes no-op when liquidityDelta is 0?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55b6cb00-a285-4933-b2ac-9655e3d728e4",
+    "timestamp": "2025-12-01 17:35:28.764251",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updatePosition()` (lines 400-401), ticks are updated with `_updateTick()` for both lower and upper bounds. If tickLower equals tickUpper, does this cause the same tick to be updated twice with the same liquidityDelta, doubling the liquidity net at that tick and breaking the invariant that liquidity net represents the net liquidity change at crossing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5aeb3d67-c48b-4c5a-8e49-92baca3fa1e6",
+    "timestamp": "2025-12-01 17:35:58.480662",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updatePosition()` (lines 409-416), if the current tick is exactly equal to tickLower, the condition `tick >= tickLower && tick < tickUpper` (line 409) includes the position in active liquidity. However, in the swap logic, tick crossing subtracts liquidity when crossing from below. Is there a consistent off-by-one definition, or can this mismatch cause active liquidity to be incorrect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_89d09eff-365b-4eca-8543-cdea60c66565",
+    "timestamp": "2025-12-01 17:36:27.862737",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updatePosition()` (lines 387-388), the new liquidity is calculated with `addLiquidityDelta(position.liquidity, liquidityDelta)`. If position.liquidity is close to type(uint128).max and liquidityDelta is positive, does addLiquidityDelta() correctly revert on overflow, or can the check in liquidity.sol (line 132) be bypassed, allowing position liquidity to wrap around?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f74d333e-16f9-4719-aa4e-1f37ffab1674",
+    "timestamp": "2025-12-01 17:36:59.176173",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updatePosition()` (lines 392-398, 403-407), fees per liquidity inside is fetched at different times depending on whether liquidityNext is 0. If fetching before tick updates (line 395-397) vs after (line 404-406) produces different values due to concurrent state changes or extension hooks, can this cause fee calculation to be based on wrong snapshots, leading to fee theft or loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd48fb47-8998-48a4-9346-fadaeff69585",
+    "timestamp": "2025-12-01 17:37:31.971723",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updatePosition()` (lines 430-438), if `liquidityNext == 0`, the position is cleared. However, if through reentrancy via extension hooks the same position is updated again before this function returns, can the position be partially cleared (liquidity set to 0) while still having non-zero fees or fees per liquidity last, causing subsequent fee claims to fail or calculate wrong amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_105cf8c8-dbcc-4fcc-9f2d-f447d302f9a1",
+    "timestamp": "2025-12-01 17:38:05.496095",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `updatePosition()` (line 440), `_updatePairDebtWithNative` is called to update debt. If the position update is removing liquidity (negative liquidityDelta), the deltas will be negative, reducing debt. If msg.value is provided in this case, does the native token debt reduction interact incorrectly with the msg.value credit, allowing users to withdraw more tokens than they should?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_beef3194-3a01-464e-8dc4-ec1ed71af6af",
+    "timestamp": "2025-12-01 17:38:39.594753",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `_updateTick()` (lines 285-319), when a tick transitions from uninitialized to initialized or vice versa (line 302), the tick bitmap is flipped. If two concurrent calls to updatePosition() both try to flip the same tick (one initializing, one de-initializing), can the bitmap be left in an incorrect state due to the toggle operation not being atomic across both calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5c6ec861-1ae7-4072-9af9-d7d47e3b95ed",
+    "timestamp": "2025-12-01 17:39:14.977560",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `_updateTick()` (lines 293-294), `liquidityDeltaNext` is calculated with checked arithmetic (can overflow/underflow). If an attacker structures position updates to make `currentLiquidityDelta` close to type(int128).max or .min, can the addition/subtraction on line 294 overflow, reverting all position operations on that tick and effectively freezing liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13653484-53ef-4cc4-b006-24fdbc3d0d4e",
+    "timestamp": "2025-12-01 17:39:50.587613",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol `_updateTick()` (lines 296-300), the check `liquidityNetNext > maxLiquidity` reverts if exceeded. However, this check only applies when liquidity is being added. If liquidity is removed such that liquidityNetNext becomes 0 or small, then added again, can an attacker bypass the max liquidity limit by alternating add/remove operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_90ae4657-ab69-4b2d-83a1-49e4eae65808",
+    "timestamp": "2025-12-01 17:40:26.853397",
+    "report_generated": false
   }
 ]
