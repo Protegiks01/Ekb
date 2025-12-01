@@ -1348,5 +1348,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a7bb9aec-a9c3-4945-a676-2bdb92d7bede",
     "timestamp": "2025-12-01 17:37:34.609790",
     "report_generated": false
+  },
+  {
+    "question": "In computeNextSqrtRatio() at twamm.sol line 125, exp2() is called with a uint128 cast of the exponent. However, exponent is calculated as a uint256 at line 120. If exponent exceeds type(uint128).max, the cast silently truncates the upper 128 bits. Could an attacker trigger this to cause exp2() to receive a much smaller exponent than intended, freezing price movement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e667ff0-5591-4cbb-b3ab-ad8b03071586",
+    "timestamp": "2025-12-01 17:38:50.146127",
+    "report_generated": false
+  },
+  {
+    "question": "The exponent passed to exp2() in twamm.sol line 125 is calculated using the constant 12392656037 (line 120), which represents Math.floor(Math.LOG2E * 2^33). If this constant has a rounding error, it would cause systematic bias in all TWAMM price movements. Could an attacker exploit this bias to profit from TWAMM order execution over time?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_edcd48a0-72de-4902-8f37-0978b3ffc801",
+    "timestamp": "2025-12-01 17:39:03.311903",
+    "report_generated": false
+  },
+  {
+    "question": "In twamm.sol line 125, the exp2() result is left-shifted by 64 bits: 'int256(uint256(exp2(uint128(exponent))) << 64)'. If exp2() returns a value near type(uint256).max / 2, the left shift could overflow. The unchecked block in twamm.sol (line 97) would allow silent overflow. Could this cause ePowExponent to become negative or zero, corrupting price calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bb136ac5-6563-48a2-9c39-10a4727fd296",
+    "timestamp": "2025-12-01 17:39:18.005486",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function is called in twamm.sol at line 125 with 'exp2(uint128(exponent))'. The exponent is calculated at twamm.sol line 120 as '(sqrtSaleRate * timeElapsed * 12392656037) / liquidity'. If an attacker creates a TWAMM order with very low liquidity (near 0) and high saleRate, could they cause exponent to exceed 0x400000000000000000 and DoS virtual order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e081be9-e20b-4256-b7f0-3e612e4251d1",
+    "timestamp": "2025-12-01 17:39:33.047917",
+    "report_generated": false
+  },
+  {
+    "question": "The unchecked block at line 6 means the right shift operation at line 204 'result >>= uint256(63 - (x >> 64))' has no underflow protection. If (x >> 64) somehow exceeds 63 (e.g., due to unclean upper bits), the subtraction '63 - (x >> 64)' would underflow to a massive uint256 value, causing result to shift right by ~2^256 positions and become 0. Could this be exploited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66fb0977-4a11-4bb5-b34a-e52fe230415d",
+    "timestamp": "2025-12-01 17:39:47.791583",
+    "report_generated": false
+  },
+  {
+    "question": "In the unchecked block (line 6), if a multiplication 'result * CONSTANT' at any bit check (e.g., line 50) produces an intermediate value that overflows 2^256, the overflow wraps silently. Could an attacker who controls the exponent input (via TWAMM order parameters) trigger this to cause exp2() to return unexpectedly small values that manipulate virtual order execution prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_27f8e952-30c8-4f59-811e-137203cfc604",
+    "timestamp": "2025-12-01 17:40:03.888168",
+    "report_generated": false
+  },
+  {
+    "question": "The entire exp2() function is wrapped in an unchecked block (line 6). This disables overflow checks on all arithmetic operations. While the require at line 7 prevents input overflow, could the intermediate multiplications at lines 12-202 or the final shift at line 204 overflow in ways that corrupt the result without reverting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_05cf5a2e-bffa-4c9a-af81-505bfb3e47de",
+    "timestamp": "2025-12-01 17:40:21.640596",
+    "report_generated": false
+  },
+  {
+    "question": "The constants used in lines 12-201 are supposed to represent 2^(2^(-i)) for i=0 to 63. If the constant at line 200 (for bit 0, representing 2^(2^-63) ≈ 1.0000000000000000001) has insufficient precision in its least significant bits, could this cause discontinuities in exp2() output for consecutive integer inputs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5411803a-177d-4e86-98de-e4579f219856",
+    "timestamp": "2025-12-01 17:40:40.722009",
+    "report_generated": false
+  },
+  {
+    "question": "The bit-checking loop processes bits from highest (bit 63 at line 11) to lowest (bit 0 at line 200). This order means early multiplications with large constants process first. If result accumulates to near 2^128 after processing high bits, could subsequent low-bit multiplications overflow the intermediate product before the >> 128 shift?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0b28be67-0128-4bba-af36-1132d3c29f4e",
+    "timestamp": "2025-12-01 17:41:02.108842",
+    "report_generated": false
+  },
+  {
+    "question": "At line 204, the final operation is 'result >>= uint256(63 - (x >> 64))'. This shifts result right by (63 - integer_part_of_x). If x's integer part is 63, the shift is 0. If it's 0, the shift is 63. Could an attacker exploit edge cases where x >> 64 equals 63 or 64, causing incorrect shifts that inflate/deflate the exponential result?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a3dd9f7-ea4c-46c9-9ce6-b48b047c6ebd",
+    "timestamp": "2025-12-01 17:41:25.364135",
+    "report_generated": false
+  },
+  {
+    "question": "The multiplication pattern 'result = result * CONSTANT >> 128' appears 64 times (lines 12, 15, 18, etc.). If the intermediate product (result * CONSTANT) exceeds 2^256 before shifting, it silently overflows. For the highest bit check at line 12 with largest constant, could result values near 2^192 cause overflow when multiplied by 0x16A09E667F3BCC908B2FB1366EA957D3E?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7aa4cb92-ad08-49dd-a3d6-31609e40a67e",
+    "timestamp": "2025-12-01 17:41:48.081286",
+    "report_generated": false
+  },
+  {
+    "question": "Each bit check (lines 11-202) performs 'result = result * CONSTANT >> 128'. The right shift by 128 is meant to maintain 64.64 fixed-point format after multiplying two 64.64 numbers. However, if the multiplication overflows before the shift (intermediate value > 2^256), the overflow would be silent in the unchecked block. Could carefully crafted exponents trigger this?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4cd3d473-48fa-48df-b140-c1093220c334",
+    "timestamp": "2025-12-01 17:42:12.275065",
+    "report_generated": false
+  },
+  {
+    "question": "At line 12, the first multiplication uses constant 0x16A09E667F3BCC908B2FB1366EA957D3E (representing 2^0.5). If this constant is off by even 1 ULP (unit in last place), and an attacker crafts an exponent where bit 63 is set along with many lower bits, could the compounded error allow them to manipulate the final sqrtRatio by >0.01% and profit from TWAMM order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ba737c3-e24d-4b8f-9f43-b3460d1d7df0",
+    "timestamp": "2025-12-01 17:42:37.892771",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function uses 64 sequential if-statements checking individual bits of x (lines 11-202). Each multiplication constant is a precomputed value of 2^(2^-i) in 64.64 format. If any of these constants has a precision error in the least significant digits, could accumulated rounding errors across all 64 multiplications lead to price manipulation in TWAMM virtual order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_85e4a9e1-0be4-4993-8352-d715603e8dfd",
+    "timestamp": "2025-12-01 17:43:05.617024",
+    "report_generated": false
+  },
+  {
+    "question": "At line 9, result is initialized to 0x80000000000000000000000000000000. If due to a compiler bug or memory corruption this initialization is skipped, result would be 0, and all subsequent multiplications would produce 0. Could this lead to exp2() returning 0, which when used in twamm.sol's computeNextSqrtRatio() would cause division by zero or price collapse?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8f22c9cd-f7f3-4aad-8c29-afed6bc97f3e",
+    "timestamp": "2025-12-01 17:43:34.547750",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function initializes result to 0x80000000000000000000000000000000 (2^127 in 64.64 format) at line 9, representing 1.0. If the input x = 0, the function returns this initial value unchanged. However, if x has unclean upper bits beyond bit 70, could those bits affect subsequent operations despite passing the overflow check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c47dae7-ebb1-45ec-aff3-36b418e37805",
+    "timestamp": "2025-12-01 17:44:04.688609",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function lacks validation that the input x is non-negative. Since it's declared as uint256, negative values wrapped as large uints would pass the overflow check at line 7. Could an attacker craft TWAMM parameters (extreme liquidity/saleRate ratios) that produce negative exponents in twamm.sol line 120, which then wrap to huge positive values and cause incorrect price calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_71c55880-01c9-46bd-98b8-f933bb8f8da8",
+    "timestamp": "2025-12-01 17:44:35.492965",
+    "report_generated": false
+  },
+  {
+    "question": "At line 7, if the overflow check passes but x is very close to the boundary (e.g., x = 0x3FFFFFFFFFFFFFFF), the final result could be near type(uint256).max. When this value is cast to int256 at twamm.sol line 125, could the sign bit flip cause negative ePowExponent values that corrupt the c coefficient calculation in computeNextSqrtRatio()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_33f3dd96-1477-4ec1-8d37-49e93a477e6e",
+    "timestamp": "2025-12-01 17:45:09.811079",
+    "report_generated": false
+  },
+  {
+    "question": "The require statement at line 7 uses a strict inequality (x < bound) rather than <=. Could there be precision edge cases where x = 0x3FFFFFFFFFFFFFFFF (just below the limit) produces a result that overflows when left-shifted at line 125 of twamm.sol ('ePowExponent = int256(uint256(exp2(uint128(exponent))) << 64'), causing silent overflow in signed integer conversion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e42411e-07a4-4517-9b24-4ddace0c6d39",
+    "timestamp": "2025-12-01 17:45:44.276849",
+    "report_generated": false
+  },
+  {
+    "question": "The overflow boundary at line 7 is set to 0x400000000000000000 (2^62). Given that the exp2() function computes 2^x for a 5.64 fixed-point input, does this boundary correctly account for the maximum exponent value (63.999...) that should be supported, or could there be valid TWAMM scenarios where exponents at 63.5-63.9 are rejected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7e362170-3d76-46a3-96c2-525960f5bff4",
+    "timestamp": "2025-12-01 17:46:18.650737",
+    "report_generated": false
+  },
+  {
+    "question": "In the exp2() function (line 7), the overflow check 'require(x < 0x400000000000000000)' prevents inputs ≥ 2^62. Could an attacker manipulate TWAMM exponent calculations in computeNextSqrtRatio() to approach this boundary, causing reverts that prevent virtual order execution and freeze TWAMM pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65aa5669-7310-4110-9e9d-4a84cf90799d",
+    "timestamp": "2025-12-01 17:46:54.413355",
+    "report_generated": false
+  },
+  {
+    "question": "Can the combination of multiple offset additions and multiplications cause unexpected wrapping that points to arbitrary storage locations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_89623eb9-0716-4c43-a929-be34bb8cae66",
+    "timestamp": "2025-12-01 17:47:29.230691",
+    "report_generated": false
+  },
+  {
+    "question": "What prevents a scenario where add(poolId, OFFSET) wraps to a small number, potentially colliding with Solidity compiler-allocated storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7d4198bc-16bd-41e5-bb89-529933cf51c9",
+    "timestamp": "2025-12-01 17:48:04.492247",
+    "report_generated": false
+  },
+  {
+    "question": "Could consecutive slot assumptions (reward rates using 2 slots) break when wrapping occurs at the uint256 boundary?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b38ac845-3278-4cef-9bde-8c0eb7bd5818",
+    "timestamp": "2025-12-01 17:48:40.492612",
+    "report_generated": false
+  },
+  {
+    "question": "Does the lack of overflow checks in assembly mean that extreme values could cause storage pointers to wrap into contract code storage or other critical areas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_60a5c9e5-bf4f-4b0f-a13f-339ff31a34b9",
+    "timestamp": "2025-12-01 17:49:15.687092",
+    "report_generated": false
   }
 ]
