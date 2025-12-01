@@ -298,5 +298,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91ca4382-5361-45eb-975c-c5244670f2f1",
     "timestamp": "2025-12-01 16:17:46.031729",
     "report_generated": false
+  },
+  {
+    "question": "The TwammPoolState type uses global using-for directives. Can function selector collisions with other types cause incorrect function calls if TwammPoolState is cast to bytes32 and vice versa?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55bdc43a-98fb-43d1-aac3-706e3160db4f",
+    "timestamp": "2025-12-01 16:19:06.333452",
+    "report_generated": false
+  },
+  {
+    "question": "In `saleRateToken0()` line 28, the double-shift pattern implicitly masks to 112 bits. Can this implicit masking be less secure than an explicit `and()` operation with `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95d44517-8b67-4c0a-b5f6-df887d96a273",
+    "timestamp": "2025-12-01 16:19:19.683235",
+    "report_generated": false
+  },
+  {
+    "question": "The mask `0xffffffff` is used consistently for uint32 extraction. Can changing this mask value in `lastVirtualOrderExecutionTime()` vs `realLastVirtualOrderExecutionTime()` cause inconsistencies between the two functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e52a7b6d-ee32-48cb-9d96-556d5d48d012",
+    "timestamp": "2025-12-01 16:19:33.697194",
+    "report_generated": false
+  },
+  {
+    "question": "In `realLastVirtualOrderExecutionTime()` line 22, what happens when `block.timestamp & 0xffffffff` equals `state & 0xffffffff` exactly? Does the function correctly return block.timestamp, or can wraparound cause it to return an incorrect value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_719f9f86-d2d5-49b0-9349-7258893a347a",
+    "timestamp": "2025-12-01 16:19:48.941978",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 277-295, the state is read at line 278, modified, and written at line 295. Can another transaction read the state between these operations and observe inconsistent sale rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8f2595b3-9f68-4453-bade-8098ae08aa19",
+    "timestamp": "2025-12-01 16:20:04.114260",
+    "report_generated": false
+  },
+  {
+    "question": "Can a TwammPoolState with highly asymmetric sale rates (one near 0, one near type(uint112).max) cause computational errors in `computeNextSqrtRatio()` due to precision loss in sqrt calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47eb70de-cdaa-4d09-8530-2268c54f9083",
+    "timestamp": "2025-12-01 16:20:19.956459",
+    "report_generated": false
+  },
+  {
+    "question": "Can a TwammPoolState with maximum sale rates (both = type(uint112).max) cause overflow when computing amounts via `computeAmountFromSaleRate()`, even for small time elapsed values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf5ac953-cec9-4ade-8c6b-7cf9edf959f0",
+    "timestamp": "2025-12-01 16:20:37.568675",
+    "report_generated": false
+  },
+  {
+    "question": "Can a TwammPoolState with all fields set to zero (timestamp=0, rate0=0, rate1=0) be exploited to bypass initialization checks or cause arithmetic errors in downstream calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b6ae482-455f-46c4-9942-15d46bb3be3e",
+    "timestamp": "2025-12-01 16:20:57.491421",
+    "report_generated": false
+  },
+  {
+    "question": "The virtual order execution uses sale rates to determine swap amounts. Can attackers manipulate TwammPoolState sale rates to increase price impact, causing TWAMM users to receive worse execution than expected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0bf2a4e3-4dc0-461d-9008-81903ed2a307",
+    "timestamp": "2025-12-01 16:21:18.850962",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 587, the final state write occurs after all swaps complete. Can a failed swap due to insufficient liquidity prevent this write, causing the next execution attempt to re-execute the same time periods?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac16ff40-5270-4c44-9524-556ac04902ac",
+    "timestamp": "2025-12-01 16:21:41.944900",
+    "report_generated": false
+  },
+  {
+    "question": "The virtual order execution loop at TWAMM.sol line 417-574 makes multiple state changes. Can a revert in the middle of this loop leave TwammPoolState partially updated, with some time periods executed but others not?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_722a7d04-0a77-4419-86f6-8e973ca422df",
+    "timestamp": "2025-12-01 16:22:05.228713",
+    "report_generated": false
+  },
+  {
+    "question": "When an order is cancelled, its sale rate delta is applied at TWAMM.sol line 298. Can cancelling multiple orders simultaneously cause the sale rates to temporarily become negative before being updated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef2a2f33-77aa-4f53-ab0e-c9df97b7406c",
+    "timestamp": "2025-12-01 16:22:29.442973",
+    "report_generated": false
+  },
+  {
+    "question": "The TwammPoolState stores aggregate sale rates across all orders. Can the sum of individual order sale rates exceed type(uint112).max, causing overflow when multiple orders are placed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b87ade03-d697-4403-9631-08e93f3324c4",
+    "timestamp": "2025-12-01 16:22:56.020991",
+    "report_generated": false
+  },
+  {
+    "question": "The swap calls at TWAMM.sol line 456 and 489 use amounts computed from sale rates. Can corrupted sale rates cause these swaps to request more tokens than available, violating the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_09d7072e-3873-46f9-9d17-ae37fbf2db40",
+    "timestamp": "2025-12-01 16:23:25.221776",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 445-452, `computeNextSqrtRatio()` is called with sale rates from TwammPoolState. Can incorrect sale rate values cause this computation to return invalid sqrt ratios, breaking the pool's price bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f66ff9d-79e7-418c-8207-a95323b9adb1",
+    "timestamp": "2025-12-01 16:23:56.496096",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 630, `afterInitializePool()` checks `!key.config.isFullRange()`. Can a pool with non-full-range configuration bypass this check and initialize with a TwammPoolState that violates TWAMM assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a8c8bfc-0aaf-4469-89ad-50c96d63b2e7",
+    "timestamp": "2025-12-01 16:24:26.489579",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 232-246, the reward rate snapshot is adjusted based on the sale rate. Can stale sale rates from TwammPoolState cause the adjustment to use incorrect denominators, allowing users to manipulate their reward claims?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9f6cc51-4adb-44c6-ba43-7791c9d3c634",
+    "timestamp": "2025-12-01 16:24:57.730651",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 420-425, `searchForNextInitializedTime()` finds the next boundary. Can this search return incorrect values due to bitmap corruption, causing TwammPoolState to skip sale rate updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f81701dd-d291-447d-af66-785b1086022b",
+    "timestamp": "2025-12-01 16:25:29.967921",
+    "report_generated": false
+  },
+  {
+    "question": "The TwammPoolState's sale rates are updated when crossing time boundaries found in the time bitmap. Can a corrupted bitmap cause the sale rates to be updated at wrong times, leading to incorrect virtual order execution amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3c483f9c-3f06-4d96-9f59-ce4fff3c6a90",
+    "timestamp": "2025-12-01 16:26:02.707578",
+    "report_generated": false
+  },
+  {
+    "question": "The `_emitVirtualOrdersExecuted()` function at TWAMM.sol line 70-81 emits sale rates from TwammPoolState. Can corrupted state values cause this event to emit incorrect data, breaking off-chain integrations and indexers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_88ec5f92-8f73-4cfb-a252-3aa5047de345",
+    "timestamp": "2025-12-01 16:26:36.791160",
+    "report_generated": false
+  },
+  {
+    "question": "In `realLastVirtualOrderExecutionTime()` line 22, all operations are within an assembly block (implicitly unchecked). Can the subtraction operations underflow, returning a timestamp in the far future?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_981df221-6949-4321-8bb5-a457720f60c1",
+    "timestamp": "2025-12-01 16:27:11.917080",
+    "report_generated": false
+  },
+  {
+    "question": "The entire TWAMM.sol `handleForwardData()` function at line 191-384 is wrapped in an unchecked block. Can arithmetic operations on TwammPoolState values overflow without detection, corrupting the state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c07d9e0-d3b4-4e23-91df-db68dc0819dd",
+    "timestamp": "2025-12-01 16:27:48.404084",
+    "report_generated": false
+  },
+  {
+    "question": "The check at TWAMM.sol line 396-398 validates that the pool is initialized. Can this check be bypassed by creating a pool with a malicious extension address that returns incorrect initialization state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_260ad1d3-bd72-4bef-8fab-cf0506c4449a",
+    "timestamp": "2025-12-01 16:28:24.904832",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol line 634-641, `afterInitializePool()` sets the initial state with zero sale rates. Can an attacker initialize a pool then immediately place a large order, causing the first virtual order execution to fail due to uninitialized reward rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_608cc759-bac3-4480-864f-3665dc0ccd44",
+    "timestamp": "2025-12-01 16:29:02.821877",
+    "report_generated": false
+  },
+  {
+    "question": "The sale rate updates at TWAMM.sol line 285, 290, 295 apply deltas immediately. Can rapid order updates cause the sale rates to change between virtual order execution steps, leading to inconsistent swap amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_50872e63-746b-41f2-9f7d-86f19a0725f9",
+    "timestamp": "2025-12-01 16:29:39.066049",
+    "report_generated": false
   }
 ]
