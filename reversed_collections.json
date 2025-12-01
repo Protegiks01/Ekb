@@ -3898,5 +3898,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae9e557a-e6fa-4578-a556-923e03f112ba",
     "timestamp": "2025-12-01 21:21:29.711698",
     "report_generated": false
+  },
+  {
+    "question": "In tickBitmap.sol:16, the rawIndex calculation uses `sdiv(tick, tickSpacing)` with signed division. If tick = MIN_TICK = -88722835 and tickSpacing = MAX_TICK_SPACING = 698605, does the signed division produce a different result than expected due to rounding towards zero? Could this cause the same tick to map to different bitmap positions depending on the operation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2b8ddd3-aa49-44a9-9456-aa68b83047b6",
+    "timestamp": "2025-12-01 21:22:52.742749",
+    "report_generated": false
+  },
+  {
+    "question": "In poolConfig.sol:193, the numTicks calculation is `add(1, mul(div(MAX_TICK, _tickSpacing), 2))`. If MAX_TICK = 88722835 and _tickSpacing is very small, does this create a huge numTicks value that causes the division `type(uint128).max / numTicks` to result in maxLiquidity = 0? Could this prevent any liquidity from being added to certain pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_46e1ad50-148e-43c4-90b0-b1cad53146bc",
+    "timestamp": "2025-12-01 21:23:07.625898",
+    "report_generated": false
+  },
+  {
+    "question": "The stableswapActiveLiquidityTickRange function (poolConfig.sol:128-132) clamps to MIN_TICK/MAX_TICK using conditional addition. If center tick is near MIN_TICK and width is large, does the clamping calculation `add(lower, mul(sgt(MIN_TICK, lower), sub(MIN_TICK, lower)))` correctly handle overflow? Could incorrect clamping cause liquidity to be placed outside valid bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6dcd7769-06c3-432e-9fc9-ec72ce0bcd18",
+    "timestamp": "2025-12-01 21:23:22.306412",
+    "report_generated": false
+  },
+  {
+    "question": "In poolConfig.sol:115, the stableswap liquidity width is calculated as `shr(amp, MAX_TICK)`. If amplification factor = 26 (maximum allowed) and MAX_TICK = 88722835, the width becomes 88722835 >> 26 = 1. Does this create a 1-tick-wide liquidity range for stableswap pools at max amplification? Could this cause all liquidity to be concentrated in a single tick, enabling price manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c041c97-127e-44b7-ac23-e6be1c403179",
+    "timestamp": "2025-12-01 21:23:39.304475",
+    "report_generated": false
+  },
+  {
+    "question": "Similarly, tickBitmap.sol:105-107 checks `if (prevTick <= MIN_TICK)` and clamps to MIN_TICK. If MIN_TICK = -88722835 is not aligned with a valid tick for the given spacing, could this create a situation where liquidity is added at MIN_TICK but can never be removed due to tick crossing failures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5520d1b9-fef1-4373-8acf-f5dffe99ffe2",
+    "timestamp": "2025-12-01 21:23:56.664314",
+    "report_generated": false
+  },
+  {
+    "question": "In tickBitmap.sol:67-69, the code checks `if (nextTick >= MAX_TICK)` and clamps to MAX_TICK. If MAX_TICK = 88722835 is not aligned with tick spacing, could this clamping cause the final tick to be uninitialized, leading to a revert when swaps try to cross it and permanently locking liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3147d667-9597-4edd-b53d-e6c20a4991f2",
+    "timestamp": "2025-12-01 21:24:14.701633",
+    "report_generated": false
+  },
+  {
+    "question": "The tick range [MIN_TICK, MAX_TICK] determines the price range [sqrt(1.000001^MIN_TICK), sqrt(1.000001^MAX_TICK)]. If MAX_TICK = 88722835, the maximum price ratio is 1.000001^88722835 ≈ 1.2e38. Does this exceed uint256 max? Could prices near MAX_TICK overflow in swap calculations, violating the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65cf5b2a-6b00-4178-90bf-f38ce865c66c",
+    "timestamp": "2025-12-01 21:24:35.073683",
+    "report_generated": false
+  },
+  {
+    "question": "In sqrtRatioToTick (ticks.sol:99-163), the ERROR_BOUNDS_X128 constant is added/subtracted to handle precision. If MIN_TICK and MAX_TICK are set too large, does this error bound become insufficient? Could an attacker exploit tick values near boundaries where tickToSqrtRatio(sqrtRatioToTick(x)) != x to manipulate pool prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29efe125-94ca-41d8-87ea-653d56d62a9f",
+    "timestamp": "2025-12-01 21:24:57.767929",
+    "report_generated": false
+  },
+  {
+    "question": "The tickToSqrtRatio function (ticks.sol:22-80) uses unchecked arithmetic and only validates `t > MAX_TICK_MAGNITUDE`. If MAX_TICK_MAGNITUDE = 88722835 but the actual calculation requires a larger bound due to the exp2 series, could ticks near but below MAX_TICK still cause overflow in the ratio multiplication at line 34-72, resulting in incorrect prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e092cbcd-92b1-402b-8ffe-235b091b1449",
+    "timestamp": "2025-12-01 21:25:22.079076",
+    "report_generated": false
+  },
+  {
+    "question": "In ticks.sol:25, the validation checks `if (t > MAX_TICK_MAGNITUDE)`. However, this uses the absolute value of the tick via FixedPointMathLib.abs(tick). If abs() has an edge case at INT32_MIN where abs(INT32_MIN) overflows, could an attacker pass tick = -2147483648 to bypass validation and corrupt sqrtRatio calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_463d7951-1492-4cb2-b084-d68f1e6561f2",
+    "timestamp": "2025-12-01 21:25:46.794537",
+    "report_generated": false
+  },
+  {
+    "question": "In tickBitmap.sol:16, the TICK_BITMAP_STORAGE_OFFSET = 89421695 is added to tick positions. Does this offset account for the large MIN_TICK = -88722835? If the offset calculation `add(sdiv(tick, tickSpacing), TICK_BITMAP_STORAGE_OFFSET)` underflows for ticks near MIN_TICK, could this corrupt bitmap storage or allow ticks to be initialized outside valid bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d7ebcc8f-00a1-4cfd-ae57-4f1f4fac9f68",
+    "timestamp": "2025-12-01 21:26:12.804631",
+    "report_generated": false
+  },
+  {
+    "question": "CoreStorageLayout.sol:18 shows bitmaps are stored at `[BITMAPS_OFFSET + FIRST_BITMAP_WORD, BITMAPS_OFFSET + LAST_BITMAP_WORD]`. The bitmap word range depends on the tick range MIN_TICK to MAX_TICK. If MAX_TICK = 88722835 creates a massive bitmap, does this create excessive storage costs or enable griefing where an attacker initializes many distant ticks to bloat state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f9b9b90c-9356-464f-8047-584a55995ed7",
+    "timestamp": "2025-12-01 21:26:40.140242",
+    "report_generated": false
+  },
+  {
+    "question": "The storage layout uses MIN_TICK and MAX_TICK directly as offsets (CoreStorageLayout.sol:15-17). If these constants exceed 2^32, do the storage slot calculations in `tickInfoSlot` or `feesPerLiquidityOutsideSlot` overflow when added to base offsets, causing storage collisions between different pools or ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75da6a99-a9d8-46d2-91f3-d56ee3be5ff3",
+    "timestamp": "2025-12-01 21:27:08.808676",
+    "report_generated": false
+  },
+  {
+    "question": "CoreStorageLayout.sol:15 documents that tick info is stored at `[TICKS_OFFSET + MIN_TICK, TICKS_OFFSET + MAX_TICK]`. If MIN_TICK = -88722835 (negative), does adding it to TICKS_OFFSET cause integer underflow in the storage slot calculation? Could this overwrite unrelated storage slots, corrupting pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2abb7585-beee-41ec-91e8-16f8103b83c1",
+    "timestamp": "2025-12-01 21:27:40.612602",
+    "report_generated": false
+  },
+  {
+    "question": "The NATIVE_TOKEN_ADDRESS = address(0) pattern assumes token0 < token1 in sorted pool keys. If address(0) is always token0 when paired with any ERC20, does the code in Core.sol:347-352 correctly handle the case where both tokens are ERC20s but msg.value > 0 is sent? Could this lead to unaccounted ETH stuck in the contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8b33dce-a257-4572-90e3-2680e1ab77a2",
+    "timestamp": "2025-12-01 21:28:13.610444",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol:134-142, the code has special logic for refunding excess ETH when `poolKey.token0 == NATIVE_TOKEN_ADDRESS`. If the protocol assumes address(0) is never a valid ERC20 token but Starknet or L2s allow token contracts at address(0), could this create a reentrancy vector where the 'refund' call triggers malicious fallback logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7d41701a-be45-4839-85ea-a17f8b10912e",
+    "timestamp": "2025-12-01 21:28:50.256605",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol:107 checks `poolKey.token0 == NATIVE_TOKEN_ADDRESS` to determine if native token value should be forwarded. If an attacker creates a pool with a malicious ERC20 token at address(0), could they exploit the protocol's special handling of NATIVE_TOKEN_ADDRESS to drain ETH from the Router contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_271c0228-5e98-4b98-9625-0c473995e9b7",
+    "timestamp": "2025-12-01 21:29:27.190410",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol:391, the receive() function accounts native token deposits using `_accountDebt(id, NATIVE_TOKEN_ADDRESS, -int256(msg.value))`. If NATIVE_TOKEN_ADDRESS = address(0) collides with the zero address used to represent 'no token' in other contexts, could this create delta accounting confusion where ETH deposits are not properly tracked?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_90f28b7b-6c0b-4498-a2f5-bbc779ea710f",
+    "timestamp": "2025-12-01 21:30:05.547637",
+    "report_generated": false
+  },
+  {
+    "question": "NATIVE_TOKEN_ADDRESS is defined as address(0) (line 26). In Core.sol:340, the code checks `if (token0 == NATIVE_TOKEN_ADDRESS)`. If an ERC20 token legitimately uses address(0) in a token pair, would this cause the protocol to misidentify it as ETH and incorrectly apply msg.value accounting, potentially leading to double-spending or fund loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_43b76844-9af2-47d9-ba81-9e1f752b7a81",
+    "timestamp": "2025-12-01 21:30:43.517132",
+    "report_generated": false
+  },
+  {
+    "question": "MAX_TICK_SPACING = 698605 is not checked for divisibility with MAX_TICK = 88722835. If 88722835 % 698605 != 0, does this create asymmetric tick boundaries where the maximum positive tick is not reachable? Could this trap liquidity in unreachable ticks, violating the withdrawal availability invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_20690a63-4eb0-4ef5-a184-130c31b7adad",
+    "timestamp": "2025-12-01 21:31:24.113281",
+    "report_generated": false
+  },
+  {
+    "question": "In poolConfig.sol:212, tick spacing validation allows `tickSpacing > 0 && tickSpacing <= MAX_TICK_SPACING`. Does the absence of a minimum tick spacing check (e.g., tickSpacing must divide tick range evenly) allow an attacker to create pools with tick_spacing = 1, causing excessive gas costs in tick crossing that could DOS the swap function?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_967be1db-04d5-4381-a252-e404296f36d4",
+    "timestamp": "2025-12-01 21:32:06.678532",
+    "report_generated": false
+  },
+  {
+    "question": "The concentratedMaxLiquidityPerTick calculation (poolConfig.sol:193) uses `MAX_TICK / _tickSpacing` to determine the number of ticks. If _tickSpacing is 1 (minimum) and MAX_TICK = 88722835, does this create 177,445,671 potential ticks? Could this cause integer division by zero or overflow in the `type(uint128).max / numTicks` calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6a0a4259-d94f-4314-a1ff-03c462315f5a",
+    "timestamp": "2025-12-01 21:32:48.446691",
+    "report_generated": false
+  },
+  {
+    "question": "MAX_TICK_SPACING is set to 698605 (line 22), which is ~0.787% of MAX_TICK. In poolConfig.sol:212, tick spacing is validated as `<= MAX_TICK_SPACING`. If an attacker creates a pool with tick_spacing = 698605, does this create only ~126 usable ticks across the entire range? Could this enable griefing by making pools unusable due to insufficient tick granularity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f9dd52a-90b5-483f-8e05-dd8d86b22d6b",
+    "timestamp": "2025-12-01 21:33:28.168473",
+    "report_generated": false
+  },
+  {
+    "question": "In tickBitmap.sol:16, the function `tickToBitmapWordAndIndex` uses signed division with tick spacing. If MAX_TICK_MAGNITUDE is used for validation but MIN_TICK/MAX_TICK constants have different absolute values, could this create asymmetric bitmap word calculations that corrupt tick initialization state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff938842-3e17-473b-9fa8-92629ec5a45b",
+    "timestamp": "2025-12-01 21:34:06.034359",
+    "report_generated": false
+  },
+  {
+    "question": "The cast `uint32(MAX_TICK)` assumes MAX_TICK fits in uint32. However, 88722835 requires 27 bits. If MAX_TICK were accidentally set to a value exceeding uint32 max (4,294,967,295), would the silent truncation in the cast allow invalid tick values to pass validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b0d3e057-0e02-46b0-bbe6-ca1bd03ea249",
+    "timestamp": "2025-12-01 21:34:43.287429",
+    "report_generated": false
   }
 ]
