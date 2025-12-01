@@ -3748,5 +3748,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4f921d9-319d-40f7-9ef9-8ef50b8e5ee8",
     "timestamp": "2025-12-01 20:46:58.281628",
     "report_generated": false
+  },
+  {
+    "question": "The POSITIONS contract accumulates fees via _computeSwapProtocolFees and _computeWithdrawalProtocolFees. If these fee computations overflow uint128, could getProtocolFees (line 59) return truncated values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c354807b-c605-4ff9-a5e0-9c9b96ce2e9d",
+    "timestamp": "2025-12-01 20:48:14.124810",
+    "report_generated": false
+  },
+  {
+    "question": "In withdrawProtocolFees (BasePositions line 191), the function encodes CALL_TYPE_WITHDRAW_PROTOCOL_FEES. If handleLockData (line 331-336) has a bug in decoding, could wrong amounts be withdrawn?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ed8ce8f-dae8-44c8-8b16-ff432b6a76b2",
+    "timestamp": "2025-12-01 20:48:27.679102",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawProtocolFees at line 70 doesn't validate token0 < token1 ordering. If tokens are reversed, could Core.updateSavedBalances update the wrong storage slot, corrupting other pairs' fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e11cca89-3178-485c-9089-b712641b3137",
+    "timestamp": "2025-12-01 20:48:41.388612",
+    "report_generated": false
+  },
+  {
+    "question": "In POSITIONS.getProtocolFees, if savedBalances packing places token0 in lower 128 bits and token1 in upper 128, but withdrawProtocolFees unpacks reversed, could amounts be swapped?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_043aec5e-a2b7-46d8-9e13-5f28777fa623",
+    "timestamp": "2025-12-01 20:48:56.843363",
+    "report_generated": false
+  },
+  {
+    "question": "The call at line 70 assumes POSITIONS is not paused or frozen. If POSITIONS has emergency pause functionality, could withdrawAndRoll be permanently bricked during emergencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_127637d9-dc80-4d3d-b90d-66c64b27532a",
+    "timestamp": "2025-12-01 20:49:12.456968",
+    "report_generated": false
+  },
+  {
+    "question": "In line 59, if getProtocolFees performs a STATICCALL that reverts for some token pairs (e.g., NATIVE_TOKEN_ADDRESS special handling), could this DoS withdrawAndRoll for specific pairs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_975a52fa-eabb-46c1-8fca-3c2b706114a4",
+    "timestamp": "2025-12-01 20:49:29.123115",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawProtocolFees flow (line 70 -> BasePositions line 191 -> handleLockData line 331) involves multiple external calls. Could gas griefing via nested calls cause out-of-gas in roll(), withdrawing fees but not creating buybacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ef6ac4c-e291-4495-866c-838b8c882142",
+    "timestamp": "2025-12-01 20:49:47.291983",
+    "report_generated": false
+  },
+  {
+    "question": "If POSITIONS.withdrawProtocolFees triggers extension hooks (beforeUpdatePosition, etc.), could a malicious extension reenter PositionsOwner to call withdrawAndRoll again before the first completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f19738d3-11ba-414d-bae1-1670a867a3f2",
+    "timestamp": "2025-12-01 20:50:07.716493",
+    "report_generated": false
+  },
+  {
+    "question": "The BUYBACKS.state() call at line 53 reads from RevenueBuybacks storage. If this uses sload() with token addresses as keys, could an attacker create a token with an address that collides with storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d294045-2835-460f-bb91-55d0c7ca5571",
+    "timestamp": "2025-12-01 20:50:29.868159",
+    "report_generated": false
+  },
+  {
+    "question": "In line 54, minOrderDuration() == 0 indicates unconfigured token. If RevenueBuybacks.configure() sets minOrderDuration to 1, then immediately to 0, could this lock out withdrawAndRoll permanently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc8500cc-4155-46a0-88fb-f41320e31014",
+    "timestamp": "2025-12-01 20:50:53.209912",
+    "report_generated": false
+  },
+  {
+    "question": "The state() call (line 53) returns BuybacksState for both tokens. If token0 = token1, does state() return duplicated data, or could it return stale data for one causing the check at line 54 to incorrectly pass/fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_59a5c407-4d15-4116-9c92-c0f29b94a71c",
+    "timestamp": "2025-12-01 20:51:18.107224",
+    "report_generated": false
+  },
+  {
+    "question": "In line 74-75, roll() is called for both tokens. If roll() for token0 creates an order that consumes all BUY_TOKEN balance, could roll() for token1 revert due to insufficient BUY_TOKEN, causing entire withdrawAndRoll to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_909ee5cd-7a28-4893-8c06-d2ccb0ccf110",
+    "timestamp": "2025-12-01 20:51:43.565716",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function at lines 74-75 doesn't return bool success. If roll() fails with a revert, withdrawAndRoll reverts entirely. Could this be exploited by manipulating BUYBACKS state to brick fee withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b565ed47-9f83-45c0-b836-b32b178c4eb9",
+    "timestamp": "2025-12-01 20:52:09.855107",
+    "report_generated": false
+  },
+  {
+    "question": "In BUYBACKS.roll() (RevenueBuybacks line 90), if amountToSpend > type(uint128).max, could increaseSellAmount overflow, causing orders to be created with wrong saleRate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7fb12b27-4909-4c55-aed4-06e14ddc8e21",
+    "timestamp": "2025-12-01 20:52:37.849541",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() call at line 74 for token0 happens before line 75 for token1. If ORDERS.increaseSellAmount in token0's roll reverts, could token1's fees be lost since they weren't withdrawn yet?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a075f8f3-0325-4a9d-ab78-930047643d66",
+    "timestamp": "2025-12-01 20:53:07.230244",
+    "report_generated": false
+  },
+  {
+    "question": "In line 53, BUYBACKS.state() is called with (token0, token1). If this internally calls sload() twice, could a front-runner modify BUYBACKS storage between calls to cause inconsistent states?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_559d1552-4e62-4587-97da-a96de8ec00c8",
+    "timestamp": "2025-12-01 20:53:37.194915",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function creates TWAMM orders. If these orders have endTime in the past due to block.timestamp manipulation, could orders never execute, causing protocol fees to accumulate in BUYBACKS forever?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e302344b-9002-407b-aabb-bd87b77669d2",
+    "timestamp": "2025-12-01 20:54:06.899130",
+    "report_generated": false
+  },
+  {
+    "question": "In line 74-75, roll() is called regardless of whether withdrawal succeeded. If withdrawProtocolFees reverted, could roll() still execute with old balance, creating incorrect orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1662dffb-74c9-465d-afed-fa67b509843f",
+    "timestamp": "2025-12-01 20:54:38.755196",
+    "report_generated": false
+  },
+  {
+    "question": "The BUYBACKS contract checks isConfigured() via minOrderDuration() != 0. If this check is bypassed (e.g., via storage corruption), could roll() create orders with 0 duration, instantly expiring?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2ff7577-0f1c-49a5-8ad9-06307c70a75f",
+    "timestamp": "2025-12-01 20:55:12.152999",
+    "report_generated": false
+  },
+  {
+    "question": "In BUYBACKS.roll() (line 90-139), if nextValidTime() calculation overflows uint64, could endTime wrap to a small value, making orders expire immediately?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b9e1ee5-aeea-4ff1-bc0a-77b946e98ba5",
+    "timestamp": "2025-12-01 20:55:42.340189",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function at lines 74-75 is called twice in sequence. If the first call changes BUYBACKS state in a way that affects the second (e.g., updating NFT_ID), could the second fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a8e92ce-07d7-455e-aa5c-ac5c6d6a737f",
+    "timestamp": "2025-12-01 20:56:12.969561",
+    "report_generated": false
+  },
+  {
+    "question": "In line 75, if token1 = NATIVE_TOKEN_ADDRESS and roll() sends ETH value, but BUYBACKS.roll() isn't payable or doesn't handle ETH correctly, could native token fees be lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f9e3405-908a-4907-9488-2c643104a9f9",
+    "timestamp": "2025-12-01 20:56:44.892945",
+    "report_generated": false
+  },
+  {
+    "question": "The BUYBACKS.roll() uses Orders.increaseSellAmount() (RevenueBuybacks line 134). If this function has reentrancy issues, could an attacker drain BUYBACKS by calling roll() recursively?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_77c75c9b-3c93-4aef-bf48-4900f1943851",
+    "timestamp": "2025-12-01 20:57:15.676316",
+    "report_generated": false
+  },
+  {
+    "question": "In line 53-54, if BUYBACKS returns malicious BuybacksState with minOrderDuration set to prevent specific token pairs from being withdrawn, could this DoS protocol fee collection for those pairs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3b765aba-7db7-4a2a-b18f-d088b6228f3c",
+    "timestamp": "2025-12-01 20:57:44.518219",
+    "report_generated": false
+  },
+  {
+    "question": "The state() function (line 53) uses RevenueBuybacksLib.state() which calls sload(). If the storage slot calculation has a collision with another contract's storage, could wrong configuration be read?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e1b5a4b-c638-43be-9833-110ef4cfe29f",
+    "timestamp": "2025-12-01 20:58:12.539032",
+    "report_generated": false
   }
 ]
