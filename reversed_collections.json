@@ -1798,5 +1798,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6353c541-69a9-49c9-92b6-731873b77f5f",
     "timestamp": "2025-12-01 18:13:00.826547",
     "report_generated": false
+  },
+  {
+    "question": "In toSqrtRatio() (lines 87-90), when sqrtRatio >= 2^160, does setting bits 95|94 and shifting by 98 preserve sufficient precision, or could this cause price rounding that enables arbitrage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f3e7e1e-9c6e-4280-9a26-d189fcc81722",
+    "timestamp": "2025-12-01 18:14:19.424036",
+    "report_generated": false
+  },
+  {
+    "question": "In toSqrtRatio() (lines 80-83), when sqrtRatio >= 2^128, can the bit 95 encoding cause the wrapped SqrtRatio to exceed MAX_SQRT_RATIO, violating the bounds invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7b17f7e-ec62-4ecf-acd1-b8e56ab638ff",
+    "timestamp": "2025-12-01 18:14:32.563293",
+    "report_generated": false
+  },
+  {
+    "question": "In toSqrtRatio() (lines 73-76), when sqrtRatio is in the [2^96, 2^128) range, does setting bit 94 and shifting by 34 correctly encode the value, or could rounding cause off-by-one errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e39c417-e690-4fbc-a7a6-5ffd1e680e70",
+    "timestamp": "2025-12-01 18:14:46.012003",
+    "report_generated": false
+  },
+  {
+    "question": "In toSqrtRatio() (lines 67-69), when sqrtRatio < 2^96 and roundUp is true, can adding the mask (0x3) cause the value to cross into the next region, leading to incorrect bit encoding?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c75f5540-4a45-40e6-b7a2-665747cd06bc",
+    "timestamp": "2025-12-01 18:15:02.653804",
+    "report_generated": false
+  },
+  {
+    "question": "In toSqrtRatio() (lines 59-99), when roundUp is true and sqrtRatio is near MAX_FIXED_VALUE_ROUND_UP (line 56), can the addition of rounding mask cause overflow that bypasses the MAX_FIXED_VALUE check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6891b4f3-6932-4414-8320-31b72e4bf96b",
+    "timestamp": "2025-12-01 18:15:19.362765",
+    "report_generated": false
+  },
+  {
+    "question": "In createCounts() (line 36), when ORing multiple shifted values, can the absence of AND masks on input values cause unexpected bits to leak into the packed result?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6945410d-4565-4736-8a53-a6d8de6954f3",
+    "timestamp": "2025-12-01 18:15:38.614930",
+    "report_generated": false
+  },
+  {
+    "question": "In count() (line 16), can the shl(192, counts) operation overflow when counts has certain bit patterns, causing the subsequent shr(224) to produce incorrect count values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f26ad51d-045c-4c6f-ac30-56cbf34825fa",
+    "timestamp": "2025-12-01 18:15:58.989186",
+    "report_generated": false
+  },
+  {
+    "question": "In createCounts() (lines 35-37), does the assembly block correctly pack all four uint32 values into a single bytes32, or could shift amount errors cause fields to overwrite each other?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a0a6d8fc-e956-4b3e-a47e-25b06148a944",
+    "timestamp": "2025-12-01 18:16:21.266963",
+    "report_generated": false
+  },
+  {
+    "question": "In createCounts() (lines 32-39), can the OR operations cause bit collisions when _index, _count, _capacity, or _lastTimestamp overlap in their packed representation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_871c9c4b-5618-4b97-bafc-caf74f6c0faa",
+    "timestamp": "2025-12-01 18:16:44.145190",
+    "report_generated": false
+  },
+  {
+    "question": "In lastTimestamp() (lines 26-30), does shr(224, shl(128, counts)) correctly isolate bits 96-127, or could timestamp values include garbage bits from neighboring fields due to mask errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c108a5d2-5c1f-487e-af7f-afc242b280ae",
+    "timestamp": "2025-12-01 18:17:07.952781",
+    "report_generated": false
+  },
+  {
+    "question": "In capacity() (lines 20-24), when extracting bits 64-95 using shr(224, shl(160, counts)), can compiler optimization bugs cause the shifts to be reordered and return wrong capacity values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c19cf877-9f43-4881-8204-5aac3dc4169c",
+    "timestamp": "2025-12-01 18:17:33.951418",
+    "report_generated": false
+  },
+  {
+    "question": "In count() (lines 14-18), does the double shift pattern 'shr(224, shl(192, counts))' correctly extract bits 32-63, or could the shift amounts be off, causing count to overlap with other fields?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_886703cd-18e2-41a1-96ee-88eaaa14dcbc",
+    "timestamp": "2025-12-01 18:17:59.579981",
+    "report_generated": false
+  },
+  {
+    "question": "In index() (lines 8-12), can the assembly AND mask (0xFFFFFFFF) fail to isolate the lower 32 bits if counts has been corrupted, returning an index that exceeds observation array capacity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c3e62154-d1df-4832-9f5d-39f284fa1102",
+    "timestamp": "2025-12-01 18:18:27.542790",
+    "report_generated": false
+  },
+  {
+    "question": "In isValid() (line 26), can the evaluation order of the OR chain cause gas differences that leak information about which call points are enabled, enabling timing attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_87e2e725-177b-4762-a88e-70170bd84c32",
+    "timestamp": "2025-12-01 18:18:57.115691",
+    "report_generated": false
+  },
+  {
+    "question": "In addressToCallPoints() (line 54), when an extension address has non-zero bits in positions other than bits 152-159, can these be misinterpreted as call points, allowing unauthorized hooks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f2a74f9-8644-47c7-b981-addce5c385c7",
+    "timestamp": "2025-12-01 18:19:27.006629",
+    "report_generated": false
+  },
+  {
+    "question": "In toUint8() (lines 36-48), can the nested additions overflow type(uint8).max when all fields are enabled, causing the result to wrap and produce a value less than 255?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7993ebc2-edd5-4d0b-b77a-49ed2972021b",
+    "timestamp": "2025-12-01 18:19:57.754865",
+    "report_generated": false
+  },
+  {
+    "question": "In byteToCallPoints() (lines 61-68), can the bit mask values (1, 128, 64, 32, 16, 8, 4, 2) mismatch with the encoding in toUint8(), causing roundtrip conversions to corrupt call point state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d73a6db8-6be2-479a-87b1-fbf369e485de",
+    "timestamp": "2025-12-01 18:20:29.046157",
+    "report_generated": false
+  },
+  {
+    "question": "In toUint8() (line 37), when loading from memory at 'mload(callPoints)', does this correctly access the first bool field (beforeInitializePool), or could struct packing cause wrong field access?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3d6e1df-6366-447c-8a81-27780ddec243",
+    "timestamp": "2025-12-01 18:21:01.988828",
+    "report_generated": false
+  },
+  {
+    "question": "In isValid() (lines 24-27), does the OR chain correctly check if any call point is enabled, or could all-false CallPoints incorrectly return true due to evaluation order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_706ccd30-ad3c-4c99-8d10-5f66ed5c8c67",
+    "timestamp": "2025-12-01 18:21:36.348018",
+    "report_generated": false
+  },
+  {
+    "question": "In eq() (lines 17-22), when comparing two CallPoints structs, can short-circuit evaluation cause the function to return true for partially matching structs, breaking call point validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0272ee28-1c69-49c4-b163-cd31df4e8dd7",
+    "timestamp": "2025-12-01 18:22:09.348983",
+    "report_generated": false
+  },
+  {
+    "question": "In addressToCallPoints() (line 54), does the right shift by 152 bits correctly extract the call point byte from an address, or could this make extension addresses incompatible with expected call point patterns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29118c7b-276c-4b89-9a69-80bad8ac03f9",
+    "timestamp": "2025-12-01 18:22:41.724978",
+    "report_generated": false
+  },
+  {
+    "question": "In byteToCallPoints() (line 58-59), can the comment about 'cairo implementation' order mismatch cause integration bugs where extension call points are invoked out of order, violating protocol assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd380197-1a48-4ad4-aa47-7e348dbe9bd2",
+    "timestamp": "2025-12-01 18:23:15.323093",
+    "report_generated": false
+  },
+  {
+    "question": "In byteToCallPoints() (lines 57-69), does the bit masking (e.g., b & 1, b & 128) correctly decode each bit into the corresponding bool field, or could bit order mismatch cause hooks to fire at wrong times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c79af056-4e51-4c01-b5ea-3b2061cbcde6",
+    "timestamp": "2025-12-01 18:23:47.399822",
+    "report_generated": false
+  },
+  {
+    "question": "In toUint8() (lines 31-49), do the multiplication factors (1, 2, 4, 8, 16, 32, 64, 128) correctly encode each bool field into a bit position, or could loading from wrong memory offsets corrupt the encoding?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ec5c978f-d858-4e3b-8504-eb6b9ff12aee",
+    "timestamp": "2025-12-01 18:24:20.024566",
+    "report_generated": false
+  },
+  {
+    "question": "In toUint8() (lines 29-51), can the assembly addition chain overflow when all bool fields are true, causing the returned uint8 to wrap and produce incorrect call point encoding?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c176866a-1df7-46b8-93a9-189c331d5f57",
+    "timestamp": "2025-12-01 18:24:53.056916",
+    "report_generated": false
   }
 ]
