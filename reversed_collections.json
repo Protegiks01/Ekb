@@ -4048,5 +4048,305 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b0d3e057-0e02-46b0-bbe6-ca1bd03ea249",
     "timestamp": "2025-12-01 21:34:43.287429",
     "report_generated": false
+  },
+  {
+    "question": "MAX_TICK_MAGNITUDE is defined as `uint32(MAX_TICK)` (line 18). Since MAX_TICK = 88722835 is an int32, does this cast lose sign information? Could an attacker pass a negative tick that, when compared against MAX_TICK_MAGNITUDE, bypasses the boundary check in ticks.sol:25?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3ff28d25-7a06-4c32-bd4e-0cc4c9b782fe",
+    "timestamp": "2025-12-01 21:35:55.657001",
+    "report_generated": false
+  },
+  {
+    "question": "In poolConfig.sol:221, the center tick validation checks `centerTick < MIN_TICK || centerTick > MAX_TICK`. Does the MIN_TICK constant's large magnitude (-88722835) allow stableswap pools to be created with extremely off-center ticks that cause integer overflow in width calculations (line 128-129)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afb8462f-70fd-435d-971f-2d677975d254",
+    "timestamp": "2025-12-01 21:36:08.633156",
+    "report_generated": false
+  },
+  {
+    "question": "MIN_TICK and MAX_TICK are not validated as opposites (MIN_TICK != -MAX_TICK) in constants.sol. If MIN_TICK = -88722835 and MAX_TICK = 88722835 are asymmetric, could this create off-by-one errors in tick range calculations in stableswapActiveLiquidityTickRange (poolConfig.sol:123-134) leading to incorrect liquidity bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c84d29a8-e495-4991-a241-b62abbe76deb",
+    "timestamp": "2025-12-01 21:36:22.623127",
+    "report_generated": false
+  },
+  {
+    "question": "The tick boundary check in ticks.sol:25 validates `t > MAX_TICK_MAGNITUDE`. If MAX_TICK_MAGNITUDE (line 18) is incorrectly cast from int32 to uint32, could this allow negative ticks below MIN_TICK to bypass validation and corrupt tick bitmap storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79bead54-6f3d-478f-b9ea-1641b7ed8405",
+    "timestamp": "2025-12-01 21:36:36.610706",
+    "report_generated": false
+  },
+  {
+    "question": "MAX_TICK is set to 88722835 (line 14), which when used in storage offset calculations in CoreStorageLayout.sol could cause storage slot collisions. Can an attacker exploit the large tick range by initializing ticks near MAX_TICK to overwrite critical pool state variables stored at calculated offsets (TICKS_OFFSET + MAX_TICK)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29c765fe-c5ed-4614-aa14-5c955857af05",
+    "timestamp": "2025-12-01 21:36:51.160566",
+    "report_generated": false
+  },
+  {
+    "question": "The MIN_TICK constant is defined as -88722835 (line 10). Given that Uniswap V3 uses MIN_TICK = -887272, does this 100x larger tick range create precision loss or overflow risks in the tickToSqrtRatio conversion function that could enable price manipulation attacks through extreme tick values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3d8145b-b21f-4266-90e2-11ee78798f68",
+    "timestamp": "2025-12-01 21:37:07.108753",
+    "report_generated": false
+  },
+  {
+    "question": "The toQuarter() function pads years < 10 with a leading zero at line 33 ('year < 10 ? \"0\" : \"\"'), ensuring 2-digit year format. However, if year = 100 or greater (which shouldn't happen after modulo 100, but if there's a bug), the format would be '100Q1' or '999Q4' instead of the expected 2-digit format. Could this malformed output cause parsing errors in protocols expecting exactly 4-character quarter labels (e.g., '25Q3')?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57e7b3a8-21f3-4735-9afe-ffa595de5595",
+    "timestamp": "2025-12-01 21:37:24.968842",
+    "report_generated": false
+  },
+  {
+    "question": "Similarly, the year string at line 39 isn't validated for length. For years 1-999 AD, LibString.toString(year) would return 1-3 digit strings. While DateTimeLib is unlikely to return such values for Unix timestamps, if there's any possibility of this, the date format would be malformed (e.g., 'Jan/1/999' instead of 'Jan/1/0999'). Could this break date parsing in external systems?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d1f9ad4-edf8-4d31-b182-13f0c4764647",
+    "timestamp": "2025-12-01 21:37:44.338130",
+    "report_generated": false
+  },
+  {
+    "question": "The toDate() function at line 42 doesn't pad day values. For day = 1-9, LibString.toString(day) returns single-digit strings ('1', '2', etc.), resulting in formats like 'Jan/1/2025'. Some date parsers expect zero-padded days ('Jan/01/2025'). Could this inconsistency cause protocols that parse TokenWrapper names to fail or misinterpret dates, especially automated systems that use regex patterns expecting fixed-width date components?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fab63a06-512c-416a-b1dd-268feaee8753",
+    "timestamp": "2025-12-01 21:38:05.824348",
+    "report_generated": false
+  },
+  {
+    "question": "The Solady DateTimeLib likely assumes proleptic Gregorian calendar (Gregorian rules applied backwards). If there are any assumptions in external protocols about calendar systems (e.g., expecting Julian calendar for ancient dates), the date strings from toDate() might be misinterpreted. While unlikely to be exploitable for fund theft, could this cause confusion in historical data analysis or blockchain forensics?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e55d422-5b8a-4b30-9f0a-76294d467c19",
+    "timestamp": "2025-12-01 21:38:27.395665",
+    "report_generated": false
+  },
+  {
+    "question": "DateTimeLib.timestampToDate() presumably uses the Gregorian calendar. However, if there are any edge cases where historical calendar transitions (e.g., Julian to Gregorian calendar switch in 1582) affect timestamp interpretation, could unlock times set to dates during those transitions produce unexpected date labels? While this is mostly historical, could it affect TokenWrapper tokens with unlock times extrapolated to the past for testing or edge case handling?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1d78059a-f255-485b-95ea-ce7a736a1f5b",
+    "timestamp": "2025-12-01 21:38:50.832952",
+    "report_generated": false
+  },
+  {
+    "question": "The format 'g[SYMBOL]-[QUARTER]' used by TokenWrapper.symbol() at line 87 is somewhat predictable. If an attacker knows the underlying token symbol and target quarter, they can pre-compute what the wrapped token symbol will be. Could this be exploited to front-run TokenWrapper deployments by registering similar token symbols on token listing platforms, causing confusion when the legitimate wrapped token is deployed later?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f00ac302-f1c4-4423-b1b2-8f76c98d0af9",
+    "timestamp": "2025-12-01 21:39:15.874952",
+    "report_generated": false
+  },
+  {
+    "question": "Since toDate() and toQuarter() are pure functions, anyone can call them off-chain with arbitrary timestamp values to generate formatted date strings. An attacker could create a fake token contract that returns hardcoded name() and symbol() values mimicking the output of toDate()/toQuarter() for a specific unlock time, but doesn't actually use TimeDescriptor or TokenWrapper. Could this enable spoofing attacks where fake tokens impersonate legitimate wrapped tokens by having identical metadata strings?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cedce26c-aaa8-44ef-ae88-06fb473169dc",
+    "timestamp": "2025-12-01 21:39:42.131703",
+    "report_generated": false
+  },
+  {
+    "question": "There's no try-catch or fallback mechanism if DateTimeLib.timestampToDate() reverts or returns unexpected values. If DateTimeLib has strict validation (e.g., rejecting timestamps beyond a certain date range), TokenWrapper deployments with far-future unlock times might have metadata functions that always revert. Could this make certain wrapped tokens completely unusable in UIs that require metadata queries to succeed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4f4538d-3e06-495c-adc2-c7036abff72f",
+    "timestamp": "2025-12-01 21:40:07.627882",
+    "report_generated": false
+  },
+  {
+    "question": "The getMonthAbbreviation() function reverts with UnrecognizedMonth() at line 23 if month is not 1-12. This custom error (defined at line 7) provides clear failure semantics. However, when toDate() calls getMonthAbbreviation() at line 40, and this reverts, the entire TokenWrapper.name() call at line 81 would revert. Could this cause cascading failures where wallets or DEXes attempting to fetch token metadata encounter reverts, potentially marking TokenWrapper tokens as 'broken' or 'malicious' in automated scans?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f400c701-1888-49d2-bc83-1ff46cce119d",
+    "timestamp": "2025-12-01 21:40:34.509630",
+    "report_generated": false
+  },
+  {
+    "question": "Inside the unchecked block at line 33, LibString.toString() is called twice and string.concat() is called once. These are external library function calls. If LibString has any internal overflow/underflow risks that would normally be caught by checked arithmetic, the unchecked context might suppress those checks. Could this lead to silent failures or unexpected behavior in string formatting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef25a648-bfeb-4eca-bad5-07886a608625",
+    "timestamp": "2025-12-01 21:41:03.474846",
+    "report_generated": false
+  },
+  {
+    "question": "The unchecked block in toQuarter() at lines 31-34 contains the quarter calculation and string concatenation. While the arithmetic seems safe (year < 100 after modulo, quarter is 1-4), the unchecked block scope might accidentally cover more operations than intended. If future code modifications add operations inside this unchecked block, could those operations silently overflow/underflow without protection, introducing bugs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_76ce3fc4-88fd-4813-b239-dd4f6858d504",
+    "timestamp": "2025-12-01 21:41:33.041175",
+    "report_generated": false
+  },
+  {
+    "question": "Conversely, if Solady releases a breaking change in DateTimeLib.timestampToDate() return format (e.g., switching from (year, month, day) tuple to a different struct), and Ekubo upgrades its Solady dependency without updating TimeDescriptor, compilation would fail. But if there are subtle behavioral changes (not breaking the API), could this cause different TokenWrapper deployments to display inconsistent date formats depending on when they were deployed and which Solady version was active?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c8ddd6b-b57d-4c7a-a21b-7f422bbac156",
+    "timestamp": "2025-12-01 21:42:03.137661",
+    "report_generated": false
+  },
+  {
+    "question": "The imports from Solady (DateTimeLib and LibString) at lines 4-5 don't specify version constraints within the Solidity code itself (version pinning is handled by package managers). If Ekubo's deployment uses an outdated Solady version with known bugs in timestamp conversion or string handling, could this cause all TokenWrapper deployments to inherit those bugs, potentially producing incorrect metadata that affects token trading and user trust?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f192b6f4-14ed-4853-bfe6-3bcb6410e466",
+    "timestamp": "2025-12-01 21:42:34.524930",
+    "report_generated": false
+  },
+  {
+    "question": "The modulo operation 'year % 100' at line 28 is performed in an unchecked block (lines 31-34). While year values are unlikely to overflow since they come from DateTimeLib, if there's any way to cause year to be a huge value (e.g., DateTimeLib bug with extreme timestamps), the modulo operation might produce unexpected results or consume excessive gas. Could this cause TokenWrapper symbol() calls to fail or behave unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cfaff973-89a9-40ac-b6c9-e2bd8985d384",
+    "timestamp": "2025-12-01 21:43:04.235794",
+    "report_generated": false
+  },
+  {
+    "question": "The line 'year = year % 100' at line 28 in toQuarter() reduces years to 2 digits. For years 2000-2099, this produces 0-99. But '00' is ambiguous (2000? 2100? 1900?). If TokenWrapper contracts are deployed with unlock times spanning multiple centuries (e.g., some in 2025, some in 2125), the quarter labels would be indistinguishable ('25Q1' for both 2025 and 2125). Could this enable attacks where users accidentally trade or interact with the wrong wrapped token due to symbol confusion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_88d5fd78-3385-4bb7-9e5e-47b3b10bf627",
+    "timestamp": "2025-12-01 21:43:34.364527",
+    "report_generated": false
+  },
+  {
+    "question": "Some ERC20 tooling assumes symbol() returns uppercase strings (e.g., 'USDC', 'DAI'). The toQuarter() output includes lowercase letters ('g' prefix and 'Q' for quarter) when concatenated with the underlying token symbol. If automated token list generators filter for uppercase-only symbols, TokenWrapper tokens might not be discovered or indexed correctly. While not a security issue, could this affect token liquidity or discoverability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5fd5c43f-d780-4827-858d-a1324f613e51",
+    "timestamp": "2025-12-01 21:44:04.378996",
+    "report_generated": false
+  },
+  {
+    "question": "ERC20 name() and symbol() functions are expected to return constant strings for most tokens. However, for TokenWrapper, name() and symbol() return values computed from toDate() and toQuarter() based on the immutable UNLOCK_TIME. If external protocols cache metadata and assume it never changes, but future deployments of TokenWrapper use different date formats or if TimeDescriptor is upgraded, could this cause stale metadata issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8f015fc-9079-4fb4-972e-a4aa48be72cc",
+    "timestamp": "2025-12-01 21:44:34.251377",
+    "report_generated": false
+  },
+  {
+    "question": "Similarly, for unlock times at quarter transitions (e.g., 11:59:59 PM on March 31 vs 12:00:00 AM on April 1), the quarter label switches from Q1 to Q2 despite being only 1 second apart. While technically correct, could this enable griefing where attackers deploy many TokenWrapper variants with UNLOCK_TIME at quarter boundaries to create confusing token pairs that appear to have the same quarter but different unlock times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8dd01874-2265-4336-a999-a3996d25c34a",
+    "timestamp": "2025-12-01 21:45:04.035935",
+    "report_generated": false
+  },
+  {
+    "question": "The toQuarter() calculation divides (month - 1) by 3 to determine quarters: months 1-3 → Q1, 4-6 → Q2, 7-9 → Q3, 10-12 → Q4. This is correct for month boundaries. However, if a TokenWrapper has UNLOCK_TIME set to the last second of March (month 3), the quarter label shows Q1, even though unlocking happens at the very end of Q1. Could this cause confusion where users expect Q1 unlocks to happen at the start of the quarter, not the end?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a47d8d1c-b3d1-48cd-ab21-25e84e73f649",
+    "timestamp": "2025-12-01 21:45:30.618466",
+    "report_generated": false
+  },
+  {
+    "question": "For UNLOCK_TIME = 1 (one second after Unix epoch), similar issues arise. If users or protocols parse the metadata and see dates in 1970, they might assume these are test tokens or invalid contracts, when they could actually hold real value. Could this metadata mismatch enable attacks where legitimate tokens are dismissed as worthless based on their confusing date labels?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_943e84d8-091d-4e76-808c-a12bd8bc756b",
+    "timestamp": "2025-12-01 21:47:07.743821",
+    "report_generated": false
+  },
+  {
+    "question": "If a TokenWrapper is deployed with UNLOCK_TIME = 0 (Unix epoch, Jan 1 1970), toDate(0) would return 'Jan/1/1970' and toQuarter(0) would return '70Q1'. While technically valid, this suggests the tokens were unlockable 50+ years ago, which is confusing. Could attackers deploy such contracts to claim tokens are 'already unlocked' (based on metadata) when the unwrap() function still enforces the timestamp check, causing user confusion or enabling scams?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_907d7ee0-8468-49f9-ac86-802053ca62a3",
+    "timestamp": "2025-12-01 21:47:21.311894",
+    "report_generated": false
+  },
+  {
+    "question": "Solidity strings are UTF-8 encoded bytes. If DateTimeLib.timestampToDate() or any of the string operations produce non-ASCII characters (e.g., due to bugs in year/month/day formatting for extreme values), could the resulting token name or symbol contain invalid UTF-8 sequences that cause crashes or display corruption in UIs, effectively DoS-ing the token's usability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68b86319-45c4-4267-9d80-82126fb73e10",
+    "timestamp": "2025-12-01 21:47:36.190637",
+    "report_generated": false
+  },
+  {
+    "question": "The string literals in getMonthAbbreviation() (lines 11-22) are ASCII characters. However, if LibString.toString() or string.concat() have any Unicode handling issues, could the resulting ERC20 metadata contain unexpected character encodings that cause display issues in wallets or DEXes, potentially making tokens appear malicious or hiding the actual unlock information?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_428d6bf2-5480-4b47-9046-2179ccedce12",
+    "timestamp": "2025-12-01 21:47:51.608439",
+    "report_generated": false
+  },
+  {
+    "question": "For the toDate() function, the invariant should be that month abbreviations are always 3 characters (Jan, Feb, etc.), day is 1-31, and year is 4 digits. If any of these invariants are violated due to library bugs or unexpected inputs, the concatenated string format 'MMM/DD/YYYY' would be malformed. Could this cause parsing errors in protocols that extract unlock dates from token names, potentially leading to incorrect unlock time assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8362c936-a898-4043-aebb-b7fdb09441cf",
+    "timestamp": "2025-12-01 21:48:06.772106",
+    "report_generated": false
+  },
+  {
+    "question": "The toQuarter() function should satisfy the invariant that for any valid timestamp, the quarter number is always 1, 2, 3, or 4. This is ensured by the calculation '1 + (month - 1) / 3' where month is 1-12. However, if DateTimeLib returns month outside this range due to a bug, the invariant breaks. Since there's no assertion checking this invariant, could malformed quarter labels like 'Q0' or 'Q5' be produced, breaking protocols that enumerate quarters for time-based calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a018bef8-ec9e-4261-9f60-ca0a9a4a7a4e",
+    "timestamp": "2025-12-01 21:48:23.460728",
+    "report_generated": false
+  },
+  {
+    "question": "The TokenWrapper.symbol() at line 87 uses the format 'g[SYMBOL]-[QUARTER]'. If the underlying token symbol contains hyphens (e.g., 'UNI-LP'), the resulting symbol would be 'gUNI-LP-25Q3' which has two hyphens. Could this break protocols that parse symbols assuming a single hyphen delimiter, causing them to extract the wrong token identifier or quarter information?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4ad049d-9862-4d07-bcff-1aa945b19ad3",
+    "timestamp": "2025-12-01 21:48:44.890018",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.name() at line 81, the format is '[UNDERLYING_NAME] [DATE]'. If the underlying token name already contains date information or formatting (e.g., 'Token 2025'), the concatenation with toDate() output could produce confusing names like 'Token 2025 Jan/15/2026'. While not a direct vulnerability, could this cause user confusion that enables social engineering attacks or incorrect token identification in multi-token portfolios?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6fa65f08-2744-4e1b-a0e1-799fe42dd1e8",
+    "timestamp": "2025-12-01 21:49:07.056972",
+    "report_generated": false
+  },
+  {
+    "question": "Since these are pure view functions, they can be called off-chain for metadata queries but also on-chain. If there's any difference in how DateTimeLib or LibString behaves in on-chain vs off-chain calls (e.g., due to gas limits, EVM version differences, or library linking), could this cause TokenWrapper contracts to display different metadata depending on the query context, breaking user expectations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_520dc872-52ec-4b41-b9e8-24cc1dda0110",
+    "timestamp": "2025-12-01 21:49:30.942529",
+    "report_generated": false
+  },
+  {
+    "question": "The functions getMonthAbbreviation(), toQuarter(), and toDate() are all marked as 'pure', meaning they don't read state and should be deterministic. However, they depend on external library functions from Solady. If future Solidity versions or compiler optimizations change how pure functions are handled, or if there are bugs in how external pure function calls are resolved, could this affect the consistency of returned strings across different execution contexts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_172d6bea-c32b-4637-b2a0-b991878e8ef0",
+    "timestamp": "2025-12-01 21:49:55.437580",
+    "report_generated": false
+  },
+  {
+    "question": "For unlock times set to the last second of a month (e.g., Jan 31 23:59:59), if DateTimeLib has any off-by-one errors in its date conversion, could the toDate() output show the next month/day instead? This would cause the TokenWrapper name to claim tokens unlock on Feb 1 when they actually unlock on Jan 31, a potential 24-hour discrepancy that could affect time-sensitive trading strategies.",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70d5b8b2-5f02-4c24-87e5-424cbf86476b",
+    "timestamp": "2025-12-01 21:50:21.777986",
+    "report_generated": false
+  },
+  {
+    "question": "The DateTimeLib.timestampToDate() function presumably handles leap years, but TimeDescriptor doesn't validate this. If there's a leap year bug in DateTimeLib (e.g., incorrectly handling Feb 29 in leap years or century years like 2100 which is not a leap year), could TokenWrapper tokens with unlock times on Feb 29 or around leap year boundaries display incorrect dates, misleading users about the actual unlock time?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bb74d9ba-fc02-4d70-bb04-a30d6029e2a5",
+    "timestamp": "2025-12-01 21:50:49.582113",
+    "report_generated": false
+  },
+  {
+    "question": "The toQuarter() format (e.g., '25Q3') uses 2-digit years without century indicators. If a protocol integration assumes all 2-digit years are in the 2000s (e.g., '25' = 2025), but tokens are deployed with unlock times in the 2100s, the quarter label would be ambiguous (e.g., '25' could be 2025 or 2125). Could this cause severe mispricing or incorrect time-based logic in DeFi protocols that integrate with TokenWrapper?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fdedca51-bee7-4788-ae3c-38bd86329847",
+    "timestamp": "2025-12-01 21:51:17.545396",
+    "report_generated": false
+  },
+  {
+    "question": "If other protocols or smart contracts attempt to parse the date from TokenWrapper.name() output (formatted by toDate()), they would need to parse the 'MMM/DD/YYYY' format correctly. If those protocols have parsing bugs or make incorrect assumptions about the format (e.g., expecting 2-digit years, or not handling single-digit days), could this cause off-chain systems or other smart contracts to misinterpret unlock times, potentially affecting automated trading bots or liquidation systems?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_82be96f4-ec6d-4090-8393-8a91bd6eac51",
+    "timestamp": "2025-12-01 21:51:45.834080",
+    "report_generated": false
+  },
+  {
+    "question": "Since getMonthAbbreviation() can revert with UnrecognizedMonth() at line 23, and this is called by toDate() which is called by TokenWrapper.name(), a bug in DateTimeLib that causes it to return invalid month values would make the ERC20 name() function revert. This would break ERC20 compliance and could cause wrapped tokens to be delisted from DEXes or become untradeable. Is there any fallback or error handling to prevent this?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ccbc0caf-5033-425d-80f1-5f7a0e762a30",
+    "timestamp": "2025-12-01 21:52:15.957138",
+    "report_generated": false
+  },
+  {
+    "question": "TimeDescriptor imports DateTimeLib and LibString from Solady (lines 4-5). These are external dependencies with their own security assumptions. If Solady releases an update with breaking changes or bugs that affect timestamp conversion or string handling, and Ekubo's dependencies aren't pinned to specific versions, could this cause all deployed TokenWrapper contracts to suddenly display incorrect metadata or revert on metadata queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4d642111-55ed-4ae5-acc1-e007d58674ec",
+    "timestamp": "2025-12-01 21:52:46.950857",
+    "report_generated": false
+  },
+  {
+    "question": "When TokenWrapper checks 'block.timestamp < UNLOCK_TIME' at line 168 for unwrapping, it uses raw Unix timestamps. But toDate() and toQuarter() convert these to calendar dates. If there's any mismatch in how DateTimeLib interprets the timestamp boundaries (e.g., is midnight UTC inclusive or exclusive?), could tokens show an unlock date of 'Jan/1/2025' but actually be unwrappable on Dec/31/2024 23:59:59, confusing users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dddd8b27-06a0-41fd-bca9-c5b883da6c45",
+    "timestamp": "2025-12-01 21:53:14.873138",
+    "report_generated": false
+  },
+  {
+    "question": "The toDate() and toQuarter() functions both use DateTimeLib.timestampToDate() to interpret unlockTime as a UTC timestamp. However, if DateTimeLib has any timezone handling or daylight saving time logic that affects the returned month/day/year, could two different timestamps that should represent the same date produce different formatted strings, causing inconsistency in TokenWrapper metadata?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e2f7eb9-adf7-4f6a-94f6-100f0911aa40",
+    "timestamp": "2025-12-01 21:53:41.748002",
+    "report_generated": false
+  },
+  {
+    "question": "Similarly, in toQuarter() at lines 26-34, if year after modulo 100 is converted to string and then concatenated, and if LibString.toString() has any inefficiencies for certain values, could repeated calls to symbol() (e.g., by indexers, DEX UIs, or analytics platforms) create DoS conditions or excessive resource consumption, even if not directly exploitable for fund theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_48c14e7c-04b7-4ffd-acf9-5cdedc5dc091",
+    "timestamp": "2025-12-01 21:54:09.495062",
+    "report_generated": false
+  },
+  {
+    "question": "The toDate() function at lines 37-43 performs multiple string conversions and concatenations. For extremely large year values (if DateTimeLib returns year > 9999), LibString.toString(year) could produce very long strings. While gas costs are out of scope, could this cause the name() function in TokenWrapper to consume so much gas that it exceeds the eth_call gas limit when wallets query metadata, effectively making the token invisible in UIs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68e0c213-0bd9-4a97-8ba3-b9822d69c74d",
+    "timestamp": "2025-12-01 21:54:37.571522",
+    "report_generated": false
+  },
+  {
+    "question": "In toQuarter() at line 28, 'year % 100' is used to get the last 2 digits. For year = 0 (which would represent year 1 BCE in proleptic Gregorian calendar), this produces 0. If DateTimeLib can return year = 0 for timestamp = 0 or negative timestamps (if passed as large uint256 values), could this cause confusion with tokens showing '00Q1' for ancient dates versus year 2000 or 2100?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42b4ca30-6a70-461d-ba6a-814673d6a0f2",
+    "timestamp": "2025-12-01 21:55:07.157697",
+    "report_generated": false
+  },
+  {
+    "question": "The quarter calculation at line 33 uses '1 + (month - 1) / 3'. This maps months as: Q1(1-3), Q2(4-6), Q3(7-9), Q4(10-12). However, this is done in an unchecked block. If there's any possibility of month being 0 (even though it shouldn't be), the underflow would produce 'month - 1' = type(uint256).max, which divided by 3 gives a huge number. Could this cause the LibString.toString() call to fail or produce an unexpectedly long string that breaks the symbol format?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8b9b959-a2fe-4ac4-91d2-01545a91cfa9",
+    "timestamp": "2025-12-01 21:55:37.250729",
+    "report_generated": false
+  },
+  {
+    "question": "In getMonthAbbreviation(), there's no protection against month values outside 1-12 except the revert at line 23. If a future version of DateTimeLib changes its return format or has a bug causing it to return month = type(uint256).max or other extreme values, the revert would permanently break all TokenWrapper tokens using those timestamps. Could this create a systemic risk where many wrapped tokens become unusable simultaneously?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f0febc6-0827-48bd-9052-c110a20f0b8a",
+    "timestamp": "2025-12-01 21:56:04.603816",
+    "report_generated": false
+  },
+  {
+    "question": "The getMonthAbbreviation() function uses hardcoded English month abbreviations (Jan, Feb, etc.) at lines 11-22. If TokenWrapper is deployed on L2s or sidechains where users expect localized date formats, the English-only abbreviations could cause confusion. More critically, if external protocols parse these date strings expecting certain formats, could discrepancies lead to incorrect unlock time interpretation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ddf80cb5-c2ea-41e3-95da-2162ab54a41f",
+    "timestamp": "2025-12-01 21:56:32.599240",
+    "report_generated": false
+  },
+  {
+    "question": "At line 27, DateTimeLib.timestampToDate(unlockTime) is called with no validation that unlockTime represents a reasonable future date. If someone deploys a TokenWrapper with unlockTime in the distant past (e.g., timestamp < 1000000000 for years before 2001), could the resulting ERC20 metadata suggest the tokens are already unlocked when they're not, or could historical dates cause unexpected behavior in DateTimeLib?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f39e466-8bd7-4eaa-b893-791e61ab0b24",
+    "timestamp": "2025-12-01 21:57:00.890283",
+    "report_generated": false
   }
 ]
