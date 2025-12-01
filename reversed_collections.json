@@ -1198,5 +1198,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17102ab3-5680-49d0-a4ed-e87183635e53",
     "timestamp": "2025-12-01 17:26:08.559855",
     "report_generated": false
+  },
+  {
+    "question": "The test at exp2.t.sol line 8-11 measures gas for exp2(0), which should skip all if-statements and only execute initialization and final shift. If an attacker discovers that certain exponent patterns cause anomalously high gas consumption (e.g., due to storage access patterns or compiler optimizations), could they grief TWAMM execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f25a7c0-8d67-44ad-9f1f-47b772c59400",
+    "timestamp": "2025-12-01 17:27:16.023880",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function has 64 sequential if-statements (lines 11-202). In the worst case (all bits of x set), all 64 checks execute, performing 64 multiplications and shifts. If an attacker creates many TWAMM orders with exponents designed to maximize gas consumption (all fractional bits set), could they cause gas-based DoS of virtual order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fcb309a8-4776-4f72-acfe-06a3068e9081",
+    "timestamp": "2025-12-01 17:27:29.290357",
+    "report_generated": false
+  },
+  {
+    "question": "The constants at lines 11-202 were likely computed using high-precision arithmetic (e.g., Python's Decimal or Wolfram Alpha). If the constants were computed using standard double-precision floating point (53-bit mantissa), they would have insufficient precision for 128-bit fixed-point representation. Could this have introduced systematic errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e306fc0-63b8-410c-9b22-8411ee46af4a",
+    "timestamp": "2025-12-01 17:27:42.851736",
+    "report_generated": false
+  },
+  {
+    "question": "At line 201, the constant for bit 0 is 0x10000000000000000B17217F7D1CF79AB, representing 2^(2^-63) ≈ 1 + 2^-64. This is extremely close to 1. If this constant is exactly 1 (due to precision limits), the final bit of x would have no effect on the result. Could an attacker exploit this to create TWAMM orders with artificially precise exponents that ignore low-order bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8826acb9-e9aa-466c-b05d-894d6473ba62",
+    "timestamp": "2025-12-01 17:27:56.925114",
+    "report_generated": false
+  },
+  {
+    "question": "The 64 multiplication constants (lines 12-201) are supposed to follow the pattern CONSTANT[i] = 2^(2^(-i)) in 128.128 format. If even one constant in the middle of the sequence (e.g., the constant at line 100 for bit 30) has a transcription error, could it cause discontinuous jumps in exp2() output for certain input ranges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79812eee-ff1c-483d-90a7-0eb83ee99fbe",
+    "timestamp": "2025-12-01 17:28:11.982508",
+    "report_generated": false
+  },
+  {
+    "question": "The multiplication constant at line 12 (0x16A09E667F3BCC908B2FB1366EA957D3E) represents 2^0.5 in 128.128 format. If this value was incorrectly calculated or transcribed (e.g., off by 1 in the least significant hex digit), could the error propagate through all exponent calculations in TWAMM and cause systematic price manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ed869ea-1d8a-439e-860e-fb7c866744fc",
+    "timestamp": "2025-12-01 17:28:28.056298",
+    "report_generated": false
+  },
+  {
+    "question": "When x approaches the maximum allowed value (0x400000000000000000 - 1), the result approaches 2^64 in 64.64 format. At line 204, if x >> 64 equals 63, the shift amount is 0 (no shift). Could there be an edge case where x >> 64 is calculated as 64 due to unclean bits, causing the shift amount to underflow and produce incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_98fe1692-c6e9-4e5c-9704-c978b1a77e6d",
+    "timestamp": "2025-12-01 17:28:46.622760",
+    "report_generated": false
+  },
+  {
+    "question": "For x = 63 << 64 (representing integer 63), exp2() should return 2^63 in 64.64 format. The test at line 41 confirms this is 9223372036854775808 << 64. At this extreme value, result has been multiplied 63 times. Could accumulated rounding errors cause the result to be off by enough to violate the test's exact equality check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8bfc7072-05fa-4b6a-8d0e-a8a82806bb7b",
+    "timestamp": "2025-12-01 17:29:06.312436",
+    "report_generated": false
+  },
+  {
+    "question": "At x = 1 << 64 (representing integer 1), exp2() should return 2^1 = 2.0 = 0x20000000000000000. The test at line 35 confirms this. However, if only bit 64 is set in x, none of the if-statements at lines 11-202 (which check bits 0-63) execute. Does the final shift at line 204 correctly produce 2.0, or could there be a precision issue?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_80a508cc-d87f-417d-91d7-78856897e138",
+    "timestamp": "2025-12-01 17:29:26.897737",
+    "report_generated": false
+  },
+  {
+    "question": "When x = 0 (input to exp2()), the function should return 2^0 = 1.0 = 0x10000000000000000 in 64.64 format. However, line 9 initializes result to 0x80000000000000000000000000000000 (which is 1.0 in 127.128 format), and line 204 shifts it right by 63. Does this correctly produce 1.0 in 64.64 format, or is there an off-by-one in the shift calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7b1f8373-fd3b-4da2-96f9-b2aa820b1e42",
+    "timestamp": "2025-12-01 17:29:50.765774",
+    "report_generated": false
+  },
+  {
+    "question": "The computeNextSqrtRatio() function clamps results to sqrtSaleRatio at lines 132-136 ('sqrtRatioNextFixed = max/min(sqrtRatioNextFixed, sqrtSaleRatio)'). If exp2() precision errors cause sqrtRatioNextFixed to be incorrectly clamped (when it shouldn't be or vice versa), could this prevent TWAMM orders from executing fully, locking user funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_adb95d25-0b43-4be5-95b9-c3b479e57e6a",
+    "timestamp": "2025-12-01 17:30:16.177596",
+    "report_generated": false
+  },
+  {
+    "question": "At twamm.sol line 125, 'exp2(uint128(exponent)) << 64' produces a 64.128 fixed-point number. This is then used in fullMulDiv operations at line 127-128. If exp2() returns a value where the left shift causes the result to exceed the valid range for sqrtRatioFixed (< 2^192), could it cause the toSqrtRatio() call at line 138 to revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_601b9754-65ec-4fec-bb36-04fb529d0329",
+    "timestamp": "2025-12-01 17:30:43.086501",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() result is used in twamm.sol line 125 and then involved in calculations at lines 127-129 that ultimately convert to SqrtRatio via toSqrtRatio() at line 138. The toSqrtRatio() function has a maximum input value of MAX_FIXED_VALUE_ROUND_UP. If exp2() returns values that, when multiplied in the TWAMM formula, exceed this max, could it cause ValueOverflowsSqrtRatioContainer reverts that freeze TWAMM execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_507dc2d6-8ed1-47f8-9691-4059d65b000f",
+    "timestamp": "2025-12-01 17:31:11.529945",
+    "report_generated": false
+  },
+  {
+    "question": "At the boundary where x = 0x400000000000000000 - 1 (just below overflow), exp2() returns 340282366920938463450588298786565555714 according to test line 47. This is close to type(uint128).max << 64. Could an attacker craft TWAMM parameters that consistently produce exponents near this boundary, causing downstream calculations in computeNextSqrtRatio() to overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fdf4c1cb-fe7e-4001-acd0-7b632edcc635",
+    "timestamp": "2025-12-01 17:31:40.877163",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function's output grows exponentially, but the bit-by-bit multiplication approach means small changes in low-order bits of x have minimal impact on the result. Could an attacker exploit this by creating many TWAMM orders with slightly different exponents (varying only in low bits) that all resolve to the same sqrtRatio, causing order collision issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0d5a5285-97e0-4148-a865-5d798b3995e6",
+    "timestamp": "2025-12-01 17:32:11.426672",
+    "report_generated": false
+  },
+  {
+    "question": "The test at exp2.t.sol line 52 verifies monotonicity: exp2(x+1) >= exp2(x). However, due to the discrete bit-checking logic (lines 11-202), exp2() might not be perfectly continuous. Could there be inputs x where exp2(x) = exp2(x+1) due to precision loss, allowing an attacker to create TWAMM orders with equivalent prices but different execution times to game the system?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3305b8b-3e11-4d0a-9a68-ce2d734dbc8d",
+    "timestamp": "2025-12-01 17:32:42.958609",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function uses 64-bit fractional precision throughout. When integrated with TWAMM's sqrtRatio calculations (which use 128-bit fractions in toFixed() format), there's a precision mismatch. Could an attacker exploit this by crafting exponents that lose significant precision in the exp2() calculation, then amplify that loss through subsequent toSqrtRatio() conversions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2c65bd8c-228d-4add-beb6-1d16bf0a4faa",
+    "timestamp": "2025-12-01 17:33:15.417553",
+    "report_generated": false
+  },
+  {
+    "question": "At line 204, the final right shift 'result >>= uint256(63 - (x >> 64))' also truncates (rounds down). If x's fractional part is 0.999... (many fractional bits set), result would have grown large through the bit-check loop, but then get shifted right significantly. Could this double-rounding (in multiplications and final shift) compound to allow price manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac23f256-e65b-4b1b-8c20-cc32192e9c38",
+    "timestamp": "2025-12-01 17:33:47.823452",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function always rounds down (truncates) due to the >> 128 right shifts at lines 12-202. In TWAMM's computeNextSqrtRatio(), exp2() is used to calculate ePowExponent, which affects both the numerator and denominator of the price formula. Could systematic downward rounding in exp2() cause TWAMM to consistently favor token0 sellers over token1 sellers, creating arbitrage opportunities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9a02fb2c-76ed-487a-ba67-53629a9d13fd",
+    "timestamp": "2025-12-01 17:34:20.461787",
+    "report_generated": false
+  },
+  {
+    "question": "Each of the 64 bit-check multiplications (lines 11-202) performs 'result = result * CONSTANT >> 128'. The >> 128 operation truncates the lower 128 bits, causing precision loss. Over 64 sequential multiplications, could this accumulated truncation error exceed 0.01% and allow an attacker to manipulate TWAMM execution prices in their favor?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c4c23ca-2e45-4a9e-8e81-337ba0dfe3cc",
+    "timestamp": "2025-12-01 17:34:53.331666",
+    "report_generated": false
+  },
+  {
+    "question": "At line 204, 'result >>= uint256(63 - (x >> 64))' performs a right shift by a dynamically calculated amount. If x = 0, the shift is 63 (result /= 2^63). If x = 63 << 64, the shift is 0 (no change). For intermediate values, could rounding errors in the shift amount accumulate across multiple TWAMM executions and allow price manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dfa6d855-4695-4956-bbd4-84ac0bdc303f",
+    "timestamp": "2025-12-01 17:35:27.319625",
+    "report_generated": false
+  },
+  {
+    "question": "The final shift at line 204 converts from 127.128 internal format back to 64.64 output format. The shift amount '63 - (x >> 64)' assumes the integer part of x is in [0, 63]. If exp2() is called with x having bits set beyond bit 69 (violating the 5.64 assumption), could the shift calculation produce incorrect values without triggering the overflow check at line 7?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_088adb58-8401-497d-9880-0680d316df16",
+    "timestamp": "2025-12-01 17:35:58.036185",
+    "report_generated": false
+  },
+  {
+    "question": "The exp2() function expects a 5.64 fixed-point input (5 integer bits, 64 fractional bits) and returns a 64.64 result (64 integer, 64 fractional bits). However, at line 204, the shift amount is '63 - (x >> 64)', which assumes x's integer part is ≤ 63. If x's integer part is 64 due to unclean bits, the shift becomes -1, which underflows to type(uint256).max. Could this cause catastrophic result inflation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5fad19b-72b1-4d4c-9540-6e1b5c48c487",
+    "timestamp": "2025-12-01 17:36:29.688238",
+    "report_generated": false
+  },
+  {
+    "question": "At twamm.sol line 121, there's a check 'if (exponent >= 0x400000000000000000)' that returns sqrtSaleRatio immediately, bypassing exp2(). However, if exponent is exactly 0x3FFFFFFFFFFFFFFFF (just below the threshold), exp2() is called. Could an attacker craft order parameters to keep exponent just below this boundary repeatedly, causing gas griefing through expensive exp2() calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1455a18a-2349-4154-af3c-42ebe77d43a6",
+    "timestamp": "2025-12-01 17:37:01.639859",
+    "report_generated": false
+  },
+  {
+    "question": "The TWAMM formula at twamm.sol lines 127-129 computes 'sqrtRatioNextFixed = sqrtSaleRatio * |ePowExponent - c| / |ePowExponent + c|'. If exp2() returns a value where ePowExponent ≈ -c (within rounding error), the denominator |ePowExponent + c| could become 0 or very small, causing division by zero or extreme price movements. Could this be exploited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a7bb9aec-a9c3-4945-a676-2bdb92d7bede",
+    "timestamp": "2025-12-01 17:37:34.609790",
+    "report_generated": false
   }
 ]
