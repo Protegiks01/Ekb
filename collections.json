@@ -2248,5 +2248,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_efb3d4f5-0702-4f80-84d8-0f520f59a7a1",
     "timestamp": "2025-12-01 18:51:19.062885",
     "report_generated": false
+  },
+  {
+    "question": "In updatePosition (line 374), the function skips all logic if liquidityDelta == 0. Could an attacker call with liquidityDelta=0 to trigger extension callbacks without position changes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b06e4e4f-96f1-49bf-9fca-ee0623d0c327",
+    "timestamp": "2025-12-01 18:52:28.278201",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updatePosition (line 403-407) fetches feesPerLiquidityInside again when liquidityNext != 0. Could tick crossing between lines 400-401 and 403-407 cause fee calculation errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55758fcc-86bf-43a6-8b58-58c21dc17852",
+    "timestamp": "2025-12-01 18:52:41.450840",
+    "report_generated": false
+  },
+  {
+    "question": "In updatePosition (line 443), the function emits PositionUpdated with state. Could an attacker monitor these events to front-run position burns and steal accumulated fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca880537-4510-48de-bc24-e07d302a073e",
+    "timestamp": "2025-12-01 18:52:57.035029",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updatePosition (lines 446-447) calls maybeCallAfterUpdatePosition after all state changes. Could a malicious extension reenter to read updated position state and grief the original caller?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d186f362-f067-4d90-af05-1925449364f4",
+    "timestamp": "2025-12-01 18:53:12.320488",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.collectFees (lines 463-503), line 467 gets locker and calls extension beforeCollectFees hook (line 469). Could a malicious extension reenter collectFees to claim the same fees twice before position.feesPerLiquidityInsideLast is updated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff8b7616-7b30-4148-b76c-4ec7f7fb7f1c",
+    "timestamp": "2025-12-01 18:53:28.967728",
+    "report_generated": false
+  },
+  {
+    "question": "Core.collectFees (lines 473-477) uses assembly to set position.slot := positionSlot. Could this assembly allow an attacker to point to a different position's storage and steal their fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_46d61a09-50a3-40b4-ad7b-e95f2ca8b976",
+    "timestamp": "2025-12-01 18:53:46.691579",
+    "report_generated": false
+  },
+  {
+    "question": "In collectFees (line 480-490), the function uses different logic for stableswap vs concentrated pools. Could an attacker exploit pool config manipulation to switch between these paths mid-execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_234836fd-517c-4df4-a6f0-3d8ac1c27352",
+    "timestamp": "2025-12-01 18:54:06.518462",
+    "report_generated": false
+  },
+  {
+    "question": "Core.collectFees (line 492) calls position.fees(feesPerLiquidityInside) to compute claimable fees. Could feesPerLiquidityInside overflow when multiplied by position.liquidity in the fees() function?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b09c1986-0d38-4426-bb9a-6209496a4f0c",
+    "timestamp": "2025-12-01 18:54:27.743568",
+    "report_generated": false
+  },
+  {
+    "question": "In collectFees (line 494), position.feesPerLiquidityInsideLast is updated to current feesPerLiquidityInside. Could an attacker front-run this update to claim fees multiple times by calling collectFees before the storage write completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_32fa9561-3d5c-45d6-ad63-02ad68741696",
+    "timestamp": "2025-12-01 18:54:50.022835",
+    "report_generated": false
+  },
+  {
+    "question": "Core.collectFees (line 496-498) calls _updatePairDebt with negative amounts. Could casting amounts to int256 overflow if amounts exceed type(int256).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3412661f-2fa2-4e4e-b815-9c58a3c33838",
+    "timestamp": "2025-12-01 18:55:13.649154",
+    "report_generated": false
+  },
+  {
+    "question": "In collectFees (line 500), the function emits PositionFeesCollected before the afterCollectFees callback. Could monitoring this event allow an attacker to grief the extension callback?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d1383919-9d44-4ba4-904e-9ab8c9a1aaf2",
+    "timestamp": "2025-12-01 18:55:39.146441",
+    "report_generated": false
+  },
+  {
+    "question": "Core.collectFees (line 467) calls _requireLocker(). Could an attacker call this outside a lock, or manipulate the locker to collect fees on behalf of another user?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42c34ebe-821e-4e3a-aa3e-612cc9e64f0b",
+    "timestamp": "2025-12-01 18:56:05.894582",
+    "report_generated": false
+  },
+  {
+    "question": "In collectFees (lines 480-484), for stableswap pools, the function loads global fees per liquidity. Could storage slot collisions cause incorrect fee values to be loaded?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b040a364-8ace-4449-b6a7-7d46c066c3c3",
+    "timestamp": "2025-12-01 18:56:33.866598",
+    "report_generated": false
+  },
+  {
+    "question": "Core.collectFees (line 474) uses CoreStorageLayout.poolPositionsSlot to compute the position slot. Could this calculation produce colliding slots for different positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2bdfba2a-d111-4bed-baa1-bd4442fe66d2",
+    "timestamp": "2025-12-01 18:57:01.161566",
+    "report_generated": false
+  },
+  {
+    "question": "In collectFees (line 486-489), for concentrated pools, the function calls _getPoolFeesPerLiquidityInside. Could tick manipulation between fee accrual and collection cause incorrect fee amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d66d36fb-b644-45b9-adbc-5229e4e9090b",
+    "timestamp": "2025-12-01 18:57:29.821375",
+    "report_generated": false
+  },
+  {
+    "question": "Core.collectFees doesn't validate that positionId belongs to the locker. Could an attacker collect fees from other users' positions by passing arbitrary positionIds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0998674d-b131-4a9d-a01a-7d2d77a8cd20",
+    "timestamp": "2025-12-01 18:57:59.738886",
+    "report_generated": false
+  },
+  {
+    "question": "In collectFees (line 502), maybeCallAfterCollectFees receives amount0 and amount1. Could a malicious extension use these values to manipulate its internal accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e1ff82fd-886b-4af5-904a-82afeb23720f",
+    "timestamp": "2025-12-01 18:58:31.177089",
+    "report_generated": false
+  },
+  {
+    "question": "Core.collectFees (line 471) gets poolId from poolKey.toPoolId(). Could an attacker manipulate poolKey to compute a different poolId than intended, collecting fees from the wrong pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a37c9f0-4e68-447b-8a2c-e0b69f070666",
+    "timestamp": "2025-12-01 18:59:02.957720",
+    "report_generated": false
+  },
+  {
+    "question": "In collectFees (lines 463-503), there's no check that the position has non-zero liquidity. Could an attacker collect fees from a position with 0 liquidity by manipulating feesPerLiquidityInsideLast?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ed545e4-db7f-46a8-bfe9-8151f4dc2010",
+    "timestamp": "2025-12-01 18:59:37.333544",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.swap_6269342730 (lines 506-854), the function uses assembly to load parameters from calldata (lines 515-521). Could calldata manipulation cause token0, token1, or config to be read from incorrect offsets?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0b2cf2b8-5bda-442d-bd59-b6acb0e41dc1",
+    "timestamp": "2025-12-01 19:00:11.189789",
+    "report_generated": false
+  },
+  {
+    "question": "Core.swap_6269342730 (line 523) extracts sqrtRatioLimit from params and validates it. Could an attacker pass params with invalid sqrtRatioLimit that passes isValid() but causes incorrect swap execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9325fcaf-7d04-4e1a-b66a-063007b5254c",
+    "timestamp": "2025-12-01 19:00:46.329785",
+    "report_generated": false
+  },
+  {
+    "question": "In swap_6269342730 (line 541), the function checks if sqrtRatio != sqrtRatioLimit before executing the swap loop. Could an attacker set sqrtRatioLimit == currentSqrtRatio to bypass swap execution while still triggering extension callbacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00b68865-a685-4492-b792-cd57c5a0214d",
+    "timestamp": "2025-12-01 19:01:20.781521",
+    "report_generated": false
+  },
+  {
+    "question": "Core.swap_6269342730 (line 552-554) validates sqrtRatioLimit direction using (sqrtRatioLimit < sqrtRatio",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9fac2fe2-d0fc-4adf-9d95-b37f85deff6b",
+    "timestamp": "2025-12-01 19:01:56.733564",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 43-74, the increaseSellAmount function uses the authorizedForNft modifier. Can an attacker front-run NFT transfers to increase sell amounts on orders they no longer own, leading to unauthorized fund deposits from the new owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e35df478-a925-4786-9b5d-2772146b6e47",
+    "timestamp": "2025-12-01 19:02:33.204798",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 77-95, decreaseSaleRate allows specifying a recipient address. Can an attacker who temporarily gains approval for an NFT drain the refund to their own address before the approval is revoked, stealing funds from the actual owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_883572b9-e293-4703-aa85-24450fef925e",
+    "timestamp": "2025-12-01 19:03:09.419707",
+    "report_generated": false
   }
 ]
