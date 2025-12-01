@@ -4348,5 +4348,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_817b67da-8717-4bad-8713-a4c9820b9582",
     "timestamp": "2025-12-01 21:34:11.101291",
     "report_generated": false
+  },
+  {
+    "question": "The roll() function doesn't check if ORDERS contract is paused. Could calling withdrawAndRoll during a pause leave fees withdrawn but no orders created?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ed53946-9d8d-4b30-b957-11047fd1dded",
+    "timestamp": "2025-12-01 21:35:20.352771",
+    "report_generated": false
+  },
+  {
+    "question": "In BUYBACKS.roll() (line 134), increaseSellAmount returns saleRate. If this is 0 due to rounding, could orders be created that don't actually sell anything?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_875a3d58-4030-458c-b446-35995b0d4cb8",
+    "timestamp": "2025-12-01 21:35:33.704327",
+    "report_generated": false
+  },
+  {
+    "question": "The TWAMM orders use a single NFT_ID for all tokens (RevenueBuybacks line 29). Could concurrent roll() calls for different tokens interfere with each other's order state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_694735f2-7b91-4855-a901-9123f372d843",
+    "timestamp": "2025-12-01 21:35:47.153957",
+    "report_generated": false
+  },
+  {
+    "question": "If ORDERS.increaseSellAmount has a bug that doesn't properly extend orders, could repeated roll() calls create duplicate orders, wasting fees on slippage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57b1c880-289d-4d0b-8a58-addea868f526",
+    "timestamp": "2025-12-01 21:36:02.513649",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawAndRoll function calls getProtocolFees, withdrawProtocolFees, and roll() twice (lines 59, 70, 74",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_209c7941-c9ba-425c-bbc3-79acf6c43755",
+    "timestamp": "2025-12-01 21:36:17.400494",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol's handleLockData function (lines 91-259), can an attacker manipulate the call type parameter to bypass delta settlement checks by encoding an invalid call type that skips the proper withdraw/pay sequence, potentially violating the flash accounting balance invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bec05f21-1a98-488f-aa89-4af1e9299a90",
+    "timestamp": "2025-12-01 21:36:33.747194",
+    "report_generated": false
+  },
+  {
+    "question": "In the single swap path (lines 94-150), if balanceUpdate.delta0() or balanceUpdate.delta1() are exactly at int128 boundaries, can integer overflow occur when negating these values at lines 116, 123, 130, causing incorrect slippage checks or payment amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d2d54a8-53da-4cc7-b3df-95b1b847f52f",
+    "timestamp": "2025-12-01 21:36:51.120214",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payFrom function (lines 52-83), the assembly block calls startPayments and completePayments but ignores revert results (line 81). Could an attacker exploit this to manipulate debt tracking by triggering payment failures that don't revert the transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dff3298f-8aac-48d5-a48e-8cc83b8f95a3",
+    "timestamp": "2025-12-01 21:37:11.585661",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 122-127, when isPriceIncreasing is true, the code withdraws delta0 and pays delta1. Can a malicious pool extension manipulate balanceUpdate to return zero deltas while consuming tokens, bypassing the flash accounting settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f2839c94-b8fc-4ced-bb35-3d5c0d8f7588",
+    "timestamp": "2025-12-01 21:37:32.539781",
+    "report_generated": false
+  },
+  {
+    "question": "In the multi-hop swap logic (lines 176-244), totalCalculated and totalSpecified are accumulated across multiple swaps. Can integer overflow occur if a user constructs a route with many hops that sum to exceed int256 max, breaking delta accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_20498d9f-400f-4d87-ab80-c349750be34d",
+    "timestamp": "2025-12-01 21:37:54.868625",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 232, ACCOUNTANT.payFrom is called with specifiedToken. If a malicious ERC20 token contract is used as specifiedToken, can it reenter the Router through the transferFrom callback to corrupt the lock state before completePayments is called?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_427520c4-60e5-404f-bbed-db63e08e0f27",
+    "timestamp": "2025-12-01 21:38:18.713915",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay function (lines 15-44), the assembly ignores completePayments revert (line 42). If the accountant's completePayments fails due to arithmetic errors, will the debt still be incorrectly credited, violating flash accounting invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6042f07f-2a57-4f3d-a3f1-97a2d8796900",
+    "timestamp": "2025-12-01 21:38:44.137615",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 134-146, when handling native token swaps with exact input, if msg.value is sent but poolKey.token0 != NATIVE_TOKEN_ADDRESS, are the ETH funds permanently locked in the contract since there's no refund path for this case?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0453207c-00e9-4e14-b100-7c1ba9bd85a4",
+    "timestamp": "2025-12-01 21:39:10.382670",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 170-244), if swaps.length is 0, can an attacker lock the contract by calling multiMultihopSwap with an empty array, causing uninitialized memory access or skipping debt settlement checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1cbd1ede-bfd5-4d31-bbd4-de25252aa8c8",
+    "timestamp": "2025-12-01 21:39:38.393889",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 227, when totalSpecified < 0, tokens are withdrawn to the swapper. Can an attacker manipulate the route to make totalSpecified artificially negative while totalCalculated is also negative, causing double withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd89ff12-0c86-4970-bc96-5d8ec66833f7",
+    "timestamp": "2025-12-01 21:40:07.639613",
+    "report_generated": false
+  },
+  {
+    "question": "In the native token value calculation (lines 106-110), FixedPointMathLib.ternary is used to set value. If params.amount() is negative (exact output), can the uint128 cast at line 108 underflow, sending incorrect ETH amounts to the core swap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b0965d23-b4c6-4069-ba6c-173a63a58181",
+    "timestamp": "2025-12-01 21:40:38.210209",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 189-198, _swap is called with value=0 for all multi-hop swaps. If an intermediate hop requires native token payment, will this cause the swap to fail or allow exploitation by not sending required ETH?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f826cd3-048b-4273-8090-47033566011f",
+    "timestamp": "2025-12-01 21:41:07.353611",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.lock function (lines 44-73), the assembly block uses mcopy for calldata. If the data length causes memory expansion beyond available gas, can this create a DOS vector that prevents legitimate swaps from settling debts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8818bf71-8023-403d-8fe1-6fdcc9395b74",
+    "timestamp": "2025-12-01 21:41:37.632680",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 255, _swap is called for quotes with value=0. If a quote is requested for a native token swap that would normally require value > 0, does the quote incorrectly succeed or fail, potentially misleading users about executable trades?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_212d4d62-9db5-4ccd-b544-8a9a41fce927",
+    "timestamp": "2025-12-01 21:42:09.112763",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdraw function (lines 91-108), packed calldata is used with token (20 bytes) + recipient (20 bytes) + amount (16 bytes). Can bit shifting errors at lines 99-101 cause tokens to be sent to wrong recipients or with wrong amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_07216218-704a-4044-8d0c-a5887b787499",
+    "timestamp": "2025-12-01 21:42:40.574963",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 236-244, the final settlement handles both positive and negative totalCalculated. If totalCalculated is exactly 0 but the swaps consumed tokens, is there a scenario where debt isn't properly tracked?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_36a92bd2-d120-4aeb-9801-2cc76f2a1111",
+    "timestamp": "2025-12-01 21:43:13.292663",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 151-166), the code distinguishes CALL_TYPE_MULTIHOP_SWAP from CALL_TYPE_MULTI_MULTIHOP_SWAP using bitwise operations. Can bit manipulation vulnerabilities allow an attacker to trigger unintended code paths?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ea983c5b-efa7-4fa5-aac1-77a33e9684c3",
+    "timestamp": "2025-12-01 21:43:44.493492",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 144, if poolKey.token0 == NATIVE_TOKEN_ADDRESS but balanceUpdate.delta0() is 0, does the valueDifference calculation at line 135 still correctly refund excess ETH, or can msg.value be lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_952c5d5f-957c-44ad-843e-5682e31a1863",
+    "timestamp": "2025-12-01 21:44:15.327519",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom function (lines 118-189), if amount0 or amount1 is 0, the if blocks skip transfers. Can an attacker exploit this to avoid completePayments being called with the correct token set, corrupting debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1fb83c1b-c4cd-46ce-b9b6-4eb2a77a24fa",
+    "timestamp": "2025-12-01 21:44:45.517340",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 286, when calling lock with encoded single swap data, if the encoding is malformed such that abi.decode succeeds but produces invalid poolKey or params, can this bypass validation and corrupt core state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d1b61f78-44ac-4ed2-9e4d-7ef37e96ba79",
+    "timestamp": "2025-12-01 21:45:14.817683",
+    "report_generated": false
   }
 ]
