@@ -2398,5 +2398,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1e10b0ad-6a03-4ddb-81b7-a0205f991603",
     "timestamp": "2025-12-01 18:59:47.693684",
     "report_generated": false
+  },
+  {
+    "question": "In tickToSqrtRatio() (line 25), when t > MAX_TICK_MAGNITUDE, does the InvalidTick revert propagate correctly, or could calling contracts catch and ignore this error, allowing pools to initialize with out-of-bounds ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9697a0ca-804c-44e5-9fd6-a1cda31782bc",
+    "timestamp": "2025-12-01 19:01:12.719456",
+    "report_generated": false
+  },
+  {
+    "question": "In sqrtRatioToTick() (line 140), does the atanh series s = yQ + (y3/3) + ... + (y15/15) handle division rounding correctly, or could floor division cause the series to underestimate and produce ticks that are off by multiple units?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e98e9451-a4fe-469c-b3d1-04c1fed90bdd",
+    "timestamp": "2025-12-01 19:01:26.031472",
+    "report_generated": false
+  },
+  {
+    "question": "In sqrtRatioToTick() (line 151), can the multiplication base * INV_LB_X64 overflow when base is large, causing logBaseTickSizeX128 to wrap and map to an incorrect tick value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_844b2f43-67b8-4d4f-9f3f-9648ab17d6a2",
+    "timestamp": "2025-12-01 19:01:40.412641",
+    "report_generated": false
+  },
+  {
+    "question": "In sqrtRatioToTick() (lines 154-162), when tick != tickLow, does the comparison tickToSqrtRatio(tick) > sqrtRatio correctly handle all edge cases, or could incorrect tick selection allow swaps to execute at invalid prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c6bb4cf4-ef21-40f3-afa8-09b848df50c6",
+    "timestamp": "2025-12-01 19:01:54.617890",
+    "report_generated": false
+  },
+  {
+    "question": "In sqrtRatioToTick() (line 143), when computing fracX64 = (s * K_2_OVER_LN2_X64) >> 127, can the multiplication overflow before the right shift, causing the fractional log2 to wrap and produce wildly incorrect ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6fa839d3-cdb3-4aee-ba68-3f0bd794c6ca",
+    "timestamp": "2025-12-01 19:02:10.049592",
+    "report_generated": false
+  },
+  {
+    "question": "In sqrtRatioToTick() (lines 129-137), can the odd powers ladder (y^3, y^5, ..., y^15) accumulate rounding errors that cause the atanh series sum to deviate significantly from the true value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_80c53704-3b0d-437f-8132-b7f6257dc6ef",
+    "timestamp": "2025-12-01 19:02:27.102112",
+    "report_generated": false
+  },
+  {
+    "question": "In sqrtRatioToTick() (lines 125-127), does the division in yQ = rawDiv(a << 127, b) handle the case where b is very small correctly, or could this cause yQ to overflow and corrupt the logarithm calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cba9a43c-9180-4db8-93ad-c9e6b0d9c1b9",
+    "timestamp": "2025-12-01 19:02:46.277707",
+    "report_generated": false
+  },
+  {
+    "question": "In sqrtRatioToTick() (lines 103-113), when sqrtRatioFixed < 2^128 (negative flag), can the reciprocal calculation (line 110) overflow or produce zero, causing log2 computation to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9869de05-7233-4fc0-b9f7-4e9ee171cfb4",
+    "timestamp": "2025-12-01 19:03:06.069345",
+    "report_generated": false
+  },
+  {
+    "question": "In sqrtRatioToTick() (line 118), does the clz opcode (count leading zeros) work correctly for all input values, or could the experimental Solidity 0.8.31 compiler produce incorrect clz results that break tick calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e5baa314-dc9b-44ae-bf95-115464ce0cc3",
+    "timestamp": "2025-12-01 19:03:28.317762",
+    "report_generated": false
+  },
+  {
+    "question": "In sqrtRatioToTick() (lines 99-163), can the atanh series approximation (lines 124-140) produce incorrect results for sqrt ratios near MIN/MAX bounds, causing tick conversions to map to wrong ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff1c95c3-338d-4e1f-964b-a36a08901499",
+    "timestamp": "2025-12-01 19:03:51.241717",
+    "report_generated": false
+  },
+  {
+    "question": "In tickToSqrtRatio() (lines 54-72), can gates 2-4 suffer from precision loss during repeated shr(128, mul()) operations, causing the final sqrt ratio to deviate from the correct value and enable arbitrage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ad483acc-9a7c-4ec8-ad38-f71bb3c2b545",
+    "timestamp": "2025-12-01 19:04:16.215377",
+    "report_generated": false
+  },
+  {
+    "question": "In tickToSqrtRatio() (line 75), when tick > 0 and the ratio is inverted using div(not(0), ratio), can ratio be zero, causing division by zero that halts pool operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7a4242d-a313-44b5-b0b8-87f241b73f68",
+    "timestamp": "2025-12-01 19:04:42.126811",
+    "report_generated": false
+  },
+  {
+    "question": "In tickToSqrtRatio() (lines 33-41), does Gate 1 correctly handle all combinations of bits 1-7, or could certain bit patterns cause the ratio multiplication sequence to accumulate errors that violate MIN/MAX_SQRT_RATIO bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3dafd10-f297-463c-8e77-49edb9930305",
+    "timestamp": "2025-12-01 19:05:08.837794",
+    "report_generated": false
+  },
+  {
+    "question": "In tickToSqrtRatio() (line 30), when handling bit 0 with a conditional subtract, can the multiplication overflow if t has the bit set and the constant is malformed, causing ratio calculation errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c1d91a12-9ae6-4d47-b911-136ae132ecb6",
+    "timestamp": "2025-12-01 19:05:38.084236",
+    "report_generated": false
+  },
+  {
+    "question": "In tickToSqrtRatio() (lines 22-79), can the bit manipulation gates (lines 33-72) produce incorrect ratio values due to precomputed constant errors, allowing price manipulation attacks on pool initialization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f534f41-d972-4d7b-baff-6d48f102265f",
+    "timestamp": "2025-12-01 19:06:07.954034",
+    "report_generated": false
+  },
+  {
+    "question": "In flipTick() (line 39), can the XOR operation with (1 << index) produce incorrect results if index >= 256, potentially corrupting unrelated storage slots in the bitmap mapping?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_259c3808-f47c-43fe-b097-90b8fe7ab504",
+    "timestamp": "2025-12-01 19:06:39.547561",
+    "report_generated": false
+  },
+  {
+    "question": "In findNextInitializedTick() (line 51), when computing the next tick to search as 'fromTick + int32(tickSpacing)', can this addition overflow if fromTick is near MAX_TICK, causing incorrect bitmap lookups?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d1f943d8-61a2-4cad-8bc8-361f7a41deaf",
+    "timestamp": "2025-12-01 19:07:08.401675",
+    "report_generated": false
+  },
+  {
+    "question": "In tickToBitmapWordAndIndex() (line 18), does the 'and(rawIndex, 0xff)' mask correctly extract the lower 8 bits for index, or could bit overflow from rawIndex calculation corrupt the index value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_53d0afd1-bec2-4e23-84dc-909edcb4339e",
+    "timestamp": "2025-12-01 19:07:33.609133",
+    "report_generated": false
+  },
+  {
+    "question": "In findPrevInitializedTick() (line 103), when prevTick is computed from bitmapWordAndIndexToTick(word, 0, tickSpacing), could this tick be uninitialized, causing swaps to fail with 'tick not initialized' errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63a92849-2a73-4bb0-8b25-f4dcc17c4533",
+    "timestamp": "2025-12-01 19:07:59.836738",
+    "report_generated": false
+  },
+  {
+    "question": "In findPrevInitializedTick() (lines 82-117), when searching backwards across bitmap words, can the loop decrement prevTick (line 115) cause prevTick to become less than MIN_TICK without detection, violating tick boundary invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_518fe85c-c827-4855-9815-ac854f510b4a",
+    "timestamp": "2025-12-01 19:08:26.698972",
+    "report_generated": false
+  },
+  {
+    "question": "In findNextInitializedTick() (lines 67-70), when nextTick >= MAX_TICK, can setting nextTick to exactly MAX_TICK cause subsequent tick operations to fail if MAX_TICK is not a valid tick for the given tickSpacing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67b0c3dd-6add-4b4d-9661-75e7aa691c34",
+    "timestamp": "2025-12-01 19:08:54.777499",
+    "report_generated": false
+  },
+  {
+    "question": "In findNextInitializedTick() (line 56), does bitmap.geSetBit() handle the case where no bits are set in the word correctly by returning 0, or could incorrect handling cause the function to return uninitialized ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4cafef40-42e9-470b-886e-d57ce554cd2f",
+    "timestamp": "2025-12-01 19:09:24.510928",
+    "report_generated": false
+  },
+  {
+    "question": "In findNextInitializedTick() (lines 42-80), when skipAhead > 0 and the loop continues searching across multiple bitmap words, can gas exhaustion cause the function to halt before finding a tick, trapping user positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f6b1edb4-0b77-41c8-a79e-a784b86b4ae1",
+    "timestamp": "2025-12-01 19:09:56.443729",
+    "report_generated": false
+  },
+  {
+    "question": "In flipTick() (lines 36-40), when flipping a tick bit using XOR (line 39), can reentrancy during storage write allow an attacker to flip the same tick multiple times, corrupting liquidity net tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_107fced1-ba6d-4963-a466-69367e1ee4a1",
+    "timestamp": "2025-12-01 19:10:31.387310",
+    "report_generated": false
+  },
+  {
+    "question": "In bitmapWordAndIndexToTick() (lines 24-29), can reversing the bitmap calculation using mul/sub operations introduce rounding errors that cause tick values to differ from their original values after round-trip conversion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_140f6a0f-c829-4d11-8764-40b00e8c9747",
+    "timestamp": "2025-12-01 19:11:04.921047",
+    "report_generated": false
   }
 ]
