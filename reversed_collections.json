@@ -2098,5 +2098,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28a092be-7af6-4f61-8da6-eb50c1be5fcf",
     "timestamp": "2025-12-01 18:36:18.503341",
     "report_generated": false
+  },
+  {
+    "question": "In exp2() (line 9), does initializing result to 0x80000000000000000000000000000000 (2^127) correctly set up the fixed-point representation, or could this cause all subsequent calculations to be off by a power of 2?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0d9af51f-d14c-4a63-a51a-e1b5d8cca591",
+    "timestamp": "2025-12-01 18:37:52.912798",
+    "report_generated": false
+  },
+  {
+    "question": "In exp2() (lines 11-106), can the sequential bit checks and multiplications accumulate rounding errors that cause the final result to deviate significantly from the true 2^x value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afd51148-79d0-4396-8504-3eb81544314a",
+    "timestamp": "2025-12-01 18:38:06.112273",
+    "report_generated": false
+  },
+  {
+    "question": "In exp2() (lines 5-205), can the require check (line 7) fail to prevent overflow when x is very close to 0x400000000000000000, allowing subsequent multiplications to overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c402a81-82de-4a3c-a854-bd867e4691fa",
+    "timestamp": "2025-12-01 18:38:21.028326",
+    "report_generated": false
+  },
+  {
+    "question": "In amount1DeltaSorted() (line 85), can the subtraction 'sqrtRatioUpper - sqrtRatioLower' underflow in the unchecked block if the values were not properly sorted, causing massive delta values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9fb116ca-74fd-4620-ae4b-474997ba7b00",
+    "timestamp": "2025-12-01 18:38:35.317025",
+    "report_generated": false
+  },
+  {
+    "question": "In amount1Delta() (lines 72-78), when called with invalid SqrtRatio values, does sortAndConvertToFixedSqrtRatios() validate the inputs, or could garbage values produce incorrect delta calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b57aa8bb-fde2-494c-99a7-956c7bb1226b",
+    "timestamp": "2025-12-01 18:38:50.699452",
+    "report_generated": false
+  },
+  {
+    "question": "In amount0Delta() (lines 25-31), does the wrapper function correctly pass the roundUp parameter to amount0DeltaSorted(), or could parameter misalignment cause rounding to go the wrong direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e5c79e29-8e0c-4f87-a4f4-5de25d826d3d",
+    "timestamp": "2025-12-01 18:39:07.193227",
+    "report_generated": false
+  },
+  {
+    "question": "In sortAndConvertToFixedSqrtRatios() (line 17), does the 'mul(sub(sqrtRatioLower, sqrtRatioUpper), gt(...))' pattern correctly compute the swap difference, or could overflow in sub() cause incorrect sorting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ec91b046-49e2-4dec-85ad-b645d1be09e2",
+    "timestamp": "2025-12-01 18:39:24.636726",
+    "report_generated": false
+  },
+  {
+    "question": "In amount1DeltaSorted() (line 92), can fullMulDivN with N=128 overflow internally before the division, causing amount1 calculations to wrap and produce incorrect token deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_43974659-2f50-48a9-bcc0-14ee0d5305b0",
+    "timestamp": "2025-12-01 18:39:44.505295",
+    "report_generated": false
+  },
+  {
+    "question": "In amount1DeltaSorted() (lines 91-105), does the addition 'add(result, iszero(iszero(mulmod(...))))' correctly implement ceiling division, or could the double negation logic fail for certain inputs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_49fee2e8-2d43-4a13-8674-469c1fb50ee8",
+    "timestamp": "2025-12-01 18:40:04.995305",
+    "report_generated": false
+  },
+  {
+    "question": "In amount1DeltaSorted() (lines 80-117), when roundUp is true, can the mulmod check (line 97) fail to detect all rounding cases, causing the ceiling logic to undercalculate amount1 and violate pool solvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ed614bf6-11ac-4145-b0a9-75ec3697ce75",
+    "timestamp": "2025-12-01 18:40:29.389698",
+    "report_generated": false
+  },
+  {
+    "question": "In amount0DeltaSorted() (line 50), does the error encoding '0xb4ef2546' match the Amount0DeltaOverflow() selector exactly, or could a mismatch cause the revert to be misinterpreted by external contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ec8ea0cc-eec7-439c-b224-e8e1da017b83",
+    "timestamp": "2025-12-01 18:40:52.465877",
+    "report_generated": false
+  },
+  {
+    "question": "In amount0DeltaSorted() (lines 55-66), when roundUp is false, can using fullMulDivUnchecked instead of fullMulDiv cause intermediate overflows that corrupt the amount0 calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_78401f0f-75b6-4316-b02d-b61c5e8987d5",
+    "timestamp": "2025-12-01 18:41:16.530256",
+    "report_generated": false
+  },
+  {
+    "question": "In amount0DeltaSorted() (line 47), does the assembly overflow check 'if shr(128, result)' correctly detect all overflow cases, or could certain bit patterns bypass this check and cause silent overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a53f220-39d0-476d-989c-2b18be40f788",
+    "timestamp": "2025-12-01 18:41:43.150901",
+    "report_generated": false
+  },
+  {
+    "question": "In amount0DeltaSorted() (lines 34-68), when roundUp is true, can the nested ceiling divisions (lines 44-47) accumulate rounding errors that allow users to withdraw more token0 than deposited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c6bf11d-ddea-4f3e-bdbe-399252fc1500",
+    "timestamp": "2025-12-01 18:42:09.189452",
+    "report_generated": false
+  },
+  {
+    "question": "In sortAndConvertToFixedSqrtRatios() (lines 10-22), can the assembly swap logic (lines 17-20) fail to correctly swap values when sqrtRatioA > sqrtRatioB, causing delta calculations to use wrong price bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_516f9f2c-3197-4916-a5a0-208a4014839c",
+    "timestamp": "2025-12-01 18:42:36.614280",
+    "report_generated": false
+  },
+  {
+    "question": "In computeNextSqrtRatio() (lines 127-136), can the fullMulDiv calculation produce sqrtRatioNextFixed values that fall outside MIN/MAX_SQRT_RATIO bounds, causing toSqrtRatio() to fail and halt TWAMM execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f9c8379b-a831-44cd-8532-a8c894a5ed87",
+    "timestamp": "2025-12-01 18:43:05.998954",
+    "report_generated": false
+  },
+  {
+    "question": "In computeNextSqrtRatio() (lines 121-123), when exponent >= 0x400000000000000000 (64 in fixed point), does returning sqrtSaleRatio ignore important price evolution, allowing TWAMM orders to execute at incorrect prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a3a981a-6640-48ac-8188-e96aeb09fb9f",
+    "timestamp": "2025-12-01 18:43:37.809778",
+    "report_generated": false
+  },
+  {
+    "question": "In computeNextSqrtRatio() (line 120), can the rawDiv operation overflow when liquidity is very small, causing exponent to become extremely large and making exp2() return maximum values incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_83078201-2f3e-495d-80a5-d7e97cdd9386",
+    "timestamp": "2025-12-01 18:44:09.892470",
+    "report_generated": false
+  },
+  {
+    "question": "In computeNextSqrtRatio() (line 115), when computing sqrtSaleRate with fee deduction, can computeFee() cause sqrtSaleRate to underflow to zero, breaking the exponent calculation at line 120?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f19702b1-8b54-40c1-a123-0ee1f9e78e19",
+    "timestamp": "2025-12-01 18:44:42.311064",
+    "report_generated": false
+  },
+  {
+    "question": "In computeNextSqrtRatio() (lines 89-141), when liquidity == 0 (line 107), does returning toSqrtRatio(sqrtSaleRatio, roundUp) correctly handle the edge case, or could this allow TWAMM to set invalid pool prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ccd77aa8-e74f-45b0-8f43-be085a1dae91",
+    "timestamp": "2025-12-01 18:45:14.402293",
+    "report_generated": false
+  },
+  {
+    "question": "In computeSqrtSaleRatio() (line 74), when computing sqrt(saleRatio << 128), can the left shift overflow to zero if saleRatio is very large, causing sqrtSaleRatio to be drastically underestimated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18cbe5eb-47bd-44ce-8fe5-54192d6a99af",
+    "timestamp": "2025-12-01 18:45:47.668282",
+    "report_generated": false
+  },
+  {
+    "question": "In computeSqrtSaleRatio() (lines 68-83), can the branching logic (lines 72-80) fail to handle edge cases where saleRatio is exactly at branch boundaries, causing sqrt calculations to use wrong precision?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1177f7df-c008-43d4-88c3-1b08f8ef1a12",
+    "timestamp": "2025-12-01 18:46:20.248481",
+    "report_generated": false
+  },
+  {
+    "question": "In computeC() (lines 60-63), can the sign calculation (line 61) produce incorrect results when sqrtSaleRatio is exactly equal to sqrtRatio, causing TWAMM price evolution to move in the wrong direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ba124e31-9b40-4372-a47f-68d641e83a3d",
+    "timestamp": "2025-12-01 18:46:53.208361",
+    "report_generated": false
+  },
+  {
+    "question": "In computeC() (lines 56-64), when sqrtRatio == sqrtSaleRatio, does the function return 0 (line 107 check), or could precision loss cause c to be nonzero and trigger unnecessary TWAMM calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc5b3687-7202-45ff-a78d-7af25a9828d9",
+    "timestamp": "2025-12-01 18:47:27.975264",
+    "report_generated": false
+  },
+  {
+    "question": "In computeRewardAmount() (lines 50-52), when rewardRate is very large, can the fullMulDivN operation overflow before dividing by 128, causing reward calculations to wrap and underpay order fillers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00646d92-179b-4931-a993-415479b6893f",
+    "timestamp": "2025-12-01 18:48:02.658320",
+    "report_generated": false
   }
 ]
