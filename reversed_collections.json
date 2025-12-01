@@ -1948,5 +1948,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c176866a-1df7-46b8-93a9-189c331d5f57",
     "timestamp": "2025-12-01 18:24:53.056916",
     "report_generated": false
+  },
+  {
+    "question": "In parse() (lines 57-76), when unpacking all six fields, can rounding in the bit shift operations cause values to differ from their original values when compared to their individual getter functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_087cca61-b07c-4778-9d7b-3fd081c53d3b",
+    "timestamp": "2025-12-01 18:26:16.978542",
+    "report_generated": false
+  },
+  {
+    "question": "In lastFee() (lines 47-51), does shr(192, state) correctly extract the uppermost 64 bits, or could the shift amount be off by one, causing the fee to include/exclude wrong bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_775109ab-6947-4c22-86b5-61bbb4ad38a3",
+    "timestamp": "2025-12-01 18:26:30.048465",
+    "report_generated": false
+  },
+  {
+    "question": "In lastOrderDuration() (lines 41-45), when extracting bits 160-191, can the bit masks overlap with lastEndTime or lastFee fields, causing duration values to include garbage bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17836145-b5c0-49a5-bc64-46e7e554106e",
+    "timestamp": "2025-12-01 18:26:44.414992",
+    "report_generated": false
+  },
+  {
+    "question": "In lastEndTime() (lines 35-39), can the shr(128, state) followed by AND mask produce incorrect timestamps if the state packing is misaligned, causing buyback orders to execute at wrong times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_62863663-28ae-45e3-bad5-dfe47f548e00",
+    "timestamp": "2025-12-01 18:26:58.547942",
+    "report_generated": false
+  },
+  {
+    "question": "In createBuybacksState() (lines 88-96), does the assembly block correctly pack all six fields into a single bytes32, or could field alignment errors cause values to be stored at wrong bit offsets?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ec993326-85eb-491a-a8cc-d0ffa8bd38c7",
+    "timestamp": "2025-12-01 18:27:13.715428",
+    "report_generated": false
+  },
+  {
+    "question": "In createBuybacksState() (lines 78-97), can the OR operations cause bit collisions when combining fields, allowing one field's bits to corrupt another field's value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f79c15b2-72b7-4650-aa1c-ac58316fa08a",
+    "timestamp": "2025-12-01 18:27:30.534018",
+    "report_generated": false
+  },
+  {
+    "question": "In isConfigured() (line 54), does checking minOrderDuration() != 0 correctly determine configuration state, or could a zero minOrderDuration be valid and cause the check to give false positives?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf8b18ff-5446-498c-b8b6-1dcf120763c4",
+    "timestamp": "2025-12-01 18:27:50.244349",
+    "report_generated": false
+  },
+  {
+    "question": "In fee() (lines 29-33), when extracting the 64-bit fee from state, can bit overlap with other fields cause the fee to include bits from neighboring fields, breaking buyback calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c1af351d-72a3-457f-a232-2653ce1a5349",
+    "timestamp": "2025-12-01 18:28:10.563684",
+    "report_generated": false
+  },
+  {
+    "question": "In minOrderDuration() (lines 23-27), does the shr(32, state) operation correctly shift the bits, or could compiler bugs cause misalignment and return garbage values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2cf52a0-355d-4e03-bfc2-d4d5af74f93f",
+    "timestamp": "2025-12-01 18:28:31.678847",
+    "report_generated": false
+  },
+  {
+    "question": "In targetOrderDuration() (lines 17-21), can the assembly AND mask (0xFFFFFFFF) fail to properly extract the lower 32 bits if the state has been corrupted, returning incorrect duration values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_89e87ed2-acbd-4337-88e2-545cd1cba961",
+    "timestamp": "2025-12-01 18:28:54.980078",
+    "report_generated": false
+  },
+  {
+    "question": "In toggle() (line 26), can the shl(index, 1) operation with unchecked index cause undefined behavior if index > 255, potentially corrupting storage in unexpected ways?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_20ee1ec1-1296-4a3c-9c69-4fc87bb8ba88",
+    "timestamp": "2025-12-01 18:29:19.290471",
+    "report_generated": false
+  },
+  {
+    "question": "In leSetBit() (line 56), when bitmap has no set bits <= index, does returning 0 correctly signal 'not found', or could this be misinterpreted as 'bit 0 is set' by calling code?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70779914-0121-496e-a06d-0954b49f8d50",
+    "timestamp": "2025-12-01 18:29:44.544800",
+    "report_generated": false
+  },
+  {
+    "question": "In geSetBit() (line 71), when combining 'and(masked, sub(0, masked))' with clz, does this correctly find the LSB, or could bit manipulation errors cause tick bitmap searches to skip initialized ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bdac537d-8f63-4d78-970d-71b97225e6b5",
+    "timestamp": "2025-12-01 18:30:14.430378",
+    "report_generated": false
+  },
+  {
+    "question": "In geSetBit() (lines 68-72), can the double negation 'sub(0, masked)' fail to isolate the LSB when masked has multiple bits set, causing the function to return the wrong bit position?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_59519af3-4822-4824-b047-bca315266190",
+    "timestamp": "2025-12-01 18:30:43.283793",
+    "report_generated": false
+  },
+  {
+    "question": "In leSetBit() (line 55), does the clz operation on a masked bitmap correctly find the MSB, or could the experimental compiler produce incorrect clz results that break tick searches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f881295-201e-4723-a2e9-18f6999ec3ae",
+    "timestamp": "2025-12-01 18:31:12.277651",
+    "report_generated": false
+  },
+  {
+    "question": "In leSetBit() (lines 51-58), can the masking operation (line 54) produce incorrect results when index == 255, causing the wraparound behavior (2^256-1) to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e38b321c-7842-4138-a0e7-d0012ea4ae2f",
+    "timestamp": "2025-12-01 18:31:43.289932",
+    "report_generated": false
+  },
+  {
+    "question": "In isSet() (lines 36-40), does the assembly right shift followed by AND correctly extract the target bit, or could certain index values cause the function to read wrong bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f5728cbf-5550-4c67-9a36-ac10114a3a4a",
+    "timestamp": "2025-12-01 18:32:14.499988",
+    "report_generated": false
+  },
+  {
+    "question": "In toggle() (lines 24-28), can the XOR operation with shl(index, 1) corrupt bits other than the target bit if index >= 256, potentially flipping unrelated bitmap state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b128a1c5-65f9-41cf-900a-c51df3a6bd65",
+    "timestamp": "2025-12-01 18:32:42.705843",
+    "report_generated": false
+  },
+  {
+    "question": "In exp2() (line 7), does the overflow bound 0x400000000000000000 correctly limit x to prevent all possible overflows, or could certain x values just below this bound still cause result to exceed type(uint256).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_08069c36-b158-4565-bcc4-432cd97c6c9b",
+    "timestamp": "2025-12-01 18:33:10.807802",
+    "report_generated": false
+  },
+  {
+    "question": "In exp2(), can an attacker find specific x values where the piecewise exponential approximation has maximum error, and exploit this to manipulate TWAMM order execution prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8896cd64-6180-4fb0-ab4c-3b732855e54d",
+    "timestamp": "2025-12-01 18:33:40.232673",
+    "report_generated": false
+  },
+  {
+    "question": "In exp2() (line 204), when x >> 64 is greater than 63, can the subtraction '63 - (x >> 64)' underflow, causing the right shift to shift by a huge amount and zero out the result?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_84679fa5-021c-45aa-ad4c-10e629a69025",
+    "timestamp": "2025-12-01 18:34:12.447816",
+    "report_generated": false
+  },
+  {
+    "question": "In exp2() (lines 107-202), do the precomputed constants (e.g., 0x16A09E667F3BCC908B2FB1366EA957D3E) contain errors that would cause exp2() to produce systematically incorrect results for certain input ranges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a034f7b1-96b8-4272-aa45-ea43918fbdc0",
+    "timestamp": "2025-12-01 18:34:45.037794",
+    "report_generated": false
+  },
+  {
+    "question": "In exp2() (lines 12-106), can the if statement pattern 'if (x & bitmask != 0)' fail to detect all relevant bits due to operator precedence issues, causing some exponential terms to be skipped?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4c88b50-b1e6-4930-a539-6adb598dbe26",
+    "timestamp": "2025-12-01 18:35:17.559536",
+    "report_generated": false
+  },
+  {
+    "question": "In exp2() (line 204), does the final right shift 'result >>= uint256(63 - (x >> 64))' correctly adjust for the integer part of x, or could negative shift amounts cause overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b368685f-9f10-478e-925b-87142bbccf94",
+    "timestamp": "2025-12-01 18:35:48.191742",
+    "report_generated": false
+  },
+  {
+    "question": "In exp2() (lines 11-202), when multiple bits in x are set, can the repeated 'result * constant >> 128' pattern cause precision loss that allows attackers to exploit TWAMM price calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28a092be-7af6-4f61-8da6-eb50c1be5fcf",
+    "timestamp": "2025-12-01 18:36:18.503341",
+    "report_generated": false
   }
 ]
