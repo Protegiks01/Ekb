@@ -1648,5 +1648,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0569e232-920a-41dd-b388-06f73371250a",
     "timestamp": "2025-12-01 18:04:27.993405",
     "report_generated": false
+  },
+  {
+    "question": "The _swap function returns balanceUpdate and stateAfter from the MEV_CAPTURE extension. If the extension fabricates these values to show negative deltas or invalid pool state, could this corrupt the Router's debt accounting when it processes the return values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_501692cb-ad64-424f-afd3-8f2ba4a2a33b",
+    "timestamp": "2025-12-01 18:05:57.507283",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCaptureRouter._swap uses SafeTransferLib.safeTransferETH which doesn't check return values for native transfers. Could a malicious CORE contract implement receive() to accept ETH but not record it in flash accounting, enabling an attacker to withdraw more than deposited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c3c7d4de-d399-47c0-9b23-779c582611a1",
+    "timestamp": "2025-12-01 18:06:11.000652",
+    "report_generated": false
+  },
+  {
+    "question": "In _swap line 36, if MEV_CAPTURE extension reverts after modifying pool state but before returning, could the revert propagation leave the pool in an inconsistent state where liquidity or tick values are corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4432feaa-721e-4e26-8717-bc4ab4423045",
+    "timestamp": "2025-12-01 18:06:25.626825",
+    "report_generated": false
+  },
+  {
+    "question": "The MEVCaptureRouter._swap function override (line 27-43) calls super methods in Router. Could an attacker exploit inheritance chain differences where Router's internal functions bypass MEVCaptureRouter's override, executing swaps without MEV capture?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_147ea844-97d0-4d4a-af20-ca446b2ab62e",
+    "timestamp": "2025-12-01 18:06:39.987792",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.registerExtension (lines 50-61), the function computes CallPoints from msg.sender using addressToCallPoints() and validates them. Could an attacker craft a contract address with bytecode that produces valid CallPoints computations but executes malicious logic when called as an extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0b002de8-9ea5-4166-a393-f2c42ac694ae",
+    "timestamp": "2025-12-01 18:06:55.218446",
+    "report_generated": false
+  },
+  {
+    "question": "Core.registerExtension (line 55) checks CoreStorageLayout.isExtensionRegisteredSlot(msg.sender) and reverts if already registered. Could an attacker pre-register many addresses to DOS future extension registrations by filling storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e5427e6-f7a6-459d-b797-534e0fe50d10",
+    "timestamp": "2025-12-01 18:07:11.599906",
+    "report_generated": false
+  },
+  {
+    "question": "In registerExtension (line 58), the function stores bytes32(LibBit.rawToUint(true)) at the registration slot. If LibBit.rawToUint returns values other than 0 or 1, could this corrupt the isExtensionRegistered check used in initializePool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_684df7a5-34aa-4d8d-a92d-a3d7b9a2e9cb",
+    "timestamp": "2025-12-01 18:07:29.758028",
+    "report_generated": false
+  },
+  {
+    "question": "Core.registerExtension validates expectedCallPoints.eq(computed) and expectedCallPoints.isValid() (line 52). Could an attacker pass expectedCallPoints with all flags set to bypass validation if isValid() doesn't properly validate flag combinations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e874709f-282f-4d91-ae95-e7befcdd1d7c",
+    "timestamp": "2025-12-01 18:07:50.311616",
+    "report_generated": false
+  },
+  {
+    "question": "The registerExtension function doesn't check if msg.sender has code at the time of registration. Could an attacker register an EOA, then later deploy malicious extension code to that address via CREATE2, bypassing call point validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_794d63a7-4b10-4cd0-a641-9b5f68ec330e",
+    "timestamp": "2025-12-01 18:08:11.966354",
+    "report_generated": false
+  },
+  {
+    "question": "In registerExtension (line 51), addressToCallPoints computes call points from the extension address. If this computation is deterministic based on address bytes, could an attacker brute-force addresses that produce malicious call point combinations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a466f3cf-aad9-4dd2-b8cd-b516acb53d1f",
+    "timestamp": "2025-12-01 18:08:35.072609",
+    "report_generated": false
+  },
+  {
+    "question": "Core.registerExtension (line 56) reverts with ExtensionAlreadyRegistered if the slot is non-zero. Could an attacker manipulate storage slots via other contracts (e.g., delegatecall) to set the extension registration slot, permanently preventing legitimate extension registration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d7c51529-483d-45f5-8c49-17c73541106a",
+    "timestamp": "2025-12-01 18:08:58.414514",
+    "report_generated": false
+  },
+  {
+    "question": "The registerExtension function stores the registration at a specific slot computed by CoreStorageLayout.isExtensionRegisteredSlot(msg.sender). Could this slot calculation collide with pool state slots if the address is crafted to produce a collision?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5c05d84b-d4b5-4793-8021-8990688adc10",
+    "timestamp": "2025-12-01 18:09:23.561957",
+    "report_generated": false
+  },
+  {
+    "question": "In registerExtension (lines 50-61), there's no authorization check. Could an attacker register malicious extensions that get invoked by unsuspecting users who initialize pools with those extensions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79c41354-5d0d-4934-abe7-5718d8021c91",
+    "timestamp": "2025-12-01 18:09:49.531907",
+    "report_generated": false
+  },
+  {
+    "question": "Core.registerExtension emits ExtensionRegistered(msg.sender) after successful registration. If an attacker registers many extensions and monitors these events, could they front-run pool initialization to manipulate extension behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1ec4441d-d288-451c-9140-a7d4bd768efe",
+    "timestamp": "2025-12-01 18:10:17.652928",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.initializePool (lines 72-101), poolKey.validate() is called before checking extension registration. Could an attacker pass a poolKey with invalid token ordering or config to bypass later validation checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_113d73ac-47f0-4226-8e07-47af0e65c6d1",
+    "timestamp": "2025-12-01 18:10:47.372877",
+    "report_generated": false
+  },
+  {
+    "question": "Core.initializePool (line 76) loads extension from poolKey.config and checks if it's registered only if extension != address(0). Could an attacker initialize pools with extension=address(0) to bypass extension hooks while still manipulating pool behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19f610c8-b97e-4005-8b19-6b09cb0b5258",
+    "timestamp": "2025-12-01 18:11:18.453814",
+    "report_generated": false
+  },
+  {
+    "question": "In initializePool (line 83), IExtension(extension).maybeCallBeforeInitializePool is called before the pool is marked initialized. Could a malicious extension reenter initializePool for the same poolId, creating duplicate pool states?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_48b95b3b-5a08-4876-a862-2036c6c994fb",
+    "timestamp": "2025-12-01 18:11:50.897966",
+    "report_generated": false
+  },
+  {
+    "question": "Core.initializePool (line 90) converts tick to sqrtRatio using tickToSqrtRatio(tick). If tick is at MIN_TICK or MAX_TICK boundaries, could this produce sqrtRatio values that violate MIN_SQRT_RATIO < sqrtRatio < MAX_SQRT_RATIO invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_76d0300e-3e48-403c-bb10-a1cc7b15e05c",
+    "timestamp": "2025-12-01 18:12:23.598491",
+    "report_generated": false
+  },
+  {
+    "question": "In initializePool (lines 94-96), the function initializes fees per liquidity slots to bytes32(uint256(1)). Could setting these to 1 instead of 0 cause arithmetic errors in subsequent fee calculations that assume uninitialized values are 0?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_03925e4b-01c1-4450-ad98-83b4c7a28b52",
+    "timestamp": "2025-12-01 18:12:56.927619",
+    "report_generated": false
+  },
+  {
+    "question": "Core.initializePool (line 88) checks if state.isInitialized() and reverts if true. Could an attacker manipulate the poolStateSlot storage via other means (e.g., storage collision) to mark a pool as uninitialized, then re-initialize it with different parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f16ab25f-7096-4317-b6b5-ea7f2b7135f5",
+    "timestamp": "2025-12-01 18:13:32.082904",
+    "report_generated": false
+  },
+  {
+    "question": "In initializePool (line 100), maybeCallAfterInitializePool is called after emitting the event. Could a malicious extension reenter to read the initialized pool state and front-run liquidity provision to sandwich the first LP?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4115c738-f5ff-4d65-9c7c-99b634be237d",
+    "timestamp": "2025-12-01 18:14:05.841918",
+    "report_generated": false
+  },
+  {
+    "question": "Core.initializePool (line 91) creates pool state with _liquidity: 0. If subsequent operations assume non-zero liquidity, could initializing with 0 liquidity enable division by zero in fee calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fe46b499-b94b-46c8-8439-fe3b87682e98",
+    "timestamp": "2025-12-01 18:14:35.217089",
+    "report_generated": false
+  },
+  {
+    "question": "In initializePool (lines 72-101), there's no check that token0 < token1 or that tokens are valid ERC20s. Could an attacker initialize a pool with invalid token addresses that later cause failures in swap or position operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e677e01a-8da2-4c54-9d55-cde074fa0ddc",
+    "timestamp": "2025-12-01 18:15:05.078403",
+    "report_generated": false
+  },
+  {
+    "question": "Core.initializePool writes directly to CoreStorageLayout.poolStateSlot(poolId) without checking if the slot is already occupied by another pool. Could hash collisions in poolId computation allow one pool to overwrite another's state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_309dce2c-49e2-4d7e-8e13-0591cc62e805",
+    "timestamp": "2025-12-01 18:15:34.554206",
+    "report_generated": false
+  },
+  {
+    "question": "In initializePool (line 95), fplSlot0.next() is used to access the second fees per liquidity slot. If StorageSlot.next() doesn't correctly compute slot+1, could this overwrite unrelated storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b62f8c0f-b8a8-498b-83a8-f0224755c8cc",
+    "timestamp": "2025-12-01 18:16:06.260930",
+    "report_generated": false
   }
 ]
