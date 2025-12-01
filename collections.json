@@ -4798,5 +4798,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_065d6e33-110f-401b-ab2f-3f94094f19c8",
     "timestamp": "2025-12-01 22:08:19.043576",
     "report_generated": false
+  },
+  {
+    "question": "In the NATIVE_TOKEN_ADDRESS constant (constants.sol line 26), address(0) is used. Can this conflict with EVM behavior where sending ETH to address(0) succeeds but burns the funds permanently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d22515a4-ac17-47e7-a860-71a6ae5387cf",
+    "timestamp": "2025-12-01 22:09:27.106703",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 334, swap functions are marked payable. If a user accidentally sends ETH for an ERC20-only swap, is the ETH refundable or permanently locked in the contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_971a36f8-a785-4db8-ac71-295e9b93080e",
+    "timestamp": "2025-12-01 22:09:40.142034",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 238-242), ETH is sent to accountant when calculatedToken is native and totalCalculated < 0. Can this scenario be exploited where user receives tokens but also pays negative ETH (receiving ETH)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ca64cac-e437-4007-82c9-05f08aa0c485",
+    "timestamp": "2025-12-01 22:09:54.411264",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 134-146, if poolKey.token0 == NATIVE_TOKEN_ADDRESS but balanceUpdate.delta0() has an unexpected sign, can the valueDifference calculation produce incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a84c20a-4e36-46a6-9380-33ef8bfa550d",
+    "timestamp": "2025-12-01 22:10:08.468311",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.lock function (line 61), call is made with value=0. If the accountant's lock function expects value > 0 for native token operations, will legitimate swaps fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f22a58fc-fe2e-4ee5-a6cf-f5e329e2379b",
+    "timestamp": "2025-12-01 22:10:23.246790",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol's swap function (line 352), calculatedAmountThreshold defaults to type(int256).min, disabling slippage protection. Can an attacker exploit this by sandwiching users who call this function variant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c953f883-24bf-487f-8f51-8110d8ec8846",
+    "timestamp": "2025-12-01 22:10:39.500897",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 118, slippage check uses strict less-than (<). If amountCalculated exactly equals calculatedAmountThreshold, the check passes. Can rounding errors allow swaps that violate user intent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aae49cc0-479b-48b6-929b-bc97123c9f93",
+    "timestamp": "2025-12-01 22:10:57.016334",
+    "report_generated": false
+  },
+  {
+    "question": "In the multi-hop slippage check (line 222), only totalCalculated is compared to calculatedAmountThreshold. If intermediate hops have poor execution but the total passes, can users receive unfavorable overall rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_49b83713-3735-4376-a417-e9f7f7528baf",
+    "timestamp": "2025-12-01 22:11:16.759686",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 264-272, the swap overload that doesn't specify recipient still requires calculatedAmountThreshold. Can a user mistakenly call this with type(int256).min, disabling protection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_061e08a1-aa98-4b57-89ea-52f2b27dc79c",
+    "timestamp": "2025-12-01 22:11:38.357901",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (line 117), amountCalculated is negated from balanceUpdate. If the core returns unexpected delta signs, can this cause the slippage check to compare wrong values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2bd2e8ba-4d2a-4cf0-87a5-1014fc6ccbbf",
+    "timestamp": "2025-12-01 22:12:00.444712",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 222, if totalCalculated is exactly calculatedAmountThreshold, the check passes. Can an MEV bot manipulate the final hop to make totalCalculated barely pass while extracting maximum value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_52670349-0169-4ccf-a921-6a294286fbf4",
+    "timestamp": "2025-12-01 22:12:24.442789",
+    "report_generated": false
+  },
+  {
+    "question": "In the swap function (lines 327-337), calculatedAmountThreshold is passed as a parameter but not validated. Can it be set to a value that makes the slippage check always pass (e.g., negative for receives)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b1009628-330b-4da0-8f96-68fdc1b3867b",
+    "timestamp": "2025-12-01 22:12:49.632851",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 67, SlippageCheckFailed error includes both expected and calculated amounts. Can an attacker use this error message to gain information about pool liquidity in a failed transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a49f451-9931-43ca-b021-3bc390e7f307",
+    "timestamp": "2025-12-01 22:13:15.053853",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (lines 94-150), slippage is checked after the swap completes. Can reentrancy during token transfers allow an attacker to manipulate pool state before the check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f0e6767f-a2d4-4d1f-b102-e8eeb96be138",
+    "timestamp": "2025-12-01 22:13:42.220059",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 379-387, multihopSwap returns the balance updates but not the final amounts. Can external contracts misinterpret these to implement incorrect slippage checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9deebe69-0090-49de-809c-e93d5a4c833e",
+    "timestamp": "2025-12-01 22:14:10.352264",
+    "report_generated": false
+  },
+  {
+    "question": "In the multi-hop path (lines 212-224), specifiedToken and calculatedToken are validated for consistency. If tokens match incorrectly, can this cause slippage checks to compare wrong token amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ffb9bff1-0d0e-4c63-a7d0-1589d642ffea",
+    "timestamp": "2025-12-01 22:14:40.378167",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 309, calculatedAmountThreshold is passed through createSwapParameters. Can errors in parameter packing cause this threshold to be corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c8757336-e190-4c04-8d07-2007749cfefa",
+    "timestamp": "2025-12-01 22:15:11.327850",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData (line 222), slippage check is performed after all swaps. If the first N-1 swaps execute but the Nth fails, can partial execution occur before the slippage revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c0c1196e-c705-4446-b73f-6fd288b018d0",
+    "timestamp": "2025-12-01 22:15:43.927446",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol lines 266-272, if recipient is set to a contract that reverts on token receipt, does the slippage check happen before or after the transfer attempt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e38db3c7-c153-4b4b-addd-49221c1a9bb2",
+    "timestamp": "2025-12-01 22:16:14.289956",
+    "report_generated": false
+  },
+  {
+    "question": "In the quote function (lines 419-449), no slippage check is performed. Can users be misled by quotes that differ significantly from actual execution due to missing price impact validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7c64eab-0fbc-4ec2-99f4-dad42ff710f9",
+    "timestamp": "2025-12-01 22:16:45.637421",
+    "report_generated": false
+  },
+  {
+    "question": "In PayableMulticallable.multicall (lines 17-19), _multicall is called with payable context. Can an attacker batch multiple swap calls that manipulate state before final settlement, violating flash accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a6f44d0-a2ad-4216-a5c5-55051a0b2643",
+    "timestamp": "2025-12-01 22:17:16.176063",
+    "report_generated": false
+  },
+  {
+    "question": "At Router.sol line 18, _multicallDirectReturn is used for gas efficiency. If returndata contains malicious payloads, can this cause vulnerabilities in contracts decoding the results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_498fa6a3-0967-4f64-a890-00c6da285a27",
+    "timestamp": "2025-12-01 22:17:47.581960",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.locked_6416899205 (lines 25-36), the callback uses raw assembly return. Can an attacker exploit this by encoding malicious return data that corrupts subsequent multicall results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_595db82d-46c3-4569-a43a-42fe3db0988f",
+    "timestamp": "2025-12-01 22:18:20.313580",
+    "report_generated": false
+  },
+  {
+    "question": "At PayableMulticallable line 27, refundNativeToken checks balance != 0. Can an attacker drain the refund by including this call multiple times in a multicall batch?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3579296f-a2a6-46ba-8064-60933d981336",
+    "timestamp": "2025-12-01 22:18:52.595516",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol, multiple swap functions are payable. If a multicall includes both ETH and ERC20 swaps, can msg.value be double-counted across calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8f06eff0-18a1-44b3-8d8f-e8e7b05af958",
+    "timestamp": "2025-12-01 22:19:23.589607",
+    "report_generated": false
   }
 ]
