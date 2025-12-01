@@ -5698,5 +5698,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0eadff43-9ccc-4da6-a6b1-12d38284d63b",
     "timestamp": "2025-12-01 23:35:59.601249",
     "report_generated": false
+  },
+  {
+    "question": "Is there validation that the Oracle contract at ORACLE address is trusted and non-malicious?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a2edc5e7-a5dc-4320-9438-8a6bcb58d127",
+    "timestamp": "2025-12-01 23:37:14.660775",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker manipulate the Oracle's tickCumulative to cause integer overflow when calculating tick averages?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a4dc9156-8dc7-4e83-94be-d70ddac7f3d7",
+    "timestamp": "2025-12-01 23:37:29.209966",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if the Oracle's extrapolateSnapshot returns identical cumulative values for start and end times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc823a5b-5925-4c4e-a090-1c11802ea332",
+    "timestamp": "2025-12-01 23:37:42.904075",
+    "report_generated": false
+  },
+  {
+    "question": "Can the Oracle contract return manipulated secondsPerLiquidityCumulative values that could cause division by zero or overflow in getAveragesOverPeriod?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aef8391a-d74b-46b7-850b-5b16306609dd",
+    "timestamp": "2025-12-01 23:37:57.008643",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolPrice(): Can skipping sqrtRatio.isValid() allow invalid or zero ratios from corrupted storage to flow into toFixed() and return nonsense prices? (src/lens/CoreDataFetcher.sol:22-26, src/types/sqrtRatio.sol:40-49)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bacc7203-2b54-4a39-80e0-76547c7ffc7a",
+    "timestamp": "2025-12-01 23:38:12.141663",
+    "report_generated": false
+  },
+  {
+    "question": "CoreLib.poolPositions(): Are multi-slot reads non-atomic such that re-entrancy or intra-call mutation yields liquidity from one state and fees from another? (src/libraries/CoreLib.sol:61-75)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0d240c12-893f-4cc3-9960-5a71a879feb1",
+    "timestamp": "2025-12-01 23:38:28.608203",
+    "report_generated": false
+  },
+  {
+    "question": "ExposedStorageLib.sload(): If calldata parsing in IExposedStorage.sload() is flawed, can crafted calls read unintended slots or expose sensitive state? (src/libraries/ExposedStorageLib.sol:9-17, src/interfaces/IExposedStorage.sol:10-13)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c82817cc-e92c-4908-a683-d30cb3866cab",
+    "timestamp": "2025-12-01 23:38:46.797307",
+    "report_generated": false
+  },
+  {
+    "question": "CoreLib.getPoolFeesPerLiquidity(): Could compiler or optimization changes alter struct memory layout so value0/value1 are assigned to wrong offsets? (src/libraries/CoreLib.sol:44-54, src/types/feesPerLiquidity.sol:6-9)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b343c851-88bc-4c91-b950-adb0efc969bc",
+    "timestamp": "2025-12-01 23:39:06.429643",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolPrice(): Can consumers observe inconsistent sqrtRatio vs tick by calling poolState() and poolPrice() across transactions where swaps occur in-between, enabling TOCTOU mispricing? (src/lens/CoreDataFetcher.sol:22-34)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a3ed18d-537c-4413-aac8-eefa0addf4cc",
+    "timestamp": "2025-12-01 23:39:28.276867",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolPrice()/poolState(): What guarantees alignment and ordering of PoolKey fields in memory at call-time to prevent unintended bytes being hashed? (src/lens/CoreDataFetcher.sol:22-26, src/types/poolKey.sol:34-38)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d3f5e242-50c1-4bca-bec9-e0d1dd405284",
+    "timestamp": "2025-12-01 23:39:51.326842",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolPrice()/poolState(): Can a malicious PoolKey in memory manipulate the free-memory pointer or overlap regions so the 96-byte keccak256 window hashes attacker-controlled bytes? (src/lens/CoreDataFetcher.sol:22-26, src/types/poolKey.sol:34-38)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8474bcf-9352-4b05-9b8d-6bd6f2e3eb81",
+    "timestamp": "2025-12-01 23:40:14.835926",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolPosition(): Is a zero-liquidity return ambiguous between ‘never existed’ and ‘burned’, leading integrators to act on phantom positions? (src/lens/CoreDataFetcher.sol:36-42, src/libraries/CoreLib.sol:61-75)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_89c208e3-4c03-44e9-901f-18f90e500d31",
+    "timestamp": "2025-12-01 23:40:40.401819",
+    "report_generated": false
+  },
+  {
+    "question": "CoreLib.isExtensionRegistered(): Can intermediate writes during extension registration cause read-time false positives for partially registered extensions? (src/lens/CoreDataFetcher.sol:18-20, src/libraries/CoreLib.sol:28-30)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_acf735a5-cc4f-4d9d-ba19-cd29445fce90",
+    "timestamp": "2025-12-01 23:41:06.792354",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolState(): Should isInitialized() be enforced before returning state to avoid consumers using invalid sqrtRatio=0 in pricing math? (src/lens/CoreDataFetcher.sol:28-34, src/types/poolState.sol:28-32)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a1c05a7f-ad26-4e78-a5f5-43cf44a3f472",
+    "timestamp": "2025-12-01 23:41:34.129651",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolState(): Does parsing zero storage for uninitialized pools as (sqrtRatio=0, tick=0, liquidity=0) allow callers to treat a non-existent pool as valid? (src/lens/CoreDataFetcher.sol:28-34, src/types/poolState.sol:28-32)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_51b4c493-9086-4660-96b4-ad8b1a457402",
+    "timestamp": "2025-12-01 23:42:03.223228",
+    "report_generated": false
+  },
+  {
+    "question": "CoreLib.poolTicks(): Can casting uint128 to int128 reinterpret high-bit values as negative, inverting liquidityDelta sign for large deltas? (src/libraries/CoreLib.sol:102-113)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8770e67e-303e-460a-9da1-28e98115bfbf",
+    "timestamp": "2025-12-01 23:42:33.259030",
+    "report_generated": false
+  },
+  {
+    "question": "CoreLib.savedBalances(): If Core packs balances opposite of assumptions, does extracting upper/lower 128 bits swap token balances, corrupting accounting? (src/libraries/CoreLib.sol:85-94)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29eb37c2-6545-4193-9b04-12ebc3979f30",
+    "timestamp": "2025-12-01 23:43:03.743228",
+    "report_generated": false
+  },
+  {
+    "question": "CoreLib.poolPositions(): Do the assembly operations shl(128, v0) and shr(128, v0) invert the intended layout for (extraData, liquidity), causing fields to be swapped? (src/libraries/CoreLib.sol:69-72)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_321e155e-c27e-4efe-9262-befa2c0df52e",
+    "timestamp": "2025-12-01 23:43:36.568930",
+    "report_generated": false
+  },
+  {
+    "question": "sqrtRatio.toFixed(): For highest-range inputs, can left-shifting by up to 98 bits overflow 256-bit arithmetic if mantissa bounds or masking are wrong, returning an invalid price? (src/types/sqrtRatio.sol:102-106)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6c8e1a7-b7c9-4490-aae4-cd4b54405c90",
+    "timestamp": "2025-12-01 23:44:08.052017",
+    "report_generated": false
+  },
+  {
+    "question": "PoolState.parse(): If sqrtRatio bits are not properly masked, could high-order bits be misattributed to tick or liquidity fields, corrupting parsed state? (src/types/poolState.sol:34-39)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1489c425-3541-4352-a9ae-71d9879844e2",
+    "timestamp": "2025-12-01 23:44:40.090752",
+    "report_generated": false
+  },
+  {
+    "question": "PoolState.parse(): Can signextend on the tick field misinterpret the sign if upstream packing differs or upper bits bleed into the tick region, yielding an incorrect signed tick? (src/types/poolState.sol:34-39)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_548b02ca-03c4-4e3e-b333-b76fb8201eb1",
+    "timestamp": "2025-12-01 23:45:11.312234",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.savedBalances(): Without enforcing token0 < token1, can a caller swap ordering to read unrelated storage slots and bypass intended balance isolation? (src/lens/CoreDataFetcher.sol:44-50, src/libraries/CoreStorageLayout.sol:122-135)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5f747fcd-07c5-4ba8-bb93-92175f258fd0",
+    "timestamp": "2025-12-01 23:45:42.838593",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolPosition(): What prevents the first keccak256(positionId, poolId, owner) from colliding with other Core storage domains that share overlapping addressing patterns? (src/lens/CoreDataFetcher.sol:36-42, src/libraries/CoreStorageLayout.sol:100-114)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf7ec204-375a-42f7-aefe-fe65eea188e4",
+    "timestamp": "2025-12-01 23:46:15.008182",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolPosition(): Could the two-step keccak256 scheme allow a crafted (poolId, owner, positionId) tuple to collide to another position’s storage slot, leaking or corrupting position data? (src/lens/CoreDataFetcher.sol:36-42, src/libraries/CoreStorageLayout.sol:100-114)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5f66e8dd-6656-4a7a-80c6-15d65fd8b3f2",
+    "timestamp": "2025-12-01 23:46:47.211024",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolTicks(): Can extreme int32 tick values near MIN_TICK or MAX_TICK overflow or underflow when added to TICKS_OFFSET, causing storage slot collisions with unrelated pool data? (src/lens/CoreDataFetcher.sol:52-54, src/libraries/CoreStorageLayout.sol:64-68)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8fd0da8-c236-48a7-bb9a-1a3d6e89d6ba",
+    "timestamp": "2025-12-01 23:47:20.420752",
+    "report_generated": false
   }
 ]
