@@ -598,5 +598,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9361a50-7a52-43c4-a608-63b1fc25c6a9",
     "timestamp": "2025-12-01 16:42:43.128522",
     "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L680-683, assembly), does the `stepFeesPerLiquidity` calculation `div(shl(128, sub(beforeFee, limitCalculatedAmountDelta)), stepLiquidity)` risk precision loss or overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4ef5a9b-ed8a-4fdb-8fd4-4bf0c3d4aa0d",
+    "timestamp": "2025-12-01 16:43:53.907329",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L686-694), in the exact input case when hitting the limit, does the unchecked arithmetic correctly handle the case where `beforeFee` equals `limitSpecifiedAmountDelta` (zero fee)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e09b636a-6ee8-4b34-bda2-555447578f33",
+    "timestamp": "2025-12-01 16:44:07.050018",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L698-723), when not hitting the limit and sqrtRatio moves, does the fee calculation match the limit case, and could discrepancies enable arbitrage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ee1750f0-82a7-4f3b-86ef-6b31117adf0f",
+    "timestamp": "2025-12-01 16:44:21.058457",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L699-701), does `amount0Delta` or `amount1Delta` correctly compute the calculated amount without fees, and could rounding direction exploits enable extraction of value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_53b5ea98-533d-43ae-9e01-9482b365bf60",
+    "timestamp": "2025-12-01 16:44:35.048069",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L703-711), in exact output mode, does the `includingFee` calculation risk overflow when `calculatedAmountWithoutFee` is near type(uint128).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e29d731-e336-4858-9dd6-3ecb439191cb",
+    "timestamp": "2025-12-01 16:44:50.113579",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L712-719), in exact input mode, does the assembly block correctly compute `stepFeesPerLiquidity` from the remaining amount and price impact amount?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_140ff808-604b-4d67-bf1c-08f03d17836a",
+    "timestamp": "2025-12-01 16:45:06.856427",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L722-733), when price doesn't move (`sqrtRatioNextFromAmount == sqrtRatio`), does the assertion `!isExactOut` at L726 hold in all cases, or could precision loss violate this?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e52bbfb-f2ec-476c-b9f3-fb25aef6c8a0",
+    "timestamp": "2025-12-01 16:45:25.101895",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L728-731), when price doesn't move, does consuming the entire input amount as fees (`amountRemaining` as fees) risk fee overflow when divided by zero or small liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_59aa2eb3-ea58-4669-b1e6-143387c9b3a2",
+    "timestamp": "2025-12-01 16:45:44.677174",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L737-749), when updating fees per liquidity, does the lazy loading mechanism (`feesAccessed == 0`) risk using stale storage values if another operation modified fees concurrently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c407cff-38d4-4953-8609-90eb63bc8f5d",
+    "timestamp": "2025-12-01 16:46:05.355330",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L752-800), when crossing a tick (`sqrtRatioNext == nextTickSqrtRatio`), does the liquidity update correctly apply the tick's liquidityDelta considering the swap direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c4bf2f79-e83b-42cd-a0dd-3662afa55fa7",
+    "timestamp": "2025-12-01 16:46:27.601284",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L754-757, assembly), does the computation `tick := sub(nextTick, iszero(increasing))` correctly adjust the tick based on direction, handling both positive and negative ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b89b776-dab4-4511-ba52-0ed6fa7a70f1",
+    "timestamp": "2025-12-01 16:46:51.869122",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L759-766, assembly), when updating liquidity at tick crossing, does the `signextend(15, tickValue)` correctly extract the liquidityDelta as int128, and could sign extension errors corrupt liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72c36a99-dda1-4bd0-b860-1a734949c4a6",
+    "timestamp": "2025-12-01 16:47:17.158781",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L763-765, assembly), does the liquidity delta multiplication `mul(signextend(15, tickValue), sub(increasing, iszero(increasing)))` correctly apply +delta when increasing and -delta when decreasing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_572427a4-24b3-47ed-9f3d-4605e6d2ff44",
+    "timestamp": "2025-12-01 16:47:43.592338",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L768-799), when updating tick fees per liquidity outside during tick crossing, does the subtraction risk underflow if fees have wrapped or if the tick was not properly initialized?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1e9d7746-631a-4f31-8b6f-e3d46be8b594",
+    "timestamp": "2025-12-01 16:48:10.647233",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L771-777), does lazy loading input token fees per liquidity before tick crossing ensure the latest value is used, preventing fee loss or double-counting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02f1acea-0c39-4ce2-933d-d79439a12de4",
+    "timestamp": "2025-12-01 16:48:39.763828",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L779-782), does loading `globalFeesPerLiquidityOther` for the non-input token ensure correct fee accounting when flipping fees outside at tick crossing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d971a175-2dd2-4bd9-8f5e-26be1a9751a4",
+    "timestamp": "2025-12-01 16:49:09.702820",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L785-799), when `increasing`, does storing `globalFeesPerLiquidityOther - tickFplFirstSlot` and `inputTokenFeesPerLiquidity - tickFplSecondSlot` correctly flip the outside fee accumulator?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_33b2aa82-2e39-43de-b58d-7aa1c0972d17",
+    "timestamp": "2025-12-01 16:49:40.678405",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L792-799), when not `increasing`, does the reversed order of fee updates match the expected semantics, and could this asymmetry cause fee accounting bugs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a265b084-976a-4e7b-8c99-2b567cae31d3",
+    "timestamp": "2025-12-01 16:50:13.161819",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L801-804), when not crossing a tick but price moved, does the `sqrtRatioToTick` conversion correctly compute the new tick, and could precision loss cause tick drift?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5f8543ca-736e-4a20-b43b-4af3f4db79cf",
+    "timestamp": "2025-12-01 16:50:46.405854",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L806-808), does the loop termination condition `amountRemaining == 0 || sqrtRatio == sqrtRatioLimit` always evaluate correctly, or could floating point-like precision issues cause infinite loops?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_59cc96d3-5c3b-4ed3-b9ed-a3310c1432e7",
+    "timestamp": "2025-12-01 16:51:21.544832",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L811-812), does `SafeCastLib.toInt128(FixedPointMathLib.max(type(int128).min, calculatedAmount))` properly handle overflow, or could extreme swaps cause silent truncation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f71991f-f181-4638-baff-9f66ae5b11d1",
+    "timestamp": "2025-12-01 16:51:56.814405",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L814-818, assembly), does the computation of `specifiedAmountDelta` correctly represent the consumed amount, and could integer overflow in subtraction corrupt the result?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57c0b686-e9e7-4aee-876a-6948df0e7472",
+    "timestamp": "2025-12-01 16:52:32.899542",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L820-822), does constructing `balanceUpdate` correctly assign delta0 and delta1 based on `isToken1`, ensuring token ordering matches pool key token order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_171c9245-b349-43c1-a1e6-6c1c186ff0ca",
+    "timestamp": "2025-12-01 16:53:11.759900",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L824-826), does creating the new pool state and writing it commit all changes atomically, or could a revert after this line leave the pool in an inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e23defa7-20ee-4933-8828-be3e6b341c43",
+    "timestamp": "2025-12-01 16:53:52.431704",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L828-832), when `feesAccessed == 2`, does storing only the input token fees per liquidity risk leaving the output token fees outdated, causing accounting mismatches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8b21ce1-9bf7-4f3f-9369-a161c4cee3ef",
+    "timestamp": "2025-12-01 16:54:32.700834",
+    "report_generated": false
   }
 ]
