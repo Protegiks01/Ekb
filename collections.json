@@ -1798,5 +1798,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b62f8c0f-b8a8-498b-83a8-f0224755c8cc",
     "timestamp": "2025-12-01 18:16:06.260930",
     "report_generated": false
+  },
+  {
+    "question": "Core.initializePool (line 77) checks isExtensionRegisteredSlot.load() == bytes32(0) to determine if extension is registered. Could an attacker register an extension, then manipulate the slot to appear unregistered, causing initializePool to revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73b53e82-fb3e-4c1e-8fc4-de7210f81b2f",
+    "timestamp": "2025-12-01 18:17:28.360297",
+    "report_generated": false
+  },
+  {
+    "question": "In initializePool (line 83), the beforeInitializePool hook receives (msg.sender, poolKey, tick). Could a malicious extension use msg.sender to impersonate the initializer and steal position NFTs or fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04c3921d-eae2-4416-9a66-1134bbfcedf0",
+    "timestamp": "2025-12-01 18:17:41.640373",
+    "report_generated": false
+  },
+  {
+    "question": "Core.initializePool (line 98) emits PoolInitialized with poolId, poolKey, tick, and sqrtRatio. Could an attacker monitor these events to front-run liquidity additions and manipulate initial price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04eb0f1a-5fc0-4276-9050-7cfcd9c04371",
+    "timestamp": "2025-12-01 18:17:55.804157",
+    "report_generated": false
+  },
+  {
+    "question": "In initializePool (lines 94-96), the initialization of fees per liquidity slots prevents the first swap from being cheaper. However, could an attacker still exploit the first deposit by providing liquidity at tick boundaries to control initial fee accumulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23655ccf-c392-4e2e-90a2-56592c33df04",
+    "timestamp": "2025-12-01 18:18:10.108847",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.updateSavedBalances (lines 124-171), the function uses extensive assembly to update saved balances. The assembly block (lines 139-168) computes storage slots and performs arithmetic without bounds checking. Could integer overflow in line 142 (add(u, i)) wrap around and bypass the overflow check in line 146?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1227f81e-a437-4a61-a86f-57f7cdb1ef46",
+    "timestamp": "2025-12-01 18:18:25.172939",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updateSavedBalances (line 135) validates token0 >= token1 should be token0 < token1. This incorrect validation could allow unsorted token pairs, potentially causing storage slot collisions when savedBalancesSlot is computed with reversed token order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ccfc4648-afaf-4bfc-8be6-ea4c4f43c064",
+    "timestamp": "2025-12-01 18:18:41.524418",
+    "report_generated": false
+  },
+  {
+    "question": "In updateSavedBalances (line 137), _requireLocker() is called to get the locker. Could an attacker call this function outside a lock context, or could the locker be manipulated to attribute saved balances to the wrong owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0d310ca5-5661-4617-89df-b183f9ba4948",
+    "timestamp": "2025-12-01 18:19:00.607904",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updateSavedBalances assembly block (lines 153-168) computes storage slot using calldatacopy to construct the hash input. If calldatasize is manipulated or calldata is corrupted, could this compute incorrect storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9a1c813-71de-4a17-b63c-9e64958a5721",
+    "timestamp": "2025-12-01 18:19:20.749496",
+    "report_generated": false
+  },
+  {
+    "question": "In updateSavedBalances (line 158), the function computes keccak256(free, 128) for the storage slot. Could an attacker craft token addresses or salt values that produce hash collisions, allowing them to overwrite other users' saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_81d8be94-7316-44b2-82db-a9cfb87dd77d",
+    "timestamp": "2025-12-01 18:19:41.748193",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updateSavedBalances (lines 161-162) loads current balances using shr(128, balances) and shr(128, shl(128, balances)). Could these bit shifts produce incorrect values if balances was previously corrupted by a storage collision?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_24b164d0-5808-4ce8-aa8d-ce730f200acd",
+    "timestamp": "2025-12-01 18:20:04.852752",
+    "report_generated": false
+  },
+  {
+    "question": "In updateSavedBalances (line 140-151), the addDelta function checks for overflow with multiple conditions. Could the complex boolean logic in line 146 be exploited by carefully crafted delta values that bypass the overflow check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67c1d9a6-0920-40e6-b5e5-e0832d9f7df5",
+    "timestamp": "2025-12-01 18:20:28.769010",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updateSavedBalances stores packed balances (line 167) as shl(128, b0Next) + b1Next. Could an attacker cause b1Next to exceed uint128.max, causing the addition to overflow and corrupt b0Next in the upper bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_478d2408-7626-4c12-ae6f-730feaf061a6",
+    "timestamp": "2025-12-01 18:20:54.025099",
+    "report_generated": false
+  },
+  {
+    "question": "In updateSavedBalances (line 170), _updatePairDebtWithNative is called after storage updates. Could a malicious token contract reenter during this call to manipulate the saved balances before debt is properly accounted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_03deb0ee-11ad-4fe0-842a-abb0d6d43aac",
+    "timestamp": "2025-12-01 18:21:21.835766",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updateSavedBalances receives delta0 and delta1 as int256 but assumes they fit in int128. If delta values exceed int128 bounds, could the assembly addDelta function (lines 140-151) produce incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e228bf6f-a9bb-49e2-968d-d8926beeecc9",
+    "timestamp": "2025-12-01 18:21:50.209475",
+    "report_generated": false
+  },
+  {
+    "question": "In updateSavedBalances assembly (line 156), calldatacopy(add(free, 0x20), 4, 96) copies the first 3 arguments. Could manipulating calldata structure cause incorrect token0, token1, or salt values to be copied, leading to wrong storage slot computation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a31c8dd8-c047-4d4b-a578-2fa87438b936",
+    "timestamp": "2025-12-01 18:22:19.585764",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updateSavedBalances (line 159) loads balances from the computed slot. If this slot was never initialized, could loading bytes32(0) and interpreting it as balances=(0,0) allow an attacker to withdraw funds they never deposited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a2e614c-598d-4b95-b8ab-755939d19412",
+    "timestamp": "2025-12-01 18:22:50.566221",
+    "report_generated": false
+  },
+  {
+    "question": "In updateSavedBalances (line 164-165), the function calls addDelta(b0, delta0) and addDelta(b1, delta1) sequentially. Could an attacker exploit the ordering where b0 is updated successfully but b1 reverts, leaving the storage in a partially updated state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e32ccae5-d407-4574-ae54-faaff3912e43",
+    "timestamp": "2025-12-01 18:23:22.570193",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updateSavedBalances (line 135) checks token0 >= token1 which is reversed from the expected token0 < token1. Could this bug allow an attacker to pass token1 as token0 and vice versa, bypassing the sorted token invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afcfb56a-ce46-4ac2-a630-d59764d332c9",
+    "timestamp": "2025-12-01 18:23:55.157043",
+    "report_generated": false
+  },
+  {
+    "question": "In updateSavedBalances assembly (line 147-149), the revert uses mstore to store the error selector 0x1293d6fa (SavedBalanceOverflow). Could an attacker trigger this revert path repeatedly to DOS saved balance operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e9f86e88-9286-417d-9f52-5c6f4d07fca8",
+    "timestamp": "2025-12-01 18:24:27.956576",
+    "report_generated": false
+  },
+  {
+    "question": "In Core._getPoolFeesPerLiquidityInside (lines 180-216), the function uses unchecked arithmetic (line 197) to compute feesPerLiquidityInside. Could underflow in line 199 (lower0 - upper0) when tick < tickLower produce incorrect fee values that allow double-claiming?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3d7bdc8f-e33e-4fb8-8347-a8b82c32bc6a",
+    "timestamp": "2025-12-01 18:24:59.931087",
+    "report_generated": false
+  },
+  {
+    "question": "Core._getPoolFeesPerLiquidityInside (line 198) checks tick < tickLower to determine fee calculation path. Could an attacker manipulate pool tick to be exactly at tickLower boundary, causing incorrect fees per liquidity calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_861175f5-0c4a-4c2b-8b4c-eef9e8477d75",
+    "timestamp": "2025-12-01 18:25:32.346733",
+    "report_generated": false
+  },
+  {
+    "question": "In _getPoolFeesPerLiquidityInside (lines 190-194), the function loads fees per liquidity outside for tickLower and tickUpper from storage. Could storage slot collisions cause these values to be corrupted by other pool operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bfb62822-3412-4de9-8d6c-2c1f0a165a5d",
+    "timestamp": "2025-12-01 18:26:04.993209",
+    "report_generated": false
+  },
+  {
+    "question": "Core._getPoolFeesPerLiquidityInside (line 209) computes global0 - upper0 - lower0 when tick is between bounds. Could this three-term subtraction underflow if upper0 or lower0 were incorrectly initialized to values exceeding global0?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f2f84e62-dfa4-4269-ab64-5a4d65cbb08a",
+    "timestamp": "2025-12-01 18:26:37.803114",
+    "report_generated": false
+  },
+  {
+    "question": "In _getPoolFeesPerLiquidityInside (line 201-210), the else if branch handles tick < tickUpper. Could an attacker exploit the boundary condition where tick == tickUpper to fall through to the final else block and get incorrect fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eac96ce1-0d45-4662-abff-b631302e3495",
+    "timestamp": "2025-12-01 18:27:10.520778",
+    "report_generated": false
+  },
+  {
+    "question": "Core._getPoolFeesPerLiquidityInside returns FeesPerLiquidity memory which contains value0 and value1. Could an attacker manipulate position bounds to make value0 or value1 extremely large, causing overflow when multiplied by liquidity in fee collection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ed753e3e-8a0f-4ca4-af1e-cf9a39e619d7",
+    "timestamp": "2025-12-01 18:27:42.339119",
+    "report_generated": false
   }
 ]
