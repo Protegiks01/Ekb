@@ -2998,5 +2998,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd836e4c-268c-4b0e-ac33-4d884876b60f",
     "timestamp": "2025-12-01 19:49:49.125651",
     "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 202-210, global fees are fetched and used in subtraction. If global fees overflow due to extensive trading, can the subtraction wrap around and produce incorrect fees per liquidity inside?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c73a3211-0607-4e63-95b0-db67e116b5d8",
+    "timestamp": "2025-12-01 19:50:56.340638",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 190-194, fees per liquidity outside are loaded from storage. If these storage slots have been corrupted through storage collision, can all positions in affected tick ranges claim wrong fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c4640078-5d4c-4c6c-911c-459dc042db1c",
+    "timestamp": "2025-12-01 19:51:09.581207",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 180-183, the function is view and can be called by anyone. Can an attacker use this to front-run position operations by predicting fee values and adjusting positions to maximize extraction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c3060ee-14c7-4640-a9ad-d1a20f87fa19",
+    "timestamp": "2025-12-01 19:51:23.066042",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 329-355, _updatePairDebtWithNative handles native token and ERC20 token debt. If token0 is NATIVE_TOKEN_ADDRESS and msg.value is sent, can the unchecked subtraction at line 344 overflow with specific debt values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f2fde54-1138-47b8-8275-38959c7dbbc8",
+    "timestamp": "2025-12-01 19:51:37.130039",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 336-338, _updatePairDebt is called with zero native adjustment. If msg.value is non-zero but neither token is native, can the separate _accountDebt call at line 351 be manipulated to create artificial debt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_370c1bf9-e739-433b-91e9-84403e71a4e4",
+    "timestamp": "2025-12-01 19:51:52.485532",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 340-345, the function checks if token0 is NATIVE_TOKEN_ADDRESS. If NATIVE_TOKEN_ADDRESS constant is changed or overridden, can this bypass native token handling and cause accounting errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5c8ec5e6-bdf3-45fe-b38b-7fc2f39ef3a1",
+    "timestamp": "2025-12-01 19:52:09.365437",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 346-354, the else branch handles non-native token0 case. If token1 is also checked to be native (impossible due to sorting), can unreachable code paths hide logic errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ccb4c0ae-4855-403e-a077-b42883defac3",
+    "timestamp": "2025-12-01 19:52:27.214931",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 351, _accountDebt is called for NATIVE_TOKEN_ADDRESS separately. If this call reverts but the previous _updatePairDebt succeeded, can partial debt updates violate flash accounting invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db5cecfe-681e-4397-b777-9c6faf5008f1",
+    "timestamp": "2025-12-01 19:52:46.352767",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 104-121, prevInitializedTick and nextInitializedTick are view functions using tick bitmaps. If skipAhead is set to type(uint256).max, can these functions loop indefinitely, causing DoS through excessive gas consumption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7bdafa09-2c2d-4bfe-ba35-51fbc6f11eb6",
+    "timestamp": "2025-12-01 19:53:07.307332",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 109-110, findPrevInitializedTick is called with skipAhead parameter. If skipAhead skips over all initialized ticks, can the function return uninitialized tick as initialized, corrupting swap execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_947d9feb-b72f-4cce-9be8-39a94f418c8a",
+    "timestamp": "2025-12-01 19:53:29.031853",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 119-120, findNextInitializedTick can skip ahead through bitmap words. If the tick bitmap has corrupted data, can these functions return ticks outside MIN_TICK/MAX_TICK bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00de2cae-0b54-40c4-b061-6d017fb3e1b8",
+    "timestamp": "2025-12-01 19:53:53.586715",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 110, tickSpacing is passed to bitmap search functions. If tickSpacing is 0 or negative (through config manipulation), can division by zero or infinite loops occur in bitmap operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_87cc754d-eba9-4520-aadb-d5280ca37f91",
+    "timestamp": "2025-12-01 19:54:19.016752",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 451-460, setExtraData allows users to set arbitrary 128-bit data for their positions. If the bit shifting at line 459 is incorrect, can this overwrite critical position data like liquidity or fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3bb6c024-f4b7-4ebc-adeb-3b2baa05e707",
+    "timestamp": "2025-12-01 19:54:46.462055",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 459, the assembly operations load existing data, shift it, and OR with new data. If two users race to call setExtraData for the same position (impossible due to msg.sender check), can partial overwrites corrupt position state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75ff438c-b3ab-4aa8-9ed2-614e823d869d",
+    "timestamp": "2025-12-01 19:55:13.804951",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 455-457, assembly is used to cast bytes16 to bytes32. If the extraData parameter has non-zero upper bits in calldata, can these bits leak into position storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8cc76b93-d0e7-4251-82cc-549356968d20",
+    "timestamp": "2025-12-01 19:55:43.007711",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 452, the function loads the first storage slot and modifies only part of it. If another transaction modifies the same position concurrently, can race conditions cause one update to be lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0585fca5-3ffa-4194-bd05-299f5decec07",
+    "timestamp": "2025-12-01 19:56:15.421838",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 452, msg.sender is used to determine the position slot. If msg.sender is a contract that delegatecalls to Core, can the position be looked up incorrectly, allowing unauthorized extraData updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e1193bc-94fe-459c-ad5b-f0e33b7ecd9e",
+    "timestamp": "2025-12-01 19:56:48.997233",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 146-187, the lock function manages locker state in transient storage. If an attacker can manipulate the _CURRENT_LOCKER_SLOT value through storage collision, can they bypass the NotLocked check and create unauthorized locks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6399aed9-bd2a-45b8-bb9c-0742a2d88700",
+    "timestamp": "2025-12-01 19:57:23.833709",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 175-181, debts must be zeroed before lock exit. If nonzeroDebtCount is manipulated through bit flips in transient storage, can partial debt settlement allow fund extraction without full payment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f93f8bbb-537d-42c5-95fd-2af9ef1383eb",
+    "timestamp": "2025-12-01 19:57:59.551078",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 67-84, _accountDebt uses unchecked math for debt tracking. If debtChange is crafted to cause integer overflow in the next value, can an attacker create negative debt and withdraw tokens without payment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_926c9839-6689-4950-b790-6fab75ac77a5",
+    "timestamp": "2025-12-01 19:58:35.886513",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 96-129, _updatePairDebt optimizes debt updates for token pairs. If both debtChangeA and debtChangeB are zero but nzdCountChange is manipulated, can the count become desynchronized from actual non-zero debts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f83a6a1d-5aed-46f8-9a97-b8ce4e02658b",
+    "timestamp": "2025-12-01 19:59:13.992731",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 190-221, forward changes the locker address temporarily. If the forwarded contract reenters forward recursively, can nested locker changes corrupt the locker stack and bypass authorization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c3d9e177-99c6-42fc-aae3-9ca7aa72c03f",
+    "timestamp": "2025-12-01 19:59:52.879886",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 224-254, startPayments records token balances before payment. If a token's balanceOf function is malicious and returns different values on repeated calls, can payment detection be bypassed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9168d53-3d70-4688-ab1d-747e411a5c9b",
+    "timestamp": "2025-12-01 20:00:30.866367",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 257-319, completePayments calculates payment amounts by balance differences. If the contract receives tokens from external sources during this window, can legitimate payments be detected as coming from the locker?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2eeb74a2-4b76-406f-b971-808935bd2f7f",
+    "timestamp": "2025-12-01 20:01:07.778829",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 283-287, payment calculation uses complex conditions. If currentBalance < lastBalance but lastBalance > 0, can underflow in the subtraction at line 286 be mishandled?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e977e8f-cf4f-43d6-867a-2c94b4bba20a",
+    "timestamp": "2025-12-01 20:01:43.456772",
+    "report_generated": false
   }
 ]
