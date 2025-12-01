@@ -1498,5 +1498,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e568d22-b652-47d4-b93b-cce69683cd2e",
     "timestamp": "2025-12-01 17:52:21.927504",
     "report_generated": false
+  },
+  {
+    "question": "In MEVCaptureRouter._swap (line 36), the return data from CORE.forward() is decoded as (PoolBalanceUpdate, PoolState). If the MEV_CAPTURE extension returns malformed data, could this abi.decode fail silently or return corrupted values that lead to incorrect balance accounting in the parent Router contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_97796924-2199-4b39-8676-3f86ad0c1862",
+    "timestamp": "2025-12-01 17:53:33.333605",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCaptureRouter._swap transfers ETH to CORE after the forward call completes (lines 39-41). Could a malicious MEV_CAPTURE extension reenter during the forward call to manipulate the pool state, then profit when the ETH payment arrives late and updates the deltas incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_09cec7d4-b4fa-40a2-af8b-8a0c20891a13",
+    "timestamp": "2025-12-01 17:53:46.398321",
+    "report_generated": false
+  },
+  {
+    "question": "The MEVCaptureRouter constructor (line 23) stores MEV_CAPTURE as an immutable address without validating it's a registered extension. Could this allow initialization with an arbitrary contract that could drain funds when _swap is called with a matching extension address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eda03d9e-b27c-4082-8487-94ed47c1c47d",
+    "timestamp": "2025-12-01 17:54:00.328569",
+    "report_generated": false
+  },
+  {
+    "question": "In _swap (line 32), the condition checks poolKey.config.extension() != MEV_CAPTURE to decide routing. Could an attacker create a pool with extension address that's one bit different from MEV_CAPTURE to bypass MEV capture logic while still claiming to be the MEV extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ea11d40-6393-4280-a0b1-215c32a666e1",
+    "timestamp": "2025-12-01 17:54:15.747419",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCaptureRouter._swap calls params.withDefaultSqrtRatioLimit() before forwarding (line 36). If the MEV_CAPTURE extension expects specific sqrtRatioLimit values and withDefaultSqrtRatioLimit() overwrites user-provided limits, could this enable price manipulation by forcing swaps to execute at unexpected price ranges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a62718fd-6ebd-44dc-98a0-62c40a4c0f6e",
+    "timestamp": "2025-12-01 17:54:32.665198",
+    "report_generated": false
+  },
+  {
+    "question": "In _swap (lines 39-41), the ETH transfer only occurs if value != 0. Could an attacker perform a swap with value=0 but manipulate the MEV_CAPTURE extension to expect native token payment, causing a delta accounting mismatch when the Core contract expects ETH but receives none?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7b7345ec-a501-42ae-a67b-fdc1b60780ff",
+    "timestamp": "2025-12-01 17:54:51.112801",
+    "report_generated": false
+  },
+  {
+    "question": "The _swap function (line 33) calls CORE.swap() directly for non-MEV pools but CORE.forward() for MEV pools. Could this difference in call paths lead to different extension callback execution orders, allowing an attacker to exploit timing differences in before/after hook execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d0edcc0d-c1fb-4085-9980-3672a245d118",
+    "timestamp": "2025-12-01 17:55:11.574814",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCaptureRouter inherits from Router and overrides _swap. If Router has other functions that call _swap internally, could those functions be exploited to bypass MEV capture by calling the parent swap implementation directly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14a00364-1082-4468-9734-5809c9238b41",
+    "timestamp": "2025-12-01 17:55:33.272858",
+    "report_generated": false
+  },
+  {
+    "question": "In _swap line 40, SafeTransferLib.safeTransferETH sends value to address(CORE). If CORE's receive() function accounts the ETH payment to a specific locker, could the timing between forward() completing and ETH arriving create a race condition where deltas are settled before payment is recorded?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_71767b2d-be2c-4851-8306-c5502051257d",
+    "timestamp": "2025-12-01 17:55:56.346475",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCaptureRouter._swap returns (PoolBalanceUpdate balanceUpdate, PoolState stateAfter). If the MEV_CAPTURE extension manipulates the stateAfter to show incorrect liquidity or sqrtRatio values, could this corrupt the Router's internal accounting when it processes the return values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_69ea2717-84d7-412f-9cac-91429f115749",
+    "timestamp": "2025-12-01 17:56:20.492168",
+    "report_generated": false
+  },
+  {
+    "question": "The forward call in _swap (line 36) passes abi.encode(poolKey, params.withDefaultSqrtRatioLimit()). Could the MEV_CAPTURE extension decode this differently than expected, leading to mismatched swap parameters that violate slippage protection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19fd737d-2c49-4fb9-911e-50c29a17ce0d",
+    "timestamp": "2025-12-01 17:56:47.418475",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCaptureRouter stores MEV_CAPTURE as public immutable (line 21). Could an attacker front-run Router deployments to observe the MEV_CAPTURE address, then deploy a malicious pool with that extension before legitimate integrations, causing fund loss when users swap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c6166ca3-1f89-4c9e-91a4-a2784d3d79d6",
+    "timestamp": "2025-12-01 17:57:13.423607",
+    "report_generated": false
+  },
+  {
+    "question": "In _swap (line 35), the abi.decode assumes MEV_CAPTURE returns exactly (PoolBalanceUpdate, PoolState). If the extension returns additional data or less data, could the decode operation succeed with garbage values or revert inconsistently across different EVM implementations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17fb2996-860d-4e81-9ed3-891bccce23a9",
+    "timestamp": "2025-12-01 17:57:41.322923",
+    "report_generated": false
+  },
+  {
+    "question": "The _swap function sends msg.value ETH after the forward call completes. Could an attacker exploit this by having MEV_CAPTURE's code path revert after recording deltas but before the ETH transfer, leaving the Core in an inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_26189e7d-e54c-4ca8-9a2f-202e1cbe2077",
+    "timestamp": "2025-12-01 17:58:10.091167",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCaptureRouter._swap uses CORE.forward to invoke MEV_CAPTURE. If forward() temporarily changes the locker address (as seen in FlashAccountant.forward), could this allow MEV_CAPTURE to impersonate the original msg.sender and withdraw funds from their positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d2912ac8-86e8-48c9-a545-cb2f10492f9c",
+    "timestamp": "2025-12-01 17:58:40.346234",
+    "report_generated": false
+  },
+  {
+    "question": "In _swap line 33, for non-MEV pools, the function sends msg.value directly in the swap call. For MEV pools, value is sent separately (line 40). Could this difference in ETH handling create a vulnerability where msg.value is double-counted or lost if poolKey.config.extension() is manipulated mid-execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_41b07409-625a-4659-af12-831e6ccbf55b",
+    "timestamp": "2025-12-01 17:59:11.435282",
+    "report_generated": false
+  },
+  {
+    "question": "The params.withDefaultSqrtRatioLimit() call in _swap (lines 33, 36) modifies swap parameters. If this function has side effects or state changes, could calling it twice (once for each branch) lead to parameter corruption when the same params object is reused?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4a6b8eae-edb8-4ca1-a038-fca357554d65",
+    "timestamp": "2025-12-01 17:59:44.277549",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCaptureRouter inherits Router which likely has multicall functionality. Could an attacker batch multiple swaps where some are MEV pools and some aren't, exploiting the different ETH transfer timing to create delta accounting mismatches across the batch?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ea11839-c6d3-45d0-ac05-d0f9a73b5eda",
+    "timestamp": "2025-12-01 18:00:17.844349",
+    "report_generated": false
+  },
+  {
+    "question": "In _swap, if the MEV_CAPTURE extension is malicious and consumes all gas in the forward call, could this cause the subsequent SafeTransferLib.safeTransferETH to fail, leaving the swap executed but unpaid?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5bd08256-6a55-449a-8097-754dc77203fa",
+    "timestamp": "2025-12-01 18:00:53.594175",
+    "report_generated": false
+  },
+  {
+    "question": "The _swap function (line 32) checks extension equality using !=. Could an attacker deploy pools with extension addresses that have non-zero bytecode at MEV_CAPTURE but fail the registration check, bypassing MEV capture while still executing arbitrary code?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ec9bb5cf-d88d-45f6-a532-0eb425bbf984",
+    "timestamp": "2025-12-01 18:01:29.363542",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCaptureRouter._swap receives SwapParameters params which includes amount, isToken1, sqrtRatioLimit, and skipAhead. If the MEV_CAPTURE extension modifies these parameters during forward execution, could the returned balanceUpdate be inconsistent with what Router expects?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_731cca10-77a0-4d84-90d9-75deacc137a8",
+    "timestamp": "2025-12-01 18:02:05.365649",
+    "report_generated": false
+  },
+  {
+    "question": "In _swap line 36, the forward call encodes both poolKey and modified params. Could a malicious MEV_CAPTURE extension decode poolKey incorrectly to reference a different pool, executing a swap on pool A while returning balanceUpdate for pool B?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d33c48d4-389a-484b-b6ca-62debd59d483",
+    "timestamp": "2025-12-01 18:02:41.027215",
+    "report_generated": false
+  },
+  {
+    "question": "The MEVCaptureRouter sends ETH to CORE (line 40) which has a receive() function that accounts debt. If CORE.receive() uses msg.sender to determine the locker, could the ETH payment be attributed to the wrong locker if called outside a lock context?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c63d7935-e07c-438a-950a-8dfc9096501a",
+    "timestamp": "2025-12-01 18:03:16.355345",
+    "report_generated": false
+  },
+  {
+    "question": "In _swap, the value parameter is checked != 0 before transferring (line 39). Could an attacker send dust amounts (value=1) to trigger the transfer path while avoiding meaningful payment, exploiting rounding in ETH accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fcfd71ca-6abc-48a3-9a95-21a429de6baa",
+    "timestamp": "2025-12-01 18:03:52.339459",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCaptureRouter._swap calls CORE.forward which internally uses assembly to forward calls (FlashAccountant.forward lines 240-267). Could the assembly's handling of calldata size or return data size be exploited to corrupt memory when MEV_CAPTURE returns unexpected data lengths?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0569e232-920a-41dd-b388-06f73371250a",
+    "timestamp": "2025-12-01 18:04:27.993405",
+    "report_generated": false
   }
 ]
