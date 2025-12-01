@@ -3598,5 +3598,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55d42c10-0be6-4149-98de-9aa6b04f2864",
     "timestamp": "2025-12-01 20:57:52.812739",
     "report_generated": false
+  },
+  {
+    "question": "In the assembly block of `amount0DeltaSorted()` (lines 46-54), the custom error encoding uses `mstore(0, 0xb4ef2546)` for Amount0DeltaOverflow. Can an attacker craft a reentrant call that corrupts memory slot 0 before this error is thrown, causing incorrect error handling in Core.sol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_32716a69-6c90-4080-a6ec-40c898f05810",
+    "timestamp": "2025-12-01 20:59:18.494578",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount0DeltaSorted()` function computes `(sqrtRatioUpper - sqrtRatioLower)` (line 45) in an unchecked block. If sqrtRatioUpper and sqrtRatioLower are very close (differ by 1), can precision loss in the fixed-point division cause the calculated token amount to be zero even when liquidity is substantial?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d28c4a4-9c43-45f7-bfcd-f0b7f78e5291",
+    "timestamp": "2025-12-01 20:59:32.282019",
+    "report_generated": false
+  },
+  {
+    "question": "In `amount0DeltaSorted()`, when `roundUp` is false (lines 55-67), the function uses `FixedPointMathLib.fullMulDivUnchecked()` and `rawDiv()`. Can the unchecked operations combined with extreme sqrtRatio values cause silent overflow that Core.sol's swap logic doesn't detect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1e337d41-5893-492c-9b1e-f97f2938890e",
+    "timestamp": "2025-12-01 20:59:45.815732",
+    "report_generated": false
+  },
+  {
+    "question": "The overflow check in `amount0DeltaSorted()` uses `if shr(128, result)` (line 48) to detect if the result exceeds uint128. Is there a scenario where the result is exactly 2^128, causing the shift to produce zero and bypassing the overflow detection, leading to truncated token amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3dc015f0-94d1-4dc6-823b-9033abc84896",
+    "timestamp": "2025-12-01 21:00:00.089579",
+    "report_generated": false
+  },
+  {
+    "question": "In the roundUp branch of `amount0DeltaSorted()` (lines 43-54), the code performs `add(div(result0, sqrtRatioLower), iszero(iszero(mod(result0, sqrtRatioLower))))` to round up. Can the modulo operation with a zero or near-zero sqrtRatioLower cause incorrect rounding that violates the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c95a36f9-bf9a-487c-9680-dc51fc71b57e",
+    "timestamp": "2025-12-01 21:00:15.486305",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount0DeltaSorted()` function uses `FixedPointMathLib.fullMulDivUp()` (line 45) when `roundUp` is true. Can the rounding direction be exploited during position burning to return slightly more tokens to the user than their actual share, eventually draining pool reserves?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39123556-4c4f-4faf-bdb3-35907fb06e06",
+    "timestamp": "2025-12-01 21:00:32.401829",
+    "report_generated": false
+  },
+  {
+    "question": "In `amount0DeltaSorted()` (lines 34-69), the function performs `liquidityX128 := shl(128, liquidity)` (line 41) to shift liquidity left by 128 bits. If liquidity is already close to type(uint128).max, can this operation combined with subsequent multiplications cause silent overflow in the unchecked block?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8194f406-a997-4983-bfa9-044b8d28c8b0",
+    "timestamp": "2025-12-01 21:00:51.184219",
+    "report_generated": false
+  },
+  {
+    "question": "In `amount0Delta()`, if `liquidity` is zero, the function still performs expensive conversions and calls `amount0DeltaSorted()`. Can this be exploited to waste gas in griefing attacks against position minting or swap operations without any risk to the attacker?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f5778dd3-a3f8-406d-b70c-c086af059967",
+    "timestamp": "2025-12-01 21:01:12.063711",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount0Delta()` function calls `sortAndConvertToFixedSqrtRatios()` which performs conversions and sorting. Can the gas cost of these operations be exploited to cause out-of-gas errors during complex multi-hop swaps or position operations, leading to locked funds or failed transactions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_76db05e6-44eb-43f7-9df2-8c8dfb6e35cc",
+    "timestamp": "2025-12-01 21:01:34.680408",
+    "report_generated": false
+  },
+  {
+    "question": "In `amount0Delta()`, the `roundUp` boolean directly controls rounding behavior for fee calculations. Can an MEV searcher systematically exploit the rounding direction by choosing optimal sqrtRatioA/sqrtRatioB ordering to extract additional value from swaps beyond normal slippage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_975ff2e6-9b0e-420a-8880-2693d237a60a",
+    "timestamp": "2025-12-01 21:01:57.246518",
+    "report_generated": false
+  },
+  {
+    "question": "The `amount0Delta()` function (lines 25-31) assumes sqrt ratios are valid but doesn't verify this assumption. Can an attacker pass invalid SqrtRatio values (outside MIN_SQRT_RATIO to MAX_SQRT_RATIO bounds) that bypass validation and cause incorrect token0 delta calculations during swap execution in Core.sol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02039d97-9703-407a-a058-222905ede720",
+    "timestamp": "2025-12-01 21:02:21.710720",
+    "report_generated": false
+  },
+  {
+    "question": "In `sortAndConvertToFixedSqrtRatios()`, when both sqrtRatio values are equal, `diff` becomes zero and no swap occurs. Can this edge case be exploited in combination with tick boundaries to create positions or execute swaps with zero price range, potentially causing division by zero errors in dependent calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d2f6241-6d3b-4b27-ac6b-45ba3fb030b4",
+    "timestamp": "2025-12-01 21:02:46.508251",
+    "report_generated": false
+  },
+  {
+    "question": "The `sortAndConvertToFixedSqrtRatios()` function uses `add(sqrtRatioUpper, diff)` (line 20) without overflow checks. Can an attacker provide sqrtRatio values that cause this addition to overflow, resulting in a wrapped-around upper bound that leads to incorrect token amount calculations during liquidity provision or swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_74a15366-b437-4636-9566-457b503d54f5",
+    "timestamp": "2025-12-01 21:03:13.943873",
+    "report_generated": false
+  },
+  {
+    "question": "In the assembly block of `sortAndConvertToFixedSqrtRatios()` (lines 16-21), the `diff` variable is computed as `mul(sub(sqrtRatioLower, sqrtRatioUpper), gt(sqrtRatioLower, sqrtRatioUpper))`. If the subtraction underflows due to unchecked arithmetic, can this produce an incorrect `diff` value that causes the swap operation to miscalculate amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c560ef9f-5e44-4dcc-b473-76a35364861e",
+    "timestamp": "2025-12-01 21:03:43.785160",
+    "report_generated": false
+  },
+  {
+    "question": "The `sortAndConvertToFixedSqrtRatios()` function (lines 14-15) calls `toFixed()` on both SqrtRatio values before sorting. If `toFixed()` produces values that overflow uint256 or are manipulated through the dynamic fixed-point representation, could this lead to incorrect sorting and subsequent miscalculation of token deltas during swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_92381e15-9892-41eb-9777-723370d581fe",
+    "timestamp": "2025-12-01 21:04:15.263675",
+    "report_generated": false
+  },
+  {
+    "question": "In `sortAndConvertToFixedSqrtRatios()` (lines 10-22), the assembly block uses `mul(sub(sqrtRatioLower, sqrtRatioUpper), gt(sqrtRatioLower, sqrtRatioUpper))` to conditionally swap values. Can an attacker exploit the behavior when `sqrtRatioLower == sqrtRatioUpper` to cause incorrect delta calculations in subsequent swap or position operations, potentially violating the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_45f3bd55-d8e0-4929-8305-0a5841066f15",
+    "timestamp": "2025-12-01 21:04:48.883477",
+    "report_generated": false
+  },
+  {
+    "question": "The constants file does not include MIN_SQRT_RATIO or MAX_SQRT_RATIO, which are critical for swap validation. Are these derived from MIN_TICK and MAX_TICK elsewhere in the code? If the derivation is incorrect, could swaps bypass sqrtRatio bounds checks and enable pool insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d728e38e-3456-4b51-aae8-eb5f5555fd5a",
+    "timestamp": "2025-12-01 21:05:22.552747",
+    "report_generated": false
+  },
+  {
+    "question": "MAX_TICK_SPACING = 698605 is approximately 0.787% of MAX_TICK. Is this ratio intentional? If an attacker creates a pool with the maximum spacing, does this create a scenario where only ~127 ticks exist across the entire price range? Could this enable price manipulation by concentrating all liquidity in a few ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c91381e3-fb7a-4cda-a805-39fd32895b64",
+    "timestamp": "2025-12-01 21:05:56.854685",
+    "report_generated": false
+  },
+  {
+    "question": "The tick constants are used in `unchecked` blocks throughout the codebase (e.g., ticks.sol:23-80). If MIN_TICK or MAX_TICK are set to values that cause intermediate calculations to overflow even within unchecked blocks, could this produce incorrect sqrtRatio values that bypass validation and enable arbitrage or fund theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8c512837-ca0f-4ee1-96d8-c8bee1482892",
+    "timestamp": "2025-12-01 21:06:31.415403",
+    "report_generated": false
+  },
+  {
+    "question": "In tickBitmap.sol, the bitmap word calculation (line 17) uses `shr(8, rawIndex)` to divide by 256. If rawIndex is computed using MIN_TICK and the result is negative, does the right shift handle sign extension correctly? Could this cause negative rawIndex values to map to unexpected bitmap words, corrupting tick initialization state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e2ebbfa-eb75-4439-90b0-446f0cae5637",
+    "timestamp": "2025-12-01 21:07:06.332304",
+    "report_generated": false
+  },
+  {
+    "question": "The NATIVE_TOKEN_ADDRESS = address(0) is a protocol-wide assumption. If Starknet or the deployment chain has a non-zero native token address (e.g., wrapped ETH at a specific contract address), does hardcoding address(0) create incompatibility? Could this prevent the protocol from supporting the native token on that chain?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_87cf5682-e940-4cb0-8ac2-4dc74914b929",
+    "timestamp": "2025-12-01 21:07:40.720971",
+    "report_generated": false
+  },
+  {
+    "question": "MIN_TICK, MAX_TICK, MAX_TICK_MAGNITUDE, MAX_TICK_SPACING are all defined as bare constants rather than in a library or contract. Does this mean they are inlined at compile time in every importing contract? If different contracts are compiled with different versions of constants.sol, could this create inconsistencies in tick validation across the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7d1e9980-b79e-426a-9d1d-eaa56164ef41",
+    "timestamp": "2025-12-01 21:08:15.739122",
+    "report_generated": false
+  },
+  {
+    "question": "The constants file is marked with pragma `>=0.8.30` (line 2). If the protocol is deployed with Solidity 0.8.31-pre (which is experimental), could compiler bugs in the experimental version cause the constant values to be incorrectly compiled or optimized away, leading to undefined behavior at runtime?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb274389-31f1-453a-91c0-01efc97670d1",
+    "timestamp": "2025-12-01 21:08:51.950484",
+    "report_generated": false
+  },
+  {
+    "question": "When validating stableswap configs (poolConfig.sol:220-222), the center tick is checked against MIN_TICK and MAX_TICK. However, the center tick is stored with reduced precision (divided by 16). Does this quantization mean some center ticks near MIN_TICK or MAX_TICK cannot be represented exactly, leading to validation passing but actual initialization failing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_36a0849f-22ee-4739-9157-3c22d4c8b59e",
+    "timestamp": "2025-12-01 21:09:27.374386",
+    "report_generated": false
+  },
+  {
+    "question": "The stableswap amplification factor can be 0-26 (poolConfig.sol:217). If amp = 0 and center_tick = MAX_TICK, does the liquidity width calculation (poolConfig.sol:115) become MAX_TICK >> 0 = MAX_TICK = 88722835? Could this create a stableswap pool with a range wider than [MIN_TICK, MAX_TICK], causing the clamping logic at line 129-132 to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_422a3fa6-20d6-4d1d-99b2-83df35129bce",
+    "timestamp": "2025-12-01 21:10:03.767144",
+    "report_generated": false
   }
 ]
