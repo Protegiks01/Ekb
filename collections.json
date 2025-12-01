@@ -2548,5 +2548,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_99182fcf-3dd1-48a6-9ffd-68344f689a6c",
     "timestamp": "2025-12-01 19:13:54.679483",
     "report_generated": false
+  },
+  {
+    "question": "In Orders.sol lines 43-50, mintAndIncreaseSellAmount mints and increases in one transaction. If the mint fails after increaseSellAmount is executed through multicall, can the order exist without an NFT owner, becoming permanently uncollectable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b0ae7b59-ec10-4782-ae52-9a032f7cf440",
+    "timestamp": "2025-12-01 19:15:13.259536",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol line 73, lock is called within increaseSellAmount. If an attacker creates a multicall sequence that triggers multiple locks with overlapping locker IDs, can delta tracking become corrupted across nested lock scopes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4467ace1-1086-45a7-8562-f8c1baf846c5",
+    "timestamp": "2025-12-01 19:15:26.839866",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol, all external functions are marked payable. If an attacker sends ETH to non-native-token order functions, is the ETH permanently locked or does it corrupt native token delta accounting in the flash accountant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8a271e2-d370-4fa2-a143-b5182f5fd713",
+    "timestamp": "2025-12-01 19:15:40.499185",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 72-101, initializePool calls extension hooks before and after initialization. If a malicious extension's beforeInitializePool hook reenters to initialize the same pool, can double initialization occur, corrupting the pool state and violating uniqueness?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d7e27eae-3065-45b7-a302-f0e1a1a007ee",
+    "timestamp": "2025-12-01 19:15:54.785773",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 86-88, the function checks if state.isInitialized() after reading poolState. If another transaction initializes the pool between the read and write operations, can a race condition allow double initialization with different initial ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f5196b3-a4cc-49fc-a162-1e4bfdaa2a27",
+    "timestamp": "2025-12-01 19:16:09.754553",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 94-96, pool fees per liquidity slots are initialized to 1 instead of 0. If an attacker creates a pool with these pre-initialized values and immediately adds liquidity, can they exploit the non-zero starting point to claim unearned fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8713e3c-28fd-431a-8d2a-505f518aa982",
+    "timestamp": "2025-12-01 19:16:28.813470",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 90, tickToSqrtRatio(tick) converts the provided tick to sqrtRatio. If the provided tick is at MIN_TICK or MAX_TICK boundaries, can precision loss in the conversion cause the pool to be initialized at an unintended price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e482e750-b818-41ca-a63e-b72591e32fcf",
+    "timestamp": "2025-12-01 19:16:49.246949",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 76-84, extension registration is checked before initialization. If an attacker registers a malicious extension and then initializes multiple pools with it, can the extension manipulate pool states through coordinated beforeInitializePool calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ad4e0cac-e8e6-4091-8b2b-d8bdf31917d0",
+    "timestamp": "2025-12-01 19:17:11.063655",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 506-854, the swap_6269342730 function uses extensive assembly. If the exact-output swap calculation at lines 675-695 hits the limit price, can rounding errors accumulate to violate the solvency invariant by allowing more output than input?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c036e0f5-aa23-41e3-8fba-c94ac4f10414",
+    "timestamp": "2025-12-01 19:17:33.583295",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 564-809, the swap loop crosses ticks when sqrtRatioNext == nextTickSqrtRatio. If tick crossing occurs at MAX_TICK with non-zero liquidity, can the tick increment at line 756 overflow to MIN_TICK, corrupting active liquidity tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ee42899c-f0f4-47be-8dca-694edde85ea2",
+    "timestamp": "2025-12-01 19:17:57.028926",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 759-800, tick crossing updates fees per liquidity outside. If the input token fees haven't been loaded (feesAccessed == 0), can uninitialized memory be subtracted from global fees, leading to incorrect fee distribution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a5057ae-034d-4248-9aa9-2816cbb59199",
+    "timestamp": "2025-12-01 19:18:21.966126",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 618-620, the swap calculates limitedNextSqrtRatio by clamping to sqrtRatioLimit. If limitedNextSqrtRatio equals sqrtRatio (no price movement), but amountRemaining > 0, can the entire input be consumed as fees without price change, breaking price impact expectations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f1fae3e0-94ce-4536-b2bc-230ccba692ba",
+    "timestamp": "2025-12-01 19:18:47.191851",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 646-648, nextSqrtRatioFromAmount0/1 is called with stepLiquidity. If stepLiquidity is 0 (stableswap out of range), can division by zero occur in the sqrt ratio calculation, causing the entire swap to revert and DoS the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a1880a1-e838-4846-8d27-9ded589dac0b",
+    "timestamp": "2025-12-01 19:19:14.534630",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 662-697, the hitLimit branch calculates exact token amounts at the limit price. If both tokens have 18+ decimals and liquidity is at max uint128, can the amount calculations overflow in fullMulDiv, reverting all large swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_abad3263-e658-40db-8fcb-65a802d704aa",
+    "timestamp": "2025-12-01 19:19:42.628245",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 698-723, the !hitLimit branch handles price-impact-driven swaps. If sqrtRatioNext equals sqrtRatio (line 698), but isExactOut is true, the assert at line 726 fires. Can an attacker craft specific input amounts to trigger this assert and DoS the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6ea855b-421b-42e2-a49e-17fe1cd08d7c",
+    "timestamp": "2025-12-01 19:20:12.270402",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 737-749, stepFeesPerLiquidity is accumulated into inputTokenFeesPerLiquidity. If fees accumulate across many ticks and exceed type(uint256).max, can silent overflow corrupt the global fees per liquidity state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c566084f-1403-4e05-9340-71f38ba5912b",
+    "timestamp": "2025-12-01 19:20:43.191483",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 771-777, feesAccessed transitions from 0 to 1 during tick crossing. If a swap crosses multiple ticks without accumulating fees initially, can the first tick crossing load stale global fees, leading to incorrect tick-outside updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f556635f-5bdd-4e51-8a57-c3b11234ead5",
+    "timestamp": "2025-12-01 19:21:14.499599",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 783-799, the function updates tick fees per liquidity outside by subtracting current from global. If a malicious extension manipulates global fees through accumulateAsFees before the swap, can this subtraction underflow, corrupting all positions in that tick?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b0a5460-eaff-4e76-b25f-f4674b543010",
+    "timestamp": "2025-12-01 19:21:47.869988",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 820-822, balanceUpdate is created from specifiedAmountDelta and calculatedAmountDelta. If specifiedAmountDelta doesn't match the sum of all step amounts due to rounding, can the final balanceUpdate violate conservation of value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d859165c-d2a9-4d9b-8a28-814d2bd21fd7",
+    "timestamp": "2025-12-01 19:22:23.022055",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 828-832, inputTokenFeesPerLiquidity is stored only if feesAccessed == 2. If a swap moves price significantly without accumulating fees, can the global fees per liquidity become desynchronized from actual collected fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3d089bd7-d727-46c8-bcf0-6a9f1f96e0d9",
+    "timestamp": "2025-12-01 19:22:58.426894",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 834, _updatePairDebtWithNative is called with balanceUpdate deltas. If msg.value was sent but the swap is token1 (not native), can the native token debt tracking become corrupted through incorrect native token handling?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_498da284-c34e-4c6c-bfb1-dd7ef6c5bd07",
+    "timestamp": "2025-12-01 19:23:33.790643",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 836-843, the swap event is emitted using raw assembly. If the PoolBalanceUpdate or PoolState values overflow 32-byte boundaries, can the event data be corrupted, misleading off-chain systems about the true swap state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b3750858-d4b7-42ad-9f1f-5a18b36e9b08",
+    "timestamp": "2025-12-01 19:24:08.164842",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 541-544, the swap validates that amountRemaining != 0 and sqrtRatio != sqrtRatioLimit. If these conditions are met but liquidity is 0, can the swap loop execute indefinitely until out-of-gas, DoS'ing the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f19bfb89-f080-4ce6-ab31-34590a5a3730",
+    "timestamp": "2025-12-01 19:24:42.187928",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 358-448, updatePosition modifies liquidity and fees. If liquidityDelta is negative (withdrawal) and causes liquidity to go to zero, can the position's fees be incorrectly zeroed before final fee collection, leading to permanent fee loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3aee6cf6-7428-400a-96d0-a37358cba5dd",
+    "timestamp": "2025-12-01 19:25:16.414026",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol lines 374-379, the function converts ticks to sqrtRatios for amount calculations. If tickLower equals tickUpper, can this create a zero-width position that bypasses tick bitmap updates but still accrues fees, exploiting fee accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8735bf95-b127-4a9f-ad93-26ac7d094e6b",
+    "timestamp": "2025-12-01 19:25:51.946039",
+    "report_generated": false
   }
 ]
