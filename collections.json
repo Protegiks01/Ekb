@@ -748,5 +748,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8b21ce1-9bf7-4f3f-9369-a161c4cee3ef",
     "timestamp": "2025-12-01 16:54:32.700834",
     "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L834), does `_updatePairDebtWithNative` correctly account for swap amounts with msg.value, and could native token special handling introduce debt tracking errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6707a524-8d44-48d3-8702-ec40f9320663",
+    "timestamp": "2025-12-01 16:55:45.140968",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L836-843, assembly), does the custom event emission via `log0` correctly encode all event data, and could misalignment cause event parsing failures in off-chain systems?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04d21a8f-d610-4b3c-b721-c59640c74307",
+    "timestamp": "2025-12-01 16:55:58.283344",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L846), can a malicious extension's `maybeCallAfterSwap` callback exploit the swap results to perform MEV attacks or corrupt state for subsequent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2cec7120-1cff-406b-bb2e-39845b7dd16b",
+    "timestamp": "2025-12-01 16:56:12.111403",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730` (L848-852, assembly), does directly returning from assembly bypass Solidity's return value handling, and could this cause issues with contracts expecting standard return formats?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d744b0f-f7b0-4708-b238-0eb61db40b8e",
+    "timestamp": "2025-12-01 16:56:26.155965",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730`, if a swap crosses many ticks (e.g., 50+), could the accumulated gas cost cause the transaction to run out of gas mid-swap, leaving the pool in a partially updated state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c1c590fe-5a29-44bc-a190-aaf9ef0e7b1c",
+    "timestamp": "2025-12-01 16:56:41.206479",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730`, does the swap function properly enforce that `sqrtRatio` remains within MIN_SQRT_RATIO and MAX_SQRT_RATIO after all iterations, preventing pool state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2c325758-ac14-4fd4-90fa-e918e5083de4",
+    "timestamp": "2025-12-01 16:56:59.375732",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730`, when a swap path crosses ticks with very small liquidity deltas (e.g., 1 wei), could rounding errors accumulate across many ticks to enable price manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_54343b9c-4b94-4736-8b64-bc606907dbb2",
+    "timestamp": "2025-12-01 16:57:18.930789",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730`, if `params.skipAhead()` is set to a large value (e.g., type(uint256).max), could the tick search operations consume excessive gas or enter infinite loops?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b0d6511b-85b3-4742-8317-b7cc2b10fb58",
+    "timestamp": "2025-12-01 16:57:40.382501",
+    "report_generated": false
+  },
+  {
+    "question": "In `swap_6269342730`, does the function correctly handle swaps where `sqrtRatioLimit` is exactly at an initialized tick's sqrtRatio, ensuring proper fee accumulation at the boundary?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e962ee6b-0d30-49e7-9f47-4b0d467b5209",
+    "timestamp": "2025-12-01 16:58:03.558709",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreStorageLayout.poolPositionsSlot` (L100-114), does the keccak256 hash of `positionId, poolId, owner` risk colliding with other storage mappings, enabling attackers to overwrite unrelated storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f836431f-564f-42c7-bc23-d3afc3638d16",
+    "timestamp": "2025-12-01 16:58:27.802279",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreStorageLayout.poolStateSlot` (L47-49), does directly using `poolId` as the storage slot risk collision with Solidity's standard mapping slots or with extension custom storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6a5a07bf-7dd8-4035-8ac7-dd8a974936c2",
+    "timestamp": "2025-12-01 16:58:52.497435",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreStorageLayout.poolFeesPerLiquiditySlot` (L54-58), does adding `FPL_OFFSET` to `poolId` guarantee no collision with tick info or bitmap storage, and could crafted pool IDs cause overlaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3528b352-f399-46b6-b42b-f156d6194dbf",
+    "timestamp": "2025-12-01 16:59:18.578960",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreStorageLayout.poolTicksSlot` (L64-68), does the formula `add(poolId, add(tick, TICKS_OFFSET))` properly isolate tick storage for different pools, and could negative ticks cause wraparound collisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ab3da82-33b1-4334-87b1-6632b4158e7a",
+    "timestamp": "2025-12-01 16:59:46.245354",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot` (L75-84), does the calculation for `firstSlot` and `secondSlot` prevent overlap with other tick data, especially near MIN_TICK/MAX_TICK boundaries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00a003c3-ad36-477c-a53b-fcd1b24b3f31",
+    "timestamp": "2025-12-01 17:00:16.133982",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreStorageLayout.tickBitmapsSlot` (L89-93), does adding `BITMAPS_OFFSET` to `poolId` ensure bitmap storage is isolated from tick info and fees per liquidity storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_45fa3109-c3a9-4c7e-805b-68fb12e35b4f",
+    "timestamp": "2025-12-01 17:00:47.859348",
+    "report_generated": false
+  },
+  {
+    "question": "In the storage layout, are the constants `FPL_OFFSET`, `TICKS_OFFSET`, etc. (L21-31) sufficiently large to prevent overflow when added to pool IDs, which are derived from hashing pool keys?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f414f9df-8e9d-4813-8f15-4df2b0d0e55a",
+    "timestamp": "2025-12-01 17:01:21.322859",
+    "report_generated": false
+  },
+  {
+    "question": "Between `updatePosition` (L358-448) and `collectFees` (L463-503), if fees are collected without updating the position, does the `feesPerLiquidityInsideLast` snapshot remain consistent with global fees, preventing double-claiming?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6beb4ea-849e-46b4-b907-5d2c83454a45",
+    "timestamp": "2025-12-01 17:01:56.298971",
+    "report_generated": false
+  },
+  {
+    "question": "Between `initializePool` (L72-101) and `updatePosition` (L358-448), does the initial FPL value of 1 (L95-96) match the starting point expected by position fee calculations, or could this cause the first position to miscalculate fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_524465c8-916f-4919-a66a-1423a23b9cc6",
+    "timestamp": "2025-12-01 17:02:30.351361",
+    "report_generated": false
+  },
+  {
+    "question": "Between `_updateTick` (L285-319) and `swap_6269342730` (L506-854), when ticks are crossed during swaps, does the liquidity net update at L765 match the liquidityDelta stored by `_updateTick` at L318?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fab8cf9a-1f32-4743-bf12-3b954430ccd0",
+    "timestamp": "2025-12-01 17:03:04.241803",
+    "report_generated": false
+  },
+  {
+    "question": "Between `accumulateAsFees` (L228-276) and `collectFees` (L463-503), if an extension accumulates fees on a pool, do the global FPL updates (L258-267) correctly propagate to position FPL inside calculations (L487-489)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79fef339-76a5-48ce-bf07-67c2ab78dbba",
+    "timestamp": "2025-12-01 17:03:37.936348",
+    "report_generated": false
+  },
+  {
+    "question": "Between `updateSavedBalances` (L124-171) and flash accounting settlement, does the saved balance update correctly interact with debt tracking, or could discrepancies allow balance manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_62e3f616-bd43-4c88-92cc-3c4adde9b2e4",
+    "timestamp": "2025-12-01 17:04:12.244326",
+    "report_generated": false
+  },
+  {
+    "question": "Between `swap_6269342730` fee accumulation (L830-832) and `collectFees` (L492), are the stored fees per liquidity atomically visible, or could a race condition allow collecting fees before they're fully written?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3cfa9d27-a2a1-4ae2-a0bb-d6c26077621f",
+    "timestamp": "2025-12-01 17:04:47.063379",
+    "report_generated": false
+  },
+  {
+    "question": "In all extension callback points (`maybeCallBefore*` and `maybeCallAfter*`), does the Core contract maintain reentrancy guards via the Locker pattern, or could nested lock calls from extensions corrupt transient storage state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7cb7bae6-971a-4f7a-8287-a1b02e6823eb",
+    "timestamp": "2025-12-01 17:05:22.344394",
+    "report_generated": false
+  },
+  {
+    "question": "In `initializePool` (L83) and (L100), if the extension callback calls `lock()` and reinitializes the same pool recursively, does the `state.isInitialized()` check at L88 prevent double initialization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d79dc6c-db28-43fb-9fd3-9fc580b2c2e3",
+    "timestamp": "2025-12-01 17:05:58.595401",
+    "report_generated": false
+  },
+  {
+    "question": "In `updatePosition` (L368) and (L446-447), can an extension callback reenter through `updatePosition` on a different position in the same pool, causing liquidity net tracking errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5af3f2e8-775e-4dc7-bee0-45ee0eb92e15",
+    "timestamp": "2025-12-01 17:06:35.269581",
+    "report_generated": false
   }
 ]
