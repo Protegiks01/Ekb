@@ -4798,5 +4798,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66ba7d32-4702-43ff-875d-7ca1832e538d",
     "timestamp": "2025-12-01 22:29:40.449675",
     "report_generated": false
+  },
+  {
+    "question": "CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot() (lines 80-83) calculates two consecutive slots by adding FPL_OUTSIDE_OFFSET_VALUE0 and FPL_OUTSIDE_OFFSET_VALUE1. Could these offsets collide with TWAMMStorageLayout.TIME_INFOS_OFFSET (0x70db...), causing ExposedStorageLib.sload() to read TWAMM time info as if it were fees-outside, corrupting fee calculations when crossing ticks during swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23b76be5-ce45-4154-a6e3-bed9fa2cd442",
+    "timestamp": "2025-12-01 22:30:50.347164",
+    "report_generated": false
+  },
+  {
+    "question": "CoreStorageLayout.poolTicksSlot() (line 64) uses add(poolId, add(tick, TICKS_OFFSET)). Since tick is a signed int32 between -887272 and 887272, could a negative tick value cause the storage slot to underflow below the poolId base, making ExposedStorageLib.sload() read from a completely different pool's storage, exposing cross-pool liquidity information?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3191997d-8d94-4343-9401-b931fb7aaa1b",
+    "timestamp": "2025-12-01 22:31:03.540152",
+    "report_generated": false
+  },
+  {
+    "question": "CoreStorageLayout.poolFeesPerLiquiditySlot() (line 54) adds FPL_OFFSET (0xb09b...) to poolId. If this offset is chosen poorly and causes the resulting slot to land in the range used by tick info storage [TICKS_OFFSET + MIN_TICK, TICKS_OFFSET + MAX_TICK], could ExposedStorageLib.sload() reading fees accidentally return tick liquidity data, causing fee calculations to overflow and drain pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a2d5de68-da1d-4c4f-8d1f-1ef1732df2c3",
+    "timestamp": "2025-12-01 22:31:17.164819",
+    "report_generated": false
+  },
+  {
+    "question": "The tload() function selector 0xed832830 is hardcoded at line 60. If a malicious extension registers a function with this selector that writes to storage instead of reading transient storage, could calling ExposedStorageLib.tload() through that extension corrupt Core's permanent storage, violating the extension isolation invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb649aca-b150-489f-a4ff-9b62ebd35ffc",
+    "timestamp": "2025-12-01 22:31:31.456368",
+    "report_generated": false
+  },
+  {
+    "question": "When CoreLib or extension libraries use tload(), they rely on the assumption that transient storage is isolated per-transaction. If ExposedStorageLib.tload() is called during a multicall where locker IDs are being reused, could stale transient data from a previous lock be read as current debt, causing incorrect debt settlement calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5987e43c-3f91-4d59-9b29-90e16652f961",
+    "timestamp": "2025-12-01 22:31:46.718112",
+    "report_generated": false
+  },
+  {
+    "question": "ExposedStorage.tload() (lines 25-29 of ExposedStorage.sol) loops through transient slots in calldata without bounds checking. Could a malicious contract invoke this with thousands of slot numbers, reading all transient storage used by FlashAccountant for nested locks, extracting information about concurrent flash loan positions and using it to manipulate swap prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cfd6062f-283c-4359-8702-f7118e60b728",
+    "timestamp": "2025-12-01 22:32:03.411365",
+    "report_generated": false
+  },
+  {
+    "question": "The tload() function (lines 58-67) reads transient storage using the same staticcall pattern as sload(). If FlashAccountant stores debt tracking in transient storage at _DEBT_LOCKER_TOKEN_ADDRESS_OFFSET (line 23 of FlashAccountant.sol), could an attacker calculate this slot offset and use ExposedStorageLib.tload() to read pending debts mid-transaction, enabling precise sandwich attacks on flash loan settlements?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5c20f22f-a1a5-46dc-9719-2122b465b972",
+    "timestamp": "2025-12-01 22:32:21.376047",
+    "report_generated": false
+  },
+  {
+    "question": "The StorageSlot type uses global functions (load, store, next, add, sub) defined in storageSlot.sol. If StorageSlot.next() (line 30-34 of storageSlot.sol) is used to calculate consecutive slots for dual/triple reads, could an overflow in the addition cause the slot to wrap around to zero, making ExposedStorageLib.sload() read slot 0 (likely containing critical contract state) as if it were fees-per-liquidity data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aaed72c6-8b2e-4f94-9a36-48115bd912a4",
+    "timestamp": "2025-12-01 22:32:41.628065",
+    "report_generated": false
+  },
+  {
+    "question": "StorageSlot.unwrap() is called without validation (lines 72, 80, 88, 92). If StorageSlot.wrap() was used on an attacker-controlled value that wraps a transient storage slot number instead of persistent storage, could ExposedStorageLib.sload() accidentally read from transient storage, returning delta values or locker IDs as if they were pool balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9fb8b9c5-157e-4520-988e-df05655723a5",
+    "timestamp": "2025-12-01 22:33:03.046134",
+    "report_generated": false
+  },
+  {
+    "question": "The library provides overloads accepting both bytes32 and StorageSlot types (lines 71-93). If a caller mistakenly passes a raw bytes32 value where a StorageSlot was expected (or vice versa), could type confusion lead to reading incorrect storage slots, such as reading a pool's tick bitmap offset as if it were a position slot, exposing position liquidity as initialized tick data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b07eb169-c467-4ed7-a82e-d056fdab01f6",
+    "timestamp": "2025-12-01 22:33:26.094451",
+    "report_generated": false
+  },
+  {
+    "question": "CoreLib.poolState() (line 37 of CoreLib.sol) uses staticcall to Core.sload() to read pool state. If Core's sload() function could be made to reenter (e.g., through a view function that triggers an event log in a malicious token contract), could this violate the atomicity assumptions of swap execution, allowing pool state to be read and modified simultaneously?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd7ce1b5-b047-4112-95a5-50710cfcaad2",
+    "timestamp": "2025-12-01 22:33:50.281931",
+    "report_generated": false
+  },
+  {
+    "question": "When TWAMMLib.orderState() (line 35 of TWAMMLib.sol) calls ExposedStorageLib.sload(twamm, slot), the staticcall to TWAMM contract could reenter the original caller if TWAMM's sload() implementation is compromised. Could this enable reading order states mid-execution, extracting sensitive information about pending TWAMM orders to front-run virtual order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e43c848-2410-4d5f-b251-f4349f58bb9e",
+    "timestamp": "2025-12-01 22:34:14.941934",
+    "report_generated": false
+  },
+  {
+    "question": "The sload() functions use staticcall (lines 14, 31, 50) which prevents state changes in the target contract but doesn't prevent reentrancy. If a malicious IExposedStorage contract's view function calls back into the original caller during sload(), could this create a reentrancy loop that bypasses FlashAccountant's lock checks, allowing nested locks without proper debt settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_067fe193-cbe1-4a50-a89e-4fa5e677f354",
+    "timestamp": "2025-12-01 22:34:44.244840",
+    "report_generated": false
+  },
+  {
+    "question": "OracleLib.snapshots() (line 30 of OracleLib.sol) uses ExposedStorageLib.sload() to read observation arrays. If an attacker increases the oracle cardinality to the maximum (65535 observations) and then triggers a price query that reads all observations via multiple sload() calls, could the gas cost DOS the oracle extension, preventing dependent protocols from getting TWAP prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_da1566fd-f5d0-4358-8670-154e902d4d79",
+    "timestamp": "2025-12-01 22:35:12.468154",
+    "report_generated": false
+  },
+  {
+    "question": "When MEVCapture.getPoolState() uses ExposedStorageLib at line 48 of MEVCapture.sol, it performs a single-slot read. However, if MEVCapture is called during Core.lock() and the extension repeatedly queries multiple pools via sload(), could the cumulative gas cost of staticcalls exceed the block gas limit, freezing the entire Core contract and violating the withdrawal availability invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9043be0-bc28-499b-9da8-476a22364324",
+    "timestamp": "2025-12-01 22:35:42.474481",
+    "report_generated": false
+  },
+  {
+    "question": "The ExposedStorage.sload() implementation (lines 16-19 of ExposedStorage.sol) loops through all slots in calldata without a maximum limit. Could a malicious caller invoke CoreLib.getPoolFeesPerLiquidity() in a loop with thousands of pool IDs, causing each to trigger ExposedStorageLib.sload() and exhaust block gas limits, preventing legitimate users from withdrawing positions or swapping during a market crisis?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a61d7cb2-7d5d-41ef-963c-ed1ecfaab35b",
+    "timestamp": "2025-12-01 22:36:12.348246",
+    "report_generated": false
+  },
+  {
+    "question": "TWAMMStorageLayout.orderStateSlotFollowedByOrderRewardRateSnapshotSlot() (lines 81-93) uses keccak256(owner, salt, orderId) + ORDER_STATE_OFFSET. Could a crafted salt value cause this slot to collide with Core's savedBalancesSlot() (CoreStorageLayout lines 122-135), allowing an attacker to read saved balance keys as TWAMM order states and manipulate virtual order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac85997f-3423-4e29-a267-854cc8ae69b3",
+    "timestamp": "2025-12-01 22:36:41.911633",
+    "report_generated": false
+  },
+  {
+    "question": "CoreStorageLayout.poolPositionsSlot() (lines 100-114) uses a three-way keccak hash of (positionId, poolId, owner). If this hash collides with CoreStorageLayout.FPL_OFFSET (0xb09b...) or TICKS_OFFSET (0x435a...), could calling ExposedStorageLib.sload() on the position slot accidentally read pool-level fee data, causing position fee claims to use global fees instead of per-position snapshots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca8c2d99-0d9f-4233-a151-e8d10ee06c7a",
+    "timestamp": "2025-12-01 22:37:13.645259",
+    "report_generated": false
+  },
+  {
+    "question": "The library uses StorageSlot.unwrap() to convert typed slots to raw bytes32 (lines 72, 80, 88, 92). If a malicious caller constructs a StorageSlot pointing to FlashAccountant transient storage slots (_CURRENT_LOCKER_SLOT or _DEBT_LOCKER_TOKEN_ADDRESS_OFFSET), could ExposedStorageLib.sload() expose locker addresses or debt amounts, enabling front-running attacks on flash loan settlements?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7994e559-226e-4ad9-abb4-3a675d3bfa67",
+    "timestamp": "2025-12-01 22:37:45.360354",
+    "report_generated": false
+  },
+  {
+    "question": "When CoreLib.poolState() calls ExposedStorageLib.sload(core, CoreStorageLayout.poolStateSlot(poolId)), the slot is derived directly from the poolId bytes. Could two different PoolKey structs hash to poolIds that collide with TWAMM extension storage offsets (TWAMMStorageLayout.REWARD_RATES_OFFSET at line 20 of TWAMMStorageLayout.sol), causing Core.sload() to accidentally expose TWAMM order states as pool states?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64ed08c8-59e7-44eb-ae7e-f2d6fbd18182",
+    "timestamp": "2025-12-01 22:38:17.492626",
+    "report_generated": false
+  },
+  {
+    "question": "None of the sload/tload functions verify that the target address implements the expected IExposedStorage interface. Could an attacker pass the address of a malicious contract (e.g., during MEVCapture.accumulatePoolFees()) that returns crafted storage values to make the extension believe fees have already been collected, preventing legitimate fee accumulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14cbe835-d4ce-46d5-a55f-bb9d16613b93",
+    "timestamp": "2025-12-01 22:38:51.262265",
+    "report_generated": false
+  },
+  {
+    "question": "The tload() function (line 60) hardcodes selector 0xed832830 for IExposedStorage.tload(). If a malicious contract implements a function with this selector that doesn't actually read transient storage but returns manipulated values, could FlashAccountant debt tracking be bypassed, allowing users to exit locks without settling their flash loan obligations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_69f4e8d0-bfa8-4a9e-9b7e-ab42c1cae427",
+    "timestamp": "2025-12-01 22:39:23.472093",
+    "report_generated": false
+  },
+  {
+    "question": "The sload() functions hardcode the selector 0x380eb4e0 at lines 11, 27, and 45 via shl(224, 0x380eb4e0). If this selector doesn't match IExposedStorage.sload() due to a compiler change or interface update, could all storage reads silently fail or call a different function, causing CoreLib.poolState() to return zero values and bypass the pool initialization check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73b5a179-e806-4d71-ba7d-3b499b27800d",
+    "timestamp": "2025-12-01 22:39:54.979001",
+    "report_generated": false
+  },
+  {
+    "question": "Lines 52-54 read three results from memory offsets o, o+32, and o+64. If the free memory pointer (mload(0x40)) was corrupted by a previous operation, could these reads access memory containing leftover data from a different transaction context, such as stale pool balances that don't reflect recent swaps or withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_54b4b15d-b54a-4eab-99cb-5f55a587eec0",
+    "timestamp": "2025-12-01 22:40:24.917161",
+    "report_generated": false
+  },
+  {
+    "question": "The triple-slot sload() at line 50 performs a staticcall expecting exactly 96 bytes of return data. If the target contract's sload() implementation has a bug causing it to return 128 bytes, could the excess data overwrite the free memory pointer or other memory locations, corrupting subsequent storage reads used for swap calculations or liquidity updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c3897c7-80fe-496b-8c74-568fa246e569",
+    "timestamp": "2025-12-01 22:40:56.074205",
+    "report_generated": false
   }
 ]
