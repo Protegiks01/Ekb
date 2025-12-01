@@ -1,1 +1,152 @@
-[]
+[
+  {
+    "question": "In `registerExtension` (L50-61), can an attacker register an extension with invalid call points by exploiting the `addressToCallPoints` computation to bypass the `isValid()` check, potentially enabling unauthorized extension callbacks during swaps or position updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f60df99e-4f1e-4132-b414-6543bf9fcf0d",
+    "timestamp": "2025-12-01 15:49:39.448575",
+    "report_generated": false
+  },
+  {
+    "question": "In `registerExtension` (L56), does the check `isExtensionRegisteredSlot.load() != bytes32(0)` properly prevent re-registration if an extension was previously registered and then its slot was somehow zeroed through storage manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3750dff2-39d7-4cbe-bef9-b8288a521dad",
+    "timestamp": "2025-12-01 15:49:52.897771",
+    "report_generated": false
+  },
+  {
+    "question": "In `registerExtension` (L58), can the use of `LibBit.rawToUint(true)` for storing registration status lead to issues if the protocol later needs to distinguish between different registration states beyond boolean true/false?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_16a6693e-4bb4-4728-9f77-8220bb36f555",
+    "timestamp": "2025-12-01 15:50:06.542740",
+    "report_generated": false
+  },
+  {
+    "question": "In `registerExtension` (L50-61), if the `computed.eq(expectedCallPoints)` check passes but `computed.isValid()` has a bug allowing invalid patterns, could a malicious extension freeze pools during critical operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cbab3099-6882-41e1-b64f-baebdf846d1e",
+    "timestamp": "2025-12-01 15:50:20.723458",
+    "report_generated": false
+  },
+  {
+    "question": "In `registerExtension`, can an attacker front-run a legitimate extension registration to register a similar address with malicious call points, potentially causing the legitimate extension to fail registration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42ca2fa7-e785-4ae4-bae5-3355a1ce1a3a",
+    "timestamp": "2025-12-01 15:50:35.741505",
+    "report_generated": false
+  },
+  {
+    "question": "In `initializePool` (L72-101), does the `poolKey.validate()` call at L73 properly verify all pool parameters including tick spacing boundaries to prevent pools from being initialized with invalid configurations that could break tick bitmap operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f5ab1d92-b408-47fe-b73a-fb1b8651834a",
+    "timestamp": "2025-12-01 15:50:52.003605",
+    "report_generated": false
+  },
+  {
+    "question": "In `initializePool` (L76-84), if an extension's `maybeCallBeforeInitializePool` reverts maliciously or consumes excessive gas, can this permanently prevent pool initialization, effectively censoring pool creation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c78e9e6e-726c-4b46-93ee-d27d3c1707f4",
+    "timestamp": "2025-12-01 15:51:09.376863",
+    "report_generated": false
+  },
+  {
+    "question": "In `initializePool` (L88), does the `state.isInitialized()` check properly handle the case where a pool's state was corrupted to appear uninitialized, allowing double initialization and state overwriting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e99e598c-ddd4-4d48-82ef-756969157b45",
+    "timestamp": "2025-12-01 15:51:29.316366",
+    "report_generated": false
+  },
+  {
+    "question": "In `initializePool` (L90-91), can an attacker provide an extreme `tick` value that produces a valid `sqrtRatio` via `tickToSqrtRatio` but causes overflow or precision loss when used in subsequent swap calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6cd74580-609b-496c-839f-b208215457b3",
+    "timestamp": "2025-12-01 15:51:50.678023",
+    "report_generated": false
+  },
+  {
+    "question": "In `initializePool` (L94-96), are the fees per liquidity slots initialized to `bytes32(uint256(1))` instead of zero to save gas, and could this non-zero initial value cause arithmetic errors in fee accumulation calculations that assume starting from zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64f4058c-146b-4f4e-80eb-347a8259e3d6",
+    "timestamp": "2025-12-01 15:52:13.057266",
+    "report_generated": false
+  },
+  {
+    "question": "In `initializePool` (L100), does the `maybeCallAfterInitializePool` extension hook execute after all state is committed, and could a malicious extension exploit this to perform reentrancy attacks or front-run the first position deposit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8bfffb3f-873b-40d4-8eb5-aba07cf71956",
+    "timestamp": "2025-12-01 15:52:36.502669",
+    "report_generated": false
+  },
+  {
+    "question": "In `initializePool`, if the tick value is set to exactly `MIN_TICK` or `MAX_TICK`, could this cause issues in subsequent swap operations that attempt to cross these boundary ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37567c15-6966-453a-907f-0959fc158c92",
+    "timestamp": "2025-12-01 15:53:01.967543",
+    "report_generated": false
+  },
+  {
+    "question": "In `initializePool` (L94-96), does initializing both FPL slots to 1 create a potential for integer overflow when fees accumulate near type(uint256).max, given that all fee additions are unchecked?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_25a8c38e-0040-419f-a82b-6215fbc0bd58",
+    "timestamp": "2025-12-01 15:53:28.788526",
+    "report_generated": false
+  },
+  {
+    "question": "In `updateSavedBalances` (L135), does the check `token0 >= token1` properly prevent storage slot collision attacks where an attacker reverses token order to corrupt another user's saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a76c56e-a6ca-4915-acfa-1ab761ee8495",
+    "timestamp": "2025-12-01 15:53:55.617164",
+    "report_generated": false
+  },
+  {
+    "question": "In `updateSavedBalances` (L139-168, assembly block), can the `addDelta` function overflow when `u + i` wraps around type(uint256).max, and does the overflow check at L146 properly catch all cases including when delta transitions from positive to negative?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f5bef2c-b555-41a3-ba35-bf53615ece76",
+    "timestamp": "2025-12-01 15:54:24.342800",
+    "report_generated": false
+  },
+  {
+    "question": "In `updateSavedBalances` (L145-149), does the overflow check `shr(128, sum)` properly detect when the result exceeds uint128.max, or could specific combinations of `u` and `i` bypass this check through careful manipulation of sign bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_34e2708b-9922-4ea3-92c4-c7133733ecb8",
+    "timestamp": "2025-12-01 15:54:54.110674",
+    "report_generated": false
+  },
+  {
+    "question": "In `updateSavedBalances` (L154-158, assembly), does the manual keccak256 calculation for the storage slot match the `savedBalancesSlot` function in CoreStorageLayout, and could a mismatch lead to wrong slot access?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42a54c7a-d37e-483c-95c6-91f70d243aac",
+    "timestamp": "2025-12-01 15:55:25.730473",
+    "report_generated": false
+  },
+  {
+    "question": "In `updateSavedBalances` (L159-167), can an attacker cause underflow in saved balances by providing large negative deltas that make `b0Next` or `b1Next` negative, bypassing the overflow check through type wrapping?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cff89544-7c86-4d9d-ada0-04f8aea3400f",
+    "timestamp": "2025-12-01 15:55:57.927358",
+    "report_generated": false
+  },
+  {
+    "question": "In `updateSavedBalances` (L170), does the `_updatePairDebtWithNative` call correctly account for the case where both tokens are the native token (address(0)), potentially double-counting native token debt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e73ee213-7256-44ba-88d1-c2261684909e",
+    "timestamp": "2025-12-01 15:56:31.522251",
+    "report_generated": false
+  },
+  {
+    "question": "In `updateSavedBalances` (L161-162), is the bit manipulation `shr(128, balances)` for extracting b0 and `shr(128, shl(128, balances))` for b1 susceptible to errors if the stored balances have dirty upper bits from previous operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e18ad5a-936f-4890-b124-04b450b57317",
+    "timestamp": "2025-12-01 15:57:06.222692",
+    "report_generated": false
+  },
+  {
+    "question": "In `updateSavedBalances`, can a malicious locker call this function with crafted salt values to intentionally collide with another locker's saved balance storage slots, enabling balance theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b1c1360c-e880-4aaf-afff-6073aedfaa39",
+    "timestamp": "2025-12-01 15:57:41.045997",
+    "report_generated": false
+  },
+  {
+    "question": "In `_getPoolFeesPerLiquidityInside` (L180-216), when `tick < tickLower` (L198-200), does the subtraction `lower0 - upper0` in the unchecked block risk underflow if the fee values have wrapped around type(uint256).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a8a46e8-1ff8-467d-93de-8e024ba866fc",
+    "timestamp": "2025-12-01 15:58:19.126924",
+    "report_generated": false
+  },
+  {
+    "question": "In `_getPoolFeesPerLiquidityInside` (L201-210), when `tick < tickUpper`, does the calculation `global0 - upper0 - lower0` properly handle the case where fees have accumulated past uint256 overflow, potentially returning incorrect fee amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_286293dc-b8dc-4ff4-ac64-7055a581a4dc",
+    "timestamp": "2025-12-01 15:58:55.860436",
+    "report_generated": false
+  },
+  {
+    "question": "In `_getPoolFeesPerLiquidityInside` (L211-214), when `tick >= tickUpper`, does `upper0 - lower0` correctly compute fees outside the range, or could tick crossing operations corrupt these values through improper updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14f7c834-b776-47cd-b52b-7be8546017da",
+    "timestamp": "2025-12-01 15:59:31.549730",
+    "report_generated": false
+  },
+  {
+    "question": "In `_getPoolFeesPerLiquidityInside` (L190-194), can an attacker manipulate the fees per liquidity outside values at `tickLower` or `tickUpper` through repeated small position updates to create arbitrage opportunities in fee collection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d35685bc-f857-458a-af9c-28a340e6551f",
+    "timestamp": "2025-12-01 16:00:09.090396",
+    "report_generated": false
+  }
+]
