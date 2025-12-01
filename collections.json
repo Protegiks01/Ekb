@@ -4198,5 +4198,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_25478483-25d5-4c25-a490-b23001f795a8",
     "timestamp": "2025-12-01 21:22:02.729834",
     "report_generated": false
+  },
+  {
+    "question": "In withdrawProtocolFees (BasePositions line 335), updateSavedBalances is called with negative amounts. If these are large enough to make savedBalances negative, could this violate Core's solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79d88958-e19b-40d1-b327-82f38c8bc8b3",
+    "timestamp": "2025-12-01 21:23:13.672302",
+    "report_generated": false
+  },
+  {
+    "question": "The protocol fee accumulation happens in BasePositions._computeSwapProtocolFees and _computeWithdrawalProtocolFees. If these overflow uint128 before withdrawAndRoll is called, could fees be lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f7ad010-a518-4cb7-81b9-5b5688708fd9",
+    "timestamp": "2025-12-01 21:23:27.093760",
+    "report_generated": false
+  },
+  {
+    "question": "In line 59, getProtocolFees reads savedBalances with salt = bytes32(0). If another contract updates savedBalances with a different salt, could fees be split across salts, making partial withdrawals impossible?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c42f075-8bff-4a68-99ef-bc62fc0ecfab",
+    "timestamp": "2025-12-01 21:23:41.965245",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawAndRoll function doesn't validate that withdrawn fees equal what was expected. Could a discrepancy between getProtocolFees and actual withdrawal cause accounting drift?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a083bad1-155d-41a9-89ec-83348ed13f89",
+    "timestamp": "2025-12-01 21:23:56.551214",
+    "report_generated": false
+  },
+  {
+    "question": "If savedBalances in Core underflows due to a bug, could withdrawProtocolFees succeed with arbitrarily large amounts, draining user funds from pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4ac4cfc3-38f4-4142-8929-2a6e01cf3c41",
+    "timestamp": "2025-12-01 21:24:12.258762",
+    "report_generated": false
+  },
+  {
+    "question": "The protocol fee withdrawal at line 70 happens outside of a pool's liquidity accounting. Could this cause a pool's reserve to appear larger than actual balance, enabling flash loan attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_327add44-513d-4686-a46a-6bf4559ea085",
+    "timestamp": "2025-12-01 21:24:30.914143",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.handleLockData (line 331-336), updateSavedBalances is called before withdrawTwo. If withdrawTwo fails, are savedBalances decremented incorrectly, causing fee loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_796c2842-70cb-4f09-9eb0-861feddaea76",
+    "timestamp": "2025-12-01 21:24:51.054326",
+    "report_generated": false
+  },
+  {
+    "question": "The POSITIONS contract accrues fees over time. If withdrawAndRoll is never called for a token pair, could savedBalances grow unbounded and eventually overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1f57ea70-f591-4698-bc96-01630fe484b2",
+    "timestamp": "2025-12-01 21:25:13.145116",
+    "report_generated": false
+  },
+  {
+    "question": "In line 70, if amount0 and amount1 are reduced by the assembly block, but withdrawProtocolFees uses the original amounts from Core, could there be a mismatch causing accounting errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_61b1c404-6ba4-441a-84c4-6c00a86070a5",
+    "timestamp": "2025-12-01 21:25:37.966604",
+    "report_generated": false
+  },
+  {
+    "question": "If token0 or token1 is a rebasing token, could the balance in POSITIONS change between getProtocolFees (line 59) and withdrawProtocolFees (line 70), causing withdrawal to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5540f13d-e0e7-4713-85ea-3017862734fd",
+    "timestamp": "2025-12-01 21:26:03.130383",
+    "report_generated": false
+  },
+  {
+    "question": "The function doesn't validate that token0 and token1 are ERC20 compliant. If they're malicious contracts, could they exploit withdrawProtocolFees to steal other tokens from Core?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7d47fecf-136b-417c-b42b-43dc1df6cb4e",
+    "timestamp": "2025-12-01 21:26:29.772315",
+    "report_generated": false
+  },
+  {
+    "question": "In line 70, if token0 or token1 is NATIVE_TOKEN_ADDRESS, does withdrawProtocolFees handle ETH correctly, or could ETH fees be sent to BUYBACKS incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb6552e1-fdd1-4688-ad65-c6592321316d",
+    "timestamp": "2025-12-01 21:26:57.401004",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() calls (lines 74-75) assume BUYBACKS has been approved to spend tokens. If approval expires or is front-run revoked, could roll() fail even after successful withdrawal?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ada1cbd6-255d-417d-b9bf-691069adea9b",
+    "timestamp": "2025-12-01 21:27:26.354868",
+    "report_generated": false
+  },
+  {
+    "question": "If token0 or token1 has transfer fees, could the amount received by BUYBACKS be less than withdrawn, causing roll() to create undersized orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7da4b542-2092-4dd0-8751-efc89aab80d5",
+    "timestamp": "2025-12-01 21:27:56.640410",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly block (lines 61-66) works with uint128 amounts. If token decimals are non-standard (> 18), could the 1 wei subtraction be insignificant or too large?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d56c924-c03d-4a1b-8e49-926dd1e5d35e",
+    "timestamp": "2025-12-01 21:28:28.432051",
+    "report_generated": false
+  },
+  {
+    "question": "In BUYBACKS.roll() (line 103), if token is ERC777 with hooks, could the balance check see inflated balance due to hooks, creating oversized orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6dfa44c-e201-4f07-be21-db7531bb429e",
+    "timestamp": "2025-12-01 21:29:00.694047",
+    "report_generated": false
+  },
+  {
+    "question": "If token0 or token1 is a proxy that upgrades between getProtocolFees and withdrawProtocolFees, could the behavior change mid-transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3c7031d-4a8f-4ecd-accb-b24a6c8f7710",
+    "timestamp": "2025-12-01 21:29:34.924105",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawProtocolFees at line 70 calls ACCOUNTANT.withdrawTwo. If this doesn't handle token transfer failures gracefully, could one failed transfer corrupt the other?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b0369730-f363-411d-8a52-70b499654382",
+    "timestamp": "2025-12-01 21:30:08.396687",
+    "report_generated": false
+  },
+  {
+    "question": "If BUYBACKS doesn't have a receive() function and token0/token1 is ETH, could the roll() call fail when trying to send ETH value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0251edb5-95a0-43c7-9817-e55328692377",
+    "timestamp": "2025-12-01 21:30:43.998829",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function at lines 74-75 creates or extends TWAMM orders. If order endTime is in the past due to time manipulation, could orders never execute, locking fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd8144a1-9f1e-4b88-9141-b523e45ddfc2",
+    "timestamp": "2025-12-01 21:31:20.898949",
+    "report_generated": false
+  },
+  {
+    "question": "In BUYBACKS.roll() (line 110-111), the fee check determines if an existing order can be extended. Could an attacker manipulate fee configuration to prevent extensions, causing gas waste from many small orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e64654f8-42cb-4294-b30a-3af0c05b374e",
+    "timestamp": "2025-12-01 21:31:54.424323",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function uses nextValidTime() for endTime calculation. If this rounds to a time that creates orders with sub-minimum duration, could orders be invalid?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_becc2645-70b4-4af8-956e-7311e407132d",
+    "timestamp": "2025-12-01 21:32:28.537710",
+    "report_generated": false
+  },
+  {
+    "question": "In line 74-75, both tokens' roll() is called. If they create orders with different endTimes due to rounding, could this cause BUYBACKS to hold unbalanced positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6459c396-cc74-4b3c-a597-fdc8a8f17fab",
+    "timestamp": "2025-12-01 21:33:01.575164",
+    "report_generated": false
+  },
+  {
+    "question": "The TWAMM orders created by roll() use increaseSellAmount. If this doesn't validate saleRate against minimum, could orders be created with 1 wei/sec rates that never execute meaningfully?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6b87f13d-f79d-4155-8917-660544d68bfd",
+    "timestamp": "2025-12-01 21:33:36.335953",
+    "report_generated": false
+  },
+  {
+    "question": "If BUY_TOKEN is low liquidity and roll() creates large orders, could the TWAMM execution drain entire pools, causing subsequent user swaps to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_817b67da-8717-4bad-8713-a4c9820b9582",
+    "timestamp": "2025-12-01 21:34:11.101291",
+    "report_generated": false
   }
 ]
