@@ -2098,5 +2098,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_636825df-4001-4c5b-b515-ac1689c626d5",
     "timestamp": "2025-12-01 18:39:11.210810",
     "report_generated": false
+  },
+  {
+    "question": "In _updateTick (line 318), the function stores the new tick info. Could an attacker repeatedly update the same tick to cause excessive storage writes, griefing position operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64f725e3-1dee-48b0-880d-6c0a876d5ee8",
+    "timestamp": "2025-12-01 18:40:21.592613",
+    "report_generated": false
+  },
+  {
+    "question": "Core._updateTick (line 288) receives PoolConfig which contains concentratedMaxLiquidityPerTick(). Could an attacker create pools with invalid configs that return maxLiquidity = 0, preventing any liquidity from being added?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_58a01e1e-2ddf-4f08-a5ce-22881668b1a4",
+    "timestamp": "2025-12-01 18:40:34.856451",
+    "report_generated": false
+  },
+  {
+    "question": "In _updateTick (lines 293-294), the liquidityDeltaNext calculation uses different logic for isUpper (subtract) vs !isUpper (add). Could an attacker exploit boundary conditions where tickLower == tickUpper to corrupt liquidity tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f909f88-3d7a-468f-bebb-791cddf8c46f",
+    "timestamp": "2025-12-01 18:40:48.993444",
+    "report_generated": false
+  },
+  {
+    "question": "Core._updateTick (line 302) checks both currentLiquidityNet and liquidityNetNext against 0. Could an attacker manipulate liquidityNet to wrap around type(uint128).max and appear as 0, causing incorrect tick flipping?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_230df034-cf3a-43c7-814b-01b13fabc41b",
+    "timestamp": "2025-12-01 18:41:05.054769",
+    "report_generated": false
+  },
+  {
+    "question": "In _updateTick (line 297), maxLiquidity is compared against liquidityNetNext. Could an attacker create multiple positions with small liquidity amounts that individually pass the check but collectively exceed maxLiquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_16204023-68cb-4161-bffb-aa695d96da85",
+    "timestamp": "2025-12-01 18:41:22.018133",
+    "report_generated": false
+  },
+  {
+    "question": "Core._updateTick uses CoreStorageLayout.poolTicksSlot to compute storage slots (line 288). Could the slot calculation add(poolId, add(tick, TICKS_OFFSET)) overflow if tick is MAX_TICK?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4aa5ae4-4a5e-46c6-8619-c31d3a16b7b4",
+    "timestamp": "2025-12-01 18:41:40.235885",
+    "report_generated": false
+  },
+  {
+    "question": "In _updateTick (lines 309-310), assembly sets v := gt(liquidityNetNext, 0). Could liquidityNetNext being exactly type(uint128).max cause v to be 1 when it should reflect uninitialized state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1bc19888-7c41-4755-ab4c-102a3a788f48",
+    "timestamp": "2025-12-01 18:42:01.355351",
+    "report_generated": false
+  },
+  {
+    "question": "Core._updateTick (line 314-315) stores v to both fplSlot0 and fplSlot1. Could storing the same value to both slots cause issues if they should be independently initialized based on pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55f82e60-a786-4f49-962e-c4dd2a825c1a",
+    "timestamp": "2025-12-01 18:42:23.348409",
+    "report_generated": false
+  },
+  {
+    "question": "In _updateTick (line 291), addLiquidityDelta is used to compute liquidityNetNext. If this function doesn't handle uint128 overflow correctly, could an attacker add liquidity that wraps liquidityNet to 0?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c49b6fa4-be2a-4434-b3e0-72682df6c697",
+    "timestamp": "2025-12-01 18:42:46.454039",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.updatePosition (lines 358-448), line 363 validates positionId with poolKey.config. Could an attacker pass a positionId with tickLower >= tickUpper to bypass tick spacing validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_402c62ae-a351-4355-b322-101ec06e6349",
+    "timestamp": "2025-12-01 18:43:11.705743",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updatePosition (line 365) calls _requireLocker() to get the locker. Could an attacker manipulate the locker address during the extension callback (line 367-368) to attribute position changes to the wrong owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6c433441-4441-4085-97be-12dce3afca36",
+    "timestamp": "2025-12-01 18:43:37.243500",
+    "report_generated": false
+  },
+  {
+    "question": "In updatePosition (line 372), the function checks if pool is initialized. Could an attacker race to call updatePosition before initializePool completes, corrupting uninitialized pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_194440c7-7290-4970-81aa-50b272292ef0",
+    "timestamp": "2025-12-01 18:44:04.114313",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updatePosition (lines 375-379) converts tick bounds to sqrtRatio and computes amount deltas. Could tick values at MIN_TICK or MAX_TICK boundaries cause tickToSqrtRatio to return values that violate sqrtRatio bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13509c48-425c-4acd-a01b-74ba21cb9cbf",
+    "timestamp": "2025-12-01 18:44:31.651825",
+    "report_generated": false
+  },
+  {
+    "question": "In updatePosition (line 381), the function computes storage slot for positions using CoreStorageLayout.poolPositionsSlot. Could hash collisions in the position slot calculation allow an attacker to overwrite other users' positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1b122765-baf0-48d6-88e5-8cbba1b03a51",
+    "timestamp": "2025-12-01 18:45:00.698707",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updatePosition (lines 383-385) uses assembly to assign position.slot := positionSlot. Could this assembly bypass Solidity's storage layout checks, allowing an attacker to corrupt adjacent storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b9de93f-c3e7-422e-928a-fe7e81873e8c",
+    "timestamp": "2025-12-01 18:45:30.945851",
+    "report_generated": false
+  },
+  {
+    "question": "In updatePosition (line 387), addLiquidityDelta computes liquidityNext = position.liquidity + liquidityDelta. Could negative liquidityDelta cause underflow that wraps to a huge liquidityNext value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3ffb38b8-9467-4046-8391-7c9fe6dbd286",
+    "timestamp": "2025-12-01 18:46:02.793736",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updatePosition (lines 392-398) fetches feesPerLiquidityInside before deleting position when liquidityNext == 0. Could an attacker exploit the ordering to claim fees after position is burned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_047b4802-3150-428f-b935-5564ece364ce",
+    "timestamp": "2025-12-01 18:46:35.483071",
+    "report_generated": false
+  },
+  {
+    "question": "In updatePosition (line 400-401), _updateTick is called for tickLower and tickUpper. Could these calls reenter updatePosition via extension callbacks, corrupting position state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7966541a-7c30-405a-a767-0474dec943ba",
+    "timestamp": "2025-12-01 18:47:09.104940",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updatePosition (line 409-415) checks if tick is in range and updates pool liquidity. Could an attacker manipulate tick to be exactly at tickLower or tickUpper boundary to bypass liquidity updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae7f9d31-7370-413e-b659-5a26ba464782",
+    "timestamp": "2025-12-01 18:47:43.495848",
+    "report_generated": false
+  },
+  {
+    "question": "In updatePosition (line 417-428), the else branch handles stableswap pools differently. Could an attacker exploit differences between concentrated and stableswap logic to bypass fee accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c6c6c53a-700b-4ae3-b6c8-65310f081e62",
+    "timestamp": "2025-12-01 18:48:18.075701",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updatePosition (line 434) computes position fees using position.fees(feesPerLiquidityInside). Could an attacker manipulate feesPerLiquidityInside to claim more fees than they earned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a7bb2a8-eacc-4d31-ae00-76c47cafde42",
+    "timestamp": "2025-12-01 18:48:52.372851",
+    "report_generated": false
+  },
+  {
+    "question": "In updatePosition (line 436-437), the function updates position.feesPerLiquidityInsideLast by subtracting fees converted to per-liquidity values. Could this subtraction underflow if fees are computed incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e9b92f7-f7cb-4012-b643-d4f444a8191f",
+    "timestamp": "2025-12-01 18:49:27.745854",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updatePosition (line 440) calls _updatePairDebtWithNative with delta0 and delta1. Could an attacker provide negative deltas to withdraw more tokens than the position requires?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f8fbcbe6-64df-4793-9baa-be806750209c",
+    "timestamp": "2025-12-01 18:50:03.045332",
+    "report_generated": false
+  },
+  {
+    "question": "In updatePosition (line 430-432), when liquidityNext == 0, position data is deleted. Could an attacker reopen the position before the transaction completes to restore deleted data with manipulated values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_40d75668-9c9f-4a4d-b207-24c018bdd4e1",
+    "timestamp": "2025-12-01 18:50:40.328176",
+    "report_generated": false
+  },
+  {
+    "question": "Core.updatePosition (line 391-407) has different code paths for concentrated pools. Could an attacker create a pool with isConcentrated() returning inconsistent values to exploit path differences?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_efb3d4f5-0702-4f80-84d8-0f520f59a7a1",
+    "timestamp": "2025-12-01 18:51:19.062885",
+    "report_generated": false
   }
 ]
