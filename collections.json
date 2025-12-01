@@ -5998,5 +5998,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b125b1bc-354c-456f-9143-423be5d4f8c3",
     "timestamp": "2025-12-01 23:37:33.879460",
     "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 179), SafeCastLib.toInt128(-amount) is used. According to Solady's SafeCastLib, toInt128 should revert if the value doesn't fit in int128. However, if amount is type(int256).min, -amount overflows to type(int256).min (most negative value has no positive). Could this cause SafeCastLib to fail or produce incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_faaf3eb1-ca7d-48fd-8a69-84273076e6e4",
+    "timestamp": "2025-12-01 23:38:44.264562",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 164), amount is decoded as int256. If an attacker provides amount between type(int128).max and type(int256).max, the wrap would succeed but line 179's SafeCastLib.toInt128(-amount) would overflow. Should handleForwardData validate that |amount| <= type(int128).max before processing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1fa4ffa0-d02e-4ad1-b862-592a1b338692",
+    "timestamp": "2025-12-01 23:38:57.634486",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() (line 179), updateDebt is called with -amount. For wrap (positive amount), this creates negative debt. However, Core's flash accounting expects all debts to sum to zero. If a user wraps tokens but doesn't have a corresponding unwrap or token payment to balance the negative debt, would this prevent lock completion even though the wrap operation is legitimate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_59fa762c-7370-4842-a411-7411fe4c9814",
+    "timestamp": "2025-12-01 23:39:11.038766",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData(), the debt is updated for the wrapper token itself (msg.sender = TokenWrapper address in updateDebt). If the user needs to settle this debt, they must transfer wrapped tokens to Core. But transfer() to Core only updates coreBalance, not the debt. Could there be a mismatch where users can't properly settle their wrapper token debt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca4e4ab9-ea2f-4d83-ba49-a7a4ce328c47",
+    "timestamp": "2025-12-01 23:39:25.008337",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper, wrap operation increases savedBalances (supply) and creates negative debt (credit). Unwrap decreases savedBalances and creates positive debt (debit). If an attacker wraps and unwraps in the same transaction without ever transferring underlying tokens to/from Core, could the debts cancel while savedBalances remains unchanged, enabling double-counting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f76a5e56-823e-4d6a-8b29-3c67eaf3b852",
+    "timestamp": "2025-12-01 23:39:40.169598",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData(), wrap/unwrap modifies savedBalances and debt but doesn't actually transfer UNDERLYING_TOKEN between user and Core. The user must separately call token.transfer(Core) or Core.withdraw(token, user). If this transfer happens in wrong order or not at all, could the lock complete with unbalanced debts, or would the flash accounting catch this?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65a2e543-f0d9-4340-8d79-892acb0d4af4",
+    "timestamp": "2025-12-01 23:39:56.938814",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() for wrap, the user should have transferred UNDERLYING_TOKEN to Core before calling wrap. But there's no verification that Core actually received the tokens. Could an attacker call wrap without transferring underlying tokens, relying on existing Core balance to satisfy the debt, effectively stealing someone else's deposited tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22f8a807-49ff-4901-9a4b-a87fe95f32f0",
+    "timestamp": "2025-12-01 23:40:14.599883",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData() for unwrap, after the operation, Core should transfer underlying tokens to user. But handleForwardData doesn't call Core.withdraw(). If the user forgets to withdraw in the same lock, could their unwrapped tokens remain in Core indefinitely, and could another user claim these tokens by wrapping and immediately unwrapping?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc99dfe6-f08e-4fc1-bf92-9ab09ce7c67c",
+    "timestamp": "2025-12-01 23:40:34.143953",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transfer() (lines 105-106), the balance decrement uses unchecked block. While this saves gas, if balance - amount underflows due to a logic bug elsewhere, the unchecked block would allow the underflow, potentially corrupting _balanceOf[msg.sender]. Could a reentrancy or race condition exploit this unchecked arithmetic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00ee91f6-8ebf-48b0-b578-545b62891cb8",
+    "timestamp": "2025-12-01 23:40:55.905364",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transferFrom() (lines 132-134, 144-145), both allowance and balance decrements use unchecked blocks. If there's any code path that bypasses the initial checks (lines 130, 140), could the unchecked arithmetic enable underflow attacks that mint unlimited allowance or balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d95df03-17b7-401f-9b08-097ffc972a2a",
+    "timestamp": "2025-12-01 23:41:17.690481",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transfer() (line 115) and transferFrom() (line 153), Transfer events are emitted after state changes. If these events are used by external observers for real-time balance tracking, and there's a revert after the state change but before event emission, could this cause observers to miss state updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5183dc35-b819-4973-947a-867a95375c9d",
+    "timestamp": "2025-12-01 23:41:41.440957",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.transfer() (line 115), when burning (to == address(0)), the Transfer event is still emitted per line 115 check. However, line 112 skips incrementing _balanceOf[to] when to == address(0). Is this the correct burn semantics according to ERC20 standard, and could this cause confusion in external contracts that parse Transfer events?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_21094b7a-a6c1-4a4f-86c8-b06bb9294c82",
+    "timestamp": "2025-12-01 23:42:06.724890",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper, there are no events emitted from handleFor",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e80a2863-dd5e-44e2-847e-310b255fecd1",
+    "timestamp": "2025-12-01 23:42:32.904825",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31-42), can an attacker bypass the ACCOUNTANT-only check by calling the function during a recursive lock scenario where msg.sender temporarily equals ACCOUNTANT due to delegatecall patterns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2dd91551-a7a0-4ec7-b6db-72b79deb47f5",
+    "timestamp": "2025-12-01 23:42:59.936939",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 32), if a malicious contract sets its address to match ACCOUNTANT before deployment via CREATE2, could it call forwarded_2374103877 directly and manipulate the original Locker parameter to steal funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4baeb0dd-ab6c-4ce3-ad85-a2097650ec90",
+    "timestamp": "2025-12-01 23:43:28.878258",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee constructor (line 19-21), since ACCOUNTANT is set immutably, if a malicious deployment front-runs the legitimate deployment with a fake ACCOUNTANT address, could subsequent forwarded calls be hijacked?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4df69c69-499b-4e69-bd5f-f6a9e46bafc9",
+    "timestamp": "2025-12-01 23:43:58.024139",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 32), does the BaseForwardeeAccountantOnly check occur before or after any transient storage reads, and could a reentrancy attack exploit the timing to bypass authorization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c14fbfe8-64d8-4ef3-a704-765d2f845dbb",
+    "timestamp": "2025-12-01 23:44:29.404141",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), the function receives a Locker parameter but doesn't validate that it matches the current locker in FlashAccountant's transient storage - could an attacker provide a forged Locker to manipulate debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f64e7df-fc09-4934-8110-3176f2be1e2d",
+    "timestamp": "2025-12-01 23:45:01.182534",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 32), if ACCOUNTANT's address is compromised or upgraded via proxy pattern, could an attacker gain unauthorized access to call forwarded functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95b5819b-6dfb-47c2-b663-d7c24bd45856",
+    "timestamp": "2025-12-01 23:45:32.270141",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee constructor (line 19-21), if _accountant is address(0) or an EOA, would forwarded_2374103877 still accept calls from it, potentially allowing unauthorized debt manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b8ce3ba5-9c30-488c-a40b-09ef3ef3dfc7",
+    "timestamp": "2025-12-01 23:46:04.682075",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31-42), since the function is external, can it be called via delegatecall from another context where msg.sender might differ, bypassing the ACCOUNTANT check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7533b0c5-000e-4242-ac45-1757e056182a",
+    "timestamp": "2025-12-01 23:46:38.024314",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 32), if multiple BaseForwardee instances share the same ACCOUNTANT, could cross-contract forwarding attacks occur where Contract A forwards to Contract B with malicious data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e2e6a9f-ec42-456e-a788-29448c8ffa8b",
+    "timestamp": "2025-12-01 23:47:11.362450",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), the original Locker parameter is passed directly to handleForwardData without validation - could a malicious ACCOUNTANT implementation pass arbitrary Locker values to corrupt debt accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f5b1237b-a601-48cc-a266-a5e638a1c34b",
+    "timestamp": "2025-12-01 23:47:42.301574",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee constructor (line 19-21), if the contract is deployed behind a proxy that can change the ACCOUNTANT immutable via delegatecall storage patterns, could authorization be bypassed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ff7436d-9f21-4970-b7b9-1fbe3d6def8a",
+    "timestamp": "2025-12-01 23:48:14.309848",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 32), does the revert happen before or after any state changes in handleForwardData, and could partial execution leave the contract in an inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef281d66-9b17-4740-afc6-a2eb930a306d",
+    "timestamp": "2025-12-01 23:48:51.195180",
+    "report_generated": false
   }
 ]
