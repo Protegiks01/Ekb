@@ -3148,5 +3148,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e977e8f-cf4f-43d6-867a-2c94b4bba20a",
     "timestamp": "2025-12-01 20:01:43.456772",
     "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 290-294, payment amounts are checked to not exceed uint128. If payment is exactly type(uint128).max + 1, can the shr(128, payment) check miss the overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8dc4dca3-3464-49c7-a9e3-681d6c50c426",
+    "timestamp": "2025-12-01 20:03:13.558662",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 322-381, withdraw transfers tokens to recipients. If the recipient is a malicious contract that reenters to call withdraw again, can the nzdCountChange tracking prevent double-withdrawal?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75af0911-37b1-48f0-afc7-724054afdf1c",
+    "timestamp": "2025-12-01 20:03:27.495824",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 348-369, the function handles native token (case 0) and ERC20 separately. If token address is manipulated to be 0 for an ERC20 token, can the function attempt ETH transfer for token withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd7dfe11-aa43-4068-9de8-eb9963be99ae",
+    "timestamp": "2025-12-01 20:03:41.393656",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 384-393, the receive function accounts for ETH payments automatically. If multiple ETH transfers occur in a single lock through different calls, can debt tracking handle cumulative native token payments correctly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b62cdcee-147d-40ff-a7f5-762c91d86f1c",
+    "timestamp": "2025-12-01 20:03:55.825782",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol line 391, unchecked math is used for msg.value debt adjustment. If msg.value is type(uint256).max, can casting to int256 produce unexpected negative debt values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fbf661d0-014b-46d2-865c-9b0acd86d248",
+    "timestamp": "2025-12-01 20:04:10.990649",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 69-70, deltaSlot is calculated using shl(160, id). If id is manipulated to be type(uint256).max, can the shift operation overflow and produce incorrect storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_df0eeff4-68d7-4c26-bed4-0d66027451d1",
+    "timestamp": "2025-12-01 20:04:27.657711",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.sol lines 132-143, updateDebt allows msg.sender to update their own debt. If msg.sender is a malicious extension, can it manipulate debt for arbitrary tokens to drain the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3b787fd-d165-4f30-ad8e-00113a41e88b",
+    "timestamp": "2025-12-01 20:04:45.415977",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMMLib.sol lines 58-114, executeVirtualOrdersAndGetCurrentOrderInfo calculates order state. If the TWAMM extension hasn't executed virtual orders recently, can stale reward rates lead to incorrect purchased amounts being returned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72d7c6a9-805f-4286-ad12-aac8bd16470b",
+    "timestamp": "2025-12-01 20:05:05.414334",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMMLib.sol lines 80-81, purchasedAmount is calculated from reward rate differences. If rewardRateInside overflows or _rewardRateSnapshot is manipulated, can the subtraction produce massive fake proceeds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1ef5d56c-83a6-47aa-82bd-22fca87602c8",
+    "timestamp": "2025-12-01 20:05:27.492333",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMMLib.sol lines 82-104, amountSold calculation uses multiple min operations. If any of these time calculations overflow (block.timestamp manipulation), can amountSold be computed incorrectly, leading to excess refunds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a1033eff-6d18-47fb-b51d-973c5d1ce696",
+    "timestamp": "2025-12-01 20:05:51.189822",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMMLib.sol lines 105-111, remainingSellAmount is calculated for future time periods. If endTime is less than block.timestamp due to timestamp manipulation, can the calculation underflow and produce incorrect remaining amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a731a5ba-b884-4a16-90c5-ab500e8a27e8",
+    "timestamp": "2025-12-01 20:06:14.887253",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMMLib.sol line 66, lockAndExecuteVirtualOrders is called without checking if virtual orders have already been executed in this block. Can repeated calls waste gas or cause state inconsistencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_03a11c10-1618-464c-9dd2-e9c8526f0503",
+    "timestamp": "2025-12-01 20:06:39.989897",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMMLib.sol lines 124-130, updateSaleRate forwards to the TWAMM extension via Core.forward. If the TWAMM extension's response is manipulated or malformed, can abi.decode at line 129 produce incorrect amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a4970419-9dbc-42ee-af0a-3a8a2ebc880b",
+    "timestamp": "2025-12-01 20:07:06.203315",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMMLib.sol lines 139-143, collectProceeds forwards and decodes uint128. If the TWAMM extension returns a value greater than uint128.max, can silent truncation occur during the decode?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9a407f0c-602e-4e20-ac5a-537c3f147f7f",
+    "timestamp": "2025-12-01 20:07:31.624100",
+    "report_generated": false
+  },
+  {
+    "question": "In math/twamm.sol lines 11-22, computeSaleRate divides shifted amount by duration. If amount is type(uint224).max and duration is 1, can the left shift cause overflow before the shr(112, saleRate) check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9db4a681-c11b-49db-b540-28e413495b0e",
+    "timestamp": "2025-12-01 20:07:58.252006",
+    "report_generated": false
+  },
+  {
+    "question": "In math/twamm.sol lines 26-38, addSaleRateDelta performs unchecked addition. If saleRate is type(uint112).max and saleRateDelta is positive, can overflow be missed by the shr(112, result) check at exact boundary?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04b84095-fbae-47cb-8ff5-ef1fc11402c7",
+    "timestamp": "2025-12-01 20:08:27.366286",
+    "report_generated": false
+  },
+  {
+    "question": "In math/twamm.sol lines 40-46, computeAmountFromSaleRate multiplies and shifts. If saleRate is uint112.max, duration is uint32.max, and roundUp is true, can the addition of 0xffffffff cause overflow before the right shift?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cde6c636-4efa-4be0-a707-8af8853f040b",
+    "timestamp": "2025-12-01 20:08:57.232263",
+    "report_generated": false
+  },
+  {
+    "question": "In math/twamm.sol lines 54-64, computeC calculates a signed 64.128 number. If sqrtRatio and sqrtSaleRatio are at extreme boundaries, can the dist calculation overflow or the sign computation produce incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c480d05b-4f59-42e9-9397-a8d61831a9f4",
+    "timestamp": "2025-12-01 20:09:28.103494",
+    "report_generated": false
+  },
+  {
+    "question": "In math/twamm.sol lines 89-141, computeNextSqrtRatio performs complex exponential calculations. If the exponent at line 120 is near 0x400000000000000000 boundary, can the exp2 function produce incorrect results due to precision loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c8af9ef1-fbc2-4596-ab5b-706d13a8ef11",
+    "timestamp": "2025-12-01 20:10:00.692754",
+    "report_generated": false
+  },
+  {
+    "question": "In math/twamm.sol lines 113-115, sqrtSaleRate is computed by subtracting fees. If computeFee returns a value greater than sqrtSaleRateWithoutFee, can underflow produce a massive incorrect sale rate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_540f4f3e-c3bb-47d1-ab02-545edf2fb82f",
+    "timestamp": "2025-12-01 20:10:32.839770",
+    "report_generated": false
+  },
+  {
+    "question": "In math/twamm.sol lines 127-129, fullMulDiv is used for sqrt ratio calculation. If the numerator or denominator are at extreme values, can precision loss in the division produce exploitable price manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_99689ba0-c14f-4116-a2c4-a93978c3c4d6",
+    "timestamp": "2025-12-01 20:11:05.628697",
+    "report_generated": false
+  },
+  {
+    "question": "In math/twamm.sol lines 68-83, computeSqrtSaleRatio handles different precision levels based on ratio size. Can an attacker craft sale rates that fall exactly on precision boundaries to exploit rounding differences?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_276c8901-f6e5-4dfa-8f56-51e06565d3ae",
+    "timestamp": "2025-12-01 20:11:37.914670",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.sol lines 92-102, saltToId generates deterministic IDs from minter, salt, chainid, and contract",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d2f74a9e-1999-42eb-baad-5898f1a22044",
+    "timestamp": "2025-12-01 20:12:09.178529",
+    "report_generated": false
+  },
+  {
+    "question": "In the PositionsOwner constructor (lines 34-38), can an attacker front-run the deployment transaction to set themselves as the owner parameter, gaining control over protocol fee withdrawals and Positions ownership transfers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b3ee52e4-e732-46c1-b043-091d574433ac",
+    "timestamp": "2025-12-01 20:12:39.891277",
+    "report_generated": false
+  },
+  {
+    "question": "The constructor at line 35 calls _initializeOwner(owner) before setting POSITIONS and BUYBACKS. Could a malicious owner parameter exploit this ordering by calling transferPositionsOwnership in a callback if owner is a contract, transferring ownership before POSITIONS is set?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e9df9c01-83f9-477b-91be-7c2aaaed0523",
+    "timestamp": "2025-12-01 20:13:11.414773",
+    "report_generated": false
   }
 ]
