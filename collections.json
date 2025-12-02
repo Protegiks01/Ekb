@@ -6448,5 +6448,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_60837ab9-defa-4e23-ae41-1eff09c43c0e",
     "timestamp": "2025-12-02 00:10:50.843546",
     "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), if handleForwardData calls FlashAccountant.startPayments()/completePayments(), could payment tracking interfere with the original locker's payment flow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb5f5bda-0510-4fdb-a669-b19f18f30aec",
+    "timestamp": "2025-12-02 00:12:02.288111",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), since handleForwardData can modify transient storage as the temporary locker, could it manipulate _CURRENT_LOCKER_SLOT to bypass authorization in subsequent calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8b15c99e-fdd4-45f9-a35c-911a5361a847",
+    "timestamp": "2025-12-02 00:12:15.525219",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), if handleForwardData reverts after partially modifying debt, does FlashAccountant.forward() correctly restore locker state, or could partial updates persist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b00761e3-318f-45b0-bd2f-e45b650dcadb",
+    "timestamp": "2025-12-02 00:12:29.809367",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), if handleForwardData makes external calls to tokens that reenter via transfer hooks, could this bypass the ACCOUNTANT-only check in subsequent calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e7ca4e3-9868-4ecf-b65a-740df8b7503b",
+    "timestamp": "2025-12-02 00:12:43.955900",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), when handleForwardData executes as temporary locker, if it calls functions that check msg.sender == address(ACCOUNTANT), would these checks incorrectly pass?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_15121dad-062e-416c-aef9-1260866b1de7",
+    "timestamp": "2025-12-02 00:12:59.055340",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), if handleForwardData calls selfdestruct, would this break the forwarding mechanism or corrupt ACCOUNTANT's state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_15f982ad-59b3-4f6e-a45f-db8c98fce16b",
+    "timestamp": "2025-12-02 00:13:15.156376",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), if handleForwardData uses delegatecall to another contract, could that contract access BaseForwardee's storage slots and corrupt ACCOUNTANT reference?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_485a5759-c349-498a-b4ad-203171d5ee1a",
+    "timestamp": "2025-12-02 00:13:32.771659",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), since handleForwardData is internal virtual, if an inheriting contract overrides it with malicious logic, could this bypass security checks in the original implementation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5eaed4ff-9ae0-4a12-9f5b-ab6a1a8f9554",
+    "timestamp": "2025-12-02 00:13:52.157798",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), if handleForwardData calls FlashAccountant.receive() with ETH, could this manipulate native token debt accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f96651a8-5f0e-4488-b615-80cfcfff216f",
+    "timestamp": "2025-12-02 00:14:13.601028",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), when handleForwardData runs, if it accesses global state (e.g., block.timestamp), could time-based attacks exploit the forwarding window?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2002f239-98a0-41cb-a83a-0e3d8f27728c",
+    "timestamp": "2025-12-02 00:14:35.881664",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), if handleForwardData calls view functions that read transient storage, could stale reads occur if transient storage was modified during forwarding?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c8a09d8f-cb19-4669-81e4-bea16e84fec8",
+    "timestamp": "2025-12-02 00:14:59.245201",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), if handleForwardData calls FlashAccountant.withdraw() for multiple tokens, could the accumulated debt changes violate flash accounting balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e504e1e0-b664-46b3-9f1b-bd45e743a6b3",
+    "timestamp": "2025-12-02 00:15:24.682926",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 36), since handleForwardData execution can be arbitrarily complex, could gas limit manipulation cause it to partially execute, leaving inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a33768d-a02a-4937-bade-dd9820ac3115",
+    "timestamp": "2025-12-02 00:15:51.282485",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), the Locker original parameter is extracted from calldata by FlashAccountant.forward() - could a malicious implementation of forward() pass a forged Locker to manipulate debt attribution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_331b0972-d15c-4e12-9fbd-44c883b5d22b",
+    "timestamp": "2025-12-02 00:16:18.146451",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), Locker type encodes both ID and address in bytes32 - if the encoding is malformed (e.g., invalid bit layout), could Locker.id() or Locker.addr() return incorrect values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c286167b-18f8-4415-b131-536ca67a05d3",
+    "timestamp": "2025-12-02 00:16:46.627578",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), the original Locker is passed to handleForwardData but not validated against FlashAccountant's current locker state - could this enable impersonation attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_71143e41-3b8a-4fc4-9723-0ac6787eb5dd",
+    "timestamp": "2025-12-02 00:17:18.890074",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), if Locker.id() extracts the ID as 'shr(160, locker) - 1', could an attacker craft a Locker where ID underflows to uint256.max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72d07674-ad89-47a2-946d-e96393297487",
+    "timestamp": "2025-12-02 00:17:51.966059",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), if Locker.addr() extracts address using bit shifts, could dirty upper bits in the Locker parameter cause address corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d0b3505d-4e5b-4569-a369-ecc8c636c96a",
+    "timestamp": "2025-12-02 00:18:26.632877",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), when handleForwardData receives original Locker, if it calls original.id() to access debt slots, could ID mismatch with actual lock ID cause debt tracking corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ecb0f17-acd8-4bd4-bd4d-bc10a719f559",
+    "timestamp": "2025-12-02 00:19:02.168115",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), if the Locker parameter encodes address(0) as the locker address, could handleForwardData bypass authorization checks that rely on non-zero addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_099197ad-84c3-4d65-84d5-e2103655a4bb",
+    "timestamp": "2025-12-02 00:19:36.110948",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), since Locker is bytes32, could an attacker pass type(bytes32).max to cause overflow in Locker parsing operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ce038f0b-f97d-4577-be6a-a94cfd255fe6",
+    "timestamp": "2025-12-02 00:20:11.760143",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), if FlashAccountant.forward() increments lock ID before forwarding, but passes the old Locker, could ID mismatch cause debt to be attributed to wrong lock?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ea7d013-4820-4564-a2af-e553d9706e37",
+    "timestamp": "2025-12-02 00:20:47.852995",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), when handleForwardData uses original.addr() to authorize actions, could a forged address in Locker bypass ownership checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_449a24fb-8737-4a89-b111-1cab35a54a11",
+    "timestamp": "2025-12-02 00:21:22.722122",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), if Locker encoding uses big-endian vs little-endian, could byte order confusion cause incorrect ID/address extraction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4278de7f-dfe7-40f8-9734-978b75edab1f",
+    "timestamp": "2025-12-02 00:21:58.002983",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), since Locker is passed as calldata parameter, could calldata malleability allow multiple distinct calldatas to produce same Locker value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc8b2a09-e5d5-4d48-8137-15b5c498e0f5",
+    "timestamp": "2025-12-02 00:22:31.368048",
+    "report_generated": false
   }
 ]
