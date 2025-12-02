@@ -10348,5 +10348,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4404cc67-3361-43e2-9ae1-3a027f413c5c",
     "timestamp": "2025-12-02 05:06:36.018602",
     "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol lock function (lines 44-73) uses assembly to call ACCOUNTANT. Can incorrect assembly operations cause delta tracking to become corrupted, allowing users to withdraw more tokens than deposited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_09e88e91-f008-46ac-b334-31c0ad7a0ee3",
+    "timestamp": "2025-12-02 05:07:48.091056",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol handleLockData (lines 91-150), token transfers happen after swap. Can an attacker manipulate msg.value during native token swaps to cause delta imbalance and drain the flash accountant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_840976f7-371b-4f0a-af61-203e3ca535fa",
+    "timestamp": "2025-12-02 05:08:01.659782",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol handleLockData (line 134) processes sale rate changes. If the CORE.updateSaleRate returns a delta that doesn't match actual token transfers, can this cause flash accounting imbalance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_21dc1524-b6fd-426e-9328-5872abe77339",
+    "timestamp": "2025-12-02 05:08:14.906092",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol deposit (lines 79-97), the function calls lock() which eventually settles deltas. Can an attacker provide poolKey with malicious extension that prevents settlement, keeping deltas non-zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2dcaa1ac-b758-4cc9-a011-6f6b32ee99a9",
+    "timestamp": "2025-12-02 05:08:28.728052",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol locked_6416899205 callback (line 25) checks msg.sender == ACCOUNTANT. If ACCOUNTANT contract has a bug allowing arbitrary external calls, can this bypass the check and corrupt lock state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2591f16e-a1fb-45d6-aaed-8aba558540b5",
+    "timestamp": "2025-12-02 05:08:45.811187",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol, _swap function (line 83) is virtual and can be overridden. Can a malicious derived contract override this to manipulate balanceUpdate and cause delta accounting errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a23e5cd-1c78-4b74-8559-582ada48df60",
+    "timestamp": "2025-12-02 05:09:03.730234",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol increaseSellAmount (lines 53-74) locks and updates sale rate. Can an attacker use reentrancy during the lock to call decreaseSaleRate, causing sale rate to become negative?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1e8380d0-edcf-4a61-9c9c-bf1a49b56367",
+    "timestamp": "2025-12-02 05:09:22.831742",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol withdraw (lines 120-133), both fee collection and liquidity removal happen in one lock. Can incorrect ordering cause fees to be double-counted in delta accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_60e41acf-896d-4438-b48e-5bd179c18014",
+    "timestamp": "2025-12-02 05:09:43.589276",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol lockAndExpectRevert (lines 82-111) expects a revert. Can an attacker use this for quote operations that modify state before reverting, bypassing the flash accounting balance check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e0e283d6-c049-4223-a847-235721a15bdd",
+    "timestamp": "2025-12-02 05:10:05.053301",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol CALL_TYPE_SINGLE_SWAP handler (lines 94-150), if poolKey.token0 == NATIVE_TOKEN_ADDRESS, special ETH handling occurs. Can an attacker exploit the value difference calculation to steal ETH?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_528868f1-da71-41bd-88c6-f6f5e0e60c5e",
+    "timestamp": "2025-12-02 05:10:27.683247",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol CALL_TYPE_CHANGE_SALE_RATE (lines 137-160) transfers tokens based on sale rate delta. Can integer overflow in amount calculation cause incorrect token transfer amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd4f4353-4444-45c6-9ecf-6e3893d5e1b2",
+    "timestamp": "2025-12-02 05:10:51.517956",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol CALL_TYPE_DEPOSIT (lines 232-264), ACCOUNTANT.payTwoFrom is called. Can an attacker provide a poolKey where token0 and token1 are the same address to confuse payment tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c415ba46-ac57-4fa5-832f-982d186500ef",
+    "timestamp": "2025-12-02 05:11:16.879698",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol uses assembly in lock function to copy calldata. Can incorrect mcopy usage cause data corruption leading to wrong lock parameters and delta tracking errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6c6fd83f-6473-4e1d-9f3c-62a9029ed1f6",
+    "timestamp": "2025-12-02 05:11:43.496620",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol, if TWAMM_EXTENSION.updateSaleRate reverts, does the lock properly clean up deltas, or can partial state changes remain causing accounting imbalance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b957f351-320b-4242-a661-c0fe6123d703",
+    "timestamp": "2025-12-02 05:12:11.062746",
+    "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol CALL_TYPE_WITHDRAW (lines 265-330) computes protocol fees. Can an attacker manipulate fee calculations to avoid paying protocol fees while still withdrawing liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc85897b-fc6c-4aa5-825e-9f8f86860ce2",
+    "timestamp": "2025-12-02 05:12:39.789557",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol, if a swap involves NATIVE_TOKEN_ADDRESS and the exact amount calculation overflows, can this cause the flash accounting balance check to pass with incorrect deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12d16377-42e9-4bdb-b948-5f756270e777",
+    "timestamp": "2025-12-02 05:13:09.871751",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol collectProceeds (lines 107-114) locks and withdraws tokens. Can an attacker frontrun this to manipulate the proceeds amount through TWAMM virtual order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b62e355-e17a-4e20-9148-7d2ca319f144",
+    "timestamp": "2025-12-02 05:13:41.470228",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol, withdrawProtocolFees (lines 186-192) uses onlyOwner but still locks. Can the owner manipulate deltas during the lock to extract more fees than accumulated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_86b153c3-5f92-4bf9-8eea-3d2bef021529",
+    "timestamp": "2025-12-02 05:14:14.112202",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol handleLockData (line 118) is internal virtual. Can a derived contract implement this incorrectly causing deltas to not settle properly at lock exit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a2ff1836-af81-4bca-98b6-6c78990f69df",
+    "timestamp": "2025-12-02 05:14:46.911463",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol deposit (line 79), the authorizedForNft modifier checks NFT ownership. Can an attacker use approval mechanism to deposit into someone else's position and then steal liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0352149c-39c5-4662-809e-0196d5888148",
+    "timestamp": "2025-12-02 05:15:20.731794",
+    "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol inherits BaseNonfungibleToken. Can NFT transfer during a lock callback corrupt position state by changing ownership while liquidity operation is in progress?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5cf9b3f6-a347-48c8-96aa-6e9ad7492d1a",
+    "timestamp": "2025-12-02 05:15:54.954354",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol mintAndIncreaseSellAmount (line 43), mint() is called before increaseSellAmount. Can an attacker frontrun to steal the newly minted NFT before the order is placed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_abc45c8a-4ad1-4a16-bc4a-fbe7478a3e0e",
+    "timestamp": "2025-12-02 05:16:29.193931",
+    "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol withdraw (line 128) uses authorizedForNft. If NFT is transferred during the multicall, can new owner steal the withdrawn tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab55a7f0-f879-46cf-902f-70deeb790322",
+    "timestamp": "2025-12-02 05:17:03.057346",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol, NFT id is used as bytes32 salt for orders (line 142). Can attacker create orders with colliding ids by manipulating NFT minting process?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bdfac533-7b8b-4e73-bb69-a6b3fdd2321a",
+    "timestamp": "2025-12-02 05:17:37.308957",
+    "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol mintAndDeposit (lines 159-169) mints NFT and deposits in same transaction. Can reentrancy between mint and deposit allow attacker to deposit into the NFT before owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_266f7bc7-0348-46be-8bc4-03cc3cce0168",
+    "timestamp": "2025-12-02 05:18:10.605642",
+    "report_generated": false
   }
 ]
