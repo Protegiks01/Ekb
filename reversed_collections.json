@@ -14098,5 +14098,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aef85e47-246c-460e-b4ba-3927976d9ea6",
     "timestamp": "2025-12-02 10:45:16.734520",
     "report_generated": false
+  },
+  {
+    "question": "The `savedBalancesSlot()` assembly block uses 128 bytes for hashing (line 133). Could incorrect memory alignment or length cause the hash to include unintended data from adjacent memory regions, producing non-deterministic storage slots and balance corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a48dbf80-7561-45c4-972f-34f32b64a637",
+    "timestamp": "2025-12-02 10:46:31.942338",
+    "report_generated": false
+  },
+  {
+    "question": "In `savedBalancesSlot()`, the salt parameter (line 122) is user-provided via Core.sol operations. Could an attacker brute-force salt values to find collisions with critical storage slots (extension registration, tick data, or position data) to corrupt protocol state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0cc1d13b-11ce-4b48-b522-440e783a410d",
+    "timestamp": "2025-12-02 10:46:44.998308",
+    "report_generated": false
+  },
+  {
+    "question": "The `savedBalancesSlot()` function (lines 122-135) computes slot = keccak256(owner || token0 || token1 || salt). Could an attacker find inputs where this hash collides with poolStateSlot of a high-value pool, enabling balance storage to overwrite pool state and steal funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6655652c-018b-423d-8820-c661bf1ed0a3",
+    "timestamp": "2025-12-02 10:46:59.171325",
+    "report_generated": false
+  },
+  {
+    "question": "In `poolPositionsSlot()`, the assembly performs memory operations at free pointer location (lines 106-109). Could reentrancy during position operations cause free memory pointer manipulation that results in incorrect hash calculation and unauthorized position access?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_beef5555-3fad-45fa-a00c-9b1641845cc7",
+    "timestamp": "2025-12-02 10:47:13.155252",
+    "report_generated": false
+  },
+  {
+    "question": "The `poolPositionsSlot()` function returns 'the first of three consecutive storage slots' (line 99). If Core.sol writes position data to these three slots but another function incorrectly calculates the slot offset, could partial position data be corrupted, leading to incorrect liquidity calculations and fund loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e945e28-572c-47ea-9e0f-53a5d0f68067",
+    "timestamp": "2025-12-02 10:47:28.150348",
+    "report_generated": false
+  },
+  {
+    "question": "In `poolPositionsSlot()`, the final slot is computed as keccak256(keccak256(positionId || poolId || owner) || 1). Could an attacker craft inputs where this double-hash collides with poolTicksSlot or poolFeesPerLiquiditySlot ranges, enabling position data to overwrite critical tick information?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f1fc6fb7-8597-4c77-91ac-73c2abc71bac",
+    "timestamp": "2025-12-02 10:47:46.123549",
+    "report_generated": false
+  },
+  {
+    "question": "The `poolPositionsSlot()` assembly block (lines 105-113) uses free memory pointer at 0x40 and writes three values. If Core.sol calls this function in a sequence where memory is not properly managed, could stale memory data corrupt the keccak256 hash and produce incorrect storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0b2b14bd-34fd-4b2d-93c2-afec2be619ec",
+    "timestamp": "2025-12-02 10:48:05.979764",
+    "report_generated": false
+  },
+  {
+    "question": "In `poolPositionsSlot()` (lines 100-114), the function uses keccak256(positionId || poolId || owner) as part of slot calculation. Could an attacker find a collision where different (positionId, poolId, owner) tuples hash to the same intermediate value, allowing position theft or unauthorized withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f66bf4a-0c9c-48b8-8d91-d63e550fa330",
+    "timestamp": "2025-12-02 10:48:27.313873",
+    "report_generated": false
+  },
+  {
+    "question": "The bitmap storage region starts at BITMAPS_OFFSET from poolId. Given that bitmaps span from FIRST_BITMAP_WORD to LAST_BITMAP_WORD, could the ending bitmap slots overflow into the storage region of another pool or extension, causing state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d4d4a48-d4cd-432d-8e3c-27c7129c3982",
+    "timestamp": "2025-12-02 10:48:50.699481",
+    "report_generated": false
+  },
+  {
+    "question": "Since `tickBitmapsSlot()` only returns the base slot and Core.sol must calculate bitmap word offsets separately, could inconsistent offset calculations between bitmap initialization and tick crossing operations lead to incorrect liquidity tracking and position withdrawal failures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c396068b-01a2-48ad-805a-7fedb41286b6",
+    "timestamp": "2025-12-02 10:49:15.425143",
+    "report_generated": false
+  },
+  {
+    "question": "In `tickBitmapsSlot()`, the function computes firstSlot = poolId + BITMAPS_OFFSET. Could the large BITMAPS_OFFSET value (0x3def450d...) combined with specific poolId values cause integer overflow that aliases with savedBalancesSlot storage, enabling balance manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63f4a890-7580-492e-ba89-23eb55ea4428",
+    "timestamp": "2025-12-02 10:49:40.536816",
+    "report_generated": false
+  },
+  {
+    "question": "The `tickBitmapsSlot()` function (lines 89-93) returns the first slot of the bitmap region without bounds checking. Could an attacker manipulate which bitmap word is accessed by passing crafted tick values to Core.sol, causing bitmap reads/writes to corrupt unrelated storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66188115-7a3e-42c9-8630-c3d5695f9a48",
+    "timestamp": "2025-12-02 10:50:06.617251",
+    "report_generated": false
+  },
+  {
+    "question": "In `poolTickFeesPerLiquidityOutsideSlot()`, the assembly performs unchecked addition (line 81). For tick values near MAX_TICK, could poolId + FPL_OUTSIDE_OFFSET_VALUE0 + tick overflow and alias with slots used by TWAMM or Oracle extensions, corrupting extension state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e02829e-3b16-4b83-8c4b-cdebc517ff57",
+    "timestamp": "2025-12-02 10:50:35.038252",
+    "report_generated": false
+  },
+  {
+    "question": "Given that `poolTickFeesPerLiquidityOutsideSlot()` returns two separate slots for value0 and value1 fees, if Core.sol updates only one slot during tick crossing but reads both during fee calculations, could attackers exploit this inconsistency to claim fees they didn't earn?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0aa7cf58-5352-449c-af45-0e54f5fcec55",
+    "timestamp": "2025-12-02 10:51:03.799060",
+    "report_generated": false
+  },
+  {
+    "question": "The `poolTickFeesPerLiquidityOutsideSlot()` computes secondSlot by adding FPL_OUTSIDE_OFFSET_VALUE1 to firstSlot (line 82). Could this large offset (0x7a2a03fc...) cause overflow that wraps secondSlot to collide with poolStateSlot of another pool, enabling cross-pool fee theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a7dd413-4cee-49e1-bb7a-797636ddd133",
+    "timestamp": "2025-12-02 10:51:34.713190",
+    "report_generated": false
+  },
+  {
+    "question": "In `poolTickFeesPerLiquidityOutsideSlot()` (lines 75-84), two slots are returned: firstSlot = poolId + FPL_OUTSIDE_OFFSET_VALUE0 + tick and secondSlot = firstSlot + FPL_OUTSIDE_OFFSET_VALUE1. Could integer overflow in either addition cause slot collision with tick bitmaps or position data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6152b256-ba2e-4ed8-9044-d575f389b9d1",
+    "timestamp": "2025-12-02 10:52:06.565632",
+    "report_generated": false
+  },
+  {
+    "question": "In `poolTicksSlot()`, the TICKS_OFFSET (0x435a5eb89a296820174331cf5a3902d9fca683928d56726d8e7acd6efb28c568) is added to poolId + tick. Could an attacker craft a poolId such that for certain valid tick values, the resulting slot collides with poolTickFeesPerLiquidityOutsideSlot ranges, corrupting fee tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f6238b4f-cbf5-4f5f-abd7-d54538a3cfe7",
+    "timestamp": "2025-12-02 10:52:40.935996",
+    "report_generated": false
+  },
+  {
+    "question": "Since `poolTicksSlot()` uses signed addition (poolId + tick + TICKS_OFFSET) where tick is int32, could negative tick values combined with specific poolId values cause the computed slot to collide with extension storage or saved balance slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3db148c8-0d43-4c9b-9e95-2b53a736bbc3",
+    "timestamp": "2025-12-02 10:53:13.607536",
+    "report_generated": false
+  },
+  {
+    "question": "The `poolTicksSlot()` function allows any int32 tick value as input (line 64). If Core.sol fails to validate tick bounds before calling this function, could an attacker pass tick < MIN_TICK or tick > MAX_TICK to compute storage slots in unintended regions and corrupt critical state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a07aea65-8152-4e36-a4ab-dcbbb40d874a",
+    "timestamp": "2025-12-02 10:53:46.503987",
+    "report_generated": false
+  },
+  {
+    "question": "In `poolTicksSlot()` (lines 64-68), the function computes slot = poolId + tick + TICKS_OFFSET. For a malicious tick value near MAX_TICK (88722835), could the addition cause integer overflow that results in collision with poolStateSlot or poolFeesPerLiquiditySlot of the same or different pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_147f9385-8e63-47fb-978a-d5a8cf9e1a84",
+    "timestamp": "2025-12-02 10:54:20.386482",
+    "report_generated": false
+  },
+  {
+    "question": "The FPL_OFFSET constant (0xb09b03866d96933565a9435bfb511c8ac5b2be454285ca331201452704799f72) is added to poolId in `poolFeesPerLiquiditySlot()`. Could an attacker find a poolId value where poolId + FPL_OFFSET equals a critical storage slot (like locker state or delta tracking) to corrupt flash accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28605a76-32de-4a3f-a061-7945f2771c07",
+    "timestamp": "2025-12-02 10:54:53.420358",
+    "report_generated": false
+  },
+  {
+    "question": "The `poolFeesPerLiquiditySlot()` returns the first of two consecutive slots (line 53). If Core.sol writes to both slots but reads only one due to an implementation error, could attackers exploit partial fee updates to double-claim fees or avoid fee payments?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bb953b42-a302-4771-b449-8cad627fe36e",
+    "timestamp": "2025-12-02 10:55:27.175983",
+    "report_generated": false
+  },
+  {
+    "question": "In `poolFeesPerLiquiditySlot()` (lines 54-58), the function adds FPL_OFFSET to poolId using unchecked assembly arithmetic. Could integer overflow during this addition cause the computed slot to wrap around and collide with poolStateSlot of another pool, corrupting fee accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b8767d06-cfb4-4720-b6ba-fddb9cdd0b32",
+    "timestamp": "2025-12-02 10:56:01.522181",
+    "report_generated": false
+  },
+  {
+    "question": "Since `poolStateSlot()` returns the poolId directly as a storage slot, could two different pools with carefully crafted parameters result in the same poolId and thus share the same storage slot, leading to pool state corruption and fund theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_277746ff-76ad-485a-ae53-36c26edad8c3",
+    "timestamp": "2025-12-02 10:56:35.884612",
+    "report_generated": false
+  },
+  {
+    "question": "The `poolStateSlot()` function (lines 47-49) directly uses the poolId as the storage slot without any offset. Could an attacker manipulate poolId construction (via token address selection or config parameters) to target specific storage locations and corrupt unrelated data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06bdb594-6d7a-4f6c-9347-703ec5ec7072",
+    "timestamp": "2025-12-02 10:57:09.683067",
+    "report_generated": false
   }
 ]
