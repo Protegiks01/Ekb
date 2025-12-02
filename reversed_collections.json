@@ -7048,5 +7048,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f393c33-57e9-4d91-95bd-a029285650d0",
     "timestamp": "2025-12-02 01:15:07.297359",
     "report_generated": false
+  },
+  {
+    "question": "In `ExposedStorageLib.sload()` at `ExposedStorageLib.sol:9-18`, it uses `staticcall` with hardcoded function selector `0x380eb4e0`. If the `IIncentives` contract is malicious or has a fallback function, could it return manipulated storage values that bypass claim checks in `isClaimed()` or `isAvailable()`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae68d3ed-13e5-4913-a0be-3932e81aa522",
+    "timestamp": "2025-12-02 01:16:19.981113",
+    "report_generated": false
+  },
+  {
+    "question": "Given that `DropKey` contains `owner`, `token`, and `root`, could an attacker create a vanity address for `owner` or `token` that, when combined with a specific `root`, produces a `dropId` that collides with an existing high-value drop, enabling unauthorized claims?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9b1218e0-aa27-4277-8ddd-40336717f871",
+    "timestamp": "2025-12-02 01:16:33.386700",
+    "report_generated": false
+  },
+  {
+    "question": "In `getDropState()` at line 31-32, it converts `DropKey` to `dropId` and reads storage. If two different `DropKey` structs can produce the same `dropId`, could an attacker fund one drop, then use a colliding key to withdraw funds from another drop in `Incentives.sol:refund()`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_375a31a0-f84b-4927-9cd3-b1376de6eef0",
+    "timestamp": "2025-12-02 01:16:48.624998",
+    "report_generated": false
+  },
+  {
+    "question": "The `toDropId()` function uses `keccak256(key, 96)` which hashes `owner` (20 bytes), `token` (20 bytes), and `root` (32 bytes). Could an attacker craft two different `DropKey` structs that produce the same hash by exploiting struct padding or memory layout, allowing them to claim from one drop using proofs from another?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8356137-bbe3-4f15-9754-8a6964eded52",
+    "timestamp": "2025-12-02 01:17:02.963938",
+    "report_generated": false
+  },
+  {
+    "question": "In `toDropId()` at `dropKey.sol:21-26`, it hashes 96 bytes using keccak256 with the assumption that `owner` and `token` have no dirty upper bits. Could an attacker pass a `DropKey` with dirty upper bits in `owner` or `token` to generate a different hash than expected, creating a collision with another drop's ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c16d3145-a80d-4ca7-a762-69f81376e79b",
+    "timestamp": "2025-12-02 01:17:18.457831",
+    "report_generated": false
+  },
+  {
+    "question": "In `bitmap.sol:68-72`, `geSetBit()` uses bitwise AND with `sub(0, masked)` to isolate the LSB. Could this operation fail or return unexpected values for edge cases like `bitmap = 0` or `index = 255`, breaking claim availability checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ee8ce93a-03ff-40b3-aeb4-5cf7df498972",
+    "timestamp": "2025-12-02 01:17:34.976770",
+    "report_generated": false
+  },
+  {
+    "question": "In `bitmap.sol:51-58`, `leSetBit()` uses the `clz` opcode which is experimental in Solidity 0.8.31. Could compiler bugs or incorrect `clz` behavior on certain EVM implementations cause `leSetBit()` to return incorrect results, corrupting claim index searches in external contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_53b8dfbd-9dde-4b06-8c11-0bdd19a4e6b8",
+    "timestamp": "2025-12-02 01:17:53.314074",
+    "report_generated": false
+  },
+  {
+    "question": "The `Bitmap.toggle()` function in `bitmap.sol:24-28` uses XOR to flip bits. In `Incentives.sol:111`, the claim function toggles the bit after validation. Could an attacker exploit reentrancy via token transfer callbacks to call `isClaimed()` mid-claim, reading the old bitmap state and bypassing the already-claimed check in a nested claim?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e31f6c4-f5ab-42e3-90f3-808580a0c2a1",
+    "timestamp": "2025-12-02 01:18:14.725153",
+    "report_generated": false
+  },
+  {
+    "question": "In `isClaimed()`, the function reads the bitmap via `sload()` without any write lock. Could an attacker exploit a race condition where they call `Incentives.sol:claim()` twice in the same block, both reading the same unset bit before either write completes, allowing double-claiming?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f85113f4-8123-4e26-ab2d-083fe83e01ac",
+    "timestamp": "2025-12-02 01:18:36.444998",
+    "report_generated": false
+  },
+  {
+    "question": "In `getClaimedBitmap()` at line 52, it wraps the storage value as `Bitmap.wrap(uint256(...))`. If the storage slot was never initialized (returns 0), does `isClaimed()` correctly return false for all bits, or could uninitialized storage be misinterpreted as a set bit due to dirty memory?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_51145310-b317-4a21-b9f4-4ea79d673bc7",
+    "timestamp": "2025-12-02 01:18:59.818230",
+    "report_generated": false
+  },
+  {
+    "question": "In `isClaimed()` at lines 60-64, it calls `bitmap.isSet(bit)` which uses `and(shr(index, bitmap), 1)` in `bitmap.sol:36-40`. Could an attacker exploit the uint8 cast of `bit` to ensure the shift is within 0-255, but craft an `index` value that maps to an already-claimed bit from a different logical claim?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4299c29d-73a8-47fc-91f9-75c2982cf3fe",
+    "timestamp": "2025-12-02 01:19:24.684333",
+    "report_generated": false
+  },
+  {
+    "question": "In `getFunded()` at lines 96-98 and `getClaimed()` at lines 105-107, these functions return raw storage values. If `Incentives.sol` writes an invalid state where `claimed > funded`, could downstream logic in `IncentivesDataFetcher.sol` display incorrect remaining amounts, misleading users about claimability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1cb205bd-03b9-4bdc-b583-d71d39aa45ab",
+    "timestamp": "2025-12-02 01:19:50.986475",
+    "report_generated": false
+  },
+  {
+    "question": "Given that `DropState` packs `funded` (upper 128 bits) and `claimed` (lower 128 bits) in `dropState.sol:8-46`, could a storage collision or assembly error in `setFunded()` or `setClaimed()` corrupt one field when updating the other, breaking the invariant that `claimed <= funded`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fe4a51d3-3d9e-458a-8a6a-2cfaf7c7ccd7",
+    "timestamp": "2025-12-02 01:20:18.346439",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:claim()` at line 103, it updates claimed with `dropState.claimed() + c.amount`. If this addition overflows uint128, could it wrap to a small value, allowing the attacker to claim repeatedly while `getRemaining()` still shows funds available?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2c28e5bc-0402-4d28-9061-3fe7da82ecba",
+    "timestamp": "2025-12-02 01:20:46.566393",
+    "report_generated": false
+  },
+  {
+    "question": "In `isAvailable()` at lines 79-80, it checks `state.getRemaining() >= amount`. If `getRemaining()` underflows due to `claimed > funded`, the wrapped value could be astronomically large. Could an attacker exploit this by claiming an amount that should be rejected, draining the entire Incentives contract balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1f0e7f98-d66f-49cd-9a7c-603e13220e3f",
+    "timestamp": "2025-12-02 01:21:16.311204",
+    "report_generated": false
+  },
+  {
+    "question": "In `getRemaining()` at line 88-89, it calls `state.getRemaining()` which performs unchecked subtraction `funded() - claimed()` in `dropState.sol:51-54`. If a race condition or state corruption causes `claimed > funded`, could the unchecked subtraction wrap to `type(uint128).max`, causing `isAvailable()` to incorrectly return true and allow over-claiming?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67415b9e-de94-4492-be8d-2d0ac48810cd",
+    "timestamp": "2025-12-02 01:21:45.987308",
+    "report_generated": false
+  },
+  {
+    "question": "In `getClaimedBitmap()` at line 48, the comment states 'Bitmaps are stored starting from drop id + 1 + word'. Could an attacker craft a `DropKey` that produces a `dropId` such that `dropId + 1` equals another drop's `dropId`, causing storage collision between two drops' bitmaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_16b5be71-63e1-47ad-a65b-c10f3b123593",
+    "timestamp": "2025-12-02 01:22:14.980398",
+    "report_generated": false
+  },
+  {
+    "question": "Given that `claimIndexToStorageIndex()` divides by 256 using bit shift, could an attacker exploit the fact that indices 0-255 map to word 0, 256-511 to word 1, etc., to create a collision where two different indices in `Incentives.sol:claim()` read the same bitmap bit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57fba93d-74f2-4ce2-9029-5c3f1aba4c1c",
+    "timestamp": "2025-12-02 01:22:45.549786",
+    "report_generated": false
+  },
+  {
+    "question": "In `getClaimedBitmap()` at line 50, if `uint256(dropId) + 1 + word` overflows, could this collision allow an attacker to read a bitmap from a different drop's storage, enabling them to claim from one drop based on claims from another drop?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_440bdcbb-a58f-4286-9ff9-dc6db761f9fc",
+    "timestamp": "2025-12-02 01:23:16.488337",
+    "report_generated": false
+  },
+  {
+    "question": "In `getClaimedBitmap()` at lines 48-51, the storage slot calculation uses unchecked addition `bytes32(uint256(dropId) + 1 + word)`. Could an attacker provide a `word` value near `type(uint256).max` to cause integer overflow, resulting in reading from an incorrect storage slot and bypassing the claim check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_78ebde3b-91ec-439a-a624-2e9443966fa0",
+    "timestamp": "2025-12-02 01:23:44.985415",
+    "report_generated": false
+  },
+  {
+    "question": "In `claimIndexToStorageIndex()` at line 22, the conversion uses `index >> 8` for word and `index % 256` for bit. Could an attacker exploit edge cases where `index` equals `type(uint256).max` to cause incorrect word/bit calculations that allow double-claiming the same logical claim index?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a23588b6-c687-451a-ad59-b61639d8a982",
+    "timestamp": "2025-12-02 01:24:13.855227",
+    "report_generated": false
+  },
+  {
+    "question": "If FlashAccountantLib.forward() forwards to a contract that calls back to pay(), could the nested lock context cause debt to be tracked against the wrong locker ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6fe4a6a4-2f9d-4f79-8ccc-d96f21ca0742",
+    "timestamp": "2025-12-02 01:24:44.198137",
+    "report_generated": false
+  },
+  {
+    "question": "Could a malicious contract receiving tokens from FlashAccountantLib.withdraw() re-enter to call updateDebt(), manipulating debt before the original withdrawal completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_508f10e3-9315-493b-bbbf-89ecd0fe1c1d",
+    "timestamp": "2025-12-02 01:25:15.414098",
+    "report_generated": false
+  },
+  {
+    "question": "If FlashAccountantLib.payTwoFrom() is re-entered between token0 and token1 transfers, could the second entry's debt updates interfere with the original call's payment credits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab5d3574-38ee-4fa3-899c-4c31a97b0e8b",
+    "timestamp": "2025-12-02 01:25:47.085023",
+    "report_generated": false
+  },
+  {
+    "question": "Could an attacker use FlashAccountantLib.forward() to change the active locker context mid-payment, causing tokens to be credited to a different locker than the one who paid?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a367f687-6679-4577-8fae-e78a67b84666",
+    "timestamp": "2025-12-02 01:26:16.299443",
+    "report_generated": false
   }
 ]
