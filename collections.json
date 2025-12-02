@@ -7648,5 +7648,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5fbb48a-4924-446b-a7d1-c51af2610c8b",
     "timestamp": "2025-12-02 01:41:56.944199",
     "report_generated": false
+  },
+  {
+    "question": "The lock mechanism relies on transient storage in FlashAccountant for lock tracking. If a derived contract's handleLockData triggers a static call that appears to be in lock context, could this bypass debt zeroing checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9c237c3-f1bc-4e49-91e0-27d4f093c090",
+    "timestamp": "2025-12-02 01:43:03.334468",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData implementations, operations call CORE.swap or CORE.updatePosition. If these functions have callbacks to extension contracts, could a malicious extension reenter through the lock mechanism to manipulate pool state during position updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e53e4740-0aed-490e-83f0-99b86e064576",
+    "timestamp": "2025-12-02 01:43:16.511722",
+    "report_generated": false
+  },
+  {
+    "question": "The lock() function (line 61) forwards all gas to the accountant. If the accountant's lock() function consumes most gas but then calls back to locked_6416899205, could insufficient gas for handleLockData cause partial state updates that violate invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9a270b8-c34d-4141-bff3-71b8389ad314",
+    "timestamp": "2025-12-02 01:43:30.890561",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205, after handleLockData returns (line 30), the assembly block immediately returns without additional state checks. Could a malicious handleLockData implementation manipulate return data to signal success while leaving debts unsettled?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_617f5cf6-f008-4abe-a478-e1790527932a",
+    "timestamp": "2025-12-02 01:43:44.992094",
+    "report_generated": false
+  },
+  {
+    "question": "The lock mechanism allows arbitrary data to be passed through. If handleLockData decodes this data to determine operation type, could an attacker encode multiple conflicting operations that execute partially, leaving the system in inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d387d80f-bc95-49a0-9dc2-8f73abd62d6d",
+    "timestamp": "2025-12-02 01:44:00.896075",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.handleLockData (from context), operations call ACCOUNTANT.startPayments, then token transfers, then completePayments. If a token's transfer function reenters to call lock(), could this create nested payment tracking that corrupts debt calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5aa788cd-80fc-4644-acdf-14e10ae80714",
+    "timestamp": "2025-12-02 01:44:17.552609",
+    "report_generated": false
+  },
+  {
+    "question": "The lock() function returns arbitrary bytes from accountant. If a derived contract's caller expects structured data and doesn't validate return format, could malformed returns from malicious accountant exploit decoding bugs to gain unauthorized access?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_35564368-603a-4dbf-a0a3-6d1a0d58fb69",
+    "timestamp": "2025-12-02 01:44:35.339046",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.handleLockData (from context), swaps are executed which may trigger extension callbacks. If an extension calls forward() on the accountant, could the forwarded contract reenter through another lock, bypassing original caller's access control?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae7fad9e-fd4a-4fd7-a29b-7682fd898124",
+    "timestamp": "2025-12-02 01:44:55.596450",
+    "report_generated": false
+  },
+  {
+    "question": "The lock mechanism uses a callback pattern where accountant calls back to locker. If network latency or block reorg causes callback delay, could this create temporal inconsistencies where lock context expires before callback completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff625eea-ef82-43d9-8725-a986f3e1d9b5",
+    "timestamp": "2025-12-02 01:45:17.967539",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205 (line 26), only msg.sender check protects callback. If a malicious contract impersonates the accountant by calling locked_6416899205 directly with matching address through delegatecall or CREATE2 collision, could they bypass all lock controls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8275a045-45b9-49b1-a348-d3ac0f035b63",
+    "timestamp": "2025-12-02 01:45:41.040859",
+    "report_generated": false
+  },
+  {
+    "question": "The handleLockData implementations can trigger multiple token transfers. If any token has a callback (ERC777 hook, token with beforeTokenTransfer), could these callbacks reenter to manipulate positions during mint/burn, causing liquidity tracking errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f9f30dd-28a9-464f-8ef0-6c8b21c8d898",
+    "timestamp": "2025-12-02 01:46:05.527593",
+    "report_generated": false
+  },
+  {
+    "question": "In lock() flow, data is passed to accountant which calls back with same data. If the accountant modifies data before callback (shouldn't but if buggy), could this cause handleLockData to execute different operations than intended?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f0d4ec3-e81a-4091-a183-8287da743186",
+    "timestamp": "2025-12-02 01:46:30.787641",
+    "report_generated": false
+  },
+  {
+    "question": "The lock mechanism enforces debt zeroing only at lock exit in FlashAccountant.lock() (line 174-181 in FlashAccountant.sol). If handleLockData calls lock() creating nested locks, could inner lock exits bypass debt checks by having outer lock still active?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e17aa534-14d0-4fbc-8c63-d1a1d5d7582a",
+    "timestamp": "2025-12-02 01:46:57.602812",
+    "report_generated": false
+  },
+  {
+    "question": "In lockAndExpectRevert, quote operations expect revert. If a quote operation's handleLockData makes state changes before revert (e.g., updates a counter), would these changes persist despite the revert, enabling griefing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dbf5a009-c76f-47b4-b682-ab8abe3282be",
+    "timestamp": "2025-12-02 01:47:25.736047",
+    "report_generated": false
+  },
+  {
+    "question": "The lock() callback flow involves data passing through multiple layers: caller -> lock() -> accountant -> locked_6416899205 -> handleLockData. If any layer corrupts data, could subsequent operations execute with wrong parameters, potentially draining pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a699025-e77d-4d18-8213-19f27afc174c",
+    "timestamp": "2025-12-02 01:47:55.069233",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData, if operations call CORE.swap which has extension callbacks, and extension calls ACCOUNTANT.forward() to forward lock context, could the forwarded contract execute operations as the original locker, bypassing authorization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_719618f1-752a-4dd6-85ea-dd71beb88b7e",
+    "timestamp": "2025-12-02 01:48:26.698385",
+    "report_generated": false
+  },
+  {
+    "question": "The locked_6416899205 callback (line 28) extracts data from calldata starting at byte 36. If accountant's assembly caller construction is buggy and includes extra bytes, could handleLockData process malicious trailing data as additional commands?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68804003-ab15-4316-bf2c-d5a6d60b7433",
+    "timestamp": "2025-12-02 01:48:59.627832",
+    "report_generated": false
+  },
+  {
+    "question": "In lock() assembly (line 61), the call to accountant is non-reentrant by design (accountant checks lock state). If a derived contract disables reentrancy guards in handleLockData thinking they're safe, could malicious extensions reenter through CORE callbacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7da95f47-f4dd-4dd2-a279-2b210c7ac32b",
+    "timestamp": "2025-12-02 01:49:33.721962",
+    "report_generated": false
+  },
+  {
+    "question": "The BaseLocker depends on FlashAccountant's debt tracking in transient storage. If a chain fork or upgrade changes transient storage behavior (tload/tstore opcodes), could this break debt tracking and allow uncollateralized withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_50917aa3-a8f9-458b-be80-efbe7a409e51",
+    "timestamp": "2025-12-02 01:50:08.650626",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.lock() (line 146-187), debt count is checked at line 175. If a derived contract's handleLockData manipulates nonzero debt count through carefully sequenced operations, could it exit lock with non-zero debts, violating solvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c15aafdb-b9b8-49e2-89e2-5b308d1cf19f",
+    "timestamp": "2025-12-02 01:50:43.264295",
+    "report_generated": false
+  },
+  {
+    "question": "The lock mechanism relies on _CURRENT_LOCKER_SLOT (0x07cc...1555fd in FlashAccountant). If a derived contract or extension uses the same transient slot by collision, could this corrupt lock tracking and allow multiple concurrent locks with same ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_787ab027-b044-4acc-b7c9-537037917d47",
+    "timestamp": "2025-12-02 01:51:18.166873",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant._accountDebt (line 67-84), debt changes are assumed to be 128-bit values. If handleLockData triggers operations causing 129+ bit debt changes, could this overflow the accounting and allow unauthorized fund extraction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6b1eac1-9b5d-45b7-be6e-9edf2c76a32b",
+    "timestamp": "2025-12-02 01:51:52.981436",
+    "report_generated": false
+  },
+  {
+    "question": "The lock ID is incremented sequentially (FlashAccountant.lock line 153: `add(id, 1)`). If lock IDs overflow after 2^96 locks in a single transaction, could this cause ID reuse and corrupt debt tracking for concurrent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c03d882-9692-4497-a2d8-0795ea78d685",
+    "timestamp": "2025-12-02 01:52:27.316401",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker, handleLockData returns bytes that are passed back through locked_6416899205. If this return data contains crafted values that exploit FlashAccountant's debt validation, could an attacker fake zero debts while owing tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12656dff-793e-425f-aca3-e41ebff8319e",
+    "timestamp": "2025-12-02 01:53:00.474814",
+    "report_generated": false
+  },
+  {
+    "question": "The FlashAccountant tracks debts per locker and token using slot: _DEBT_LOCKER_TOKEN_ADDRESS_OFFSET + (id << 160) + token. If id or token are manipulated to cause slot collision between different locker/token pairs, could debts be mixed up?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a1f4bf9-9ad3-4533-9e1d-e1b350fb25b8",
+    "timestamp": "2025-12-02 01:53:31.342899",
+    "report_generated": false
   }
 ]
