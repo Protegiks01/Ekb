@@ -9298,5 +9298,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b38d474a-ed5b-4c07-8e8c-d056b2b00b48",
     "timestamp": "2025-12-02 03:46:10.425448",
     "report_generated": false
+  },
+  {
+    "question": "withdraw() handles ETH with 'call(gas(), recipient, amount, 0, 0, 0, 0)' (line 350) - can a malicious recipient reject ETH and cause the transaction to revert after debt was already increased?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8456a74d-a41b-4538-a2a4-22a229fc4bce",
+    "timestamp": "2025-12-02 03:47:21.828851",
+    "report_generated": false
+  },
+  {
+    "question": "The comment on line 345-347 states the function is safe from re-entry because nzdCountChange is a delta - but can an attacker exploit nested withdrawals to corrupt the final count update?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_49b570ef-57cb-4fa2-8b79-a6c563482ea4",
+    "timestamp": "2025-12-02 03:47:35.425995",
+    "report_generated": false
+  },
+  {
+    "question": "withdraw() checks 'switch token case 0' (line 349) to detect native token - can an attacker pass a malicious contract at address(0) to exploit the ETH transfer path?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47868027-f03b-429c-a886-79bb140af570",
+    "timestamp": "2025-12-02 03:47:49.730615",
+    "report_generated": false
+  },
+  {
+    "question": "The ERC20 transfer uses 'call(gas(), token, 0, 0x10, 0x44, 0x00, 0x20)' (line 361) - can a malicious token return false without reverting to bypass the transfer check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f21370c2-691e-417b-981e-d5f4e3f9a2a8",
+    "timestamp": "2025-12-02 03:48:03.817451",
+    "report_generated": false
+  },
+  {
+    "question": "withdraw() validates transfer success with 'eq(mload(0x00), 1)' (line 362) - can a token returning non-standard values (e.g., returning nothing) bypass this check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6f6c2bf-4f7a-4b9c-b1be-3828e08d9566",
+    "timestamp": "2025-12-02 03:48:19.047880",
+    "report_generated": false
+  },
+  {
+    "question": "The function checks 'lt(or(iszero(extcodesize(token)), returndatasize()), success)' (line 363) - can this complex condition be bypassed with edge case return data sizes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73700299-655f-4c48-a671-ff43a827fefb",
+    "timestamp": "2025-12-02 03:48:35.256007",
+    "report_generated": false
+  },
+  {
+    "question": "withdraw() updates nzdCountSlot once at the end (lines 373-375) - can nested withdrawals through reentrancy corrupt this single update?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12df57cb-0d69-4b77-867c-b8e33c264355",
+    "timestamp": "2025-12-02 03:48:52.639032",
+    "report_generated": false
+  },
+  {
+    "question": "The function uses 'return(0, 0)' from assembly (line 379) - does this prevent Solidity from properly cleaning up memory, potentially leaking data to subsequent calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_de4c75d5-2bc2-44dd-8769-ffcdb922d318",
+    "timestamp": "2025-12-02 03:49:12.578121",
+    "report_generated": false
+  },
+  {
+    "question": "withdraw() doesn't validate that recipient is not address(0) for ERC20 tokens - can this be exploited to burn tokens while still increasing debt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c6007902-9d16-4985-a6be-8077441795cc",
+    "timestamp": "2025-12-02 03:49:35.047194",
+    "report_generated": false
+  },
+  {
+    "question": "The amount extraction 'shr(128, calldataload(add(i, 40)))' reads from offset 40 within each entry - can calldata shorter than expected cause invalid memory reads?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2afc20a2-3f23-439e-b483-35d4db45a39d",
+    "timestamp": "2025-12-02 03:49:57.998100",
+    "report_generated": false
+  },
+  {
+    "question": "In forward() (lines 190-221), the locker is temporarily changed to 'or(shl(160, shr(160, locker)), to)' (line 196) - can an attacker exploit the bit manipulation to corrupt the locker ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a877d02-829c-44fe-82c1-084a573ae6cc",
+    "timestamp": "2025-12-02 03:50:21.161300",
+    "report_generated": false
+  },
+  {
+    "question": "forward() calls the forwardee with 'calldatacopy(add(free, 36), 36, sub(calldatasize(), 36))' (line 204) - can malformed calldata cause buffer overflows or underflows?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5bc087f8-e1c4-476e-9aef-a95923791e66",
+    "timestamp": "2025-12-02 03:50:46.080012",
+    "report_generated": false
+  },
+  {
+    "question": "The function restores the original locker with 'tstore(_CURRENT_LOCKER_SLOT, locker)' (line 215) - can reentrancy during the forwarded call corrupt this restoration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3d76ef20-caf9-4284-bc8f-702c19e41e82",
+    "timestamp": "2025-12-02 03:51:11.899565",
+    "report_generated": false
+  },
+  {
+    "question": "forward() prepares the call with selector 1 (line 201) - can an attacker exploit this calling convention to bypass access control in the forwardee contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5662e2e0-ae4b-4672-bfc6-f90727d0aa54",
+    "timestamp": "2025-12-02 03:51:39.944393",
+    "report_generated": false
+  },
+  {
+    "question": "The function doesn't validate that 'to' address has code - can forwarding to an EOA or non-existent contract cause undefined behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd6ced4c-299a-4468-8aa1-750aade0dd97",
+    "timestamp": "2025-12-02 03:52:08.217278",
+    "report_generated": false
+  },
+  {
+    "question": "forward() allows the forwardee to call back into FlashAccountant - can this enable nested forward calls that corrupt the locker restoration logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_38ffd8dd-7954-49bf-b563-94bf0722938e",
+    "timestamp": "2025-12-02 03:52:38.131396",
+    "report_generated": false
+  },
+  {
+    "question": "The forwarded call uses 'call(gas(), to, 0, free, calldatasize(), 0, 0)' (line 207) forwarding all gas - can a malicious forwardee consume excessive gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_03ecbab9-0bab-4fb1-bc18-18795eaae1f5",
+    "timestamp": "2025-12-02 03:53:08.886912",
+    "report_generated": false
+  },
+  {
+    "question": "forward() returns whatever the forwardee returns (lines 217-219) - can a malicious forwardee return data that causes issues in the original caller?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2100927f-7fa0-4844-bcff-b32e96c4969e",
+    "timestamp": "2025-12-02 03:53:40.000620",
+    "report_generated": false
+  },
+  {
+    "question": "The function changes the locker address but keeps the same ID - can this allow the forwardee to manipulate debt for the original locker without authorization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17c30902-8368-4803-8cf2-e756b52f2eeb",
+    "timestamp": "2025-12-02 03:54:10.309848",
+    "report_generated": false
+  },
+  {
+    "question": "The receive() function (lines 384-393) uses 'unchecked' block (line 389) - can msg.value exceeding type(uint128).max cause overflow when cast to int256?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63c67804-a9b8-4e60-b28d-fb530b0ec236",
+    "timestamp": "2025-12-02 03:54:41.094761",
+    "report_generated": false
+  },
+  {
+    "question": "receive() calls '_accountDebt(id, NATIVE_TOKEN_ADDRESS, -int256(msg.value))' (line 391) - can repeated small ETH payments cause the debt to underflow beyond type(int128).min?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a8f98d5-c421-4bf0-a002-aeb6cd4da387",
+    "timestamp": "2025-12-02 03:55:10.636457",
+    "report_generated": false
+  },
+  {
+    "question": "The comment warns this contract can never be multicallable (lines 387-388) - but can an attacker exploit delegatecall from another contract to violate this assumption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ab05d49-e595-42a3-8097-7a2ab8d73a99",
+    "timestamp": "2025-12-02 03:55:41.593771",
+    "report_generated": false
+  },
+  {
+    "question": "receive() assumes msg.value never exceeds type(uint128).max (line 390) - but what if an attacker sends exactly type(uint128).max + 1 wei?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_480ade4f-4062-46b7-9393-08079d857d5e",
+    "timestamp": "2025-12-02 03:56:12.464144",
+    "report_generated": false
+  },
+  {
+    "question": "The function converts msg.value to negative int256 - can this cause issues if the debt accounting later assumes positive debt values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e6e1058-724f-4cfd-9a73-c104882e3bb3",
+    "timestamp": "2025-12-02 03:56:43.073975",
+    "report_generated": false
+  },
+  {
+    "question": "The _CURRENT_LOCKER_SLOT constant (line 19) uses a keccak hash - can storage slot collisions occur if other contracts in the inheritance chain use similar naming?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29f06219-62d4-4587-a12f-8547b4dbf12b",
+    "timestamp": "2025-12-02 03:57:13.433651",
+    "report_generated": false
   }
 ]
