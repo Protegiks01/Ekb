@@ -10648,5 +10648,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4fdffc30-f7e1-4ba7-90ad-2327fd4943c8",
     "timestamp": "2025-12-02 05:29:49.373169",
     "report_generated": false
+  },
+  {
+    "question": "Orders.sol handleLockData checks saleRateDelta > 0 (line 146). Can attacker manipulate sign to reverse payment direction and steal tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_670c948b-303c-4f8d-a102-d7602e02a776",
+    "timestamp": "2025-12-02 05:31:07.486293",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol increaseSellAmount (line 68), maxSaleRate check prevents excessive sale rate. Can attacker bypass this by placing multiple small orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f713d41-e6ce-4044-a4e5-7770e3da228f",
+    "timestamp": "2025-12-02 05:31:20.853111",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol CALL_TYPE_COLLECT_PROCEEDS (line 162) withdraws proceeds. Can attacker manipulate orderKey to collect proceeds from other users' orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_915e2b92-0b2f-4f39-9ccd-be3c2900b4c4",
+    "timestamp": "2025-12-02 05:31:34.636841",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol, if TWAMM extension execution fails, can partial order execution leave user tokens locked in TWAMM state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_773b08ea-b246-4d8d-99fe-d75877961c85",
+    "timestamp": "2025-12-02 05:31:49.634211",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol uses NATIVE_TOKEN_ADDRESS for native token handling (line 147). Can confusion between wrapped and native tokens cause accounting errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f32d4dd9-797b-49cd-b99e-f9dc70cb8e51",
+    "timestamp": "2025-12-02 05:32:06.758889",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol decreaseSaleRate (line 87), abi.decode is used on lock result. Can malformed return data cause unexpected behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37ff0765-d73f-441f-aeb9-9308ccdc9298",
+    "timestamp": "2025-12-02 05:32:25.623630",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol executeVirtualOrdersAndGetCurrentOrderInfo (line 127) directly calls TWAMM extension. Can this be used to manipulate order state without going through lock?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eac526df-33cf-4519-9ca4-29388aa5aeca",
+    "timestamp": "2025-12-02 05:32:45.624794",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol handleLockData (line 155), unchecked block is used for amount casting. Can overflow cause incorrect token amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_92346e87-0827-4e4f-9c32-c05072c044f1",
+    "timestamp": "2025-12-02 05:33:08.474720",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol collectProceeds (line 168) uses ACCOUNTANT.withdraw. Can incorrect token address cause withdrawal to fail silently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7fe366cb-d395-4c80-98d9-6a53652c69bf",
+    "timestamp": "2025-12-02 05:33:31.884112",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol handleLockData (line 91), callType determines operation type. Can attacker manipulate callType through calldata corruption to execute unintended operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca254926-4f94-46ae-9ee3-008c24c32428",
+    "timestamp": "2025-12-02 05:33:56.491653",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol _swap function (line 83) is internal virtual. Can derived contract override this to manipulate balanceUpdate and bypass slippage checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f2b3923f-3808-4db1-b5f7-1c2babf6399e",
+    "timestamp": "2025-12-02 05:34:22.047282",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol CALL_TYPE_SINGLE_SWAP (lines 106-110), value calculation for native token uses ternary. Can logical error cause incorrect ETH amount to be sent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70e1ea47-679a-49bc-a1ce-91a8a44eccf2",
+    "timestamp": "2025-12-02 05:34:48.730853",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol checks amountCalculated < calculatedAmountThreshold (line 117). Can attacker manipulate this check by providing extreme threshold values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b942db32-578e-4815-8887-ed90f98d9d75",
+    "timestamp": "2025-12-02 05:35:17.286670",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol (lines 121-147), token payment logic differs based on increasing direction. Can attacker exploit asymmetry to avoid payment or steal tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bae3b112-d24c-4065-9bbf-b4fd81ab279b",
+    "timestamp": "2025-12-02 05:35:46.605241",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol uses SafeTransferLib.safeTransferETH (line 141). Can reentrancy during ETH transfer allow attacker to manipulate swap state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_901df0e3-c613-45ba-8dfe-bf6934ceff1b",
+    "timestamp": "2025-12-02 05:36:16.380999",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol (line 135), valueDifference calculation handles ETH refunds. Can integer overflow cause incorrect refund amount?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a675f935-1513-4881-bea8-d9c5cf29027d",
+    "timestamp": "2025-12-02 05:36:48.114983",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol ACCOUNTANT.payFrom (line 126) transfers tokens. Can attacker provide malicious token contract to reenter and corrupt delta tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31e5a14f-c3d7-43e4-9d24-6854233aa5b5",
+    "timestamp": "2025-12-02 05:37:18.936962",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol _swap (line 88), params.withDefaultSqrtRatioLimit() sets price limit. Can attacker bypass this by providing params without default limit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f03f81ff-13a1-4a5f-95d9-1d8ab802add7",
+    "timestamp": "2025-12-02 05:37:50.874274",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol handleLockData (line 114) calls _swap which calls CORE.swap. Can reentrancy during swap hook execution corrupt balanceUpdate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c9804ff-670b-458a-b928-15fcd63e43e2",
+    "timestamp": "2025-12-02 05:38:25.216464",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol (line 122), balanceUpdate.delta0() is checked for non-zero. Can delta being zero cause incorrect payment logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b40e55d7-39f2-433b-b07b-4e87b73bdb38",
+    "timestamp": "2025-12-02 05:39:00.019307",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol uses NATIVE_TOKEN_ADDRESS constant for ETH (line 107). Can confusion between ETH and WETH cause accounting errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b43819f9-10ee-4ad7-8ce1-44f92352821c",
+    "timestamp": "2025-12-02 05:39:35.867327",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol (lines 138-142), negative valueDifference triggers ETH transfer to accountant. Can this be exploited to drain ETH from accountant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f03c2b97-4a71-406e-9537-9c3a9247e8d0",
+    "timestamp": "2025-12-02 05:40:09.970024",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol inherits PayableMulticallable. Can multicall be used to batch swaps that violate flash accounting balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb21426d-0e99-41ae-8f74-de82d058b372",
+    "timestamp": "2025-12-02 05:40:44.788711",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol, if poolKey.token0 or poolKey.token1 is address(0), can this cause unexpected behavior in payment logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1b447373-bad5-46a6-b526-078b280f99c7",
+    "timestamp": "2025-12-02 05:41:18.765156",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol CALL_TYPE_SINGLE_SWAP handler uses unchecked block (line 105). Can arithmetic overflow in value calculation steal ETH?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e316fc1-fb32-4ed1-af1a-a3ea070e03fa",
+    "timestamp": "2025-12-02 05:41:52.747063",
+    "report_generated": false
   }
 ]
