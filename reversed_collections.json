@@ -6148,5 +6148,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2599bf94-9836-49e9-91f6-bbd8b9c18614",
     "timestamp": "2025-12-02 00:09:48.428026",
     "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacksLib.state() for two tokens (line 33), both tokenA and tokenB are cast to storage slots without checking token ordering. Could passing tokenA > tokenB violate any assumptions in the RevenueBuybacks contract's storage layout, leading to inconsistent state reads?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d7d71dba-60f3-44f9-8e61-876d7869b62c",
+    "timestamp": "2025-12-02 00:10:58.432269",
+    "report_generated": false
+  },
+  {
+    "question": "In the single-parameter state() function (line 18), the storage key derives directly from the token address with no validation. Could this enable an attacker to query storage slots beyond the intended mapping by passing specially crafted address values that map to other contract storage locations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6f31854-b051-45bd-acfb-a493580e5cdb",
+    "timestamp": "2025-12-02 00:11:11.403953",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacksLib.state() (line 18), the storage slot is calculated as bytes32(uint256(uint160(token))). Could an attacker craft a malicious token address that collides with another token's storage slot by exploiting the uint160 truncation of addresses, allowing them to read incorrect BuybacksState data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3c397d41-6808-4784-aa33-d50d6d863bae",
+    "timestamp": "2025-12-02 00:11:25.574220",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshotInternal() (line 333-337), when extrapolating from the latest snapshot, the code adds `uint160(FixedPointMathLib.rawDiv(uint256(timePassed) << 128, FixedPointMathLib.max(1, state.liquidity())))` to the existing accumulator. If state.liquidity()",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_54ac9ed8-50ec-42ca-a3a7-f5dec5d3f829",
+    "timestamp": "2025-12-02 00:11:39.630353",
+    "report_generated": false
+  },
+  {
+    "question": "In snapshot.sol, the secondsPerLiquidityCumulative field is uint160 (160 bits). If this accumulator runs continuously for decades with low liquidity, could it overflow 2^160? Upon overflow, would the accumulator wrap to zero, causing dependent protocols to calculate negative time-weighted liquidity? Could this be exploited to trigger liquidations or break lending markets?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7036505-6965-478d-8b8b-4026f859eaf2",
+    "timestamp": "2025-12-02 00:11:54.512095",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.maybeInsertSnapshot() (line 124), the result of rawDiv is cast to uint160. If the division result exceeds uint160 max (which can happen with very low liquidity over long periods), does the cast truncate silently? Would this cause the accumulator to wrap, making it appear that less time has passed than actually occurred, corrupting TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d13fbc3b-cd14-4ef5-8bfb-fc915401eb02",
+    "timestamp": "2025-12-02 00:12:10.629320",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.maybeInsertSnapshot() (line 122-124), the secondsPerLiquidityCumulative accumulator is updated with `last.secondsPerLiquidityCumulative() + uint160(FixedPointMathLib.rawDiv(uint256(timePassed) << 128, nonZeroLiquidity))`. If liquidity is 1 (minimum) and timePassed approaches 2^32, could the shift by 128 cause the numerator to exceed uint256 max? Would rawDiv revert or return an incorrect value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67c9f24d-fad2-48fb-bd68-393b8b5b3d19",
+    "timestamp": "2025-12-02 00:12:28.632036",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.maybeInsertSnapshot() (line 109-111), the function loads the last snapshot using assembly: `last := sload(or(shl(32, token), index))`. This ORs the shifted token address with the index. If token address has lower 32 bits set (e.g., address ends in 0x12345678), could the OR operation produce unexpected storage slot values that collide with other data structures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_195b286b-98a5-4a3e-a8e9-a9a61f8f89d3",
+    "timestamp": "2025-12-02 00:12:48.179535",
+    "report_generated": false
+  },
+  {
+    "question": "In snapshot.sol secondsPerLiquidityCumulative() (line 16), the function uses `and(shr(32, snapshot), 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)` to extract 160 bits. The mask is 160 bits of 1s (0xFFF...F with 40 hex digits). If the mask has a typo (e.g., one digit missing), could this extract fewer bits, losing precision in the upper bits of the accumulator and causing TWAP calculations to be artificially low?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42653280-32ec-491c-9ef0-7e4f5a0e5d0a",
+    "timestamp": "2025-12-02 00:13:10.252673",
+    "report_generated": false
+  },
+  {
+    "question": "In counts.sol count() (line 16), the extraction uses `shr(224, shl(192, counts))` which shifts left by 192 bits then right by 224 bits, effectively extracting bits 32-63. However, if counts is uninitialized (all zeros), this returns 0. Could OracleLib.getEarliestSnapshotTimestamp() proceed past the count==0 check due to timing issues, then attempt to access index 0 when no snapshots exist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab186e21-7f35-4826-8783-879eb1dc658e",
+    "timestamp": "2025-12-02 00:13:33.623083",
+    "report_generated": false
+  },
+  {
+    "question": "In counts.sol index() (line 10), the extraction uses `and(counts, 0xFFFFFFFF)` to get the lower 32 bits. If the Counts value is corrupted (e.g., due to storage collision) and has upper bits set, does the AND mask guarantee correct behavior? Could an attacker exploit storage collisions to set specific upper bits that, when ANDed, produce attacker-controlled index values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a84835bd-745d-4361-8270-300fefa833c7",
+    "timestamp": "2025-12-02 00:13:57.767482",
+    "report_generated": false
+  },
+  {
+    "question": "In observation.sol tickCumulative() (line 14-17), the function extracts tickCumulative using `signextend(7, observation)`. This differs from snapshot.sol which shifts by 192 bits before sign extending. If code incorrectly packs an Observation with tickCumulative in the wrong bit position, could the sign extension misinterpret random bits as the sign, producing wildly incorrect TWAP values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f526dce0-c7ea-45c6-8561-d745e9d620a3",
+    "timestamp": "2025-12-02 00:14:22.277578",
+    "report_generated": false
+  },
+  {
+    "question": "In snapshot.sol tickCumulative() (line 22), the function uses `signextend(7, shr(192, snapshot))` to extract the int64 value. The signextend opcode extends the sign bit from bit 7 (for 8-byte values). However, if the stored value was corrupted during creation and has incorrect sign bits in positions 8-63, could the sign extension propagate incorrect signs, causing TWAP calculations to have wrong directionality?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_27ac855b-b440-44fa-85c2-8da28184fea6",
+    "timestamp": "2025-12-02 00:14:48.536979",
+    "report_generated": false
+  },
+  {
+    "question": "In snapshot.sol createSnapshot() (line 32), the tickCumulative parameter is of type int64 but is masked with `and(_tickCumulative, 0xFFFFFFFFFFFFFFFF)` before shifting. Does this AND operation preserve the sign bit correctly? If _tickCumulative is negative, could the mask convert it to a large positive uint64, corrupting the stored tick accumulator?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4a1aca6-f703-43d5-b2e9-3831f567526c",
+    "timestamp": "2025-12-02 00:15:16.016185",
+    "report_generated": false
+  },
+  {
+    "question": "In counts.sol createCounts() (line 35-38), each input parameter is masked with `and(..., 0xFFFFFFFF)` to ensure it fits in 32 bits. However, if caller code performs arithmetic before calling createCounts() and the result exceeds uint32 max, could the masking silently truncate meaningful upper bits? For example, if Oracle.maybeInsertSnapshot() computes index as uint256 then calls createCounts(), could overflow be hidden?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b1b27aed-1b09-4c60-8fd6-b5cc60654a04",
+    "timestamp": "2025-12-02 00:15:44.836977",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getMaximumObservationPeriod() (line 48), the function is marked as `unchecked`. If the subtraction `block.timestamp - earliest` underflows (when earliest > block.timestamp due to wraparound), would this produce a very large uint256 value? Would the subsequent cast to uint32 at line 52 then truncate it to a small value, hiding the underflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b60fc884-7a4f-435a-953c-df4c57fc8d0a",
+    "timestamp": "2025-12-02 00:16:15.283993",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getMaximumObservationPeriod() (line 51), if `earliest > block.timestamp`, the function returns 0. This could legitimately occur if getEarliestSnapshotTimestamp() returns type(uint256).max (when count == 0). However, could this also occur due to timestamp wraparound issues? If so, would returning 0 cause dependent lending protocols to reject all collateral valued using this oracle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b06ceb89-ab7d-4aee-8962-bc4dfee344f4",
+    "timestamp": "2025-12-02 00:16:45.251252",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getMaximumObservationPeriod() (line 50-52), the function subtracts earliest timestamp from block.timestamp and casts to uint32. If the difference exceeds uint32 max (~136 years), the cast will truncate. Could this truncation cause the function to report a maximum observation period of a few seconds when in reality decades of data exist, breaking dependent protocols' safety checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd3a8d6f-7392-4696-b482-9abe17252d05",
+    "timestamp": "2025-12-02 00:17:15.387815",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getEarliestSnapshotTimestamp() (line 35), the function immediately returns 0 if token equals NATIVE_TOKEN_ADDRESS. However, NATIVE_TOKEN_ADDRESS is defined as address(0). Could an attacker deploy a token at address(0) (impossible on mainnet but possible on some L2s with custom deterministic deployment) and exploit this special case to bypass oracle freshness checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_77da4add-13af-45ef-a471-67be21803140",
+    "timestamp": "2025-12-02 00:17:48.045865",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getEarliestSnapshotTimestamp() (line 44), the calculation `block.timestamp - (uint32(block.timestamp) - snapshot.timestamp())` is meant to unwrap the uint32 timestamp to uint256. However, if snapshot.timestamp() is from before a uint32 wraparound and uint32(block.timestamp) is after, does this formula still work correctly? Could the subtraction produce a negative intermediate value that, when cast to unsigned, results in an incorrect timestamp?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2be034f1-e674-40d3-851c-810818748ba1",
+    "timestamp": "2025-12-02 00:18:19.228423",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getEarliestSnapshotTimestamp() (line 43), the function calls `logicalIndexToStorageIndex(c.index(), c.count(), 0)` to find the earliest snapshot's storage index. If c.index() has wrapped around the circular buffer but c.count() hasn't reached capacity yet, could this return an incorrect storage index, causing the function to read the wrong snapshot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_20734504-2b0b-4d86-942f-66836aaae647",
+    "timestamp": "2025-12-02 00:18:48.371969",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getEarliestSnapshotTimestamp() (line 38-41), if `c.count() == 0`, the function returns `type(uint256).max`. If a dependent protocol uses this to compute a TWAP lookback period by subtracting this from block.timestamp, could the underflow produce a value near zero (after wrapping), causing the protocol to accept stale or manipulated prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b859240f-c1bc-4800-b391-494fd154554a",
+    "timestamp": "2025-12-02 00:19:17.317339",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshot() (line 377-378), after finding the previous snapshot, the function calls extrapolateSnapshotInternal() to compute cumulative values at atTime. If extrapolateSnapshotInternal() uses current pool state (when logicalIndex == count-1), could the extrapolation be affected by a flash loan or large swap that temporarily moves the pool's tick? Would this allow single-block TWAP manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ba7a1c1c-8abd-44f4-9bf2-037a7e5ddbd7",
+    "timestamp": "2025-12-02 00:19:45.738779",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshot() (line 376-378), the function calls searchRangeForPrevious() to find the base snapshot, then extrapolates. If the search returns a snapshot from many blocks ago (due to no recent updates), the extrapolation period could be very long. Could accumulated rounding errors over a long extrapolation period cause significant TWAP deviation from the true time-weighted average?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d7d7f510-e26d-43c2-a06f-af5a5b964c85",
+    "timestamp": "2025-12-02 00:20:16.126220",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshot() (line 370), the function checks `if (atTime > block.timestamp) revert FutureTime()`. However, if atTime equals block.timestamp exactly, the extrapolation uses current pool state via CORE.poolState(). Could an attacker manipulate the pool in the same transaction before calling extrapolateSnapshot(), causing the returned TWAP to reflect manipulated prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4c8c8a5-7567-4586-84a7-ce028103b63f",
+    "timestamp": "2025-12-02 00:20:46.994543",
+    "report_generated": false
   }
 ]
