@@ -8248,5 +8248,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf899937-4751-47d6-9ff7-b5035416f1e3",
     "timestamp": "2025-12-02 02:45:46.617083",
     "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeCollectFees is called before fee amounts are calculated. Could an extension in this hook manipulate the position's feesPerLiquidity snapshot to increase the collectible fees artificially?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91af2666-c101-4fbb-a73d-9cfc93517486",
+    "timestamp": "2025-12-02 02:47:00.256028",
+    "report_generated": false
+  },
+  {
+    "question": "In ExtensionCallPointsLib, none of the maybeCall functions validate that the extension is still registered. Could an unregistered extension's address still have CallPoints bits set, allowing it to receive hooks without proper authorization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc415492-8e4b-4fc0-a1e8-8159b3c5a85d",
+    "timestamp": "2025-12-02 02:47:13.230222",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterUpdatePosition is called after position state is modified but before fees are collected. Could an extension use this hook to claim fees from the position before the user does, stealing accumulated fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_920645e1-7353-42c7-b157-b5d61e0e6f7a",
+    "timestamp": "2025-12-02 02:47:27.237327",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 528, maybeCallBeforeSwap is called after locker validation but before pool state reading. Could an extension use beforeSwap to modify global storage that affects how pool state is read, causing inconsistent swap calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1fb16fe5-6f02-4a40-851d-a160895afb35",
+    "timestamp": "2025-12-02 02:47:41.070533",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterInitializePool is called at Core.sol line 100. If the extension attempts to swap in the newly initialized pool during this hook, could the pool's initial liquidity be zero, causing division by zero or other arithmetic errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d64cff50-4bbb-424e-9768-4d13efdb5f02",
+    "timestamp": "2025-12-02 02:47:55.705330",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 83, maybeCallBeforeInitializePool is called before pool state validation. Could an extension in beforeInitializePool frontrun other initializations of the same pool, causing the PoolAlreadyInitialized check to fail for legitimate users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_97479c3a-dcb7-4c9f-a292-9999f0c2748d",
+    "timestamp": "2025-12-02 02:48:11.786395",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterSwap is called in Core.sol line 846 after pool state is written. If the extension uses this hook to perform another swap in the same pool, could this cause the pool's sqrtRatio to be stale when the extension observes it?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d977f99b-346b-40b1-a110-0877561a8ce1",
+    "timestamp": "2025-12-02 02:48:30.354720",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol line 367, maybeCallBeforeUpdatePosition is called before liquidity validation. If the extension reverts after Core reads pool state but before modifying it, could a malicious extension repeatedly trigger this sequence to grief position updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_74d544fb-5aa4-4ff8-abaf-5cb20db59072",
+    "timestamp": "2025-12-02 02:48:50.726673",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallAfterSwap (line 110), if multiple extensions are chained in a single transaction and one extension becomes the locker for calling another pool, could this create cross-pool manipulation opportunities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64b92de1-3edd-423c-9e00-eea5c7c97714",
+    "timestamp": "2025-12-02 02:49:11.921202",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallBeforeSwap function (line 83) assumes Locker.addr() extracts the correct address bits. If the Locker type implementation changes how addresses are stored, could this break self-call prevention without compiler errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_45f015f4-872f-42bb-bb95-d2ea6e591726",
+    "timestamp": "2025-12-02 02:49:34.844515",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallAfterInitializePool (line 51), the same direct comparison is used. If an extension deploys itself during its own afterInitializePool hook via CREATE or CREATE2, could the self-referential deployment bypass the self-call check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b48ee280-0d88-4dc1-9896-afa8befbc89e",
+    "timestamp": "2025-12-02 02:49:58.012691",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallBeforeInitializePool function (line 21) uses direct address comparison `eq(initializer, extension)` without bit shifting. Could this be exploited if initializer is passed as a bytes32 cast to address, potentially having different bits set than a native address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_acb65b43-eb92-412c-9f4b-87c79ff3967e",
+    "timestamp": "2025-12-02 02:50:22.861311",
+    "report_generated": false
+  },
+  {
+    "question": "In all shouldCall functions with locker comparisons, the self-call prevention happens AFTER the bit check for CallPoints. Could an extension with CallPoints disabled still execute code if the bit check fails but the self-call check would have passed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31f37948-b9ab-48dd-974f-5a1820d4df2a",
+    "timestamp": "2025-12-02 02:50:50.223200",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallBeforeUpdatePosition function (line 144) would have the same zero-address behavior. Could an attacker exploit initialization sequences where the locker is temporarily zero to trigger hooks that should be blocked?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c32c241-763a-408d-9575-c431bde7eb40",
+    "timestamp": "2025-12-02 02:51:18.392800",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeSwap (line 83), the check is `iszero(eq(shl(96, locker), shl(96, extension)))`. If both locker and extension are zero addresses, this evaluates to false (not iszero), allowing the call. Could this enable calls to zero address during edge cases?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14507d76-b214-4040-85f4-ef1546bb1790",
+    "timestamp": "2025-12-02 02:51:47.512516",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallAfterCollectFees function (line 242) performs the same address comparison. If an extension is deployed using CREATE3 or other deterministic deployment methods, could the address calculation differ from what the self-call check expects?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc8ce490-3b82-4b2d-a6d2-68940b0f8803",
+    "timestamp": "2025-12-02 02:52:17.247938",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeCollectFees (line 212), if the Locker type is constructed from a bytes32 that contains both an address and additional metadata, could the bit-shifting comparison ignore the metadata and incorrectly detect self-calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac1156c4-3221-4784-9b28-21de127c777d",
+    "timestamp": "2025-12-02 02:52:48.870425",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallAfterUpdatePosition function (line 176) relies on address equality after bit shifting. If an extension uses minimal proxies or clones, could the proxy address differ from the implementation address in a way that bypasses this check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39263a1c-046e-4d71-9cba-efb90c205740",
+    "timestamp": "2025-12-02 02:53:19.128105",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeUpdatePosition (line 144), the comparison is done in assembly. Could compiler optimizations or EVM version differences cause this assembly code to behave differently than intended, breaking self-call prevention?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_43e52d92-f134-4dec-b327-d04a0aa96a4d",
+    "timestamp": "2025-12-02 02:53:49.514154",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallAfterSwap function (line 110) uses the same bit-shifting comparison. If Core.sol ever passes a zero Locker value during internal operations, could this accidentally match all extensions and skip hooks inappropriately?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e4456eb5-5958-4d6e-bd64-a8a4252e146a",
+    "timestamp": "2025-12-02 02:54:21.946253",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeSwap (line 83), the shl(96, locker) operation shifts left. If the Locker contains a small address value (e.g., 0x0001), the shifted result would place it in the upper bits. Could this cause comparison mismatches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7cb69e0a-9d92-4343-998c-3b02d0eedecc",
+    "timestamp": "2025-12-02 02:54:52.844107",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallBeforeInitializePool function (line 21) compares full addresses without bit shifting. Could this inconsistency with other hooks create a vulnerability where initialization self-calls are detected differently than swap/position self-calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f7f91c5-9cbe-451d-92eb-541695f12c2b",
+    "timestamp": "2025-12-02 02:55:23.678337",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeCollectFees (line 212), the self-call check assumes addresses are 160 bits. If the protocol migrates to a different addressing scheme (e.g., 256-bit addresses), could this break self-call prevention entirely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cde4f0a8-07ba-4b9f-ac6b-0802a2b04713",
+    "timestamp": "2025-12-02 02:55:54.547325",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallBeforeUpdatePosition function (line 144) performs bit shifting for comparison. If the shifting operation overflows or wraps around due to an extremely large Locker value, could this cause false positives or negatives in self-call detection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c73998c9-f663-47c6-b2e6-5cde22b0f178",
+    "timestamp": "2025-12-02 02:56:24.810365",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeSwap (line 83), the comparison `eq(shl(96, locker), shl(96, extension))` zeros the upper 64 bits. Could an attacker craft a Locker value where the upper 64 bits encode exploit instructions that bypass security checks in the extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b363c9da-3116-4094-8f09-1ebfdb954d12",
+    "timestamp": "2025-12-02 02:56:56.690810",
+    "report_generated": false
   }
 ]
