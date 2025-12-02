@@ -13798,5 +13798,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a5290644-4e85-4515-aa09-9f0e13eece5f",
     "timestamp": "2025-12-02 10:21:18.646039",
     "report_generated": false
+  },
+  {
+    "question": "In `Positions.sol` constructor line 28-29, there is no validation that `SWAP_PROTOCOL_FEE_X64 < 2^64` or that `WITHDRAWAL_PROTOCOL_FEE_DENOMINATOR != 0`. Could a deployment with `WITHDRAWAL_PROTOCOL_FEE_DENOMINATOR = 0` cause division by zero in line 65, permanently breaking all withdrawal operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7eb4d5ec-9937-48b4-b10f-b34a9c38a7e6",
+    "timestamp": "2025-12-02 10:22:41.602491",
+    "report_generated": false
+  },
+  {
+    "question": "In `Positions.sol` line 65, the withdrawal protocol fee is calculated as `fee / WITHDRAWAL_PROTOCOL_FEE_DENOMINATOR`. If `WITHDRAWAL_PROTOCOL_FEE_DENOMINATOR` is set to 1 at deployment, could this cause withdrawal fees to equal the swap fee rate, potentially draining user positions by taking 100% of withdrawn liquidity as protocol fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_caba8d8e-e923-48d4-9032-973208bc4cfc",
+    "timestamp": "2025-12-02 10:22:55.297768",
+    "report_generated": false
+  },
+  {
+    "question": "In `Positions.sol` line 45-46, the `_computeSwapProtocolFees` function uses `computeFee(amount0, SWAP_PROTOCOL_FEE_X64)`. Can the rounding-up behavior in `computeFee` (fee.sol:8) cause protocol fees to exceed actual collected fees when `amount0` or `amount1` are very small, leading to underflow when subtracting protocol fees in `BasePositions.sol` line 298-299?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d9fc6d6-7c9d-4ce2-ac80-352b97c8a4f4",
+    "timestamp": "2025-12-02 10:23:08.717192",
+    "report_generated": false
+  },
+  {
+    "question": "Are the offset constants (FPL_OFFSET, TICKS_OFFSET, FPL_OUTSIDE_OFFSET_VALUE0, FPL_OUTSIDE_OFFSET_VALUE1, BITMAPS_OFFSET) sufficiently separated to prevent any poolId and tick combination from causing the storage regions to overlap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57df3aeb-e75e-4e91-b212-c020dd7cda5c",
+    "timestamp": "2025-12-02 10:23:22.771084",
+    "report_generated": false
+  },
+  {
+    "question": "Could the large offset values defined in CoreStorageLayout (e.g., BITMAPS_OFFSET = 0x3def450d...) be chosen such that for certain poolId ranges, the computed slots systematically collide with Solidity's standard storage layout (slots 0, 1, 2, etc.)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4adc010a-e19c-4e8f-b71c-9b769296b5ac",
+    "timestamp": "2025-12-02 10:23:37.518623",
+    "report_generated": false
+  },
+  {
+    "question": "The offset constants (FPL_OFFSET, TICKS_OFFSET, etc.) are claimed to be generated via keccak256 hashing. Could these values be incorrectly generated or typo'd, causing systematic storage collisions across all pools that violate the no-collision guarantees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_462c7c04-928c-4de6-8fd7-eb2a5b02c512",
+    "timestamp": "2025-12-02 10:23:53.712128",
+    "report_generated": false
+  },
+  {
+    "question": "The bitmap storage region accessed via `tickBitmapsSlot()` can span many storage words. Could an attacker manipulate pool state to force Core.sol to access bitmap words in a pattern that maximizes cold storage reads, making swaps too expensive and effectively freezing the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f6e549c4-5976-4023-b334-9790f73b4c29",
+    "timestamp": "2025-12-02 10:24:11.557844",
+    "report_generated": false
+  },
+  {
+    "question": "If an attacker initializes ticks across the entire [MIN_TICK, MAX_TICK] range, could the storage slots computed by `poolTicksSlot()` span such a large range that subsequent pool operations hit cold storage repeatedly, causing gas costs to exceed block limits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c82206c-4cab-4fbb-b76b-59596040959d",
+    "timestamp": "2025-12-02 10:24:33.287871",
+    "report_generated": false
+  },
+  {
+    "question": "Could an attacker create positions at tick boundaries that cause `poolTicksSlot()` to be called with alternating positive and negative tick values, exploiting potential cache inefficiencies in storage access to make position withdrawals prohibitively expensive?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e532ea41-0845-462b-b669-75ea69a029cf",
+    "timestamp": "2025-12-02 10:24:56.813890",
+    "report_generated": false
+  },
+  {
+    "question": "The `poolPositionsSlot()` function uses free memory for keccak256 calculation. Could a reentrant call during position operations overwrite this memory region and cause the position slot to change mid-transaction, enabling unauthorized position modifications?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12c30fd0-c955-4e73-b800-25abfd31515d",
+    "timestamp": "2025-12-02 10:25:21.148689",
+    "report_generated": false
+  },
+  {
+    "question": "If Core.sol calls `savedBalancesSlot()` before and after an extension callback in the same transaction, could the callback manipulate memory at the free pointer location to cause the second call to compute a different slot, enabling balance theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2b4635c5-d4e0-4aa1-895e-ab1690b31d92",
+    "timestamp": "2025-12-02 10:25:46.877703",
+    "report_generated": false
+  },
+  {
+    "question": "During extension callbacks, Core.sol remains in a locked state but may call CoreStorageLayout functions. Could reentrancy during an extension callback cause storage slot calculations to use partially-updated memory values, producing incorrect slots that enable state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c65c914-62cb-49fb-bc00-7a2abf1ff3e7",
+    "timestamp": "2025-12-02 10:26:13.225389",
+    "report_generated": false
+  },
+  {
+    "question": "The position slot calculation in `poolPositionsSlot()` includes the owner address. Could an attacker transfer a position NFT to a new address and have the old position slot data remain in storage, then exploit this stale data to withdraw liquidity twice?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_98cf8d09-2d89-4d8d-b84f-a6fd2a435be2",
+    "timestamp": "2025-12-02 10:26:39.546351",
+    "report_generated": false
+  },
+  {
+    "question": "During position burning, Core.sol must update both `poolPositionsSlot()` (to clear position data) and `poolTicksSlot()` (to update tick liquidity). Could incorrect sequencing of these updates create a window where an attacker can claim fees from a partially-burned position?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95bf4d8d-ead4-4df6-be11-7813050db306",
+    "timestamp": "2025-12-02 10:27:07.796886",
+    "report_generated": false
+  },
+  {
+    "question": "The `poolPositionsSlot()` function returns three consecutive slots for position data. If Core.sol incorrectly assumes these slots are contiguous with tick data slots, could position withdrawal operations corrupt nearby tick liquidity values and violate the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e955b07a-efe1-436c-bc5b-0a1174b0ad7f",
+    "timestamp": "2025-12-02 10:27:38.068850",
+    "report_generated": false
+  },
+  {
+    "question": "If Core.sol reads fees from `poolFeesPerLiquiditySlot()` but writes to slots computed by a different function due to an implementation error, could the mismatch cause fee data to accumulate in unexpected locations, enabling double-claiming attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b383bdd6-8c35-47de-8488-ed8b6af71c1c",
+    "timestamp": "2025-12-02 10:28:08.622099",
+    "report_generated": false
+  },
+  {
+    "question": "In `poolTickFeesPerLiquidityOutsideSlot()`, the fees outside value0 and value1 are stored separately. Could an attacker exploit the gap between firstSlot and secondSlot (FPL_OUTSIDE_OFFSET_VALUE1 difference) to insert malicious data that corrupts fee calculations when ticks are crossed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e5aa470-df14-47e8-a534-8930c8c31d47",
+    "timestamp": "2025-12-02 10:28:41.050850",
+    "report_generated": false
+  },
+  {
+    "question": "The `poolFeesPerLiquiditySlot()` returns two consecutive slots for fee accumulators. If an attacker can predict these slots via poolId manipulation, could they pre-initialize storage at those locations to inflate fee values and extract unauthorized fees from the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47026ab7-7b6b-4786-9df7-f342d24edeb0",
+    "timestamp": "2025-12-02 10:29:13.661266",
+    "report_generated": false
+  },
+  {
+    "question": "When Core.sol calls `savedBalancesSlot()` to store temporary balances during multicall operations, could the computed slot collide with active position slots, causing saved balance updates to corrupt ongoing position modifications and enable fund theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7bacfadb-531c-4b8d-b364-795a10453212",
+    "timestamp": "2025-12-02 10:29:47.022685",
+    "report_generated": false
+  },
+  {
+    "question": "The flash accounting system in Core.sol must track deltas across nested lock() calls. Could storage slots computed by CoreStorageLayout collide with the delta tracking storage, causing flash loan balances to appear as pool fees or position liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d25279a7-c9d4-4c67-81e9-b09551e04c86",
+    "timestamp": "2025-12-02 10:30:21.532247",
+    "report_generated": false
+  },
+  {
+    "question": "During position minting, Core.sol calls both `poolTicksSlot()` (to update tick liquidity) and `poolPositionsSlot()` (to store position data). Could the timing of these storage writes in the same transaction cause a race condition where position data overwrites tick data before it's fully updated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e491462-8898-4b2d-b33e-d597cf15b388",
+    "timestamp": "2025-12-02 10:30:55.341399",
+    "report_generated": false
+  },
+  {
+    "question": "When Core.sol performs a swap that crosses multiple ticks, it calls `poolTicksSlot()` repeatedly. Could the repeated slot calculations with incremental tick values cause progressive storage collision as ticks approach MAX_TICK, corrupting later ticks' liquidity data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aabc62de-cfd8-4a93-bb0f-48cacc142ac8",
+    "timestamp": "2025-12-02 10:31:29.242802",
+    "report_generated": false
+  },
+  {
+    "question": "Could Oracle extension's observation array storage collide with `tickBitmapsSlot()` regions when multiple observations are written, causing bitmap corruption that breaks tick crossing logic and prevents position withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_738f8516-68bc-44dd-8411-49d54b265598",
+    "timestamp": "2025-12-02 10:32:02.865831",
+    "report_generated": false
+  },
+  {
+    "question": "The MEVCapture extension reads Core storage directly. Could the storage slot calculations in CoreStorageLayout produce slots that MEVCapture interprets as auction state, allowing an attacker to manipulate MEV auction outcomes by writing to pool storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3adcaa59-d4f8-4ca0-a485-27c831864ce6",
+    "timestamp": "2025-12-02 10:32:36.795907",
+    "report_generated": false
+  },
+  {
+    "question": "If an extension uses custom storage layout similar to CoreStorageLayout but with different offset constants, could the extension's storage overlap with Core's storage when both are accessed within the same singleton contract, corrupting shared state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e9e85c8c-77b3-4f48-be77-dd5ef0e3b61b",
+    "timestamp": "2025-12-02 10:33:11.250015",
+    "report_generated": false
   }
 ]
