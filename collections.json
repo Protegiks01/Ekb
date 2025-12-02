@@ -7948,5 +7948,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b122899f-f568-47e7-97af-322310106117",
     "timestamp": "2025-12-02 02:05:09.011162",
     "report_generated": false
+  },
+  {
+    "question": "The `mint(bytes32 salt)` function (line 124) calls `saltToId(msg.sender, salt)` using the caller as the minter. If this function is called via delegatecall from another contract, msg.sender remains the original caller, not the intermediate contract. Could this cause unexpected ID generation where the same salt produces different IDs depending on the call path, breaking position tracking in child contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6abc105f-4052-4d32-8d28-9eebe4947d83",
+    "timestamp": "2025-12-02 02:06:32.444974",
+    "report_generated": false
+  },
+  {
+    "question": "In `saltToId()` (lines 93-99), the assembly block writes to memory locations starting at `mload(0x40)` (the free memory pointer). If this function is called during a complex multicall operation where memory is heavily used, could there be a scenario where the free memory pointer is not properly updated by a previous call, causing `saltToId()` to overwrite critical data and corrupt the transaction state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d2d22a4c-5774-4fe0-9798-7175b4f024c2",
+    "timestamp": "2025-12-02 02:06:45.810306",
+    "report_generated": false
+  },
+  {
+    "question": "The `saltToId()` function (line 97) uses `chainid()` opcode, which returns the current chain ID. However, if a chain undergoes a planned chain ID change (as Ethereum did post-Constantinople), could existing NFT IDs become inaccessible because the same minter and salt would now generate a different ID, effectively locking users out of their positions and violating the Withdrawal Availability invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f0f13e75-be4e-4b5d-bd1a-a55f8aa9f543",
+    "timestamp": "2025-12-02 02:07:00.203168",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol line 127, order IDs use `bytes32(id)` directly (full 256 bits), while BasePositions uses `bytes24(uint192(id))`. If the same NFT ID is used for both a position and an order, and that ID has upper bits set, could there be unexpected behavior where the position salt (truncated) differs from the order ID, potentially allowing an attacker to create positions and orders that interfere with each other?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68cc011a-d1d2-4f38-922e-a8327a0b3ae0",
+    "timestamp": "2025-12-02 02:07:14.418366",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint()` auto-salt function (lines 111-115) uses `prevrandao()` and `gas()` as entropy sources. In a block with high contention, multiple users might submit mint transactions with similar gas consumption. Could an attacker analyze pending transactions in the mempool, identify victims using the auto-mint function, and front-run them by computing their salt and minting it first, griefing their position creation attempts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8124ca68-034c-408a-80ac-521a273388be",
+    "timestamp": "2025-12-02 02:07:29.686285",
+    "report_generated": false
+  },
+  {
+    "question": "In `saltToId()` (line 98), the contract address is obtained via `address()`. If BaseNonfungibleToken is inherited by multiple child contracts (BasePositions, Orders), each deployed at different addresses, the same minter and salt will produce different IDs across contracts. Could this cause user confusion or enable attacks where a user thinks they're operating on an existing position but accidentally creates a new one in a different contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ef570bc-36a4-4265-8419-ca014354e8fa",
+    "timestamp": "2025-12-02 02:07:46.144788",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly block in `saltToId()` (lines 93-101) manually packs data without using abi.encodePacked. If there's any padding or alignment difference between the manual assembly and what child contracts expect, could this lead to ID mismatches that break the link between NFT ownership and position/order control, allowing unauthorized operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_910577ae-83a6-45a5-8920-545b20a04af6",
+    "timestamp": "2025-12-02 02:08:04.436493",
+    "report_generated": false
+  },
+  {
+    "question": "If an attacker creates a contract that repeatedly calls `mint()` with auto-generated salts until they find an ID that, when truncated to uint192, collides with a high-value position's salt, could they then use that NFT to manipulate or withdraw liquidity from the victim's position, violating the Position Ownership invariant? (Considering BasePositions uses bytes24(uint192(id)) at line 245)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a10237f-4bd8-4e08-bd4e-9771e1357772",
+    "timestamp": "2025-12-02 02:08:24.146266",
+    "report_generated": false
+  },
+  {
+    "question": "The `saltToId()` function (lines 92-102) is marked as view and `memory-safe`, but if a malicious token contract with reentrant view functions is involved, could they manipulate the memory state during the keccak256 computation, potentially causing ID generation to behave unexpectedly and violate determinism?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ed315e5f-1a64-4e9f-8dd7-77e3ccfdb3b9",
+    "timestamp": "2025-12-02 02:08:45.530865",
+    "report_generated": false
+  },
+  {
+    "question": "In the auto-mint function (lines 109-117), if two transactions from the same sender are included in the same block with identical gas consumption (e.g., simple mints with no other operations), they will generate the same salt and thus attempt to mint the same ID. The second will revert. Could an MEV searcher exploit this by bundling victim transactions to cause deliberate reverts, griefing position creation attempts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_579677af-42cd-4d5a-9b88-e0995b3154b7",
+    "timestamp": "2025-12-02 02:09:07.972308",
+    "report_generated": false
+  },
+  {
+    "question": "The `saltToId()` function includes chainid to prevent cross-chain replay, but if Ekubo is deployed on an L2 that experiences a reorg or sequencer failure causing temporary chain ID confusion, could NFTs minted during the confused state have IDs that become invalid or collide after the chain stabilizes, locking users out of their positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70f0c219-5b97-4e22-aa3a-4cc814467c64",
+    "timestamp": "2025-12-02 02:09:31.127793",
+    "report_generated": false
+  },
+  {
+    "question": "If BasePositions.sol truncates NFT IDs to uint192, what happens when an NFT with ID > 2^192 - 1 is used to create a position? The truncation at line 245 `bytes24(uint192(id))` will silently overflow. Could two different NFT owners with IDs differing only in the upper 64 bits both claim ownership of the same position, allowing one to withdraw the other's liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4aea3b8a-24cd-42d1-b64f-f2a027ea9334",
+    "timestamp": "2025-12-02 02:09:56.515237",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint(bytes32 salt)` function (line 124) allows anyone to mint an NFT with an arbitrary salt. If an attacker front-runs a victim's `mintAndDeposit` call by observing the salt in the mempool and minting that ID first, the victim's transaction will revert when trying to mint. Could this be used to grief users repeatedly, preventing them from creating positions and violating the protocol's usability guarantees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ade75104-2f6a-435b-8c1e-e639a4fb02ed",
+    "timestamp": "2025-12-02 02:10:23.223944",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint()` function (lines 109-117) accepts msg.value but doesn't use it (line 108 comment says 'No fees are collected; any msg.value sent is ignored'). If a user accidentally sends ETH when minting, it becomes stuck in the contract with no way to retrieve it. Could an attacker grief users by front-running their mints with transactions that consume all gas, causing users to send higher gas prices and accidentally include msg.value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4a8e5253-3753-41b1-9b5a-722f9d3d1be4",
+    "timestamp": "2025-12-02 02:10:50.757019",
+    "report_generated": false
+  },
+  {
+    "question": "In `mint(bytes32 salt)` (lines 123-126), the function is payable but ignores msg.value. If this function is called during a lock callback from BasePositions.sol (which handles native token payments), could the ignored msg.value disrupt the flash accounting balance, causing the lock to fail settlement and violate the Flash Accounting Balance invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c181f112-4839-47b3-b784-0dd5c76d61ea",
+    "timestamp": "2025-12-02 02:11:22.051928",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint()` auto-salt function (lines 111-115) uses `gas()` in the salt calculation. If called within a multicall operation where gas consumption varies based on previous operations, could an attacker manipulate the gas parameter by carefully crafting the multicall sequence, causing predictable salt generation that enables front-running attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_423c7c7f-7175-4197-9e78-ea944a76a81d",
+    "timestamp": "2025-12-02 02:11:52.625127",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint(bytes32 salt)` function (line 125) calls `_mint(msg.sender, id)`. If the recipient (msg.sender) is a contract that reverts in its onERC721Received hook, the entire transaction reverts. Could an attacker use this to DOS specific user contracts from ever minting NFTs, preventing them from creating positions and violating user withdrawal rights?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a61a72d8-38fe-41f0-9146-50b9b531fbb1",
+    "timestamp": "2025-12-02 02:12:22.205200",
+    "report_generated": false
+  },
+  {
+    "question": "In `mint()` (lines 109-117), the salt is generated using prevrandao() which is proposer-controlled in PoS Ethereum. If a proposer knows they will propose a block, they can calculate all possible auto-generated salts for that block in advance. Could a malicious proposer front-run valuable position creations by minting conflicting IDs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d1f629a5-f226-4ca7-aba5-cd20701ae45f",
+    "timestamp": "2025-12-02 02:12:54.387180",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint()` function (line 116) calls the overloaded `mint(salt)`. If there's a reentrancy vulnerability in the call chain, could an attacker call `mint()` recursively during the onERC721Received hook, potentially minting multiple NFTs in a single transaction and causing state corruption in child contract tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5976e221-acb2-4b9e-b66b-3a8da484885e",
+    "timestamp": "2025-12-02 02:13:27.027017",
+    "report_generated": false
+  },
+  {
+    "question": "In the auto-salt generation (lines 111-115), both prevrandao() and gas() are used. However, gas() is calculated at the point of execution. If an attacker creates a contract that mints NFTs in a loop, each iteration would have decreasing gas, making the salts predictable. Could this be exploited to pre-compute and front-run multiple mint attempts in a single transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc7c315b-3851-42e1-82fd-164de8fc65c9",
+    "timestamp": "2025-12-02 02:13:59.337862",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint(bytes32 salt)` function (line 124) uses `saltToId(msg.sender, salt)`. If called from BasePositions.mintAndDeposit (line 167), the minter is always the original caller. But if users interact through a proxy or router contract, the minter address changes. Could this cause confusion where the same salt produces different IDs depending on how the user accesses the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd41b13b-7d89-4fe3-9f8b-b3b72c433ae7",
+    "timestamp": "2025-12-02 02:14:32.406516",
+    "report_generated": false
+  },
+  {
+    "question": "Since `mint()` and `mint(bytes32 salt)` are both public and payable, and child contracts like BasePositions inherit them, could a user accidentally call the wrong mint function when intending to create a position, resulting in a standalone NFT without associated liquidity that clutters the address space and wastes gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91af2cff-bf1d-4c8a-a7dd-7df02e06cb47",
+    "timestamp": "2025-12-02 02:15:02.723540",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint()` function (lines 109-117) doesn't emit any events beyond the ERC721 Transfer event. If child contracts like BasePositions rely on events to track position creation, and a user directly calls `mint()` instead of `mintAndDeposit()`, could this cause off-chain indexers to lose sync with on-chain state, making positions appear orphaned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ce2af4f-e06a-4213-8bc8-5f0cce4ccba5",
+    "timestamp": "2025-12-02 02:15:31.797409",
+    "report_generated": false
+  },
+  {
+    "question": "In `mint(bytes32 salt)` (line 124), if the computed ID is 0, the ERC721 _mint will succeed (unless Solady specifically prevents minting ID 0). Could an attacker craft a salt that produces ID 0, and does this cause any special behavior in child contracts that might assume ID 0 is uninitialized or invalid?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_af35e8a9-a99c-4de8-833a-c1fc5aed3ae7",
+    "timestamp": "2025-12-02 02:16:01.149056",
+    "report_generated": false
+  },
+  {
+    "question": "The auto-mint function (lines 111-115) uses `mstore(0, prevrandao())` and `mstore(32, gas())` directly at memory positions 0 and 32. These are typically scratch space, but if the function is called in a complex context where these positions hold important data, could this overwrite critical values and cause unexpected behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6059738-7a34-4a29-8c48-ea8585db07e1",
+    "timestamp": "2025-12-02 02:16:30.642952",
+    "report_generated": false
   }
 ]
