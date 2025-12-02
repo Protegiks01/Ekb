@@ -14692,5 +14692,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55bd726c-3f8d-4be2-b01e-d777b05b2932",
     "timestamp": "2025-12-02 10:43:37.290557",
     "report_generated": false
+  },
+  {
+    "question": "In IIncentives.claim (line 49), if the ClaimKey includes recipient address different from msg.sender, could an attacker front-run claims by monitoring merkle proofs in mempool and claiming to their own address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf906bfa-3330-4ea8-9e23-1057de9ec2e4",
+    "timestamp": "2025-12-02 10:44:52.227304",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives.refund (lines 40-43), if the implementation allows refunding before claim period ends, could the owner rug-pull by refunding all tokens while users are still attempting to claim?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_74b2e720-bd58-40d3-b3f6-bf7a65a77ac8",
+    "timestamp": "2025-12-02 10:45:05.957349",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives event Funded (lines 12-15), if amountNext represents total funded amount but multiple funding transactions occur simultaneously, could race conditions cause the event to emit incorrect values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f1619e6-3917-4f1c-9dbc-0dfbb5858a5d",
+    "timestamp": "2025-12-02 10:45:19.846181",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives implementing IExposedStorage (line 11), if storage layout changes between drop creation and claim time, could sload return incorrect claim status, allowing double-claims or preventing valid claims?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_266f733f-df1f-44a1-a144-885c07a7aeb1",
+    "timestamp": "2025-12-02 10:45:34.364499",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.mintAndIncreaseSellAmount (lines 23-26), if amount + existing order amount overflows uint112 but the MaxSaleRateExceeded check only validates the incremental rate, could the total order size exceed intended limits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91279b43-c050-446f-811e-f470edb505a0",
+    "timestamp": "2025-12-02 10:45:50.549160",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.increaseSellAmount (lines 34-37), if the maxSaleRate is set very low to protect against slippage but the order's time remaining is extremely short, could the check pass even though effective sale rate is high?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d92d308-1eae-4681-92e2-a6b40fe89182",
+    "timestamp": "2025-12-02 10:46:07.277167",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.decreaseSaleRate (lines 45-48), if saleRateDecrease equals the current sale rate (complete cancellation), but the order has already partially executed, is the remaining sell amount returned as refund, or do proceeds need to be collected separately?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a2f814e2-4099-49fe-aa06-cd331cd346db",
+    "timestamp": "2025-12-02 10:46:25.902650",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.collectProceeds (lines 65-68), if virtual orders execute between the user's transaction submission and execution, could the proceeds amount change, and is there slippage protection for proceeds collection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_85b6e687-1b32-443e-a0dc-09c737722e92",
+    "timestamp": "2025-12-02 10:46:46.862095",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.executeVirtualOrdersAndGetCurrentOrderInfo (lines 84-86), if this function triggers virtual order execution for the entire pool but the user only owns one small order, could they waste significant gas on other users' orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8f28fdc-4fc3-427b-91f4-ca852a7c3b47",
+    "timestamp": "2025-12-02 10:47:09.736508",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders error OrderAlreadyEnded (line 12), if block.timestamp equals exactly the order's endTime, is the order considered active or ended, and could this create a one-block window where order state is ambiguous?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9babb315-3245-4c35-a4f2-47a6c3db1383",
+    "timestamp": "2025-12-02 10:47:33.710552",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders error MaxSaleRateExceeded (line 15), if this check happens after tokens are transferred to the contract but before the order is created, could tokens be locked if the check fails?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4040e24f-54e1-4d73-9e86-7f50a6f80814",
+    "timestamp": "2025-12-02 10:48:00.340185",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.mintAndIncreaseSellAmount (lines 23-26), if the NFT mint succeeds but the underlying TWAMM.updateOrder fails, is the NFT automatically burned, or could empty order NFTs be created?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e348056-41a5-450b-8e35-bcc408e9dd02",
+    "timestamp": "2025-12-02 10:48:27.787962",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.decreaseSaleRate with recipient parameter (lines 45-48), if recipient is a contract that reverts on token receive, does this brick the entire decrease operation, preventing the user from canceling their order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_919fb1a6-7aad-4453-aacf-0c0c2433eef2",
+    "timestamp": "2025-12-02 10:48:56.255143",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.collectProceeds (lines 65-68), if the order is on a pool that has been upgraded or whose extension has changed, could proceeds collection fail permanently, locking funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a89d732-e8f4-4d75-a5b9-dc325f897de9",
+    "timestamp": "2025-12-02 10:49:25.879125",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.increaseSellAmount (lines 34-37), if an attacker front-runs this call by executing virtual orders that significantly move the pool price, could the user's increased order execute at a much worse rate than expected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3192fe9-4276-497d-b78e-d7c6783dc31a",
+    "timestamp": "2025-12-02 10:49:57.111418",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders implementing IBaseNonfungibleToken (line 10), if the NFT is transferred while the order is active, does the new owner automatically receive rights to decrease sale rate and collect proceeds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9de1fe23-2542-4ba8-ac24-ccd8e27e9aeb",
+    "timestamp": "2025-12-02 10:50:28.285193",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.decreaseSaleRate (lines 55-58) without recipient, if msg.sender is a contract that cannot receive the sell token, could the refund fail, preventing order cancellation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b58e651d-ff37-4768-9d9e-0fa8b11a2999",
+    "timestamp": "2025-12-02 10:50:59.315476",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.collectProceeds (lines 73-75) without recipient, if msg.sender is a contract that reverts on receive of the buy token (e.g., TWAMM pool's opposite token), could proceeds become permanently uncollectable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a4a4e58c-7473-4849-92e8-afe3fd857c15",
+    "timestamp": "2025-12-02 10:51:30.992540",
+    "report_generated": false
+  },
+  {
+    "question": "In IOrders.executeVirtualOrdersAndGetCurrentOrderInfo (lines 84-86), if this is called off-chain for quote purposes but on-chain state has changed since, could the returned saleRate and purchasedAmount be stale immediately?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fe01a312-0458-4856-8078-7e4b8e21ff70",
+    "timestamp": "2025-12-02 10:52:03.266402",
+    "report_generated": false
+  },
+  {
+    "question": "In the constructor (lines 68-82), if `twapDuration` is set to a very small value like 1 second, could an attacker manipulate the TWAP by performing large swaps in consecutive blocks, causing `getAverageTick()` to return manipulated prices that downstream protocols rely on for critical decisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a29369ca-dd04-4922-836f-90f6b16f15d6",
+    "timestamp": "2025-12-02 10:52:37.398191",
+    "report_generated": false
+  },
+  {
+    "question": "The constructor (line 75) only validates that `twapDuration != 0`, but doesn't check for an upper bound. Could setting an extremely large `twapDuration` (e.g., 365 days) cause `extrapolateSnapshot()` to revert with `NoPreviousSnapshotExists` if the Oracle extension hasn't been initialized that far back, making all price queries fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8a5d2b8c-78b2-4a64-b34e-e8d16cc442d5",
+    "timestamp": "2025-12-02 10:53:13.034135",
+    "report_generated": false
+  },
+  {
+    "question": "In the constructor (lines 77-80), the `ORACLE`, `USD_PROXY_TOKEN`, `BTC_PROXY_TOKEN`, and `ETH_PROXY_TOKEN` addresses are set without validation. Could setting `USD_PROXY_TOKEN` or `BTC_PROXY_TOKEN` to `address(0)` cause the `normalizeAddress()` function to incorrectly map ERC-7726 standard addresses, leading to incorrect price quotes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_82e72957-03a1-48c5-8a14-b19709cd54ee",
+    "timestamp": "2025-12-02 10:53:46.608392",
+    "report_generated": false
+  },
+  {
+    "question": "The constructor (lines 68-82) allows `ETH_PROXY_TOKEN` to equal `NATIVE_TOKEN_ADDRESS` (address(0)). In `getAverageTick()` (line 93), if `baseToken == NATIVE_TOKEN_ADDRESS`, could this cause incorrect tick calculations when users query ETH prices using the standard `IERC7726_ETH_ADDRESS`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_92fa0744-70ea-458b-81bb-adb4b2a25a5e",
+    "timestamp": "2025-12-02 10:54:17.183611",
+    "report_generated": false
+  },
+  {
+    "question": "In the constructor (lines 68-82), if `BTC_PROXY_TOKEN` and `USD_PROXY_TOKEN` are set to the same address, would this cause `getQuote()` to return `baseAmount` unchanged (line 144) when querying BTC/USD prices, even though these represent different assets?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d055050-478d-433d-9fe6-43e389a7f025",
+    "timestamp": "2025-12-02 10:54:48.881215",
+    "report_generated": false
+  },
+  {
+    "question": "The constructor (lines 68-82) doesn't validate that the `oracle` parameter implements the `IOracle` interface correctly. Could passing a malicious contract that returns arbitrary values from `extrapolateSnapshot()` allow an attacker to manipulate all price quotes returned by this contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_667d9302-c61c-4ab9-aaf7-b928cd5d5a23",
+    "timestamp": "2025-12-02 10:55:22.227273",
+    "report_generated": false
   }
 ]
