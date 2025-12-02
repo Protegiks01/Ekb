@@ -12748,5 +12748,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47705e6b-e4ef-4e90-b845-dcffe5a0923a",
     "timestamp": "2025-12-02 09:02:16.532348",
     "report_generated": false
+  },
+  {
+    "question": "The collect() function (lines 76-78) calls ORDERS.collectProceeds with endTime parameter. Could an attacker collect proceeds from an order that hasn't fully executed by passing an endTime in the past, stealing partial buyback proceeds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0485d320-62ce-4371-9de3-44067c1787e9",
+    "timestamp": "2025-12-02 09:03:40.335582",
+    "report_generated": false
+  },
+  {
+    "question": "When Orders.increaseSellAmount is called with amount = amountToSpend (line 134), could integer overflow in the sale rate calculation (amount / duration) cause the returned saleRate to be capped or incorrect, affecting order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e58e21e-bd68-450a-9cfc-55cc0563c9bf",
+    "timestamp": "2025-12-02 09:03:53.671957",
+    "report_generated": false
+  },
+  {
+    "question": "The _createOrderKey function determines token ordering via bool isToken1 = token > BUY_TOKEN (line 180). Could address collisions or special addresses (like CREATE2 predicted addresses) be crafted to manipulate this comparison and create orders in unintended pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_746da057-5075-40d2-9358-6a16c47aa35f",
+    "timestamp": "2025-12-02 09:04:07.890338",
+    "report_generated": false
+  },
+  {
+    "question": "In roll(), when amountToSpend > 0, increaseSellAmount is called unconditionally (line 134). Could this create orders with very small amounts (e.g., 1 wei) that cost more in gas than the value being bought back, wasting protocol resources?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02fa23ac-b593-4cc4-a288-1f76eb9de92b",
+    "timestamp": "2025-12-02 09:04:22.131092",
+    "report_generated": false
+  },
+  {
+    "question": "The orderKey contains fee from state.fee() (line 135). Could a race condition where configure() changes the fee between the state read (line 94) and the orderKey creation (line 135) cause orders to be created with a fee that doesn't match the stored configuration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3471679-25d5-4056-8058-110f7be5885d",
+    "timestamp": "2025-12-02 09:04:37.915808",
+    "report_generated": false
+  },
+  {
+    "question": "When increaseSellAmount is called (line 134), it uses flash accounting through Orders.lock(). Could a re-entrancy attack during the lock callback allow an attacker to manipulate the order state before it's finalized, potentially canceling or modifying the order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_884b60cc-7c51-4199-adda-4c95267a55dc",
+    "timestamp": "2025-12-02 09:04:54.491740",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function creates orders through ORDERS contract without checking if the pool exists. Could calling roll() for a token pair that doesn't have a pool at the specified fee tier cause revert in TWAMM, or would it create an order on a non-existent pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4e3525b-7c1d-4658-b145-845b78e03777",
+    "timestamp": "2025-12-02 09:05:12.629352",
+    "report_generated": false
+  },
+  {
+    "question": "In _createOrderKey, createOrderConfig is called with _startTime: 0 and _endTime: endTime (line 187). Could passing endTime values that don't align with TWAMM's valid time requirements cause the order creation to revert, and would this DOS the buyback mechanism?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8722a94-6e88-4daf-b336-448f0f04a645",
+    "timestamp": "2025-12-02 09:05:31.973738",
+    "report_generated": false
+  },
+  {
+    "question": "The NFT_ID is minted once in constructor (line 43) and reused for all orders. Could this create a vulnerability where an attacker who gains control of this NFT (via exploit in Orders contract) can modify or cancel all active buyback orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91add872-558c-4629-9943-b4982a94c927",
+    "timestamp": "2025-12-02 09:05:52.876636",
+    "report_generated": false
+  },
+  {
+    "question": "When ORDERS.increaseSellAmount is called (line 134), the contract doesn't verify the returned saleRate matches expectations. Could the TWAMM or Orders contract calculate a different saleRate than anticipated, causing the buyback to execute at an unexpected rate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a877cd60-415a-46b5-bfca-0ab38491e4df",
+    "timestamp": "2025-12-02 09:06:15.984155",
+    "report_generated": false
+  },
+  {
+    "question": "The orderKey created in roll() has startTime = 0 (line 135). Does this mean all orders start immediately, and could an attacker exploit the timing between roll() execution and the next block to gain an advantage in executing against the newly created order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d042743c-4e24-44c8-90de-2d3955913c0d",
+    "timestamp": "2025-12-02 09:06:40.005972",
+    "report_generated": false
+  },
+  {
+    "question": "In _createOrderKey, the assembly block (lines 182-185) uses mstore to set token addresses in memory. Could incorrect offset calculations (mul(isToken1, 32)) cause token0 and token1 to be swapped or overwritten, resulting in orders being created on the wrong pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_81bad2ab-2316-4052-85f5-cbd124a0283f",
+    "timestamp": "2025-12-02 09:07:05.589370",
+    "report_generated": false
+  },
+  {
+    "question": "The _createOrderKey function (lines 175-188) constructs an OrderKey with token0/token1 ordering based on isToken1 = token > BUY_TOKEN. Could address comparison giving unexpected ordering on some EVM chains cause the wrong token to be marked as the sell token, creating orders in the reverse direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ff8915a-b3c2-4c4c-b822-cb8a1e91ae91",
+    "timestamp": "2025-12-02 09:07:31.931402",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.roll() (line 134), increaseSellAmount is called with maxSaleRate = type(uint112).max. Could this allow orders to be created with unexpectedly high sale rates during periods of very short duration, potentially causing the order to execute too quickly and be vulnerable to sandwich attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4d03cd0e-442b-43ad-9729-7fdb7d25ef5a",
+    "timestamp": "2025-12-02 09:07:58.855622",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() (line 134), the returned saleRate is not validated or stored. Could ORDERS.increaseSellAmount succeed with saleRate = 0 (if amount is very small and duration is large), creating an order that never executes, and would this lock funds in the TWAMM system?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7acf3bc0-4d63-4f8f-93de-a74217d7bde6",
+    "timestamp": "2025-12-02 09:08:28.021298",
+    "report_generated": false
+  },
+  {
+    "question": "The balance check (line 103) happens before the order creation. Could a malicious token's transfer hook (if any) during increaseSellAmount cause the actual transferred amount to differ from amountToSpend, and would this break the TWAMM order's sale rate calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_768533ed-d5ff-4464-a409-87cb936831bb",
+    "timestamp": "2025-12-02 09:08:57.533985",
+    "report_generated": false
+  },
+  {
+    "question": "When roll() is called with a token that hasn't been approved via approveMax() (line 49), would the ORDERS.increaseSellAmount call fail due to insufficient allowance, and would this revert the entire transaction or just skip order creation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b7ab40be-ea06-461b-98d8-96fe0fe224bc",
+    "timestamp": "2025-12-02 09:09:27.991601",
+    "report_generated": false
+  },
+  {
+    "question": "In the native token handling (line 102), token == NATIVE_TOKEN_ADDRESS checks equality. Could a proxy contract or delegatecall context cause NATIVE_TOKEN_ADDRESS to be loaded from an unexpected storage slot, causing incorrect ETH vs ERC20 detection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79543744-744e-4c59-b2c7-0d4a9837497e",
+    "timestamp": "2025-12-02 09:10:00.014651",
+    "report_generated": false
+  },
+  {
+    "question": "The approveMax function (line 50) calls safeApproveWithRetry with type(uint256).max. Could a malicious ERC20 token's approve() function have a re-entrancy vector that calls back into RevenueBuybacks, and would this allow an attacker to manipulate state before approval is set?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_633e6508-6dba-44b3-ab3c-90f0aa5f1372",
+    "timestamp": "2025-12-02 09:10:33.261868",
+    "report_generated": false
+  },
+  {
+    "question": "When amountToSpend = 0 (line 133), increaseSellAmount is not called. Could an attacker drain the contract's token balance just before roll() is called, causing the order creation to be skipped, and would this allow an attacker to prevent buybacks indefinitely by always front-running roll() calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29630d8b-6b5d-4d55-98bf-73ab4b64496b",
+    "timestamp": "2025-12-02 09:11:04.224048",
+    "report_generated": false
+  },
+  {
+    "question": "The SafeTransferLib.balanceOf call (line 103) for ERC20 tokens doesn't verify the token contract exists or is valid. Could passing a non-existent token address cause balanceOf to return 0 or revert, and would this prevent legitimate buybacks from executing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f8de3f9-6a44-46f7-9636-15b7c9ca0c84",
+    "timestamp": "2025-12-02 09:11:36.213718",
+    "report_generated": false
+  },
+  {
+    "question": "In roll(), when isEth is true, the contract passes msg.value as ETH (line 134). However, roll() is not payable. Could this cause reverts when trying to create buyback orders for native tokens, or is the ETH coming from the contract's balance through the {value: ...} syntax?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0636d7be-f8c5-4039-ac52-1ff7c0d209d6",
+    "timestamp": "2025-12-02 09:12:08.650092",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function transfers tokens to ORDERS via increaseSellAmount (line 134). Could the lack of checks on the returned saleRate allow orders to be created with unexpectedly low sale rates (due to long duration), and would this result in worse execution prices for the buybacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_36caa432-7d2f-4774-a5aa-721ff07ab511",
+    "timestamp": "2025-12-02 09:12:40.743352",
+    "report_generated": false
+  },
+  {
+    "question": "When calculating amountToSpend (line 103), the contract uses the balance at the time of roll() execution. Could an attacker front-run a roll() call by sending a large amount of tokens to the contract, causing a massive order to be created, then back-run to drain proceeds, manipulating the buyback price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6113b1a-adc7-4f68-824e-b35df666f5b1",
+    "timestamp": "2025-12-02 09:13:11.450581",
+    "report_generated": false
+  },
+  {
+    "question": "The approveMax() function (lines 49-51) approves type(uint256).max to ORDERS contract. Could a vulnerability in the ORDERS contract or TWAMM extension allow an attacker to drain all approved tokens from RevenueBuybacks without going through the intended roll() mechanism?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e075607f-6d07-4ac5-a23a-07cbb53e7785",
+    "timestamp": "2025-12-02 09:13:41.743444",
+    "report_generated": false
   }
 ]
