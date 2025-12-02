@@ -12298,5 +12298,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f52f4f8-ee51-45e9-9be9-981984729c3d",
     "timestamp": "2025-12-02 07:35:14.889423",
     "report_generated": false
+  },
+  {
+    "question": "The function `getExtrapolatedSnapshotsForSortedTimestamps()` validates timestamps are sorted (line 405-406) but the check `timestamp < lastTimestamp` is performed after already processing some timestamps. If an attacker provides mostly sorted timestamps with one out-of-order element late in the array, could this waste gas before reverting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_af849a7e-daa5-44f5-af67-4a8092fd213e",
+    "timestamp": "2025-12-02 07:36:40.352923",
+    "report_generated": false
+  },
+  {
+    "question": "In `getExtrapolatedSnapshotsForSortedTimestamps()` (lines 397-398), `indexFirst` and `indexLast` are computed once. During the loop, if timestamps span a very long period and new snapshots are inserted, could the loop access snapshots outside the [indexFirst, indexLast] range, reverting or producing incorrect observations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14910017-de5f-4e30-a375-0dac6d80d1ae",
+    "timestamp": "2025-12-02 07:36:53.599517",
+    "report_generated": false
+  },
+  {
+    "question": "The function `getExtrapolatedSnapshotsForSortedTimestamps()` (line 412) narrows the search range to `[indexFirst, indexLast + 1)` for each timestamp. If timestamps are not actually sorted (validation bypassed somehow), could this range narrowing cause the search to miss the correct snapshot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f97d97f7-32ac-4273-9ad2-366ac3474fd3",
+    "timestamp": "2025-12-02 07:37:07.301065",
+    "report_generated": false
+  },
+  {
+    "question": "In `getExtrapolatedSnapshotsForSortedTimestamps()` (line 416), `indexFirst = logicalIndex` updates the search start for the next iteration. If two consecutive timestamps differ by less than the snapshot interval, they might reference the same logicalIndex. Could this cause inefficient searches or incorrect range calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_858d0e2a-52f2-4b49-a1c2-e8129c42b5c6",
+    "timestamp": "2025-12-02 07:37:22.212876",
+    "report_generated": false
+  },
+  {
+    "question": "The function creates a new `Observation[] memory observations` array at line 400. If timestamps.length is very large, could this memory allocation fail or consume excessive gas, and could an attacker exploit this to DoS by requesting observations for many timestamps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a4e4b36-8295-4a0e-8129-ce462fcf5c2c",
+    "timestamp": "2025-12-02 07:37:37.217080",
+    "report_generated": false
+  },
+  {
+    "question": "In `getExtrapolatedSnapshotsForSortedTimestamps()` (lines 389-391), the code checks `if (endTime < startTime) revert EndTimeLessThanStartTime()`. However, if startTime == endTime, the function proceeds. Could a single-element array with [timestamp, timestamp] cause unexpected behavior in the binary search range calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_daf33dd1-9c28-4df7-a283-36ecce537127",
+    "timestamp": "2025-12-02 07:37:53.378545",
+    "report_generated": false
+  },
+  {
+    "question": "The function `getExtrapolatedSnapshotsForSortedTimestamps()` calls `searchRangeForPrevious()` and `extrapolateSnapshotInternal()` multiple times in a loop. If pool state changes significantly during this loop (via concurrent swaps), could later observations be inconsistent with earlier ones, enabling arbitrage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95974948-fc15-4b23-a2e6-f06874c792aa",
+    "timestamp": "2025-12-02 07:38:13.332415",
+    "report_generated": false
+  },
+  {
+    "question": "In `getExtrapolatedSnapshotsForSortedTimestamps()` (line 407), the check `else if (timestamp > block.timestamp)` validates each timestamp. But if block.timestamp decreased (e.g., due to L2 timestamp manipulation), could a previously valid timestamp become future, causing unexpected reverts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fad72027-de3b-4f12-ab59-18e5fc27299c",
+    "timestamp": "2025-12-02 07:38:33.882035",
+    "report_generated": false
+  },
+  {
+    "question": "The function returns `Observation[]` which contains uint160 secondsPerLiquidityCumulative and int64 tickCumulative. Could the packing/unpacking in `createObservation()` (line 415) introduce any bit manipulation errors, especially for negative tickCumulative values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95a7df82-af8b-4e79-a270-51134b2653c8",
+    "timestamp": "2025-12-02 07:38:55.251545",
+    "report_generated": false
+  },
+  {
+    "question": "In `expandCapacity()` (lines 219-224), the function initializes new slots with value `1` in a loop. If `minCapacity` is set to uint32.max, this loop would iterate billions of times. Could this be exploited for DoS, or does the gas limit prevent this attack?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9dadc5fa-7cd1-4dc9-a9df-a5408e77cabb",
+    "timestamp": "2025-12-02 07:39:17.823655",
+    "report_generated": false
+  },
+  {
+    "question": "The function `expandCapacity()` (line 213) is external and can be called by anyone. Could a malicious actor repeatedly call this with incrementally larger minCapacity values to waste gas and storage, effectively griefing the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00036f5e-e1ac-42a4-b48a-6286fe2768b6",
+    "timestamp": "2025-12-02 07:39:41.569156",
+    "report_generated": false
+  },
+  {
+    "question": "In `expandCapacity()` (line 226-231), if capacity is already >= minCapacity, the function updates nothing but still loads and stores Counts. Could an attacker spam this function with minCapacity = current capacity to waste gas without changing state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7102692d-dc57-45b8-831a-38569f2e3305",
+    "timestamp": "2025-12-02 07:40:06.896260",
+    "report_generated": false
+  },
+  {
+    "question": "The capacity expansion uses `sstore(or(shl(32, token), i), 1)` to initialize slots. If the token address causes storage slot collisions with Core.sol's or other extensions' storage, could these initializations corrupt other contract state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63e9b93e-23ea-41fe-b51f-a59abf16f52d",
+    "timestamp": "2025-12-02 07:40:32.853584",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeInitializePool()` (lines 170-175), the code preserves existing capacity via `FixedPointMathLib.max(1, c.capacity())`. If `expandCapacity()` was called before initialization with a huge value, could this pre-allocated capacity remain forever, wasting storage and making snapshot arrays inefficient?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c097943-935e-4703-a101-2b605ae81879",
+    "timestamp": "2025-12-02 07:41:00.520103",
+    "report_generated": false
+  },
+  {
+    "question": "After expanding capacity, old snapshots remain in memory until overwritten. Could an attacker expand capacity, let the array fill partially, then cause snapshot overwrites that skip the newly allocated slots, leaving garbage data that corrupts binary searches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b88ca395-1b5a-484a-ad99-8c25394e058f",
+    "timestamp": "2025-12-02 07:41:28.650046",
+    "report_generated": false
+  },
+  {
+    "question": "The function `expandCapacity()` returns the new capacity (line 234). Could a calling contract rely on this return value to make security-critical decisions, and could a malicious token address cause the returned capacity to be manipulated (e.g., via storage collision affecting the Counts load)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14133eed-737a-49d2-8c35-ca1981bab6fe",
+    "timestamp": "2025-12-02 07:41:57.729926",
+    "report_generated": false
+  },
+  {
+    "question": "In `expandCapacity()`, if capacity is expanded from N to M where M >> N, the next M-N snapshot insertions will write to empty slots. During this fill period, could the binary search in `searchRangeForPrevious()` behave incorrectly when it encounters slots with value `1` instead of valid snapshots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_acabf8ff-9abc-4182-99c8-59abf0938556",
+    "timestamp": "2025-12-02 07:42:28.013581",
+    "report_generated": false
+  },
+  {
+    "question": "The capacity is stored as uint32, limiting maximum capacity to ~4.3 billion snapshots. If a pool is extremely active and snapshots are inserted every block for years, could capacity eventually be insufficient, and what happens when `expandCapacity()` is called with minCapacity > uint32.max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4e411bc-effb-4477-8591-ca68bc730bae",
+    "timestamp": "2025-12-02 07:42:59.102838",
+    "report_generated": false
+  },
+  {
+    "question": "In `expandCapacity()` (line 220), the loop condition is `i < minCapacity`. If minCapacity overflowed uint32 during calculation elsewhere, could this cause the loop to initialize an incorrect number of slots or fail to initialize any slots at all?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_699c7580-bbf4-46d1-890c-6471b2fc4485",
+    "timestamp": "2025-12-02 07:43:30.136967",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeInitializePool()` (line 155), the function reverts if `key.token0 != NATIVE_TOKEN_ADDRESS`. Could an attacker create a pool with token0 = NATIVE_TOKEN_ADDRESS but token1 also = NATIVE_TOKEN_ADDRESS, bypassing this check and creating an invalid oracle state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2e00250-f5fe-49d7-b990-4a6dd361cfbc",
+    "timestamp": "2025-12-02 07:43:56.925018",
+    "report_generated": false
+  },
+  {
+    "question": "The validation `key.config.fee() != 0` at line 156 requires zero fees. If Core.sol's fee configuration encoding changes, could a non-zero fee appear as zero to the Oracle, allowing initialization of incompatible pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37d74f8f-bec3-412e-9589-ca6bb36c2bbf",
+    "timestamp": "2025-12-02 07:44:23.934461",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeInitializePool()` (line 157), the check `key.config.isFullRange()` validates tick spacing. If the PoolConfig encoding for full-range changes, could pools with restricted ranges pass this check, causing oracle snapshots to miss liquidity outside the active tick range?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6a4a1410-b128-422d-9544-ab9b0e8e907c",
+    "timestamp": "2025-12-02 07:44:53.285289",
+    "report_generated": false
+  },
+  {
+    "question": "The first snapshot is initialized with `secondsPerLiquidityCumulative: 0` and `tickCumulative: 0` at line 177-178. If the pool is initialized at a non-zero tick, could this zero tickCumulative cause the first TWAP calculation to be incorrect, as it doesn't reflect the initial price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2b0e166-efae-464f-8f97-66fc50c635c7",
+    "timestamp": "2025-12-02 07:45:21.934034",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeInitializePool()` (line 163-168), Counts is loaded from storage before initialization. If storage at `token` slot already contains non-zero data (e.g., from a previous failed initialization or storage collision), could the capacity be preserved incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0199b784-bbae-4ee4-90c1-f175520c2ebd",
+    "timestamp": "2025-12-02 07:45:49.769983",
+    "report_generated": false
+  },
+  {
+    "question": "The function `beforeInitializePool()` writes the first snapshot at `shl(32, token)` (line 182). Could this storage location collide with other contracts' storage if the token address is a contract that uses similar storage layout?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a37c1259-0979-4721-8e76-edf3506f87e2",
+    "timestamp": "2025-12-02 07:46:20.023127",
+    "report_generated": false
   }
 ]
