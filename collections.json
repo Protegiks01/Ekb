@@ -11548,5 +11548,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef6f1d4c-2d58-4fa2-8755-f1b01759e659",
     "timestamp": "2025-12-02 06:39:18.922446",
     "report_generated": false
+  },
+  {
+    "question": "In beforeInitializePool() (lines 77-80), the initial state is created with current block.timestamp and provided tick. If the tick is invalid or outside bounds, could this cause overflow in subsequent tick distance calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_26b352a6-19dc-4198-81e7-4eceafe71297",
+    "timestamp": "2025-12-02 06:40:33.768751",
+    "report_generated": false
+  },
+  {
+    "question": "The MEVCapture constructor (line 46) calls both BaseExtension and BaseForwardee constructors. If either parent's constructor has side effects or registration, could this create an inconsistent state where MEVCapture is partially registered?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db497c9d-cb5a-46cf-a76a-78e7e5988764",
+    "timestamp": "2025-12-02 06:40:46.810955",
+    "report_generated": false
+  },
+  {
+    "question": "In beforeSwap() (lines 84-86), the function always reverts. If Core's call point system doesn't properly handle reverts from beforeSwap() and allows afterSwap() to execute, could this create a state where swaps partially complete?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66885b2c-2911-48e2-a624-b7aad751372f",
+    "timestamp": "2025-12-02 06:41:00.954573",
+    "report_generated": false
+  },
+  {
+    "question": "The extension registers itself with specific call points (line 26-37). If Core later adds new call points and expects all extensions to handle them, could MEVCapture's lack of implementation cause unexpected behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_de00cf61-c4f0-4cb1-be09-6c5f8460b30d",
+    "timestamp": "2025-12-02 06:41:15.484048",
+    "report_generated": false
+  },
+  {
+    "question": "In beforeUpdatePosition() (line 101), accumulatePoolFees() is called without checking if the position update is a mint, burn, or modification. Could this cause different behavior than intended for different position operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9bf58b2a-1d32-4936-988b-7682b13deb5a",
+    "timestamp": "2025-12-02 06:41:30.260466",
+    "report_generated": false
+  },
+  {
+    "question": "The beforeInitializePool() function (line 68) checks onlyCore but the other hooks don't explicitly show this modifier. If onlyCore is missing from some hooks, could external callers invoke these hooks directly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65a1162b-9ad8-4632-8f3a-2607fdba74c6",
+    "timestamp": "2025-12-02 06:41:46.353147",
+    "report_generated": false
+  },
+  {
+    "question": "In getCallPoints() (line 60), the function is marked 'internal pure'. If a derived contract overrides this and returns different call points, could this create a mismatch between registered and actual hook behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d139cc66-4112-4f8e-b2f3-8390dbf75db9",
+    "timestamp": "2025-12-02 06:42:03.878995",
+    "report_generated": false
+  },
+  {
+    "question": "The constructor (line 46) doesn't emit any events. If MEVCapture deployment needs to be tracked off-chain for security monitoring, could the lack of deployment events make it difficult to detect malicious extensions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f6e2685-31e7-4691-af0f-bb3aca4d5b74",
+    "timestamp": "2025-12-02 06:42:23.541904",
+    "report_generated": false
+  },
+  {
+    "question": "In beforeInitializePool() (lines 69-75), the revert for zero fees happens after checking stableswap. Could an attacker waste gas by attempting to initialize invalid pools, or could this ordering hide the true reason for revert in some cases?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0cddd3ce-5e2f-4496-b34a-ade268e69baa",
+    "timestamp": "2025-12-02 06:42:44.765351",
+    "report_generated": false
+  },
+  {
+    "question": "In getPoolState() (lines 49-51), the assembly uses 'sload(poolId)' directly. If poolId is computed from a hash that collides with Core's storage slots or other extension storage, could this read incorrect data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afae5877-fecc-4d61-9dee-4c09d432101f",
+    "timestamp": "2025-12-02 06:43:07.751863",
+    "report_generated": false
+  },
+  {
+    "question": "The setPoolState() assembly (lines 55-57) writes to storage without any checks on the state value. Could an attacker pass a crafted MEVCapturePoolState that, when unpacked, creates invalid timestamps or ticks that break assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5ad0f80-061c-400b-a306-48ff7a062a68",
+    "timestamp": "2025-12-02 06:43:31.451571",
+    "report_generated": false
+  },
+  {
+    "question": "In loadCoreState() (lines 168-174), the assembly extracts fees using 'sub(fees0, gt(fees0, 0))'. This subtracts 1 if non-zero. If this is meant to compensate for Core's storage format, could a mismatch in understanding cause systematic fee loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b7f928ac-217c-42ea-ae49-5296c1b83bed",
+    "timestamp": "2025-12-02 06:43:55.922989",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly in accumulatePoolFees() (lines 112-123) uses mcopy without verifying source and destination don't overlap. If poolKey in memory overlaps with the constructed calldata, could mcopy corrupt the call?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cfc57106-10e5-405e-b94f-59ae4c854ed2",
+    "timestamp": "2025-12-02 06:44:21.973977",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205() (lines 130-134), assembly is used to extract poolKey and poolId from calldata. If the calldata layout doesn't match expectations (e.g., due to ABI encoding changes), could this extract garbage values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0ecd8d07-07a0-49a9-8d8b-b8112667ee31",
+    "timestamp": "2025-12-02 06:44:50.112732",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly in loadCoreState() (line 172-173) uses 'shr(128, shl(128, v1))' to extract the lower 128 bits. Could this bit manipulation introduce vulnerabilities if v1 contains unexpected bit patterns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2fcd226a-f2d6-488c-abdd-7fcf6f4488ba",
+    "timestamp": "2025-12-02 06:45:18.518768",
+    "report_generated": false
+  },
+  {
+    "question": "In getPoolState() (line 50), 'memory-safe' annotation is used. If the assembly modifies memory outside the designated region or if subsequent solidity code assumes clean memory, could this cause corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f43e6667-5139-41bf-a2b1-5d068c80b445",
+    "timestamp": "2025-12-02 06:45:48.399877",
+    "report_generated": false
+  },
+  {
+    "question": "The accumulatePoolFees() assembly (line 114) stores function selector 0xf83d08ba. If this selector is wrong or if Core's lock function signature changes, could the call fail silently or invoke the wrong function?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c5275015-aa24-4fee-b0a6-7ff29a4727f5",
+    "timestamp": "2025-12-02 06:46:19.285433",
+    "report_generated": false
+  },
+  {
+    "question": "In setPoolState() (line 56), the assembly writes state directly to poolId slot. If MEVCapturePoolState packing has a bug and doesn't fit in 32 bytes, could this write overflow into adjacent storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d874b8a9-8f54-48b5-bc42-27dfb09a915b",
+    "timestamp": "2025-12-02 06:46:51.916830",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly in loadCoreState() (lines 169-173) performs arithmetic on loaded storage values. If these values are attacker-controlled through another vulnerability, could the arithmetic produce exploitable results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f0a2cdc-2bc0-4d70-80ad-0097c2060232",
+    "timestamp": "2025-12-02 06:47:24.090453",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205() (line 133), 'calldataload(132)' assumes poolId is at byte offset 132. If the calling convention changes or if extra data is prepended, could this load incorrect poolId values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4a5a7f2c-8408-40f1-8bd2-aa96e2fb57aa",
+    "timestamp": "2025-12-02 06:47:56.218501",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly in accumulatePoolFees() (line 119) checks 'iszero(call(...))' to detect failure. If the call succeeds but returns false in return data, could this be misinterpreted as success when it should be failure?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8a6fa869-62e8-4c82-b451-50d36c6d87dd",
+    "timestamp": "2025-12-02 06:48:28.581615",
+    "report_generated": false
+  },
+  {
+    "question": "In loadCoreState() (line 166), 'PoolState.wrap(v0).tick()' extracts the tick from loaded storage. If Core's PoolState encoding changes, could this extract the wrong bits, causing incorrect tick values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3398a860-7db9-40c3-b29c-39a21d1df66f",
+    "timestamp": "2025-12-02 06:49:00.113723",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly in getPoolState() uses the naked poolId as a storage slot. Could two different pools with colliding poolId values (e.g., if PoolId is not properly unique) cause state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5260489b-9868-4c29-abb4-9c6deafc9092",
+    "timestamp": "2025-12-02 06:49:32.060347",
+    "report_generated": false
+  },
+  {
+    "question": "In setPoolState() (line 56), there's no validation that the provided state has valid values. Could an internal bug or compromised code path call this with invalid state that persists to storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29fcab5e-6049-4220-ac38-697a91b4cbbf",
+    "timestamp": "2025-12-02 06:50:03.636072",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 213), the tick distance is multiplied by 2^64 before division. If the absolute tick distance is close to 2^192, could this multiplication overflow before the division, causing incorrect fee multiplier?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7581aa9c-bb9e-42a5-994a-f52f96b87bf4",
+    "timestamp": "2025-12-02 06:50:34.607583",
+    "report_generated": false
   }
 ]
