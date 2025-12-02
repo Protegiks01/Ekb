@@ -6898,5 +6898,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f962647b-8799-4e21-a903-36758b6e7a6f",
     "timestamp": "2025-12-02 01:04:32.207157",
     "report_generated": false
+  },
+  {
+    "question": "The storage layout assumes drop state is at `dropId`, and bitmaps start at `dropId + 1`. Could two different drops with IDs differing by 1 have their bitmap storage overlap, where one drop's bitmap[0] is at the same slot as another drop's state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3cf21b0b-5d6d-49d1-b48c-3759aacae98d",
+    "timestamp": "2025-12-02 01:05:50.688695",
+    "report_generated": false
+  },
+  {
+    "question": "In `getClaimedBitmap()` at line 50, bitmap storage starts at `dropId + 1 + word`. Given that `word` can be any uint256, could extremely large `word` values cause the slot to wrap around and collide with the drop state slot at `dropId`, corrupting funded/claimed amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3ae528ca-4ef1-404a-a2f6-2071657af14d",
+    "timestamp": "2025-12-02 01:06:04.343397",
+    "report_generated": false
+  },
+  {
+    "question": "In `IncentivesDataFetcher.sol:getClaimInfo()` at lines 101-105, it calls both `isClaimed()` and `isAvailable()`. Could these two calls read inconsistent state if a claim occurs between the two `staticcall`s, returning `{isClaimed: false, isAvailable: false}` when the claim is actually in progress?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2b8c9865-fbc1-4588-b35d-d7baa7bbd820",
+    "timestamp": "2025-12-02 01:06:17.991685",
+    "report_generated": false
+  },
+  {
+    "question": "The `getDropState()` function at lines 30-33 reads storage directly without validating the `DropKey` is registered. Could an attacker query state for a never-funded drop (all zeros), and would `getRemaining()` return 0 or wrap to type(uint128).max due to 0 - 0 in unchecked math?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f58e83f3-f8cd-4f05-a52a-1308b6f2b85b",
+    "timestamp": "2025-12-02 01:06:32.293553",
+    "report_generated": false
+  },
+  {
+    "question": "In `isAvailable()` at lines 72-81, it checks two conditions: not claimed AND sufficient funds. Could an attacker exploit a race where they query `isAvailable()`, get `true`, but by the time they submit their claim transaction, another claim has occurred, causing their transaction to revert but still consume gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5704ecfa-2e15-4785-9098-3c344ecca31d",
+    "timestamp": "2025-12-02 01:06:47.820119",
+    "report_generated": false
+  },
+  {
+    "question": "The `getRemaining()` function at lines 87-90 returns the result of an unchecked subtraction. Could downstream contracts using this value for authorization (e.g., 'can this user claim X?') be exploited if the subtraction wraps, showing type(uint128).max available when the drop is actually overspent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f1468751-0d1c-4c40-ac0d-4fd605168cfc",
+    "timestamp": "2025-12-02 01:07:04.725452",
+    "report_generated": false
+  },
+  {
+    "question": "In `isClaimed()` at lines 60-64, it's a `view` function that assumes storage is consistent. If an external contract calls this during a `Incentives.sol:claim()` transaction (before bitmap update), could the stale `false` return value be used in authorization logic to approve a conflicting claim?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4d8ef32c-4cf0-4d1c-9095-80ed40a0ed6a",
+    "timestamp": "2025-12-02 01:07:22.599381",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:claim()`, the token transfer at line 116 uses `SafeTransferLib.safeTransfer()`. If the token has a callback hook that reenters `Incentives.sol:fund()` with the same `DropKey`, could this increase `funded` while the claim is in progress, allowing the claim to succeed even if original funds were insufficient?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f96d83f-17b1-4f2f-9dbc-036c5008a712",
+    "timestamp": "2025-12-02 01:07:42.718260",
+    "report_generated": false
+  },
+  {
+    "question": "Given that `IncentivesLib` functions are all `view`, could an attacker deploy a malicious token that performs state-changing operations during a `staticcall` to `isClaimed()`, corrupting the bitmap or drop state, then use the incorrect return value to bypass claim checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f79f0312-6a56-4718-9105-5c2b35873217",
+    "timestamp": "2025-12-02 01:08:04.355366",
+    "report_generated": false
+  },
+  {
+    "question": "In `IncentivesDataFetcher.sol`, functions like `getDropInfos()` at lines 87-95 read storage in a loop without reentrancy protection. Could an attacker exploit this by having a malicious token in `Incentives.sol:claim()` that reenters the data fetcher during transfer, reading stale state that shows funds still available?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73f8900d-543e-4cbe-8734-5e06af7229be",
+    "timestamp": "2025-12-02 01:08:27.073515",
+    "report_generated": false
+  },
+  {
+    "question": "The `Incentives` contract inherits `Multicallable` from Solady. Could an attacker use `multicall` to batch multiple `claim()` calls with the same `DropKey` and `index`, exploiting the gap between reading `isClaimed()` and updating the bitmap to claim the same index multiple times in one transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19db2f94-3abc-47e6-a713-5c93d5405cca",
+    "timestamp": "2025-12-02 01:08:51.363075",
+    "report_generated": false
+  },
+  {
+    "question": "In `DropState.setClaimed()` at `dropState.sol:42-46`, the mask is `0xffffffffffffffffffffffffffffffff00000000000000000000000000000000`. If this mask is incorrect (off by one bit), could it zero out part of the `funded` field, causing loss of funds in `Incentives.sol:refund()`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e5180a8f-4eb5-4252-bb4c-3dc22d70728f",
+    "timestamp": "2025-12-02 01:09:16.728739",
+    "report_generated": false
+  },
+  {
+    "question": "The `DropState.setFunded()` function at `dropState.sol:32-36` uses `or(and(state, 0xffffffffffffffffffffffffffffffff), shl(128, amount))`. If `amount > type(uint128).max` due to an overflow elsewhere, could the shift corrupt the lower bits meant for `claimed`, causing `getRemaining()` to return incorrect values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18ded6b1-3369-445b-8947-8c379ab08e92",
+    "timestamp": "2025-12-02 01:09:43.643819",
+    "report_generated": false
+  },
+  {
+    "question": "In `DropState.claimed()` at `dropState.sol:22-26`, it uses `and(state, 0xffffffffffffffffffffffffffffffff)` to mask lower 128 bits. Could an attacker exploit the fact that this mask is hardcoded, and if a storage layout changes in an upgrade, the mask could extract the wrong bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_139b8f42-64f8-4184-916f-614551f3aa80",
+    "timestamp": "2025-12-02 01:10:12.351577",
+    "report_generated": false
+  },
+  {
+    "question": "The `DropState.funded()` function at `dropState.sol:13-17` uses `shr(128, state)` to extract the upper 128 bits. If the storage slot was written by a different contract with different packing assumptions, could this extract garbage data, causing `getRemaining()` to underflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d34b175d-a8aa-4dd1-b6a6-d51c4ea2323e",
+    "timestamp": "2025-12-02 01:10:41.760337",
+    "report_generated": false
+  },
+  {
+    "question": "In `Bitmap.wrap()` at `bitmap.sol:14`, it wraps uint256. If `getClaimedBitmap()` at line 52 receives a storage value that's been corrupted (e.g., by storage collision), could the wrapped Bitmap still pass to `isSet()` but return incorrect results due to invalid underlying bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2499f89e-f789-48c3-a5ac-2d68795b5d08",
+    "timestamp": "2025-12-02 01:11:10.562310",
+    "report_generated": false
+  },
+  {
+    "question": "In `DropState.wrap()` at `dropState.sol:8`, the type wraps a bytes32. Could incorrect usage where a non-bytes32 value is wrapped (e.g., a uint256 cast) cause storage corruption where `funded()` and `claimed()` extract incorrect bit ranges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c56a6bb1-7a83-47cc-aab7-e78eaa58bd0a",
+    "timestamp": "2025-12-02 01:11:39.073165",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:claim()` at line 116, it transfers tokens AFTER updating state. However, if the token is malicious and reenters `claim()` via a callback, could the attacker exploit the fact that `isClaimed()` now returns true, but force the transfer to fail, keeping the bit set while not receiving tokens, griefing that claim index?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dc7e89bb-00bd-4a0f-8841-7a5e0266fbdf",
+    "timestamp": "2025-12-02 01:12:05.685467",
+    "report_generated": false
+  },
+  {
+    "question": "The `isAvailable()` function at lines 72-81 checks `getRemaining() >= amount` but doesn't validate the claim hasn't been made. Could an attacker call this to get `true`, then claim, then use the stale `true` result to claim again in a multicall before the bitmap updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f397d43a-1166-4446-9f18-1e003c7995eb",
+    "timestamp": "2025-12-02 01:12:33.049324",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:refund()` at lines 45-71, it sets funded to claimed amount, then transfers. Could an attacker call `refund()` during a claim (if reentrancy is possible), causing `getRemaining()` to return 0 mid-claim, but the claim still completes, allowing over-withdrawal?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_818c7b43-c9eb-4d35-abca-8aea6e60fece",
+    "timestamp": "2025-12-02 01:12:58.980500",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:fund()` at lines 20-42, funded amount is updated before token transfer. If the token transfer fails or is a malicious token that doesn't revert but returns false, could `getDropState()` show inflated funded amounts, allowing claims that drain the contract beyond actual token balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_386cb021-55ac-4e75-98cd-0472d69827c5",
+    "timestamp": "2025-12-02 01:13:23.266215",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:claim()` at lines 74-117, the claim process: (1) reads bitmap via `IncentivesLib`, (2) validates proof, (3) updates drop state, (4) updates bitmap. Could an attacker exploit the ordering to front-run a legitimate claim, seeing the unset bitmap, and submit their own claim with a forged proof before the bitmap update?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd9958ad-ff80-4d71-acc5-1ce154c8aa3f",
+    "timestamp": "2025-12-02 01:13:48.622045",
+    "report_generated": false
+  },
+  {
+    "question": "In `IncentivesLib`, all functions accept an `IIncentives` parameter without validating it's a legitimate Incentives contract. Could a malicious frontend pass a fake `IIncentives` address to `IncentivesDataFetcher.sol` view functions, returning false claim statuses to trick users into attempting invalid claims and wasting gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a1f7d64b-e06f-4a30-9975-52b32e416bc9",
+    "timestamp": "2025-12-02 01:14:12.935297",
+    "report_generated": false
+  },
+  {
+    "question": "The `ExposedStorageLib.sload()` function at line 14 reverts with `revert(0, 0)` on staticcall failure, providing no error information. Could this silent failure mask storage read errors in `getClaimedBitmap()`, causing `isClaimed()` to incorrectly return false and allow double-claims?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14fb8371-ca64-4fd0-9047-83482d44cb71",
+    "timestamp": "2025-12-02 01:14:41.674369",
+    "report_generated": false
+  },
+  {
+    "question": "In `getDropState()` at line 32, it calls `incentives.sload(dropId)` which uses assembly to read storage. Could an attacker deploy a malicious contract implementing `IIncentives` with a fake `sload()` that always returns unclaimed bitmaps, allowing them to drain incentives by repeatedly claiming the same indices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f393c33-57e9-4d91-95bd-a029285650d0",
+    "timestamp": "2025-12-02 01:15:07.297359",
+    "report_generated": false
   }
 ]
