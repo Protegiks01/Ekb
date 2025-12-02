@@ -11848,5 +11848,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_86ca529b-9c74-4ac9-aa2e-b9c84676b276",
     "timestamp": "2025-12-02 07:01:59.321295",
     "report_generated": false
+  },
+  {
+    "question": "The accumulatePoolFees() assembly (lines 115-116) copies 96 bytes for poolKey. If PoolKey struct size changes in future versions, could this copy incomplete or excessive data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_551a9ac6-3f8a-41e2-811c-b22a6ab39282",
+    "timestamp": "2025-12-02 07:03:15.792262",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 254-256), if both saveDelta0 and saveDelta1 are zero but updateSavedBalances() still executes, could repeated calls with zero deltas gradually corrupt storage through unnecessary writes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_38014202-ecfb-4aa2-ace7-27dd225eb146",
+    "timestamp": "2025-12-02 07:03:29.200955",
+    "report_generated": false
+  },
+  {
+    "question": "The beforeUpdatePosition() hook (line 101) calls accumulatePoolFees() for every position update. If a pool has many small positions being updated frequently, could the cumulative gas cost make the pool economically unusable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b9fa330b-a497-44b2-80a0-ee3c563d88c7",
+    "timestamp": "2025-12-02 07:03:43.303253",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205() (line 153), the state is updated even if fees are zero. Could this allow an attacker to reset lastUpdateTime without accumulating fees, manipulating when subsequent swaps trigger fee accumulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14ad7107-0115-476f-9edb-bc6824a457cb",
+    "timestamp": "2025-12-02 07:03:57.535917",
+    "report_generated": false
+  },
+  {
+    "question": "In the storage slot calculation `or(shl(32, token), index)` used throughout Oracle.sol (lines 110, 141, 182, 222, 270, 281, 343), could a malicious token address with specific bit patterns cause storage slot collisions with other tokens' snapshot arrays or with the Counts storage at slot `token`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_334b9950-a6fe-4a13-8439-0de81ffb620a",
+    "timestamp": "2025-12-02 07:04:12.787446",
+    "report_generated": false
+  },
+  {
+    "question": "In `_emitSnapshotEvent()` (lines 65-73), the assembly block uses `mstore(0, shl(96, token))` and `mstore(20, snapshot)` to emit an event. Could a malicious token address with non-zero bits in positions 0-95 corrupt the event data, and could this be exploited to manipulate off-chain indexers that depend on oracle data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8b82d71d-5262-4ce9-9d71-e03eb7cda540",
+    "timestamp": "2025-12-02 07:04:31.584971",
+    "report_generated": false
+  },
+  {
+    "question": "In `maybeInsertSnapshot()` (lines 98-100), the Counts value is loaded directly via `sload(token)`. Could a token address that equals a storage slot used by Core.sol or other extensions cause the function to read corrupted Counts data, leading to incorrect snapshot indexing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1530cc70-342b-40a1-b2bb-0ea1b4614bd8",
+    "timestamp": "2025-12-02 07:04:50.011067",
+    "report_generated": false
+  },
+  {
+    "question": "The storage slot formula `shl(32, token)` shifts the token address left by 32 bits. For tokens with addresses above `type(uint224).max`, could this shifting cause truncation or unexpected slot calculations that collide with other storage regions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66011727-63a4-40aa-975c-66d88dd69708",
+    "timestamp": "2025-12-02 07:05:10.247174",
+    "report_generated": false
+  },
+  {
+    "question": "In `expandCapacity()` (lines 221-224), slots are initialized with value `1` via `sstore(or(shl(32, token), i), 1)`. Could an attacker exploit the fact that uninitialized slots (value 0) are distinguishable from initialized slots to manipulate the binary search in `searchRangeForPrevious()` by forcing it to read timestamps from uninitialized memory?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67917175-2e79-4368-ad28-73b260f1d6cc",
+    "timestamp": "2025-12-02 07:05:31.519718",
+    "report_generated": false
+  },
+  {
+    "question": "The Counts struct packing in `createCounts()` uses bit shifts: `index | (count << 32) | (capacity << 64) | (lastTimestamp << 96)`. If any of these uint32 values are not properly masked before shifting, could upper bits pollute adjacent fields, causing index/count/capacity/lastTimestamp corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_342f628b-d0b1-4fe6-8b25-51feb9bcf252",
+    "timestamp": "2025-12-02 07:05:54.241609",
+    "report_generated": false
+  },
+  {
+    "question": "In Snapshot creation (src/types/snapshot.sol:26-39), the packing uses `shl(192, and(_tickCumulative, 0xFFFFFFFFFFFFFFFF))`. Could a negative `tickCumulative` value with sign bit set in the upper 192 bits cause incorrect unpacking when `tickCumulative()` uses `signextend(7, shr(192, snapshot))`, potentially corrupting TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3d753fd4-6769-4b4a-8bcb-7d651be26dcf",
+    "timestamp": "2025-12-02 07:06:17.965944",
+    "report_generated": false
+  },
+  {
+    "question": "The `getPoolKey()` function (lines 76-82) constructs PoolConfig via `config := shl(96, address())` in assembly. Could this result in a PoolConfig with uninitialized fee/tickSpacing fields if `address()` returns the Oracle contract address with non-zero bits in the lower 96 bits, bypassing the validation in `beforeInitializePool()`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a2559946-ba45-40ed-8c27-50dcdf55119e",
+    "timestamp": "2025-12-02 07:06:43.561568",
+    "report_generated": false
+  },
+  {
+    "question": "In storage reads like `sload(or(shl(32, token), index))`, if the EVM doesn't clean the upper bits of `index` before the `or` operation, could a malicious contract that sets `index` to a value with upper bits set cause reads from incorrect storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_feb10910-f3cd-4914-92d6-53a3352bcbd5",
+    "timestamp": "2025-12-02 07:07:09.367702",
+    "report_generated": false
+  },
+  {
+    "question": "The protocol documentation mentions it doesn't clean upper bits. In `logicalIndexToStorageIndex()` (lines 46-51), if `index`, `count`, or `logicalIndex` have dirty upper bits, could the modulo operation `(index + 1 + logicalIndex) % count` produce an incorrect storage index, causing snapshot reads/writes to wrong locations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f981f2d-0345-418f-a60a-0f1967b398a3",
+    "timestamp": "2025-12-02 07:07:36.909372",
+    "report_generated": false
+  },
+  {
+    "question": "In `logicalIndexToStorageIndex()` (line 49), the formula `(index + 1 + logicalIndex) % count` is used without checking if `count == 0`. If `maybeInsertSnapshot()` is called before pool initialization (when count could theoretically be 0), would this cause a division by zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4ec3850c-5059-4952-8d6e-3ff0b94cb917",
+    "timestamp": "2025-12-02 07:08:04.744926",
+    "report_generated": false
+  },
+  {
+    "question": "The circular array logic assumes `index < count` (line 47 comment). In `maybeInsertSnapshot()` (lines 131-136), after incrementing count, the new index is calculated as `(index + 1) % count`. Could a race condition between multiple transactions calling swap/updatePosition cause `index >= count` temporarily, breaking the invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0360991d-b732-4477-9b59-ea8d4f38b212",
+    "timestamp": "2025-12-02 07:08:34.142662",
+    "report_generated": false
+  },
+  {
+    "question": "In `searchRangeForPrevious()` (line 267), `logicalIndexToStorageIndex()` is called with `mid` that could equal `logicalMaxExclusive - 1`. If `logicalMaxExclusive` equals `c.count()`, and count was just incremented in another transaction, could `mid >= count` cause an out-of-bounds array access?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5cca8b46-1709-47d0-a17b-3feb4bfb66ca",
+    "timestamp": "2025-12-02 07:09:04.656179",
+    "report_generated": false
+  },
+  {
+    "question": "The function `logicalIndexToStorageIndex()` wraps indices using modulo. If an attacker manipulates the capacity via `expandCapacity()` to be larger than count, then rapidly fills the array, could the wrapping logic cause newer snapshots to overwrite snapshots that `searchRangeForPrevious()` is currently reading, leading to timestamp inconsistencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d542ed78-f5c6-44ea-90f4-993924564480",
+    "timestamp": "2025-12-02 07:09:35.203053",
+    "report_generated": false
+  },
+  {
+    "question": "In `maybeInsertSnapshot()` (line 135), `index = (index + 1) % count` is calculated AFTER potentially incrementing count. If count increased from N to N+1, and old index was N-1, the new index becomes (N-1+1) % (N+1) = N % (N+1) = N. Is this guaranteed to never equal an index currently being read by a concurrent `findPreviousSnapshot()` call?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f19544e0-5e3c-4f19-a217-c9f40512ea49",
+    "timestamp": "2025-12-02 07:10:07.295741",
+    "report_generated": false
+  },
+  {
+    "question": "The circular array allows overwriting old snapshots when `index == count - 1` and `capacity > count`. In `maybeInsertSnapshot()` (lines 131-134), if `incrementCount` is false (array is full), old snapshots are overwritten. Could an attacker who controls swap timing force overwriting of snapshots that external TWAP consumers are actively using, causing their calculations to revert with `NoPreviousSnapshotExists`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb6accaa-dae7-4fb0-a248-7d46f5ae0acc",
+    "timestamp": "2025-12-02 07:10:41.105666",
+    "report_generated": false
+  },
+  {
+    "question": "In `getExtrapolatedSnapshotsForSortedTimestamps()` (lines 397-398), `indexFirst` and `indexLast` are computed once at the start. If snapshots are inserted during the loop (lines 402-418) via concurrent transactions, could the logical indices become stale, causing `searchRangeForPrevious()` to read incorrect snapshots or revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17ed159c-310c-4b68-9ecb-3409b4d7e2cc",
+    "timestamp": "2025-12-02 07:11:12.426463",
+    "report_generated": false
+  },
+  {
+    "question": "The circular array capacity can be expanded via `expandCapacity()` but never reduced. If capacity is expanded to a very large value (e.g., uint32.max), could subsequent snapshot insertions cause gas exhaustion when `maybeInsertSnapshot()` tries to update the array, effectively DoSing the oracle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7bdb769b-3ec0-4ed7-8aad-f1c7ddbf290f",
+    "timestamp": "2025-12-02 07:11:44.350043",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeInitializePool()` (lines 170-175), the initial Counts is created with `_count: 1` and `_capacity: max(1, c.capacity())`. If `expandCapacity()` was called before initialization to set capacity to a large value, could this cause the first snapshot to be written at a high storage slot, wasting gas and potentially hitting storage slot limits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d35048d-10d9-45b6-8552-9a34c2f3b1bd",
+    "timestamp": "2025-12-02 07:12:16.678901",
+    "report_generated": false
+  },
+  {
+    "question": "The function `searchRangeForPrevious()` uses binary search with `mid = (left + right + 1) >> 1`. For very large arrays (capacity near uint32.max), could `left + right + 1` overflow uint256 and wrap around, causing the binary search to enter an infinite loop or access wrong indices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_60c17b4b-a28c-4076-997b-7e6fc379ac3b",
+    "timestamp": "2025-12-02 07:12:47.764191",
+    "report_generated": false
+  },
+  {
+    "question": "In `maybeInsertSnapshot()` (line 102), `uint32 timePassed = uint32(block.timestamp) - c.lastTimestamp()` is calculated in an unchecked block. If block.timestamp overflows uint32 (year 2106), could this subtraction underflow and cause `timePassed` to be a large value, massively inflating `secondsPerLiquidityCumulative` and corrupting TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19793e31-3644-4a9d-968b-fadcb8bfc066",
+    "timestamp": "2025-12-02 07:13:19.709627",
+    "report_generated": false
   }
 ]
