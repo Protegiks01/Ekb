@@ -12148,5 +12148,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bdfe1d57-13e0-49a3-b521-a2547439d720",
     "timestamp": "2025-12-02 08:14:48.815517",
     "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hook functions (lines 42-82), they all revert with CallPointNotImplemented(). If Core's maybeCall functions don't properly handle reverts from unimplemented hooks, could this cause pool operations to fail unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_620aa506-bc2d-4bb6-8af1-395527009237",
+    "timestamp": "2025-12-02 08:16:37.135925",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol, the bit encoding is: bit 0=beforeInitializePool, bit 7=afterInitializePool. If Core's ExtensionCallPointsLib checks bits in a different order, could there be a mismatch where extensions think they registered for one hook but Core calls a different one?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d1be546-f42c-4bb2-9c89-9c620085939c",
+    "timestamp": "2025-12-02 08:16:50.472234",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol addressToCallPoints() (line 54), the shift is (uint160(a) >> 152). For addresses close to address(0), could the CallPoints byte be predictably zero, allowing attackers to deploy extensions at low addresses that never get hook calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9a2cbf94-8eda-465a-88d6-fe748e1d635e",
+    "timestamp": "2025-12-02 08:17:06.578448",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.getCallPoints() (line 39), this must be implemented by derived contracts. If a derived contract returns CallPoints with afterInitializePool=true but beforeInitializePool=false, and the pool calls the after hook first, could this violate initialization invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d3f18a9e-2d55-4805-89fb-b3ffbeb8bdc0",
+    "timestamp": "2025-12-02 08:17:22.976814",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol byteToCallPoints() (line 60-68), bit masks are checked against single bits. If an extension address has multiple bits set in the CallPoints byte due to address collision, could this enable unintended hooks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3af5d6c1-fecb-486c-b514-8d68adec3269",
+    "timestamp": "2025-12-02 08:17:39.870005",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol isValid() (line 24-26), it only checks that at least one hook is enabled. Should there be additional validation that 'after' hooks require corresponding 'before' hooks (e.g., afterSwap requires beforeSwap)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ee78482-81be-4990-ba00-958dc8fa3c3e",
+    "timestamp": "2025-12-02 08:17:58.633770",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol eq() (line 17-22), the comparison checks boolean equality for each field. If a malicious extension manipulates memory to create CallPoints with non-standard boolean values, could eq() return incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e02e9da-bcbb-4600-95c5-322951696b8a",
+    "timestamp": "2025-12-02 08:18:19.440464",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol toUint8() (line 29-51), the assembly converts CallPoints to a uint8 using manual bit shifting. If the CallPoints struct fields are non-zero values other than true/false (e.g., 0x02), could this produce incorrect bit encodings?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a380582f-181b-498d-b035-4a873752b502",
+    "timestamp": "2025-12-02 08:18:41.457801",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol byteToCallPoints() (line 57-69), the bit order doesn't match struct field order (line 58). If BaseExtension.getCallPoints() returns fields in a different order than the address encoding expects, could this cause silent CallPoints mismatches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7620786f-0b46-4258-9769-c2b602fcd9b7",
+    "timestamp": "2025-12-02 08:19:03.915474",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol addressToCallPoints() (line 53-55), the function extracts CallPoints from bits 152-159 of the address. Can an attacker generate an address with specific bit patterns that create CallPoints mismatches between what's in the address and what getCallPoints() returns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a6fbd15-048c-47ae-ba78-2fe0f889403b",
+    "timestamp": "2025-12-02 08:19:28.736925",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, if getCallPoints() is implemented with assembly that doesn't properly initialize the CallPoints struct memory, could uninitialized memory lead to Core validating against incorrect CallPoints values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7122084a-1251-44c6-b02a-4c2748c54ca3",
+    "timestamp": "2025-12-02 08:19:54.192696",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol (line 25-27), if an attacker front-runs pool initialization by deploying an extension at a predictable address with manipulated CallPoints, can they intercept hook calls before the legitimate extension registers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_07dbb0ed-d02f-4037-ac87-19ada00a05d5",
+    "timestamp": "2025-12-02 08:20:21.299837",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol constructor flow, if a derived contract's constructor reverts after BaseExtension's constructor completes but before the full deployment finishes, is the extension left registered in Core without a valid contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cdc13dfc-3f34-4cf0-b063-4d405c9bf1de",
+    "timestamp": "2025-12-02 08:20:49.819839",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, between constructor execution and first pool initialization, can the extension's storage be corrupted via direct calls to its public functions before Core's onlyCore modifier takes effect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0cfabef5-6831-4bbb-977e-4a2c1262f643",
+    "timestamp": "2025-12-02 08:21:19.409528",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol (line 26), if getCallPoints() returns a CallPoints struct with all booleans false (invalid per CallPoints.isValid()), should registration fail? Can a malicious extension bypass this validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02c631e8-6525-400b-a9df-e0c8aa700131",
+    "timestamp": "2025-12-02 08:21:49.755254",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol constructor (line 25), the CORE immutable from UsesCore is set before registration. If CORE is address(0) or an EOA, does registerExtension() fail safely, or could it succeed with invalid state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4e4b2c0-0297-421e-b9ff-591d35d9d2f3",
+    "timestamp": "2025-12-02 08:22:22.499262",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol (line 32-34), if _registerInConstructor() is overridden to depend on constructor arguments that could be manipulated, can an attacker craft deployment parameters that cause registration to skip while appearing valid?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_33049cd4-5d4e-4b3c-862b-ea087554bb96",
+    "timestamp": "2025-12-02 08:22:54.735612",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol constructor, if Core.registerExtension() is gas-intensive and fails due to block gas limit, does this prevent extension deployment entirely, or could it create extensions that appear valid but aren't registered?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12ecc40f-ce89-47d5-867f-7f175c02c874",
+    "timestamp": "2025-12-02 08:23:28.384942",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, if getCallPoints() performs complex calculations or external calls that fail, does the constructor revert properly, or could partial registration leave the extension in an invalid state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c40d93b-99b1-4f5c-a716-cb1136065317",
+    "timestamp": "2025-12-02 08:24:02.026231",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol (line 26), the registration happens in the constructor before any derived contract initialization. If a derived extension relies on constructor parameters to determine CallPoints, could there be a race condition where pools initialize before the extension is fully configured?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c09e45ff-3f1a-4823-a152-9c324d6d6281",
+    "timestamp": "2025-12-02 08:24:35.456562",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol constructor (line 25-27), if the Core contract's registerExtension() function doesn't properly validate the msg.sender matches the expected address encoding, could an extension register with CallPoints that don't match its address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8d7fe87-a927-4166-a1a6-d60f7be8efc7",
+    "timestamp": "2025-12-02 08:25:07.005103",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, if _registerInConstructor() returns false, the extension never registers. Can an attacker deploy a pool with this unregistered extension address, then have the extension register later with different CallPoints than what the pool expects?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00ba2792-d019-4a86-9d93-7b7594917970",
+    "timestamp": "2025-12-02 08:25:38.447119",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol (line 26), what prevents a malicious extension from calling Core.registerExtension() multiple times with different CallPoints configurations before the first registration completes, potentially corrupting the isExtensionRegistered storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1ad83669-53d6-4bbc-8124-8ea6e97fd9de",
+    "timestamp": "2025-12-02 08:26:10.238096",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol constructor chain, UsesCore stores the Core address before BaseExtension's constructor runs. If the Core address is invalid or malicious, could this cause registerExtension() to succeed without proper validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ab8aa3d-344a-4da0-bfe5-3411f44014ca",
+    "timestamp": "2025-12-02 08:26:42.837685",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol (line 25), the constructor calls getCallPoints() which is marked as internal virtual. If a derived contract implements this with external calls or state reads, could reentrancy during construction lead to double registration or corrupted state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_99ca99ff-8855-4a9c-b4a7-bc335c3bf60b",
+    "timestamp": "2025-12-02 08:27:18.856761",
+    "report_generated": false
   }
 ]
