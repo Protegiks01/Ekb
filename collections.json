@@ -8998,5 +8998,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c80cca1-cb76-4bd1-a041-e16f29dfab7d",
     "timestamp": "2025-12-02 03:23:03.774489",
     "report_generated": false
+  },
+  {
+    "question": "In lock() (line 163), 'call(gas(), caller(), 0, free, add(calldatasize(), 32), 0, 0)' forwards all gas - can a malicious caller consume excessive gas in the callback to prevent proper cleanup of transient storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f125925f-d1fe-4ae8-a9af-48cc2df42f61",
+    "timestamp": "2025-12-02 03:24:26.016740",
+    "report_generated": false
+  },
+  {
+    "question": "In lock() (lines 184-185), 'returndatacopy(free, 0, returndatasize())' copies return data to memory - can an attacker return an extremely large amount of data to cause memory expansion DOS or out-of-gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63c2b9a0-6821-45d6-abb0-7286b0170183",
+    "timestamp": "2025-12-02 03:24:39.116504",
+    "report_generated": false
+  },
+  {
+    "question": "The lock() function allows nested locks by reading and restoring the previous locker state (lines 148, 172) - can an attacker exploit nested lock depth to overflow the implicit call stack and corrupt transient storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab57f39e-a170-4626-bc16-23dbc1efc535",
+    "timestamp": "2025-12-02 03:24:53.082036",
+    "report_generated": false
+  },
+  {
+    "question": "In lock() (line 157-158), the function selector is set to 0 and the ID is passed as the first argument - can an attacker exploit this calling convention to bypass access control in the callback function?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d1137b32-8fa1-4c2b-a1e1-eb4e75cff5c3",
+    "timestamp": "2025-12-02 03:25:07.088702",
+    "report_generated": false
+  },
+  {
+    "question": "The lock() function doesn't validate that 'caller()' has code - can an attacker call lock() from an EOA and exploit the callback to an address without code to bypass settlement checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73aeb84a-2753-4ebf-8cbe-2bd3c3f58ee6",
+    "timestamp": "2025-12-02 03:25:22.001898",
+    "report_generated": false
+  },
+  {
+    "question": "_getLocker() (lines 39-49) only checks 'iszero(locker)' to detect unlocked state - can an attacker set the locker to a non-zero but invalid value through storage corruption to bypass the NotLocked check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7338ef31-45df-4f8c-a7d7-d4f1edf7f108",
+    "timestamp": "2025-12-02 03:25:38.587538",
+    "report_generated": false
+  },
+  {
+    "question": "_requireLocker() (lines 54-57) checks 'locker.addr() != msg.sender' - can an attacker exploit the Locker type parsing in locker.addr() where 'shr(96, shl(96, locker))' cleans upper bits to spoof the locker address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_97366beb-9939-476c-b38a-ddf48c1cb904",
+    "timestamp": "2025-12-02 03:25:55.907318",
+    "report_generated": false
+  },
+  {
+    "question": "The Locker type stores both ID and address in a single bytes32 (id in upper 96 bits, address in lower 160 bits) - can storage corruption or bit manipulation cause the ID and address to become desynchronized?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_53ba093a-394b-4bc1-bbb4-5866cdc50ecd",
+    "timestamp": "2025-12-02 03:26:15.812466",
+    "report_generated": false
+  },
+  {
+    "question": "In _getLocker(), the function reverts with a custom error 'NotLocked()' using inline assembly (lines 44-46) - can an attacker exploit the manual error encoding to bypass error handling in calling contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1d66932a-8818-403e-b4a3-db4a0bf6bc6e",
+    "timestamp": "2025-12-02 03:26:36.976393",
+    "report_generated": false
+  },
+  {
+    "question": "In _accountDebt() (lines 67-84), the comment states 'We assume debtChange cannot exceed a 128 bits value' (line 60) - what happens if a malicious inheriting contract passes a debtChange > type(int128).max, causing silent overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca613ef3-ae7f-4c24-86fe-14f4a5c19f6b",
+    "timestamp": "2025-12-02 03:26:59.396947",
+    "report_generated": false
+  },
+  {
+    "question": "_accountDebt() calculates 'let next := add(current, debtChange)' (line 73) without checking for overflow - can an attacker exploit this to wrap the debt from a large positive value to a large negative value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5f436eff-35c1-429c-ad87-27b47c19d100",
+    "timestamp": "2025-12-02 03:27:24.104061",
+    "report_generated": false
+  },
+  {
+    "question": "In _accountDebt() (line 75), 'let countChange := sub(iszero(current), iszero(next))' relies on boolean arithmetic - can edge cases where current=0 and next wraps to 0 cause incorrect non-zero debt count updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5788b92-a0b3-4bf6-ab14-20ec78edad6d",
+    "timestamp": "2025-12-02 03:27:48.982087",
+    "report_generated": false
+  },
+  {
+    "question": "_accountDebt() stores debt at 'deltaSlot := add(_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET, add(shl(160, id), token))' (line 69) - can an attacker cause storage slot collisions by manipulating the id or token values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b8e7119-de8f-4623-a5cc-4361a3c835fb",
+    "timestamp": "2025-12-02 03:28:15.828480",
+    "report_generated": false
+  },
+  {
+    "question": "The non-zero debt count is updated at 'tstore(nzdCountSlot, add(tload(nzdCountSlot), countChange))' (line 79) - can an attacker cause the count to overflow or underflow through repeated debt transitions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9ae2754-a905-4f4c-89b5-6f57020d395c",
+    "timestamp": "2025-12-02 03:28:42.661885",
+    "report_generated": false
+  },
+  {
+    "question": "In _accountDebt(), the function uses transient storage (tload/tstore) - can an attacker exploit the fact that transient storage is cleared at transaction end to bypass debt tracking across transaction boundaries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2097002f-a31a-4f54-9b5f-b9450e82d265",
+    "timestamp": "2025-12-02 03:29:11.601737",
+    "report_generated": false
+  },
+  {
+    "question": "In _updatePairDebt() (lines 96-129), debt changes for both tokens are processed independently - can an attacker exploit the ordering to cause race conditions if the same token appears as both tokenA and tokenB?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_692cdd1b-2ae8-4748-905c-5f5cb702d49c",
+    "timestamp": "2025-12-02 03:29:41.593017",
+    "report_generated": false
+  },
+  {
+    "question": "_updatePairDebt() only loads the nzdCountSlot once (lines 125-126) - can an attacker exploit reentrancy during token transfer callbacks to corrupt the count update by having nested _updatePairDebt calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23fccbe2-b487-4002-822e-263d4b70eace",
+    "timestamp": "2025-12-02 03:30:12.368202",
+    "report_generated": false
+  },
+  {
+    "question": "In _updatePairDebt() (line 108), 'nzdCountChange := sub(iszero(currentA), iszero(nextA))' is calculated, then at line 118 'nzdCountChange := add(nzdCountChange, sub(iszero(currentB), iszero(nextB)))' - can these additions overflow if both tokens transition states?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3ccb711a-895d-4b39-b73d-16f62402496b",
+    "timestamp": "2025-12-02 03:30:42.631839",
+    "report_generated": false
+  },
+  {
+    "question": "_updatePairDebt() checks 'if debtChangeA' and 'if debtChangeB' (lines 103, 113) - can an attacker pass zero debt changes to skip updates while still affecting the non-zero count through other means?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b7336e07-a26d-40fe-977a-7fe1d5861c28",
+    "timestamp": "2025-12-02 03:31:14.197906",
+    "report_generated": false
+  },
+  {
+    "question": "The function computes debt slots independently (lines 104, 114) - can an attacker pass identical tokenA and tokenB addresses to cause double-updates to the same slot with unpredictable results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a80d542-5ded-447f-8965-fdebf3b898fb",
+    "timestamp": "2025-12-02 03:31:46.931502",
+    "report_generated": false
+  },
+  {
+    "question": "In updateDebt() (lines 132-143), the function validates 'msg.data.length != 20' (line 133) - can an attacker bypass this check by appending extra data or using delegatecall to pass arbitrary calldata?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a36bd6ee-a6f0-40d9-a41d-568dec82f79c",
+    "timestamp": "2025-12-02 03:32:19.229132",
+    "report_generated": false
+  },
+  {
+    "question": "updateDebt() extracts the delta as 'signextend(15, shr(128, calldataload(4)))' (line 140) - can an attacker exploit the bit shifting to pass values outside the expected int128 range?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_328fc7d3-a23f-4a2b-bd4a-d4de545a1133",
+    "timestamp": "2025-12-02 03:32:53.596774",
+    "report_generated": false
+  },
+  {
+    "question": "updateDebt() uses msg.sender as the token address (line 142) - can a malicious token contract call updateDebt repeatedly within a single transaction to manipulate debt accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4509875f-b1d0-4679-9c47-110902b5baa8",
+    "timestamp": "2025-12-02 03:33:27.981495",
+    "report_generated": false
+  },
+  {
+    "question": "The function calls '_accountDebt(id, msg.sender, delta)' (line 142) - can an attacker exploit this to drain protocol funds by calling updateDebt with negative deltas from a malicious token contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2abc590-3258-4a04-a9f7-7b73133b4830",
+    "timestamp": "2025-12-02 03:34:03.563145",
+    "report_generated": false
+  },
+  {
+    "question": "updateDebt() doesn't verify that msg.sender is actually a token contract - can an attacker call this from an EOA or non-token contract to corrupt debt state for arbitrary addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8c3a7d5e-4c77-48e2-bea6-0b037090b52e",
+    "timestamp": "2025-12-02 03:34:38.330616",
+    "report_generated": false
   }
 ]
