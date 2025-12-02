@@ -15142,5 +15142,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a983a27c-576c-4fbe-8a70-2eb246a0ebf5",
     "timestamp": "2025-12-02 11:18:50.649342",
     "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 149), `tickToSqrtRatio()` may revert with `InvalidTick()` if the tick is outside `[-MAX_TICK_MAGNITUDE, MAX_TICK_MAGNITUDE]`. However, `getAverageTick()` (line 108) clamps ticks to `[MIN_TICK, MAX_TICK]` which are different constants. Could this mismatch cause reverts for valid ticks returned by `getAverageTick()`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aa65c74f-03f6-40cb-85ab-b232979c48f8",
+    "timestamp": "2025-12-02 11:20:09.820948",
+    "report_generated": false
+  },
+  {
+    "question": "At line 151 in `getQuote()`, the squared sqrt ratio represents the price as a 128-bit fixed-point number. If this value is very close to zero (for extremely low-priced tokens), could the final multiplication at line 153 result in rounding down to zero for non-negligible `baseAmount` values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a9b8694-05d8-4a62-8820-769b8278e994",
+    "timestamp": "2025-12-02 11:20:23.247904",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (lines 149-151), the conversion chain is tick → sqrtRatio → sqrtRatio^2. Each step involves rounding. Could the accumulated rounding errors across these conversions cause the final price to deviate significantly from the true tick-implied price, especially for ticks with fractional components?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c0838cd2-1e6c-4fb1-a322-9e3348ed96e4",
+    "timestamp": "2025-12-02 11:20:36.731805",
+    "report_generated": false
+  },
+  {
+    "question": "The `getQuote()` function (line 153) uses `fullMulDivN()` which performs `(baseAmount * ratio) >> 128`. If `ratio` is represented as a 128-bit fixed-point with 128 fractional bits, and `baseAmount` is already in base units (e.g., wei), could the shift assume a different unit convention, causing off-by-orders-of-magnitude price quotes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0110fd4e-30c3-4da2-94ce-422a58a95a02",
+    "timestamp": "2025-12-02 11:20:51.025736",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 153), if `baseAmount` is `type(uint256).max`, and `ratio` is greater than 1 (representing a quote token more valuable than base), could the multiplication `baseAmount * ratio` overflow even with full precision arithmetic, causing `fullMulDivN()` to return an incorrect wrapped value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ec1f466-95a1-44da-ae79-efadf2253090",
+    "timestamp": "2025-12-02 11:21:07.287078",
+    "report_generated": false
+  },
+  {
+    "question": "At line 101 in `getAverageTick()`, if `TWAP_DURATION` is exactly `type(uint32).max` (around 136 years), and the tick cumulative difference is also near maximum `int64` range, could the division cause unexpected overflow or underflow when casting the result to `int32`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fbb4d16d-3bfb-437a-9ced-d9ce85e278da",
+    "timestamp": "2025-12-02 11:21:23.632278",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (line 108), the cross-pair tick is clamped to `MIN_TICK` and `MAX_TICK`. If the actual calculated value is far outside these bounds, the clamping effectively lies about the price. Could dependent protocols relying on these clamped prices make incorrect decisions, such as liquidating positions at wrong prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_45ac579b-ca05-47d6-b439-7c3e2c2a3614",
+    "timestamp": "2025-12-02 11:21:40.830673",
+    "report_generated": false
+  },
+  {
+    "question": "The `getQuote()` function (line 143) checks if normalized addresses are equal and returns `baseAmount` unchanged. Could this shortcut produce incorrect results if the normalization function has a bug that maps distinct tokens to the same address, causing all such pairs to be priced at 1:1 regardless of actual market rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_27039d0f-025c-4dac-8fd3-df3eb93a8db3",
+    "timestamp": "2025-12-02 11:21:59.813616",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (line 94), if both `baseToken` and `quoteToken` are set to `NATIVE_TOKEN_ADDRESS`, the condition `baseIsOracleToken || quoteToken == NATIVE_TOKEN_ADDRESS` at line 94 would be true, entering the direct pair logic. Would this cause `otherToken` to be set to `NATIVE_TOKEN_ADDRESS`, leading to self-referential Oracle queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ee00f10-d652-4a9a-8d54-fc577069d240",
+    "timestamp": "2025-12-02 11:22:21.720591",
+    "report_generated": false
+  },
+  {
+    "question": "At line 101 in `getAverageTick()`, when `TWAP_DURATION` is very large and the tick has moved significantly, could `(tickCumulativeEnd - tickCumulativeStart)` result in a value whose division by `TWAP_DURATION` rounds down to zero, causing the function to return a tick of 0 even when prices have changed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9cc3fc64-72c4-46fd-bec8-fdfb34103257",
+    "timestamp": "2025-12-02 11:22:44.447930",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (lines 138-154), if `base` and `quote` parameters are passed as address(0) (which maps to `NATIVE_TOKEN_ADDRESS` after normalization for ETH), would the function correctly handle ETH-to-ETH pricing by returning `baseAmount` unchanged, or could it incorrectly attempt to query the Oracle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91a12edb-35ce-4696-957d-037d0b92581d",
+    "timestamp": "2025-12-02 11:23:08.162474",
+    "report_generated": false
+  },
+  {
+    "question": "The `getQuote()` function (line 149) calls `tickToSqrtRatio()` which assumes the tick is within valid bounds. If `getAverageTick()` has a bug that returns ticks outside `[-MAX_TICK_MAGNITUDE, MAX_TICK_MAGNITUDE]`, would `tickToSqrtRatio()` revert, causing all price queries to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e53fd6e4-b12b-481e-9905-c464fa3e2042",
+    "timestamp": "2025-12-02 11:23:32.522935",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (line 106), if `quoteTick` is `MAX_TICK` and `baseTick` is `MIN_TICK`, the subtraction would overflow the `int256` range before clamping. Could this cause the `FixedPointMathLib.max()` function at line 108 to receive an overflowed value, producing incorrect clamping results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5214f55f-90f7-4235-95b3-92d119d33140",
+    "timestamp": "2025-12-02 11:23:59.252581",
+    "report_generated": false
+  },
+  {
+    "question": "At line 153 in `getQuote()`, if `baseAmount` is 1 and `ratio` represents a very small price (token worth much less than base), could the result of `fullMulDivN(1, ratio, 128)` round down to zero, making it appear that any amount of the base token is worth zero quote tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1cccac72-0ead-472d-8be9-49460cc292ea",
+    "timestamp": "2025-12-02 11:24:27.665168",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 151), `fullMulDivN(sqrtRatio, sqrtRatio, 128)` computes the ratio with 128-bit fixed-point precision. For tokens with extreme price ratios (e.g., 1:10^18), could the limited precision cause significant rounding errors that compound across multiple price conversions in dependent protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_05308edd-f707-4ddf-8fdc-05153407144f",
+    "timestamp": "2025-12-02 11:24:56.914124",
+    "report_generated": false
+  },
+  {
+    "question": "At line 101 in `getAverageTick()`, the TWAP calculation uses integer division without rounding. Could this systematically bias the average tick downward, causing prices to be consistently underestimated? Over many queries, could attackers exploit this bias to extract value from protocols relying on these prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ac24ac0-4330-4047-aa56-8beb666a9212",
+    "timestamp": "2025-12-02 11:25:27.574666",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 153), the final calculation shifts right by 128 bits. For `baseAmount` values less than 2^128, could significant quote amount be lost in the lower bits, causing prices to be incorrectly quantized and enabling dust attacks where tiny amounts are priced at zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a060919-a9e2-412a-a682-d835d4b35e72",
+    "timestamp": "2025-12-02 11:25:59.162609",
+    "report_generated": false
+  },
+  {
+    "question": "The `getQuote()` function (lines 149-153) performs multiple fixed-point operations with right shifts. If each operation rounds down (towards zero), could the cumulative rounding cause the final `quoteAmount` to be consistently lower than the true value, allowing attackers to exploit the underpricing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9106cca-b1df-450f-8bca-88ef951aff2b",
+    "timestamp": "2025-12-02 11:26:32.000571",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (line 108), clamping to `MIN_TICK` and `MAX_TICK` uses `FixedPointMathLib.min()` and `max()`. If the unclamped value is just barely outside the bounds, could the discretization error from clamping cause significant price deviations for tokens at extreme price ratios?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7d080156-1ca0-490b-b161-fed5ec9c25e9",
+    "timestamp": "2025-12-02 11:27:04.946951",
+    "report_generated": false
+  },
+  {
+    "question": "At line 151 in `getQuote()`, squaring the sqrt ratio involves a `fullMulDivN()` operation. Could this introduce asymmetric rounding errors where prices calculated in one direction (base → quote) differ from the inverse direction (quote → base), creating arbitrage opportunities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca747951-287a-46c7-88a9-50741a47457e",
+    "timestamp": "2025-12-02 11:27:38.775172",
+    "report_generated": false
+  },
+  {
+    "question": "The `getQuote()` function (lines 138-154) relies entirely on the Oracle extension for price data. If the Oracle extension has a critical vulnerability (e.g., snapshot manipulation, incorrect extrapolation), would this contract inherit all those vulnerabilities, making it unsafe for use in production protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47c92ba7-1fca-41a6-a41d-bcfbf888b105",
+    "timestamp": "2025-12-02 11:28:12.891408",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 147), `getAverageTick()` is called which ultimately queries the Oracle extension. If the Oracle extension is paused or becomes non-functional due to a critical bug, would all price queries through this contract fail, potentially breaking dependent protocols that don't have fallback oracles?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_97dacc44-ffa0-4cbe-a18d-8a7bbce541a4",
+    "timestamp": "2025-12-02 11:28:48.110392",
+    "report_generated": false
+  },
+  {
+    "question": "The contract relies on `FixedPointMathLib` from Solady (line 4). If Solady's `fullMulDivN()` implementation has a bug in edge cases (e.g., when intermediate values approach 512-bit limits), could this cause incorrect price calculations that propagate to all users of this oracle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b9e3fac9-4175-41e5-bc80-53e483b22fd2",
+    "timestamp": "2025-12-02 11:29:20.505331",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 149), `tickToSqrtRatio()` is imported from `src/math/ticks.sol`. That function uses assembly with the `clz` opcode (line 118 in ticks.sol) which is experimental in Solidity 0.8.31. Could compiler bugs in `clz` cause incorrect sqrt ratio calculations, leading to arbitrarily wrong prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a1ace5f6-461d-4c0c-ae3a-ebfd09daf293",
+    "timestamp": "2025-12-02 11:29:53.061327",
+    "report_generated": false
+  },
+  {
+    "question": "The contract uses `MIN_TICK` and `MAX_TICK` constants from `src/math/constants.sol`. In constants.sol, `MIN_TICK = -88722835` and `MAX_TICK = 88722835`, but in ticks.sol, `MAX_TICK_MAGNITUDE` is used for validation. Could a mismatch between these constants cause reverts when valid ticks are passed to `tickToSqrtRatio()`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_98f5b392-61ba-4fd3-92d5-cc42d79e884e",
+    "timestamp": "2025-12-02 11:30:24.088475",
+    "report_generated": false
   }
 ]
