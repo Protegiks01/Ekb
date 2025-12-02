@@ -8098,5 +8098,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6059738-7a34-4a29-8c48-ea8585db07e1",
     "timestamp": "2025-12-02 02:16:30.642952",
     "report_generated": false
+  },
+  {
+    "question": "If `mint()` (lines 109-117) is called by a contract during its constructor, msg.sender is the contract being constructed. However, gas consumption during construction is different than after deployment. Could this cause the auto-generated salt to be different than expected, breaking assumptions about deterministic ID generation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f6fd371-5bf9-439e-ab30-ac40b213820c",
+    "timestamp": "2025-12-02 02:17:48.390105",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint(bytes32 salt)` function (line 125) calls `_mint(msg.sender, id)`. If msg.sender is a contract that implements onERC721Received but returns the wrong selector, Solady's ERC721 will revert. Could an attacker deliberately deploy malformed receiver contracts and then grief themselves, potentially triggering cleanup code in child contracts that wasn't meant to handle failed mints?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_43d39f0d-ae53-4a5d-8efd-65317831c7ec",
+    "timestamp": "2025-12-02 02:18:01.414704",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.mintAndDeposit (line 167), `mint()` is called first, then `deposit()`. If the mint succeeds but deposit fails (e.g., due to slippage), the NFT remains minted but has no associated position. Could an attacker repeatedly cause such failures, accumulating many empty NFTs that bloat the owner's NFT balance and potentially cause gas issues when iterating over owned tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73b919ab-76dc-46b9-b1b8-733b0f0e1f28",
+    "timestamp": "2025-12-02 02:18:14.953721",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint()` function (line 116) forwards the call to `mint(salt)`, which then calls `_mint(msg.sender, id)`. If there's a reentrancy opportunity at any point in this chain, could an attacker re-enter and mint multiple NFTs before the first mint completes, potentially front-running their own transaction to claim multiple IDs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9d8ceeff-a7da-4d26-88d0-fd3255219475",
+    "timestamp": "2025-12-02 02:18:29.674526",
+    "report_generated": false
+  },
+  {
+    "question": "Since both `mint()` functions are payable and can be called during a multicall, if a user sends msg.value once but the multicall includes multiple mint operations, only the first operation sees the msg.value (and ignores it). Could this cause user confusion about whether they paid for mints, or could it be exploited to make users think minting requires payment when it doesn't?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_751779d2-af06-45d0-82f9-c38f7c8a498c",
+    "timestamp": "2025-12-02 02:18:45.192450",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint(bytes32 salt)` function (line 124) directly uses msg.sender as the minter. If BaseNonfungibleToken is used as a base for multiple contracts, and they have different access control requirements, could a user mint NFTs in one contract (e.g., Orders) and then try to use them in another (e.g., Positions), causing confusion or enabling unauthorized operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19054919-975a-43fb-825d-d74572936c40",
+    "timestamp": "2025-12-02 02:19:01.792624",
+    "report_generated": false
+  },
+  {
+    "question": "In the auto-salt assembly (lines 111-115), if the compiler optimization level changes how gas() is calculated (e.g., due to a compiler bug or change), could this break the determinism of salt generation across different deployments or upgrades, making previously valid salts generate different IDs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1511d33a-03c3-4a22-a59e-f8236e58c3c5",
+    "timestamp": "2025-12-02 02:19:19.586091",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint()` function (line 109) is marked as returning `uint256 id` but includes msg.value in its signature. If a user creates a custom caller contract that tries to extract value based on the returned ID, assuming it represents something about the payment, could this cause logic errors in the caller that result in loss of funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a16c8e7-d606-4d63-b7c7-765843d41b68",
+    "timestamp": "2025-12-02 02:19:40.510188",
+    "report_generated": false
+  },
+  {
+    "question": "If `mint(bytes32 salt)` is called with salt = bytes32(0), and another user calls `mint()` at a time when the auto-generated salt happens to also be 0, they will attempt to mint the same ID. The second call reverts. Could an attacker deliberately use salt = 0 to grief users of the auto-mint function during periods when prevrandao and gas consumption lead to that specific value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_096da635-a88e-4959-92c9-2e3a34b05386",
+    "timestamp": "2025-12-02 02:20:01.144065",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint()` auto-salt function (lines 111-115) generates entropy from block-level and transaction-level data. If multiple users in the same block all use identical smart contract wallets with identical transaction patterns, they might generate the same salt. Could an MEV searcher front-run all such transactions except the first, griefing the other users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_10096868-73fa-44c3-b0f2-23fa35592783",
+    "timestamp": "2025-12-02 02:20:23.182756",
+    "report_generated": false
+  },
+  {
+    "question": "In `mint(bytes32 salt)` (line 124), the function doesn't check if the caller is authorized or if the salt has been used before (beyond ERC721's duplicate check). Could an attacker spam the network with mint transactions using sequential salts, attempting to reserve large ranges of IDs and prevent legitimate users from using those IDs for positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_da6e16f0-5e3b-4f08-94d5-c9527b69f606",
+    "timestamp": "2025-12-02 02:20:46.540148",
+    "report_generated": false
+  },
+  {
+    "question": "The comment at line 108 states 'No fees are collected; any msg.value sent is ignored.' If child contracts like BasePositions introduce fee logic in their own mint wrappers but forget to prevent msg.value from reaching BaseNonfungibleToken.mint(), could users overpay and lose funds that get stuck in the contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73b505d8-8cda-47c7-828e-64ed1aad1718",
+    "timestamp": "2025-12-02 02:21:11.255029",
+    "report_generated": false
+  },
+  {
+    "question": "If the `mint()` function (lines 109-117) is called during a complex multicall that also includes position operations, and the ERC721 onERC721Received callback is triggered, could this callback perform operations that violate the Flash Accounting Balance invariant by modifying state before the lock is settled?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a6dc1bd-3d6c-4fbd-bd6b-cd913bd1b7e6",
+    "timestamp": "2025-12-02 02:21:37.487280",
+    "report_generated": false
+  },
+  {
+    "question": "The `burn(uint256 id)` function (lines 133-135) only checks authorization via `authorizedForNft(id)` but doesn't verify if the NFT has associated positions or orders with locked funds. In BasePositions, if a user burns an NFT that has an active position with liquidity, they permanently lose access to that liquidity. Could an attacker social-engineer or trick users into burning their NFTs, causing irreversible fund loss and violating the Withdrawal Availability invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_60e49f8d-ef97-4b53-a258-b500f3b63792",
+    "timestamp": "2025-12-02 02:22:05.283104",
+    "report_generated": false
+  },
+  {
+    "question": "In `burn()` (line 134), after calling `_burn(id)`, the same ID can be re-minted by the original minter using the same salt (since `saltToId()` is deterministic). If child contracts like BasePositions or Orders don't clean up state when an NFT is burned, could an attacker burn and re-mint to access stale position/order data, potentially withdrawing funds multiple times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0bdc6e75-1877-4276-b5de-8b6ec7a62afc",
+    "timestamp": "2025-12-02 02:22:32.083919",
+    "report_generated": false
+  },
+  {
+    "question": "The `burn()` function (line 133) uses the `authorizedForNft(id)` modifier, which allows both the owner and approved operators to burn. If a user approves an operator for a specific NFT to perform a limited operation (e.g., collect fees), could that operator maliciously burn the NFT instead, causing the user to lose access to their position and violating the Position Ownership invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4598df08-dd08-4be3-9f6d-4702f23cb3e9",
+    "timestamp": "2025-12-02 02:23:00.295497",
+    "report_generated": false
+  },
+  {
+    "question": "In `burn()` (line 134), the function calls `_burn(id)` from Solady's ERC721. If the token owner is a contract with fallback logic that reverts under certain conditions, could this cause the burn to fail unexpectedly? Alternatively, if the owner contract expects to receive notification of burns but doesn't, could this cause state desync in external systems?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_377d0314-b89d-4b96-b0f9-d17712cdd788",
+    "timestamp": "2025-12-02 02:23:31.388628",
+    "report_generated": false
+  },
+  {
+    "question": "The comment at line 130 states 'The same ID can be recreated by the original minter by reusing the salt.' If BasePositions doesn't properly handle the case where a position's NFT is burned and re-minted, could the new minter claim ownership of the old position's liquidity, allowing theft of funds from the original position creator?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f984e14e-8db8-485a-9ae3-1fc03b9353f3",
+    "timestamp": "2025-12-02 02:24:03.034880",
+    "report_generated": false
+  },
+  {
+    "question": "The `burn()` function (line 133) is payable but, like mint(), ignores msg.value. If called during a lock operation where native token accounting is active, could the ignored msg.value disrupt the Flash Accounting Balance, causing settlement to fail and making positions unwithdrawable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc558e88-68ba-45ff-9cb3-04d8881823e5",
+    "timestamp": "2025-12-02 02:24:35.760890",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions, if a user calls `burn()` on an NFT with an active position, the position data remains in Core.sol but the NFT is gone. Since position operations require the NFT for authorization, the liquidity becomes permanently locked. Could an attacker trick users into burning NFTs (e.g., by claiming it saves gas) to effectively DOS their positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d578a8d7-99d2-4165-954d-43027f3ad251",
+    "timestamp": "2025-12-02 02:25:07.479691",
+    "report_generated": false
+  },
+  {
+    "question": "The `burn()` function (line 134) doesn't emit any custom events beyond the ERC721 Transfer to address(0). If off-chain indexers or child contracts rely on specific burn events to trigger cleanup logic, could missing burns cause stale state in indexers, making it appear that positions still exist when they're actually inaccessible?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_279ac5b2-427f-4a32-bedd-48ade20cda97",
+    "timestamp": "2025-12-02 02:25:40.350777",
+    "report_generated": false
+  },
+  {
+    "question": "If an approved operator burns an NFT (passing the `authorizedForNft` check at line 133), but the actual owner was unaware and had pending transactions to withdraw from the associated position, those transactions will revert because the NFT no longer exists. Could an attacker with temporary approval grief users by burning their NFTs at critical moments?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd51c230-b5be-43f8-9708-1203abbff85d",
+    "timestamp": "2025-12-02 02:26:11.927332",
+    "report_generated": false
+  },
+  {
+    "question": "The `burn()` function (line 133) can be called by anyone authorized for the NFT, including via setApprovalForAll(). If a user grants blanket approval to a marketplace or router for convenience, could that approved address burn all their NFTs, locking all associated positions and causing massive fund loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e0f60c57-e381-4879-8efb-2463dbe90e04",
+    "timestamp": "2025-12-02 02:26:42.033590",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol, if an NFT representing a TWAMM order is burned while the order is still active and selling, the order's proceeds can no longer be collected (collectProceeds requires authorization via the NFT). Could an attacker grief order creators by somehow obtaining approval and burning their NFTs, causing proceeds to be permanently locked in Core.sol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23841b40-440e-4626-937f-17acc9828ee8",
+    "timestamp": "2025-12-02 02:27:13.356244",
+    "report_generated": false
+  },
+  {
+    "question": "The `burn()` function (line 134) calls `_burn(id)`, which modifies the _ownerOf mapping in ERC721. If there's a reentrancy opportunity during the burn (e.g., if the owner is a contract with onERC721Received-like burn hooks), could an attacker re-enter and perform operations with the NFT before it's fully burned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1077c349-f98e-4662-8389-4db33a41f4b5",
+    "timestamp": "2025-12-02 02:27:45.583961",
+    "report_generated": false
   }
 ]
