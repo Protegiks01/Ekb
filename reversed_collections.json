@@ -11398,5 +11398,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13bfa7a7-a93a-48b3-a97f-16b2fa3c0fa5",
     "timestamp": "2025-12-02 06:48:50.238179",
     "report_generated": false
+  },
+  {
+    "question": "The saltToId() function at line 92 in BaseNonfungibleToken includes chainid() in the hash. During a chain split or replay attack scenario, could users on different chains end up with different NFT IDs for the same (minter, salt) pair, leading to loss of position ownership after a reorg?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db8d0fcf-9873-4596-a7f3-51c6f2c50a5a",
+    "timestamp": "2025-12-02 06:50:06.404769",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.burn() at line 133, tokens can be burned and re-minted with the same salt. If a user burns an NFT after depositing liquidity but before fees are collected, could another user mint the same NFT ID and steal the accumulated fees when calling collectFees()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_586c302b-f06c-475a-ab21-0542bbb04e06",
+    "timestamp": "2025-12-02 06:50:19.453126",
+    "report_generated": false
+  },
+  {
+    "question": "Since BaseNonfungibleToken.mint() at line 123 generates deterministic IDs using saltToId(msg.sender, salt), could a malicious user front-run another user's mintAndDeposit() by using the same salt to claim the NFT ID first and then deposit into the same position, stealing liquidity or fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4ad96161-1a60-40b9-b2f8-0fb60ab3b2b6",
+    "timestamp": "2025-12-02 06:50:33.579393",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData() at lines 245 and 286, createPositionId uses bytes24(uint192(id)) which truncates the upper 64 bits of the NFT token ID. Could this lead to two different NFT holders accidentally sharing the same position state in Core storage, allowing one user to drain another's liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ad9be9a6-bf9f-4cab-b998-93916aa53a30",
+    "timestamp": "2025-12-02 06:50:47.679184",
+    "report_generated": false
+  },
+  {
+    "question": "In deposit() at line 79, the PositionId is created using createPositionId() with bytes24(uint192(id)). Could an attacker exploit the fact that only the lower 192 bits of the NFT ID are used as salt, potentially allowing position ID collisions if two different NFT IDs share the same lower 192 bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b72c22b-10c4-4bad-baa5-fd91dcd4931c",
+    "timestamp": "2025-12-02 06:51:02.545478",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks, if PoolConfig.fee() returns a value that should be a percentage (e.g., 100 = 1%) but an extension treats it as basis points (100 = 0.01%), could fee calculations be off by 100x, enabling fee theft or donation attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_45a54f93-8911-4886-b458-250c114b1069",
+    "timestamp": "2025-12-02 06:51:19.649717",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeUpdatePosition() (line 52-54), Locker is bytes32 encoded. If an extension extracts locker address without using proper accessor functions, could it read garbage data as the locker address, bypassing access control?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6fdbd1e8-57e7-4e23-9e41-e4011fa3fde3",
+    "timestamp": "2025-12-02 06:51:37.329601",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks receiving PoolKey memory, the PoolKey contains token0, token1, and PoolConfig. If an extension doesn't validate token0 < token1, could it reverse token accounting, corrupting balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e9b511a-38d6-4602-b381-1e27ea573a55",
+    "timestamp": "2025-12-02 06:51:56.974536",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterCollectFees() (line 80-82), amount0 and amount1 are uint128. If an extension accumulates fees across many collections without checking for uint128 overflow, could fee tracking wrap around, showing lower fees than actually collected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e0a76df5-2a03-45e5-9f13-b43fe06f1fff",
+    "timestamp": "2025-12-02 06:52:17.824631",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterSwap() (line 70-72), PoolState contains tick and sqrtRatio. If an extension assumes these are always consistent (tick = tickFromSqrtRatio(sqrtRatio)), could rounding errors in Core's tick-to-sqrtRatio conversion be exploited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3d01b429-8061-4fd2-8d63-7fd7b5a6ccef",
+    "timestamp": "2025-12-02 06:52:40.517989",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeSwap() (line 65-67), SwapParameters includes sqrtRatioLimit. If an extension compares this to PoolState.sqrtRatio without accounting for tick spacing, could it incorrectly validate or reject valid swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae03975b-af42-4d4f-9ba2-9f9da644167b",
+    "timestamp": "2025-12-02 06:53:04.355404",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterUpdatePosition() (line 57-62), PoolBalanceUpdate is bytes32 packed. If an extension doesn't properly sign-extend delta0 and delta1 when unpacking, could positive values be read as negative (or vice versa), corrupting delta accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7edab4bb-19db-44a0-b91a-e05ce42dbb39",
+    "timestamp": "2025-12-02 06:53:29.268307",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeUpdatePosition() (line 52-54), PositionId is bytes32 encoded. If an extension unpacks tickLower/tickUpper without using the provided accessor functions, could bit manipulation errors cause incorrect tick range validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c6415337-9b89-403c-a75e-a76626430090",
+    "timestamp": "2025-12-02 06:53:54.938504",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterInitializePool() (line 47-49), SqrtRatio is a custom type. If an extension unwraps it incorrectly or treats it as a regular uint256, could precision loss or overflow cause oracle or pricing errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b67d04a9-7dbb-4e36-94b3-14a4e16df1b1",
+    "timestamp": "2025-12-02 06:54:22.334402",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeInitializePool() (line 42-44), the tick parameter is int32. If an extension doesn't validate tick is within MIN_TICK to MAX_TICK range, could out-of-bounds ticks cause arithmetic errors or storage corruption in extension logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7467ae89-b3b5-4557-a31e-0330939719e9",
+    "timestamp": "2025-12-02 06:54:50.374587",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeSwap() (line 65-67), if an extension implements rate limiting by reading from external contracts, could reentrancy through those contracts reset rate limit counters, bypassing limits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_879085d9-22b4-460c-9f58-409f074c744b",
+    "timestamp": "2025-12-02 06:55:20.237928",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks, if an extension implements pausability via external admin contract, could the admin contract be reentered during a pause check to manipulate pause state and bypass emergency stops?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_44bd7143-5dd6-4a15-8c89-505600273be1",
+    "timestamp": "2025-12-02 06:55:51.084834",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterUpdatePosition() (line 57-62), if an extension calls external contracts to notify of liquidity changes, could those contracts reenter through different pools using the same extension, causing cross-pool state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fe5c07ac-e72d-4987-8a3b-24ed9d7f46e8",
+    "timestamp": "2025-12-02 06:56:23.529266",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeCollectFees() (line 75-77), if an extension validates fee collection eligibility by calling external staking contracts, could those contracts reenter to collect fees themselves, creating fee theft opportunities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ebedfd14-a20b-4239-a0c2-f3a630123afb",
+    "timestamp": "2025-12-02 06:56:57.467660",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks, if an extension uses ERC777 tokens for internal accounting (despite being out-of-scope), could token hooks allow reentrancy that core ERC20-based flash accounting doesn't prevent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bac9dc8a-253a-4426-adbc-b951b95d03ee",
+    "timestamp": "2025-12-02 06:57:30.530214",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterSwap() (line 70-72), if an extension emits events that external contracts listen to, could event-triggered reentrancy allow manipulation of swap results before the transaction completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_61ed859e-8123-495d-bde5-54972a75f7c2",
+    "timestamp": "2025-12-02 06:58:01.948301",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeUpdatePosition() (line 52-54), if an extension checks if Locker is a trusted contract, and that contract has a callback mechanism, could the callback reenter to perform unauthorized position updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7b18bde7-2a25-432e-807f-fda033cc1259",
+    "timestamp": "2025-12-02 06:58:39.166331",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks, if an extension uses multicall patterns to batch operations, could reentrancy through multicall allow hook functions to be called in unintended orders, bypassing validation logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_24fe8ac7-9f13-4604-a589-a4abc8251fd3",
+    "timestamp": "2025-12-02 06:59:12.156592",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterInitializePool() (line 47-49), if an extension makes external calls to set up dependencies (e.g., registering with an oracle aggregator), could those calls reenter to initialize the pool again with different parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_403018a9-a8c4-4d0c-8ae8-44aa0c050861",
+    "timestamp": "2025-12-02 06:59:44.237053",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks called during Core.lock() execution, if the extension calls Core.unlock() or manipulates the lock counter, could this bypass flash accounting enforcement at lock exit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc93dade-a112-4cef-a065-6ed7019c0b5b",
+    "timestamp": "2025-12-02 07:00:15.586309",
+    "report_generated": false
   }
 ]
