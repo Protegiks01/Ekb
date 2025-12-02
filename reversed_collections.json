@@ -5998,5 +5998,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf5863f8-8cb3-4082-b9ee-62ef94cd427e",
     "timestamp": "2025-12-01 23:58:32.698071",
     "report_generated": false
+  },
+  {
+    "question": "In roll() (line 117), nextValidTime() is called to compute the end time. Could an attacker exploit the clz opcode bug in computeStepSize() to cause nextValidTime() to return an invalid time, creating orders that can never be executed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_248a15df-0165-4d5a-a427-4b5a9425608b",
+    "timestamp": "2025-12-01 23:59:53.142732",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function writes new state with 'sstore(token, state)' (line 129). Could an attacker exploit the lack of atomic read-modify-write to create a race condition where two concurrent roll() calls corrupt each other's state updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fdb66771-e5a9-47f7-bfe0-b154f42f2214",
+    "timestamp": "2025-12-02 00:00:06.252236",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() (line 114), endTime is calculated as 'uint64(block.timestamp + timeRemaining)'. Could this overflow beyond uint64 max when timeRemaining is very large due to underflow, causing orders to be created with invalid end times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9ea7b60-acea-4f74-9870-d707155a7250",
+    "timestamp": "2025-12-02 00:00:21.284372",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function extends orders if 'timeRemaining >= state.minOrderDuration() && timeRemaining <= state.lastOrderDuration()' (lines 110-111). Could an attacker exploit uint32 underflow in timeRemaining to always satisfy this condition, preventing new order creation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2f861a6-ece5-4c0c-9a6a-ac8e80c68b19",
+    "timestamp": "2025-12-02 00:00:35.626938",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() (line 105), timeRemaining is calculated as 'state.lastEndTime() - uint32(block.timestamp)'. Could block.timestamp manipulation near uint32 overflow cause timeRemaining to underflow, making the protocol think an order has ended when it hasn't?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb7a5b8e-3256-4e8c-9ebb-6d48473a954a",
+    "timestamp": "2025-12-02 00:00:51.045832",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function checks 'state.isConfigured()' (line 97) which relies on minOrderDuration != 0. Could an attacker race-condition attack between configure() and roll() calls to execute roll() on a partially configured token, causing undefined behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0763ac03-1cfd-4749-b690-d58b0eb2c193",
+    "timestamp": "2025-12-02 00:01:07.756407",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.roll() (line 94), the function loads state using 'sload(token)' in assembly. Could an attacker exploit the lack of storage slot validation to read arbitrary storage slots by passing a crafted token address that maps to sensitive contract state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68a14eaa-f492-48b9-b0b1-30b137b3c990",
+    "timestamp": "2025-12-02 00:01:25.010516",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorageLib.sload() for two slots (line 31), the function returns result0 and result1 from memory. Could an attacker exploit the lack of memory clearing between calls to leak sensitive data from previous transactions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6643d4ce-6455-4e5c-b3ee-4a5e306e88e3",
+    "timestamp": "2025-12-02 00:01:45.028590",
+    "report_generated": false
+  },
+  {
+    "question": "The ExposedStorageLib.sload() functions revert with 'revert(0, 0)' on staticcall failure (line 14). Could this hide critical error information that would indicate storage corruption or unexpected contract behavior, making attacks harder to detect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63076072-8486-4e44-8cf7-16e5cce10f0f",
+    "timestamp": "2025-12-02 00:02:07.297740",
+    "report_generated": false
+  },
+  {
+    "question": "In the dual-slot sload() (lines 25-35), the function allocates memory using 'mload(0x40)'. Could an attacker exploit a reentrant call during staticcall to corrupt the free memory pointer, causing subsequent memory operations to overwrite critical data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e1a311bf-f201-4b00-bf20-109e5321f8d9",
+    "timestamp": "2025-12-02 00:02:30.426185",
+    "report_generated": false
+  },
+  {
+    "question": "The ExposedStorageLib.sload() for single slots (line 11) constructs calldata inline. Could an attacker cause buffer overflow by controlling the 'slot' parameter to write beyond the intended 36-byte calldata buffer (4-byte selector + 32-byte slot)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bb522890-9b44-4930-89f5-664366b00231",
+    "timestamp": "2025-12-02 00:02:54.861489",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorageLib.sload() (lines 10-17), the function uses staticcall to read storage from the target contract. Could an attacker exploit this by passing a malicious IRevenueBuybacks implementation that returns crafted BuybacksState values to manipulate downstream logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_794b14f2-d714-45f2-87f9-8154745f3e7f",
+    "timestamp": "2025-12-02 00:03:19.974777",
+    "report_generated": false
+  },
+  {
+    "question": "The isConfigured() function (line 53-54) checks if minOrderDuration != 0. Could an attacker configure a token with minOrderDuration = 0 and targetOrderDuration > 0, bypassing the MinOrderDurationMustBeGreaterThanZero check by directly writing to storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c8eb963-d0ad-4894-8fd4-97c01696236f",
+    "timestamp": "2025-12-02 00:03:46.418127",
+    "report_generated": false
+  },
+  {
+    "question": "In createBuybacksState(), the _lastFee is shifted by 192 bits without masking (line 94). Could passing a _lastFee > type(uint64).max cause bits to overflow into a non-existent field, or does the shift naturally truncate excess bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d75d8c4c-c2f2-4243-822b-4059c0a25d95",
+    "timestamp": "2025-12-02 00:04:14.219734",
+    "report_generated": false
+  },
+  {
+    "question": "The createBuybacksState() function combines fields using 'shl' and 'or' (lines 87-96). Could incorrect shift amounts cause bit field misalignment, where the fee is written to the lastEndTime field, corrupting the entire state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dc903141-8b77-4d29-b02b-aa83e750b463",
+    "timestamp": "2025-12-02 00:04:43.363903",
+    "report_generated": false
+  },
+  {
+    "question": "In createBuybacksState() (line 89), the expression 'and(_targetOrderDuration, 0xFFFFFFFF)' masks the input. Could an attacker pass a value with high bits set that, after masking, becomes 0, bypassing the minOrderDuration > 0 check in RevenueBuybacks.configure()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c5b5cfe5-bc95-4ce0-97cc-b7277ef51ad5",
+    "timestamp": "2025-12-02 00:05:11.850428",
+    "report_generated": false
+  },
+  {
+    "question": "The createBuybacksState() function (lines 86-96) uses 'or' operations to combine fields. Could passing overlapping bit values (e.g., _targetOrderDuration with bits > 32 set) cause field corruption where one field's high bits overwrite another field?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0bba1bc0-4dd3-453d-9c4b-4e945e92faff",
+    "timestamp": "2025-12-02 00:05:42.109770",
+    "report_generated": false
+  },
+  {
+    "question": "In BuybacksState.parse() (lines 68-75), all six fields are extracted in a single assembly block. Could an attacker exploit the lack of bounds checking to extract values that violate the protocol's assumptions about field sizes, such as a fee value exceeding uint64 max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d79ebbe-637e-4480-b6cc-e7d6f1a5b2bc",
+    "timestamp": "2025-12-02 00:06:12.612874",
+    "report_generated": false
+  },
+  {
+    "question": "The lastFee() function (line 47-50) uses 'shr(192, state)' without masking. Could this return garbage data from uninitialized memory if the state was partially written, causing fee mismatch checks in RevenueBuybacks.roll() to always fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9a3be40-3421-41cd-b6a8-09c9eb654e1d",
+    "timestamp": "2025-12-02 00:06:46.359456",
+    "report_generated": false
+  },
+  {
+    "question": "In lastOrderDuration() (lines 41-44), bits 160-191 are extracted. Could the unchecked assembly allow this value to exceed targetOrderDuration, breaking the invariant that lastOrderDuration <= targetOrderDuration and causing incorrect order extension logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_45c9cdfb-02dc-4ea7-a23e-77499dd4e1cd",
+    "timestamp": "2025-12-02 00:07:19.914424",
+    "report_generated": false
+  },
+  {
+    "question": "The lastEndTime() function (lines 35-38) extracts bits 128-159. Could integer overflow in block.timestamp (when cast to uint32) cause lastEndTime to wrap around, making RevenueBuybacks.roll() think an order has ended when it hasn't, leading to premature order creation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e25ecf31-812d-4e2d-95f3-96a24da710bf",
+    "timestamp": "2025-12-02 00:07:53.612883",
+    "report_generated": false
+  },
+  {
+    "question": "In BuybacksState.fee() (line 29-32), the fee is extracted from bits 64-127. Could an attacker manipulate the fee value to be greater than MAX_FEE_TIER by corrupting the state storage, causing TWAMM orders to be created in non-existent or malicious pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d883c97-45a9-4db3-b4f0-8ccbd928f5d6",
+    "timestamp": "2025-12-02 00:08:22.919374",
+    "report_generated": false
+  },
+  {
+    "question": "The minOrderDuration() function (lines 23-26) shifts right by 32 bits before masking. If the BuybacksState was incorrectly constructed with overlapping bit fields, could this return a corrupted minOrderDuration that is greater than targetOrderDuration, bypassing the validation in RevenueBuybacks.configure()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_807acb69-3c6f-4ff2-9817-a43f4ce52ba1",
+    "timestamp": "2025-12-02 00:08:52.469526",
+    "report_generated": false
+  },
+  {
+    "question": "In BuybacksState.targetOrderDuration() (line 18-20), the assembly extracts bits 0-31 using 'and(state, 0xFFFFFFFF)'. Could an attacker cause the state to have dirty upper bits that bypass the mask, resulting in incorrect duration values that break order creation logic in RevenueBuybacks.roll()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc75e4c1-21c8-4783-9a67-47389408f2a9",
+    "timestamp": "2025-12-02 00:09:21.337619",
+    "report_generated": false
+  },
+  {
+    "question": "The dual-token state() function (lines 32-33) performs two separate sload calls via ExposedStorageLib. Could an attacker exploit the non-atomic nature of these reads by having a transaction modify the state between the two reads, causing tokenA and tokenB states to be inconsistent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2599bf94-9836-49e9-91f6-bbd8b9c18614",
+    "timestamp": "2025-12-02 00:09:48.428026",
+    "report_generated": false
   }
 ]
