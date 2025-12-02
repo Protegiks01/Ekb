@@ -12448,5 +12448,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa468050-fb4f-4169-ac56-3eea21b277ab",
     "timestamp": "2025-12-02 08:38:51.001042",
     "report_generated": false
+  },
+  {
+    "question": "In configure() (lines 157-170), state is read and written via assembly. Could reentrancy during a separate function call (via Multicallable batching) cause the state write to overwrite unintended values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a66f5693-e4d1-4a8a-9949-1f12408bd382",
+    "timestamp": "2025-12-02 08:40:05.952149",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function is payable in the base Multicallable. Could an attacker send ETH with the roll() call, and would this ETH be included in the balance check (line 103) or treated separately?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9da96c89-c098-4c35-b52b-82c291f96195",
+    "timestamp": "2025-12-02 08:40:19.487993",
+    "report_generated": false
+  },
+  {
+    "question": "When increaseSellAmount is called (line 134), it locks tokens via the lock pattern. Could an attacker exploit reentrancy during settlement to manipulate the flash accounting deltas and steal tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68925dbc-8780-4898-b981-71e734191dbd",
+    "timestamp": "2025-12-02 08:40:32.902218",
+    "report_generated": false
+  },
+  {
+    "question": "The collect() function sends proceeds to owner() (line 77). If owner is a contract, could its receive function reenter collect() with different parameters, collecting from multiple orders in a single transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_76c06f63-a104-4d81-b5c5-0eb052905e49",
+    "timestamp": "2025-12-02 08:40:46.974138",
+    "report_generated": false
+  },
+  {
+    "question": "In roll(), the state is read at the beginning (line 94) but written at the end (line 129). Could reentrancy during the increaseSellAmount call allow an attacker to modify the state that gets written, causing inconsistency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7281ea77-43fc-4582-8770-8a0102e11889",
+    "timestamp": "2025-12-02 08:41:01.953610",
+    "report_generated": false
+  },
+  {
+    "question": "The takeNative() function (line 67) transfers ETH to msg.sender using safeTransferETH. Could a malicious owner with a fallback function exploit reentrancy to call takeNative() again before the first transfer completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_870e07fd-40d6-498f-8a23-79e4fe6f4c97",
+    "timestamp": "2025-12-02 08:41:18.641971",
+    "report_generated": false
+  },
+  {
+    "question": "When roll() sends ETH via {value: isEth ? amountToSpend : 0} (line 134), could the Orders contract or its fallback/receive function have a reentrancy vulnerability that allows callback into RevenueBuybacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_62fb36f8-724c-4d8b-a98d-eaf52a10bf17",
+    "timestamp": "2025-12-02 08:41:36.579901",
+    "report_generated": false
+  },
+  {
+    "question": "The Multicallable inheritance allows batching multiple calls. Could an attacker batch roll() with collect() or take() in a way that exploits reentrancy across the batch, manipulating state between calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6d45ec4-b2fd-4667-8b0d-6c2025bfdf9d",
+    "timestamp": "2025-12-02 08:41:56.347781",
+    "report_generated": false
+  },
+  {
+    "question": "In take() (line 59), SafeTransferLib.safeTransfer is called to send tokens to msg.sender (owner). Could a malicious owner contract's receive hook exploit reentrancy to call take() multiple times, draining more tokens than intended?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c176e9af-ef7d-495d-b816-0fd36bd0a417",
+    "timestamp": "2025-12-02 08:42:17.589674",
+    "report_generated": false
+  },
+  {
+    "question": "The approveMax() function (line 50) calls SafeTransferLib.safeApproveWithRetry, which may call the token's approve() function. Could a malicious token's approve() implementation reenter RevenueBuybacks and manipulate state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c570f727-175a-4713-9f40-2972b6ca61f4",
+    "timestamp": "2025-12-02 08:42:40.668316",
+    "report_generated": false
+  },
+  {
+    "question": "When collect() is called (line 77), ORDERS.collectProceeds is invoked which uses the lock pattern. Could reentrancy during proceed collection allow an attacker to collect the same proceeds multiple times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e15420b-4184-4946-a912-68930a14e511",
+    "timestamp": "2025-12-02 08:43:04.634003",
+    "report_generated": false
+  },
+  {
+    "question": "The ORDERS.increaseSellAmount call (line 134) is external and may trigger multiple external calls (to Core, TWAMM, etc.). Could reentrancy through these calls allow state manipulation before roll() completes, such as changing the token balance or configuration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6827908-dd96-4d28-939c-4d80ebc986a2",
+    "timestamp": "2025-12-02 08:43:29.407985",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() (line 134), when increaseSellAmount is called, it triggers Orders.lock() which calls back into handleLockData. Could reentrancy during this callback allow an attacker to call roll() again before the first call updates state (line 129)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9d0d1f03-15ff-489a-9b63-a358bdba45ed",
+    "timestamp": "2025-12-02 08:43:56.208232",
+    "report_generated": false
+  },
+  {
+    "question": "The receive() function (line 82) allows the contract to receive ETH. Could an attacker send ETH during a roll() call via a malicious token's transfer hook, causing the balance check (line 103) to include unintended ETH and create larger orders than intended?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd57a5c1-f889-4a56-9f4b-73b4da310747",
+    "timestamp": "2025-12-02 08:44:24.172011",
+    "report_generated": false
+  },
+  {
+    "question": "When multiple tokens are configured, each uses storage at sload(tokenAddress). Could the lack of a proper storage namespace (e.g., keccak256(abi.encode(token, 'buybacks'))) cause unintended collisions with other protocols using similar patterns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0af0921a-e4ac-404c-8004-389bf3a95390",
+    "timestamp": "2025-12-02 08:44:53.440141",
+    "report_generated": false
+  },
+  {
+    "question": "The BuybacksState packing uses specific bit positions (lines 86-97 in buybacksState.sol). Could future Solidity compiler versions change how assembly operations are compiled, breaking the assumed bit layout?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b677a7d2-0297-481a-b95c-3543ed8eb7fa",
+    "timestamp": "2025-12-02 08:45:24.216481",
+    "report_generated": false
+  },
+  {
+    "question": "In _createOrderKey (line 182), assembly mstore operations write to the orderKey memory location. Could incorrect free memory pointer management cause this to overwrite other memory regions used by the caller?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e50aa58-e73f-4091-97cf-979939547c54",
+    "timestamp": "2025-12-02 08:45:56.480641",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly sload/sstore operations (lines 94, 129) don't use 'memory-safe' annotation consistently. Could this allow the compiler to make unsafe assumptions about memory usage, causing storage corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e83c2547-ac6b-489d-aee3-5789d0b4157c",
+    "timestamp": "2025-12-02 08:46:29.574078",
+    "report_generated": false
+  },
+  {
+    "question": "Storage slots for BuybacksState are determined by token address. Could two different tokens on different chains have the same address (e.g., if deployed via CREATE with same nonce), causing configuration intended for one chain to affect another if contract addresses are reused?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d197bfd-33fa-4605-88e2-7ce6d9772c3a",
+    "timestamp": "2025-12-02 08:47:02.735679",
+    "report_generated": false
+  },
+  {
+    "question": "The tload() function in ExposedStorage (lines 25-29) exposes transient storage. Could an attacker use this to detect when roll() is in progress (if transient storage is used internally by Orders/Core) and front-run the order creation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_408c123a-23a6-4614-9927-ceaf871840df",
+    "timestamp": "2025-12-02 08:47:34.741426",
+    "report_generated": false
+  },
+  {
+    "question": "In configure(), multiple assembly blocks read and write storage (lines 157-159, 168-170). Could the Solidity memory allocation between these blocks cause the state variable to be corrupted or read from the wrong location?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c3826779-3bb7-46bc-b0cc-601c32fe6c1e",
+    "timestamp": "2025-12-02 08:48:07.703974",
+    "report_generated": false
+  },
+  {
+    "question": "The storage pattern uses token address directly as key without additional namespacing. Could this collide with storage layouts from future contract upgrades or additional inheritance that uses similar patterns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c126085e-74b3-443d-be52-c62aac723803",
+    "timestamp": "2025-12-02 08:48:40.646731",
+    "report_generated": false
+  },
+  {
+    "question": "When roll() reads state via sload(token) (line 94), could a malicious token contract that implements address == token but behaves differently on repeated calls cause different state values to be read in the same transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c74a9b74-04c0-4ac5-960f-856561fd4173",
+    "timestamp": "2025-12-02 08:49:11.573239",
+    "report_generated": false
+  },
+  {
+    "question": "The BuybacksState type is bytes32, stored at slot keccak256(token). Could the Solidity compiler's storage layout for inherited contracts (Ownable, Multicallable, ExposedStorage) interfere with this custom storage scheme?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a097f295-1b7a-4ba9-8d40-6e74831637f8",
+    "timestamp": "2025-12-02 08:49:45.788188",
+    "report_generated": false
+  },
+  {
+    "question": "In configure(), state is loaded from sload(token) (line 158), modified, then stored back (line 169). Could a race condition between multiple configure() calls cause the last write to overwrite intermediate writes, losing configuration changes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b1c6f119-30ab-4437-bd97-270f04bbe65e",
+    "timestamp": "2025-12-02 08:50:17.002047",
+    "report_generated": false
   }
 ]
