@@ -12898,5 +12898,149 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4938e0bf-47dd-47ec-9bbc-f352e0d20801",
     "timestamp": "2025-12-02 08:20:52.257164",
     "report_generated": false
+  },
+  {
+    "question": "In line 86, `LibBit.rawToUint(!config.isToken1())` computes the offset for reward rate storage slots. Can this offset calculation collide with other storage slots if the pool ID is chosen adversarially, allowing an attacker to read/corrupt unrelated reward rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8f7f38ca-b78a-4e02-a7ae-ad79ea3962e1",
+    "timestamp": "2025-12-02 08:22:06.915520",
+    "report_generated": false
+  },
+  {
+    "question": "In the reward rate loading (lines 87-91), `TWAMMStorageLayout.poolRewardRatesBeforeSlot` is accessed with both `startTime` and `endTime`. Can these storage reads return stale values if virtual orders haven't executed recently, giving users incorrect reward amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e0623013-a562-4fc6-903c-f73c392d5716",
+    "timestamp": "2025-12-02 08:22:21.282026",
+    "report_generated": false
+  },
+  {
+    "question": "In the case where `block.timestamp > config.startTime()` but `< config.endTime()` (line 96), the function computes `rewardRateCurrent - rewardRateStart` (lines 104-106). Can the comment 'note that we check gt because if it's equal to start time, then the reward rate inside is necessarily 0' hide a bug where rewards should be non-zero at exactly startTime?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_267b10e2-4416-4385-9e6a-fe965b7e18ab",
+    "timestamp": "2025-12-02 08:22:34.892046",
+    "report_generated": false
+  },
+  {
+    "question": "In line 102, `TWAMMStorageLayout.poolRewardRatesSlot(poolId).add(offset).load()` loads the current reward rate. Can this load occur before virtual orders have been executed in the current block, returning a stale value and allowing users to withdraw more than they should?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94d34eda-0690-413e-81ae-77f368f67dab",
+    "timestamp": "2025-12-02 08:22:49.363078",
+    "report_generated": false
+  },
+  {
+    "question": "In `locked_6416899205` (line 595), the function is marked `onlyCore` and extracts the pool key from calldata using assembly (lines 597-600). Can the `calldatacopy` operation read beyond calldata bounds if Core passes insufficient data, causing undefined behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a918b6d1-49b0-4d00-bb0b-43dce332f281",
+    "timestamp": "2025-12-02 08:23:04.529920",
+    "report_generated": false
+  },
+  {
+    "question": "In line 599, `calldatacopy(poolKey, 36, 96)` copies 96 bytes starting at offset 36. Does this assume a specific calldata layout from Core? Can changes to Core's calling convention cause this to copy incorrect data and execute virtual orders on the wrong pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e334376e-a415-40a0-9b15-b0422bfa7d8d",
+    "timestamp": "2025-12-02 08:23:21.652394",
+    "report_generated": false
+  },
+  {
+    "question": "In `lockAndExecuteVirtualOrders` (line 605), the function is public and callable by anyone. Can an attacker spam this function on all pools to grief the network, consuming gas to execute virtual orders even when no swaps are pending?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2fe8953d-015d-4a0b-a66d-07e566c1f8f4",
+    "timestamp": "2025-12-02 08:23:39.848006",
+    "report_generated": false
+  },
+  {
+    "question": "In the assembly block (lines 609-619), `mcopy(add(o, 4), poolKey, 96)` copies the pool key into the call data. Can this copy operation overwrite critical memory regions if `mload(0x40)` (the free memory pointer) points to an unexpected location?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_749fd23b-65a0-4fd2-99b1-b4b55d35dc0c",
+    "timestamp": "2025-12-02 08:23:59.894925",
+    "report_generated": false
+  },
+  {
+    "question": "In line 615, the function performs a `call(gas(), target, 0, o, 100, 0, 0)` with 100 bytes of calldata. Is this calculation correct? If the pool key structure changes or additional parameters are added, can this lead to malformed calls that revert or execute incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a58fe9c6-5990-4cba-b069-04169f258c4f",
+    "timestamp": "2025-12-02 08:24:21.089064",
+    "report_generated": false
+  },
+  {
+    "question": "In `afterInitializePool` (line 625), the function checks `!key.config.isFullRange()` and reverts with `FullRangePoolOnly()` (line 630). Can an attacker create a pool with TWAMM extension that's not full range, have it pass initialization, and then exploit the incompatibility to brick the extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_43a3423d-b64a-4b3f-b1a9-b5d1fe5d4a95",
+    "timestamp": "2025-12-02 08:24:44.394563",
+    "report_generated": false
+  },
+  {
+    "question": "In the pool state initialization (lines 634-641), `TwammPoolState` is created with `lastVirtualOrderExecutionTime: uint32(block.timestamp)`. Can this uint32 cast truncate the timestamp if it exceeds 2^32 (year 2106), causing the pool to be initialized with an incorrect execution time?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_41c8b04a-6498-4253-b46a-48e0d9aa6fb0",
+    "timestamp": "2025-12-02 08:25:08.872512",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeSwap`, `beforeUpdatePosition`, and `beforeCollectFees` (lines 647-665), all three call `lockAndExecuteVirtualOrders(poolKey)`. Can this cause virtual orders to be executed multiple times in a single transaction if a user calls multiple operations, consuming excessive gas and changing execution semantics?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_51d80a1a-6bfc-4a4c-ab2a-e64c31e266c4",
+    "timestamp": "2025-12-02 08:25:34.228884",
+    "report_generated": false
+  },
+  {
+    "question": "In `_emitVirtualOrdersExecuted` (line 70), the function assumes `saleRateToken0` and `saleRateToken1` are <= type(uint112).max (line 66 comment). Can these values exceed this bound if sale rates are manipulated through overflow, causing the assembly event encoding to truncate or produce incorrect event data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3d032564-4f51-48d6-984c-2b89a852330e",
+    "timestamp": "2025-12-02 08:28:17.940179",
+    "report_generated": false
+  },
+  {
+    "question": "In the assembly block (lines 71-80), memory is written backwards with `mstore(28, saleRateToken1)` then `mstore(14, saleRateToken0)` then `mstore(0, poolId)`. Can this overlapping write pattern cause the earlier values to be partially overwritten, emitting corrupted event data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_83bf71c3-3fa6-4ce6-972b-7f8d8e0ec28a",
+    "timestamp": "2025-12-02 08:28:45.179478",
+    "report_generated": false
+  },
+  {
+    "question": "In line 79, `log0(0, 60)` emits an anonymous event with 60 bytes. Can off-chain indexers that expect 64-byte aligned events fail to parse this data correctly, causing monitoring systems to miss virtual order executions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9d935d8d-8b01-4ced-9296-6a4a5d0064f7",
+    "timestamp": "2025-12-02 08:29:13.642188",
+    "report_generated": false
+  },
+  {
+    "question": "In `TWAMMStorageLayout.orderStateSlotFollowedByOrderRewardRateSnapshotSlot` (used at lines 216-217), the function computes a storage slot based on `owner`, `salt`, and `orderId` (TWAMMStorageLayout.sol:81-92). Can two different (owner, salt) pairs produce the same storage slot if the keccak256 hash collides, allowing one user to overwrite another's order state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95e34345-7ab0-4de4-967f-22298a462cab",
+    "timestamp": "2025-12-02 08:29:43.065335",
+    "report_generated": false
+  },
+  {
+    "question": "In `TWAMMStorageLayout.twammPoolStateSlot` (used at line 388), the pool ID is directly used as the storage slot (TWAMMStorageLayout.sol:34-36). Can this collide with storage slots used by the Core contract if pool IDs are crafted to overlap with critical Core storage offsets?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3f3eaaa-fa5c-4971-adc3-100985eef25d",
+    "timestamp": "2025-12-02 08:30:12.062129",
+    "report_generated": false
+  },
+  {
+    "question": "In `TWAMMStorageLayout.poolRewardRatesSlot` (used at lines 519, 529, 581, 584), the offset `REWARD_RATES_OFFSET` is added to pool ID (TWAMMStorageLayout.sol:41-45). Can pool IDs near type(uint256).max cause this addition to overflow, wrapping around to overwrite storage at low addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7fc3ccef-1514-4af2-a3ff-55cc0bded1aa",
+    "timestamp": "2025-12-02 08:30:42.421898",
+    "report_generated": false
+  },
+  {
+    "question": "In `TWAMMStorageLayout.poolInitializedTimesBitmapSlot` (used at line 418), the offset `TIME_BITMAPS_OFFSET` is added (TWAMMStorageLayout.sol:50-54). Can the bitmap spanning up to type(uint52).max words collide with `poolTimeInfosSlot` storage that starts at `TIME_INFOS_OFFSET`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8959330a-b0f7-4d48-b3ef-d34a9d8bcf71",
+    "timestamp": "2025-12-02 08:31:14.970809",
+    "report_generated": false
+  },
+  {
+    "question": "In `TWAMMStorageLayout.poolTimeInfosSlot` (used at line 144), the calculation `poolId + TIME_INFOS_OFFSET + time` (TWAMMStorageLayout.sol:60-64) uses the `time` parameter directly. Can extremely large time values cause overflow in this addition, wrapping around to overwrite TWAMM storage at low addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12f426f3-591f-43cd-94f2-29eb917e10f9",
+    "timestamp": "2025-12-02 08:31:47.194131",
+    "report_generated": false
+  },
+  {
+    "question": "In `TWAMMStorageLayout.poolRewardRatesBeforeSlot` (used at lines 88, 91, 547), the calculation uses `poolId + REWARD_RATES_BEFORE_OFFSET + (time * 2)` (TWAMMStorageLayout.sol:70-74). Can the `time * 2` multiplication overflow, or can time values be chosen to collide this storage with other TWAMM or Core storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_af0b4da5-8fd9-42ea-8750-c2c33f069db7",
+    "timestamp": "2025-12-02 08:32:16.161870",
+    "report_generated": false
+  },
+  {
+    "question": "In `OrderState` parsing (line 226, using orderState.sol:26-32), the assembly extracts packed fields: `time := and(state, 0xffffffff)`, `rate := shr(144, shl(112, state))`, `amount := shr(144, state)`. Can the double-shift pattern for `rate` fail to properly isolate the middle 112 bits, causing bit bleeding from adjacent fields?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd185eed-081e-4309-8bb5-6133cf0999b6",
+    "timestamp": "2025-12-02 08:32:42.880029",
+    "report_generated": false
+  },
+  {
+    "question": "In `createOrderState` (used at lines 248-265, defined in orderState.sol:34-41), the assembly packs three values into bytes32. The packing uses `or(and(_lastUpdateTime, 0xffffffff), shl(32, shr(144, shl(144, _saleRate))))`. Can the triple shift pattern for `_saleRate` lose bits or incorrectly position them?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8dd3bc99-f92c-40f4-a7c8-e026e9a35f20",
+    "timestamp": "2025-12-02 08:33:10.168237",
+    "report_generated": false
+  },
+  {
+    "question": "In the `amountSold` field of `OrderState` (orderState.sol:20-24), the extraction uses `amount := shr(144, state)` which right-shifts by 144 bits. Does this correctly extract the top 112 bits, or can the lack of masking cause it to include unintended high-order bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ebb193e-7012-4e26-95fd-306150c42611",
+    "timestamp": "2025-12-02 08:33:39.287291",
+    "report_generated": false
   }
 ]
