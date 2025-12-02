@@ -12298,5 +12298,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_99ca99ff-8855-4a9c-b4a7-bc335c3bf60b",
     "timestamp": "2025-12-02 08:27:18.856761",
     "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol constructor (line 26), if getCallPoints() is implemented to read from mutable storage instead of returning a pure value, can an attacker change the CallPoints after registration to create a mismatch with what Core validated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3189d530-1029-4788-8f7d-53929d30320c",
+    "timestamp": "2025-12-02 08:28:35.111000",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension._registerInConstructor() (line 32-34), a derived contract can override this to return false. If an extension deploys without registering, then manually registers later with different CallPoints, could this create a time window where pools reference an unregistered extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f4c9034-5192-4a29-a72f-ec9af5f2513d",
+    "timestamp": "2025-12-02 08:28:48.500421",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol (line 25), the CORE address from UsesCore is immutable. If a malicious Core contract is passed during deployment, can it bypass the CallPoints validation in registerExtension() and allow arbitrary hook execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_45877f57-1be6-4747-b5a0-c6fbc3506e65",
+    "timestamp": "2025-12-02 08:29:02.112437",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol constructor (line 26), the call to core.registerExtension(getCallPoints()) happens before derived contract constructors execute. Can a malicious derived contract return different CallPoints from getCallPoints() after registration compared to what was registered, bypassing Core's validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7578c848-d4d6-4889-9fab-31d773d7900a",
+    "timestamp": "2025-12-02 08:29:17.508960",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol constructor (line 25-27), if _registerInConstructor() returns true but Core.registerExtension() reverts, does the extension contract remain deployed in an unregistered state that could be used in PoolKey.config.extension without being properly validated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28f5e196-dd6c-455d-8c0e-af9607824c64",
+    "timestamp": "2025-12-02 08:29:32.950436",
+    "report_generated": false
+  },
+  {
+    "question": "The BuybacksState unpacking uses and() operations with masks. Could mask values being incorrect (e.g., 0xFFFFFFFE instead of",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_371e732e-5eee-4db9-9dd6-fb680a524deb",
+    "timestamp": "2025-12-02 08:29:49.669184",
+    "report_generated": false
+  },
+  {
+    "question": "When collect() is called (line 77), could endTime being 0 or very large cause ORDERS.collectProceeds to revert or collect from the wrong order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f24ac067-3e0d-47a9-86a5-e6b6e3b12b74",
+    "timestamp": "2025-12-02 08:30:07.939151",
+    "report_generated": false
+  },
+  {
+    "question": "In _createOrderKey, bool isToken1 = token > BUY_TOKEN (line 180). Could address(0) comparisons or special addresses cause isToken1 to be incorrect, reversing the token order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95576fc1-8dd6-476c-900f-d1f6e98e0737",
+    "timestamp": "2025-12-02 08:30:28.068867",
+    "report_generated": false
+  },
+  {
+    "question": "The lastOrderDuration is uint32 (line 124). Could the calculated duration (endTime - block.timestamp) exceed uint32 max when endTime is uint64, causing truncation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ea2c2c32-5062-4141-ad21-564a36cf2d96",
+    "timestamp": "2025-12-02 08:30:50.362824",
+    "report_generated": false
+  },
+  {
+    "question": "When increaseSellAmount is called with maxSaleRate = type(uint112).max (line 134), could this allow any saleRate to pass, including extremely high rates that execute orders in microseconds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7df7b147-1b7f-4d62-8fc1-26201cb6ed22",
+    "timestamp": "2025-12-02 08:31:14.261656",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() (line 117), block.timestamp + targetOrderDuration - 1 is calculated. Could targetOrderDuration = 0 cause underflow (- 1 wrapping), passing a huge value to nextValidTime()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc2ea194-c6f7-40e4-9ce1-63c8c91c87d4",
+    "timestamp": "2025-12-02 08:31:38.408489",
+    "report_generated": false
+  },
+  {
+    "question": "The fee parameter is uint64 (line 147). Could passing type(uint64).max as fee cause issues in TWAMM pool creation or order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_816abe94-76bd-4079-b615-d4813f02f1e4",
+    "timestamp": "2025-12-02 08:32:03.592458",
+    "report_generated": false
+  },
+  {
+    "question": "When nextValidTime() is called (line 117), it may return 0 on overflow (time.sol line 63). Could this cause endTime to be 0, and would subsequent operations handle 0 endTime correctly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b8c4aa38-3b2f-4075-b238-b8913d3bfbc2",
+    "timestamp": "2025-12-02 08:32:30.925080",
+    "report_generated": false
+  },
+  {
+    "question": "In configure() (line 152), the check minOrderDuration == 0 && targetOrderDuration != 0 reverts. Could setting targetOrderDuration to 0 and minOrderDuration to 1 create a valid but useless configuration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94cc47a4-f491-4786-95f3-662897bec8a1",
+    "timestamp": "2025-12-02 08:32:59.495358",
+    "report_generated": false
+  },
+  {
+    "question": "The minOrderDuration check (line 110) compares uint32 values. Could extreme values near uint32 max cause comparison issues due to underflow in timeRemaining?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22994d66-4061-4088-9c06-791df1714e8f",
+    "timestamp": "2025-12-02 08:33:29.880213",
+    "report_generated": false
+  },
+  {
+    "question": "When roll() sets lastEndTime = uint32(endTime) (line 123), could endTime >= 2^32 cause data loss, and would this lost data break future timeRemaining calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c0d556c3-9155-49e7-863b-4b1ce1eb2236",
+    "timestamp": "2025-12-02 08:34:00.510301",
+    "report_generated": false
+  },
+  {
+    "question": "In createBuybacksState (lines 78-97 in buybacksState.sol), multiple shl operations are performed. Could any of these overflow and wrap around, corrupting the packed state value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3dde4da6-2fb4-4cb3-bc08-83bae77fed69",
+    "timestamp": "2025-12-02 08:34:32.573887",
+    "report_generated": false
+  },
+  {
+    "question": "The saleRate returned from increaseSellAmount (line 134) is uint112. Could very large amounts or very short durations cause the calculated saleRate to overflow uint112, and would the TWAMM or Orders contract handle this?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f24f704-c8f1-48b4-a54a-a5ba1aa938d0",
+    "timestamp": "2025-12-02 08:35:07.190570",
+    "report_generated": false
+  },
+  {
+    "question": "When roll() calculates amountToSpend (line 103), could a token balance exceeding uint128 max cause issues when passed to increaseSellAmount, which expects uint128 amount (line 53 in Orders.sol)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a0d73bbf-26ef-4f83-b80b-49f51342a387",
+    "timestamp": "2025-12-02 08:35:41.049008",
+    "report_generated": false
+  },
+  {
+    "question": "In _createOrderKey (line 187), createOrderConfig is called with uint64 parameters. Could endTime exceeding uint64 max cause truncation, and would TWAMM validate this truncated value correctly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31093de3-e2b2-4a32-991a-50c9da54bf94",
+    "timestamp": "2025-12-02 08:36:13.043293",
+    "report_generated": false
+  },
+  {
+    "question": "The targetOrderDuration is uint32 (line 147). Could passing type(uint32).max cause overflow when added to block.timestamp (line 117: block.timestamp + targetOrderDuration - 1)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_58ac3f20-2e76-4887-a3f0-3f44cb111877",
+    "timestamp": "2025-12-02 08:36:44.100490",
+    "report_generated": false
+  },
+  {
+    "question": "In configure() (line 151), the check minOrderDuration > targetOrderDuration reverts. But could setting both to 0 bypass this check and the subsequent check (line 152), allowing misconfiguration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3609dd3a-456d-4638-adc2-c1fcf7d965da",
+    "timestamp": "2025-12-02 08:37:15.908772",
+    "report_generated": false
+  },
+  {
+    "question": "When calculating endTime = uint64(block.timestamp + timeRemaining) (line 114), could block.timestamp + underflowed_timeRemaining overflow uint64, wrapping to a small value and creating orders that have already expired?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2ac9c5e-207c-44f5-90bc-fd7b2fb061cb",
+    "timestamp": "2025-12-02 08:37:48.264692",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() (line 105), timeRemaining = state.lastEndTime() - uint32(block.timestamp) can underflow. While intentional, could this underflow cause issues when compared with state.minOrderDuration() if minOrderDuration is set to type(uint32).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b93410eb-7d17-4181-9260-7b69653a8598",
+    "timestamp": "2025-12-02 08:38:19.099809",
+    "report_generated": false
+  },
+  {
+    "question": "The ExposedStorage pattern exposes sload() and tload(). Could an attacker use these in combination with reentrancy to read and predict state changes during a roll() call, front-running the order creation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa468050-fb4f-4169-ac56-3eea21b277ab",
+    "timestamp": "2025-12-02 08:38:51.001042",
+    "report_generated": false
   }
 ]
