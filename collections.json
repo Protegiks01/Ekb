@@ -14992,5 +14992,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9899d9ff-6ff9-4cea-85b2-08ee96e43865",
     "timestamp": "2025-12-02 11:06:59.259361",
     "report_generated": false
+  },
+  {
+    "question": "At line 106 in `getAverageTick()`, the calculation `quoteTick - baseTick` is performed in unchecked context (line 92). Could this allow overflow if `quoteTick` is near `MAX_TICK` and `baseTick` is a large negative value, or vice versa, resulting in a wrapped tick value that produces arbitrarily incorrect prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fe81885c-4225-4c56-964c-3c7ba3663e53",
+    "timestamp": "2025-12-02 11:08:12.110745",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (lines 103-109), cross-pair calculations rely on both tokens having valid Oracle snapshots for the same TWAP window. If one token's pool was created more recently than the TWAP_DURATION, could the asymmetric history cause `extrapolateSnapshot()` to revert for one token but not the other, breaking cross-pair pricing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_09052065-ec35-408b-b3fb-376d2d3562c4",
+    "timestamp": "2025-12-02 11:08:25.762673",
+    "report_generated": false
+  },
+  {
+    "question": "The `getAverageTick()` function (lines 103-104) calls itself recursively for cross-pairs. Could passing identical `baseToken` and `quoteToken` parameters to the recursive calls cause infinite recursion or return incorrect identity prices, especially if both are normalized to the same proxy token?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_795da510-c9ae-4d61-9866-713aaee07543",
+    "timestamp": "2025-12-02 11:08:41.326209",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (lines 138-154), at line 143, if `normalizedBase == normalizedQuote`, the function returns `baseAmount` unchanged. Could an attacker exploit this by querying prices with tokens that normalize to the same address but represent different actual assets, receiving incorrect 1:1 pricing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e2e69ef-9ff5-4a57-acb9-7adb31b7d7be",
+    "timestamp": "2025-12-02 11:08:56.983673",
+    "report_generated": false
+  },
+  {
+    "question": "At line 149 in `getQuote()`, `tickToSqrtRatio(tick)` is called and the result is converted to fixed-point with `.toFixed()`. Could extreme tick values near `MIN_TICK` or `MAX_TICK` cause `toFixed()` to overflow when expanding the compact SqrtRatio representation to the full 256-bit value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e913e8ee-7728-4a44-876b-c37e38a137c8",
+    "timestamp": "2025-12-02 11:09:14.025013",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 151), `fullMulDivN(sqrtRatio, sqrtRatio, 128)` computes the ratio by squaring the sqrt ratio. Could this operation lose significant precision for very small or very large sqrt ratios, leading to price quotes that deviate from the true tick-implied price by more than acceptable tolerances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb328238-af45-4f4d-99e5-e06c9a7e4203",
+    "timestamp": "2025-12-02 11:09:32.544115",
+    "report_generated": false
+  },
+  {
+    "question": "At line 153 in `getQuote()`, the final calculation `fullMulDivN(baseAmount, ratio, 128)` multiplies the base amount by the ratio. If `baseAmount` is extremely large and `ratio` is also large, could the intermediate multiplication exceed 512 bits even with full precision arithmetic, causing overflow and incorrect quote amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0decb986-223c-4c0d-a191-ff629294c165",
+    "timestamp": "2025-12-02 11:09:52.715793",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 153), the result `fullMulDivN(baseAmount, ratio, 128)` is right-shifted by 128 bits. For very small `baseAmount` values, could this shift result in zero, even when the actual quote amount should be a fractional token unit, leading to price manipulation where tiny amounts are incorrectly priced at zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc7ae5ee-53aa-4a7e-a86a-64c7eb38911a",
+    "timestamp": "2025-12-02 11:10:14.509055",
+    "report_generated": false
+  },
+  {
+    "question": "The `getQuote()` function (lines 138-154) doesn't check if the returned `quoteAmount` is zero when `baseAmount` is non-zero. Could an attacker exploit this by querying prices for token pairs with extreme price ratios, receiving zero quotes that could be used to exploit downstream protocols expecting non-zero prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d38fd002-1223-4faa-b57e-d17f8c1271e8",
+    "timestamp": "2025-12-02 11:10:37.315182",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 147), `getAverageTick()` is called with normalized addresses. If this function reverts due to missing Oracle snapshots, would all price queries fail, potentially causing dependent protocols to malfunction or default to stale prices that could be exploited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d98e9467-ccb2-4fc0-baf7-dc94197c9e75",
+    "timestamp": "2025-12-02 11:11:01.621846",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 149-151 in `getQuote()`, the tick is converted to sqrtRatio, then squared to get the ratio. Could cumulative rounding errors in `tickToSqrtRatio()`, `toFixed()`, and `fullMulDivN()` cause the final ratio to differ from the direct tick-to-price conversion, enabling arbitrage between this oracle and other price sources?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cfb9b643-20cf-49a4-9213-bba304c096a9",
+    "timestamp": "2025-12-02 11:11:27.850064",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (lines 138-154), the function is marked `external view`, meaning it cannot modify state. However, if the Oracle extension's state becomes corrupted, could this function return arbitrarily incorrect prices that dependent protocols use for critical operations like liquidations or swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc8ca448-d7dc-454c-a5d5-b24df9a686b9",
+    "timestamp": "2025-12-02 11:11:55.159920",
+    "report_generated": false
+  },
+  {
+    "question": "The `getQuote()` function (line 153) returns `quoteAmount` without checking for overflow. If `baseAmount * ratio` results in a value larger than `type(uint256).max` before the right shift, could this cause silent overflow, returning a wrapped quote amount much smaller than the true value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7b25656-b1c5-4e5e-8196-aad8de07b100",
+    "timestamp": "2025-12-02 11:12:22.906657",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (lines 98-99), the function calls `ORACLE.extrapolateSnapshot()` twice. If an attacker performs large swaps immediately before `block.timestamp - TWAP_DURATION` and immediately after `block.timestamp`, could they manipulate the TWAP endpoints to skew the average tick in their favor?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c38d81c-504a-4163-b638-b2d3f6af636f",
+    "timestamp": "2025-12-02 11:12:53.023137",
+    "report_generated": false
+  },
+  {
+    "question": "The `getAverageTick()` function (lines 98-101) relies on `ORACLE.extrapolateSnapshot()` to provide tick cumulative values. If the Oracle extension has a vulnerability allowing corrupted snapshots to be written, could this propagate to all price quotes returned by this contract, affecting downstream protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e0ba8501-3dd3-4543-b6d4-5088f2808e7e",
+    "timestamp": "2025-12-02 11:13:23.010115",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (line 98), if `block.timestamp - TWAP_DURATION` results in a timestamp before the pool's creation time, `extrapolateSnapshot()` would revert with `NoPreviousSnapshotExists`. Could an attacker exploit this by querying prices immediately after pool creation, causing DOS for dependent protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6e1d956-b860-4f47-98f0-7dc24f8fa423",
+    "timestamp": "2025-12-02 11:13:54.564118",
+    "report_generated": false
+  },
+  {
+    "question": "At line 101 in `getAverageTick()`, the TWAP calculation assumes linear tick accumulation between snapshots. If the Oracle extension's extrapolation logic has errors in handling liquidity changes or tick crossings, could this result in non-linear accumulation that makes the TWAP calculation incorrect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_56a92fb7-02f7-45f0-9ee7-927f557931df",
+    "timestamp": "2025-12-02 11:14:26.772994",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (lines 98-99), both calls to `extrapolateSnapshot()` use the same `otherToken` parameter. If the Oracle extension has separate snapshot arrays per token, and one array is manipulated or corrupted independently, could this cause asymmetric TWAP calculations for base vs. quote tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_35c13b08-cac2-4bf7-9e36-097abe088a70",
+    "timestamp": "2025-12-02 11:14:57.580079",
+    "report_generated": false
+  },
+  {
+    "question": "The `getAverageTick()` function (lines 91-112) assumes the Oracle extension's snapshots are manipulation-resistant. However, if an attacker can perform flash loan attacks within a single block to temporarily move the price, then let the TWAP window pass, could the manipulated price be gradually incorporated into the TWAP?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_970c5333-72ac-465b-8fce-e4ac2269bcb1",
+    "timestamp": "2025-12-02 11:15:30.507178",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (line 99), the second `extrapolateSnapshot()` call uses `block.timestamp`. If the Oracle extension updates snapshots only when swaps occur, could stale snapshots cause the TWAP to not reflect recent price movements, allowing attackers to exploit the lag in dependent protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e090fb3-70a4-476c-84b9-74ed68689ffe",
+    "timestamp": "2025-12-02 11:16:02.250138",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 98-101 in `getAverageTick()`, the tick cumulative calculation divides by `TWAP_DURATION`. If the Oracle extension's `tickCumulative` values overflow their `int64` storage over long periods, could wraparound cause incorrect TWAP calculations when the difference `tickCumulativeEnd - tickCumulativeStart` is computed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e1126946-d937-4c10-b84b-2e71bf762ef7",
+    "timestamp": "2025-12-02 11:16:33.343750",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 149), `tickToSqrtRatio(tick)` is called with a tick from `getAverageTick()`. The `tickToSqrtRatio()` function in `src/math/ticks.sol` uses assembly bit manipulation. Could incorrect bit shifts or gate logic in that function produce an invalid sqrtRatio that causes downstream calculations in `getQuote()` to return incorrect prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9902d6e8-c02c-4494-ab68-4195d35068ef",
+    "timestamp": "2025-12-02 11:17:05.198703",
+    "report_generated": false
+  },
+  {
+    "question": "At line 149 in `getQuote()`, after calling `tickToSqrtRatio()`, the result is converted with `.toFixed()`. The `toFixed()` function in `src/types/sqrtRatio.sol` (line 102-105) uses bit shifts based on the top 2 bits. Could misaligned bits cause the fixed-point expansion to produce a value wildly different from the intended sqrt ratio?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37fcde37-1890-48a2-a616-fe9255a33170",
+    "timestamp": "2025-12-02 11:17:42.181158",
+    "report_generated": false
+  },
+  {
+    "question": "In `getQuote()` (line 147), `getAverageTick()` can return ticks clamped to `MIN_TICK` or `MAX_TICK` for cross-pairs (line 108). When these boundary ticks are passed to `tickToSqrtRatio()` (line 149), could they produce sqrt ratios exactly at `MIN_SQRT_RATIO` or `MAX_SQRT_RATIO`, causing edge case behavior in the squaring operation at line 151?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5fab1388-2bba-4fb2-b2bc-b5acd67b8814",
+    "timestamp": "2025-12-02 11:18:15.947345",
+    "report_generated": false
+  },
+  {
+    "question": "The `getQuote()` function (line 151) computes `fullMulDivN(sqrtRatio, sqrtRatio, 128)` to get the price ratio. For ticks near zero (price near 1:1), the sqrt ratio is close to 2^64 in 64.128 fixed-point. Could squaring this value and shifting right by 128 bits lose precision in the lower bits, causing incorrect pricing for tokens with similar values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a983a27c-576c-4fbe-8a70-2eb246a0ebf5",
+    "timestamp": "2025-12-02 11:18:50.649342",
+    "report_generated": false
   }
 ]
