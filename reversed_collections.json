@@ -10948,5 +10948,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_11e834a1-27b4-45a1-83b6-09f4f0ee03b5",
     "timestamp": "2025-12-02 06:13:43.453845",
     "report_generated": false
+  },
+  {
+    "question": "In the refundNativeToken() function at line 26, there's a balance check before refunding. Could a malicious contract call this function multiple times in a multicall to drain ETH that was intended for other operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e67a498-4579-4bbf-a464-48a1686f08c8",
+    "timestamp": "2025-12-02 06:14:58.680083",
+    "report_generated": false
+  },
+  {
+    "question": "At line 253, the native token check only looks at token0. If a pool has NATIVE_TOKEN_ADDRESS as token1, would the deposit flow correctly handle ETH payment for token1, or would it attempt an ERC20 transfer?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d3ee8e36-06ec-4bff-9201-4f715db12e4f",
+    "timestamp": "2025-12-02 06:15:11.957403",
+    "report_generated": false
+  },
+  {
+    "question": "In multicall scenarios using PayableMulticallable at line 17, if multiple operations send msg.value, could the total ETH sent be insufficient for all operations, causing some to fail while consuming ETH for successful ones?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f36c7080-0170-4fee-bf51-8f1cdc10a713",
+    "timestamp": "2025-12-02 06:15:25.399200",
+    "report_generated": false
+  },
+  {
+    "question": "The deposit() function is marked payable at line 79, allowing ETH to be sent. If the pool doesn't use NATIVE_TOKEN_ADDRESS as token0, could the sent ETH become stuck in the contract without being refunded?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9bb0243c-71b2-40a5-a728-b57ecb120f92",
+    "timestamp": "2025-12-02 06:15:40.630957",
+    "report_generated": false
+  },
+  {
+    "question": "In withdraw() at line 328, withdrawTwo() is called for both tokens. If one of the tokens is NATIVE_TOKEN_ADDRESS, does withdrawTwo() correctly handle ETH transfers, or could this attempt an ERC20 transfer to the native token address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1eb8efa2-612c-4d64-a7f5-aa74c0aa1e1b",
+    "timestamp": "2025-12-02 06:15:55.859936",
+    "report_generated": false
+  },
+  {
+    "question": "At line 253, the condition checks if token0 != NATIVE_TOKEN_ADDRESS to use payTwoFrom(). If token1 is the native token instead, this condition would use payTwoFrom() with the native token address, which expects an ERC20. Could this cause the transaction to fail or behave incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7d296a2c-581e-49cd-a5bf-7459409d2076",
+    "timestamp": "2025-12-02 06:16:12.846513",
+    "report_generated": false
+  },
+  {
+    "question": "The PayableMulticallable.refundNativeToken() function at line 25 refunds all remaining ETH balance. If multiple multicall operations involve native tokens, could the refund logic return more or less ETH than intended due to accumulated balance from previous calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b635efab-9930-4033-8cf2-c6af6a60088b",
+    "timestamp": "2025-12-02 06:16:31.198854",
+    "report_generated": false
+  },
+  {
+    "question": "In the native token deposit flow at lines 256-262, if amount0 is 0, no ETH is sent (line 256). However, if msg.value > 0 was sent with the transaction, could this ETH become permanently locked in the BasePositions contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02be786c-fbea-4f5a-861b-dfbb240fae68",
+    "timestamp": "2025-12-02 06:16:51.693639",
+    "report_generated": false
+  },
+  {
+    "question": "At line 257, safeTransferETH sends ETH to the accountant. If the accountant contract has a malicious receive() function, could it reenter into BasePositions to manipulate the lock state before the deposit completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_33425bdb-20b1-4336-a67f-5cb5bdf94658",
+    "timestamp": "2025-12-02 06:17:13.583404",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData() deposit flow at lines 253-262, there's special logic for NATIVE_TOKEN_ADDRESS. If poolKey.token0 == NATIVE_TOKEN_ADDRESS, ETH is transferred via safeTransferETH at line 257. Could a reentrancy attack occur during this external call before payFrom() is called for token1?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_41bd7061-04d1-4d05-9b8c-214e68abb274",
+    "timestamp": "2025-12-02 06:17:36.459247",
+    "report_generated": false
+  },
+  {
+    "question": "At line 54 in getPositionFeesAndLiquidity(), the position is fetched using tickLower and tickUpper. If the pool has multiple positions with overlapping ranges, could users accidentally query or operate on the wrong position?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_936dab81-124b-4012-95f2-45efaae2677b",
+    "timestamp": "2025-12-02 06:18:00.453645",
+    "report_generated": false
+  },
+  {
+    "question": "The maxLiquidity() call at line 82 uses tickToSqrtRatio conversions. If there's rounding inconsistency between the sqrtRatio used for liquidity calculation and the one used in Core for actual position management, could this lead to slippage protection failures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd531b04-048c-477f-a317-502fe6067efa",
+    "timestamp": "2025-12-02 06:18:25.895222",
+    "report_generated": false
+  },
+  {
+    "question": "In withdraw() at line 128, tick parameters are user-provided. If a user provides ticks that don't match any of their positions, could this attempt to withdraw from an empty position, potentially causing unexpected behavior in Core?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e866c254-c875-4b57-bbac-3ac70a1c8f65",
+    "timestamp": "2025-12-02 06:18:52.375212",
+    "report_generated": false
+  },
+  {
+    "question": "The createPositionId() at line 31 in positionId.sol uses assembly to pack ticks. If tickLower or tickUpper have bits set outside the lower 32 bits (due to unsafe casting), could this corrupt the salt portion of the position ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5bb209b3-0e4f-493f-92e5-9090e8b419f1",
+    "timestamp": "2025-12-02 06:19:21.330676",
+    "report_generated": false
+  },
+  {
+    "question": "At line 59, tickToSqrtRatio(tickLower) and tickToSqrtRatio(tickUpper) are called. If these functions have rounding errors at extreme tick values, could the resulting sqrt ratios not match what was used during actual position creation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72bfec3b-82a9-4d17-bde8-be7ffc101c33",
+    "timestamp": "2025-12-02 06:19:49.476973",
+    "report_generated": false
+  },
+  {
+    "question": "In getPositionFeesAndLiquidity() at line 66, getPoolFeesPerLiquidityInside() is called with user-provided ticks. If these ticks don't match the actual position's ticks, could this calculate incorrect fees while the view function appears to succeed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa1bce5b-c491-40a8-aa66-06c46cdb5494",
+    "timestamp": "2025-12-02 06:20:18.435745",
+    "report_generated": false
+  },
+  {
+    "question": "The validate() function in positionId.sol at line 47 checks tick spacing and bounds, but it's not clear if BasePositions.deposit() calls this validation. Could users create positions with invalid tick ranges that bypass spacing requirements?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_07d82cc6-b813-47cb-b8b0-d1e008f7dddf",
+    "timestamp": "2025-12-02 06:20:47.387835",
+    "report_generated": false
+  },
+  {
+    "question": "At line 243 in handleLockData(), updatePosition() is called without validating that tickLower and tickUpper are within MIN_TICK and MAX_TICK bounds. Could an attacker provide ticks outside valid ranges, causing overflow in Core's tick math?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eebea7f5-2f01-49fd-94da-f6a5dd0938af",
+    "timestamp": "2025-12-02 06:21:17.683994",
+    "report_generated": false
+  },
+  {
+    "question": "The tickToSqrtRatio() calls at lines 59 and 83 convert ticks to sqrt ratios. If tickLower or tickUpper are not aligned to the pool's tick spacing, could this produce sqrt ratios that don't match any initialized tick, causing position operations to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d2acc07-69bd-4d50-90ea-902eaf699000",
+    "timestamp": "2025-12-02 06:21:47.364081",
+    "report_generated": false
+  },
+  {
+    "question": "In deposit() at line 79, there's no validation that tickLower < tickUpper before calling createPositionId(). While the position validation might happen in Core, could this allow creation of invalid positions with reversed tick bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a147187-c636-4675-9907-2fe23ce381b3",
+    "timestamp": "2025-12-02 06:22:17.355713",
+    "report_generated": false
+  },
+  {
+    "question": "The liquidityDeltaToAmountDelta() call at line 58 in getPositionFeesAndLiquidity() negates the position liquidity. If the liquidity value is exactly type(uint128).max, could this negation overflow when cast to int128, producing incorrect principal amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef8eb26c-6c3c-4e21-aa58-6d293d272723",
+    "timestamp": "2025-12-02 06:22:49.192620",
+    "report_generated": false
+  },
+  {
+    "question": "In withdraw() with liquidity=0 at line 283-300, only fees are collected without updating position liquidity. If Core's collectFees() at line 284 fails to properly reset the position's feesPerLiquidityInsideLast, could the same fees be claimed multiple times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7eeb4058-f711-4764-af7f-ae88616af7f0",
+    "timestamp": "2025-12-02 06:23:20.843350",
+    "report_generated": false
+  },
+  {
+    "question": "At line 64, getPositionFeesAndLiquidity() checks if the pool config isFullRange(). If this check is inconsistent with how positions were originally created, could full-range positions calculate fees incorrectly, either losing fees or claiming more than earned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6b83665d-450b-4d2b-826b-7f64c7d44da1",
+    "timestamp": "2025-12-02 06:23:53.552151",
+    "report_generated": false
+  },
+  {
+    "question": "The getPoolFeesPerLiquidityInside() call at line 66 computes fees for a specific tick range. If the tick range spans uninitialized ticks, could this return incorrect feesPerLiquidity values, leading to over- or under-claiming of fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d23dcbed-b294-4baa-9600-502d14bf2c20",
+    "timestamp": "2025-12-02 06:24:24.498134",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData() at line 286, the position ID is recreated using the same salt and ticks. If there's a mismatch between the NFT ID and the position parameters (e.g., user provides wrong ticks), could this access the wrong position in Core storage, mixing up multiple users' positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1412c889-d789-43cb-b198-b058f8e8150a",
+    "timestamp": "2025-12-02 06:24:55.925690",
+    "report_generated": false
   }
 ]
