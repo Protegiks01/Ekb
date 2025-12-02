@@ -8848,5 +8848,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_670f9e2e-b6e8-4ce4-aa35-b9b8cc813d00",
     "timestamp": "2025-12-02 03:12:12.400256",
     "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, the loop `for { let i := 4 } lt(i, calldatasize()) { i := add(i, 32) }` has no gas limit. Could an attacker provide calldata with thousands of storage slot requests, causing the function to consume all available gas and DOS any transaction that calls sload()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_33e639e4-6e33-4158-905a-460407de1028",
+    "timestamp": "2025-12-02 03:13:30.092067",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, identical loop structure allows unbounded transient storage reads. Could an attacker use this to read thousands of transient storage slots, exhausting gas in critical flash loan settlement paths and griefing legitimate users' lock() operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_535ab2b2-917f-4a20-808d-7939b25e504e",
+    "timestamp": "2025-12-02 03:13:43.547088",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, reading cold storage slots costs 2100 gas each (first access). Could an attacker provide calldata with many cold storage slots, forcing the transaction to pay for cold storage access costs and potentially exceeding block gas limits for position withdrawal operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a50f65d4-bf51-4ba0-8b5d-3574372b87dc",
+    "timestamp": "2025-12-02 03:13:57.219180",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 18, the return statement copies `sub(calldatasize(), 4)` bytes from memory. Could an attacker provide enormous calldata, causing the return operation to consume excessive gas for memory expansion and data copying, DOSing any function that uses ExposedStorageLib to read multiple slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_665ef56e-a76b-46fb-8f6e-d40f5165a0ec",
+    "timestamp": "2025-12-02 03:14:11.449020",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, transient storage access in a loop could interact poorly with transient storage pricing. If the EVM charges for transient storage access (even if free in current implementations), could future gas pricing make tload() calls expensive enough to DOS critical operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c4db98fa-e3c8-461c-b51d-878b101037e1",
+    "timestamp": "2025-12-02 03:14:26.349621",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, if storage slots contain large packed data structures, could reading many such slots cause memory expansion costs to accumulate, making it prohibitively expensive to use ExposedStorageLib.sload() in gas-sensitive operations like position withdrawal?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_705b96cc-4fca-4858-bf5c-888d40648052",
+    "timestamp": "2025-12-02 03:14:42.811342",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, the memory write pattern `mstore(sub(i, 4), ...)` could cause memory expansion. Could an attacker provide calldata that forces memory expansion to enormous sizes, triggering quadratic gas costs that make the function unusable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64c8a353-a979-4717-bb98-33f9a008fbb0",
+    "timestamp": "2025-12-02 03:15:00.548237",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, combining sload() calls with other operations in a multicall could amplify gas costs. Could an attacker craft a multicall sequence that repeatedly calls sload() with overlapping storage slots, forcing redundant SLOAD operations that consume excessive gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f39c305-c522-4230-95ce-0c17eda9e0d9",
+    "timestamp": "2025-12-02 03:15:21.040144",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, reading transient storage during nested locks could access the same slots multiple times. Could an attacker create deeply nested lock structures where each level calls tload() for the same slots, amplifying gas costs through redundant transient storage access?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72a9988b-283f-4772-9930-4e1acea8ae67",
+    "timestamp": "2025-12-02 03:15:42.874194",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, if used in conjunction with ExposedStorageLib helper functions that make multiple staticcalls, could the staticcall overhead multiply with slot count, making batch storage reads prohibitively expensive for operations requiring many storage values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c8b625a4-ec1a-4859-baad-a09bd60581c6",
+    "timestamp": "2025-12-02 03:16:06.226975",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, when calldatasize() equals 4 (only function selector), the loop doesn't execute and returns 0 bytes. Could code using ExposedStorageLib expect at least one return value and fail to handle empty responses, causing unexpected reverts or undefined behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a69b1e6b-4895-4f5f-a737-e8ad15e74263",
+    "timestamp": "2025-12-02 03:16:30.838653",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, when calldata length is not a multiple of 32 plus 4 (e.g., calldatasize = 37), the last iteration reads a partial slot. Could `calldataload(i)` when i is near calldatasize read into zero-padded space, causing unintended storage slot reads from low-numbered storage locations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72b0b3d8-1579-46c4-81a5-8b50585c5250",
+    "timestamp": "2025-12-02 03:16:56.176050",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, transient storage is cleared at transaction end. Could an attacker call tload() in the last operation of a complex transaction to read transient storage values that are about to be cleared, extracting information that should be ephemeral?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e3861c3-d2ec-425c-9f8a-4c6210b42919",
+    "timestamp": "2025-12-02 03:17:22.507726",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, reading storage slots with values larger than bytes32 (though impossible in Solidity) or packed structs could return truncated or misaligned data. Could callers of ExposedStorageLib misinterpret packed storage values, leading to incorrect calculations in fee or liquidity computations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4588a0d6-5031-4b4c-82a5-030f9dac3c49",
+    "timestamp": "2025-12-02 03:17:49.283773",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, if storage slots contain encoded data (e.g., PoolState.wrap(bytes32)), could reading these slots without proper decoding lead to interpretation errors when the raw bytes32 is used in calculations expecting unpacked uint values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4427042c-8928-4b2f-b374-d2fcfdb9dc72",
+    "timestamp": "2025-12-02 03:18:18.076746",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, the memory-safe annotation assumes transient storage reads don't affect memory safety. Could there be edge cases where TLOAD behavior differs from SLOAD in ways that violate memory-safety assumptions, especially with non-standard EVM implementations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d7bc7ec-6175-4834-860a-d2664e419e5c",
+    "timestamp": "2025-12-02 03:18:47.920716",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 18, returning exactly `sub(calldatasize(), 4)` bytes assumes perfect alignment. If caller code uses assembly to decode return data and assumes specific offsets, could misalignment between calldata slots requested and returndata slots received cause off-by-32 errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf1f59f5-cdd2-4d26-b65e-604cad794ba7",
+    "timestamp": "2025-12-02 03:19:16.627304",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, the function uses standard EVM SLOAD which returns 0 for uninitialized slots. Could code using sload() fail to distinguish between legitimately zero values and uninitialized storage, leading to logic errors in position existence checks or pool initialization validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d95aed0-9432-4335-9e08-403b604a0f08",
+    "timestamp": "2025-12-02 03:19:45.760370",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, reading storage slots during contract creation or initialization could expose uninitialized state. Could an attacker front-run Core deployment, observe initialization parameters via sload(), and exploit any assumptions about uninitialized storage in the initialization logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b974f159-1fde-44d6-b0e7-fba716bcab22",
+    "timestamp": "2025-12-02 03:20:14.279803",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, if transient storage opcodes are not supported on all EVM-compatible chains where Ekubo deploys, could the function silently fail or return incorrect values on non-Ethereum chains, causing critical flash accounting failures across different deployment environments?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2e02f6f-ad4c-4fd6-a084-9b4880854d0a",
+    "timestamp": "2025-12-02 03:20:44.610615",
+    "report_generated": false
+  },
+  {
+    "question": "In the lock() function (lines 146-187), can an attacker exploit the locker ID increment logic where 'id := shr(160, current)' extracts the previous ID to create collisions by manipulating the ID counter through rapid nested lock/unlock cycles?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_beb397fe-cd0c-4213-9d61-413c4ef7b946",
+    "timestamp": "2025-12-02 03:21:13.392186",
+    "report_generated": false
+  },
+  {
+    "question": "In lock() (line 153), the locker is stored as 'or(shl(160, add(id, 1)), caller())' - can an attacker exploit the fact that the ID is stored as id+1 to cause an off-by-one error when the ID reaches type(uint96).max, potentially wrapping to 0?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4bbb09b9-1714-430e-87fb-1c86a47c6409",
+    "timestamp": "2025-12-02 03:21:40.814328",
+    "report_generated": false
+  },
+  {
+    "question": "In lock() (lines 162-163), the callback uses 'calldatacopy(add(free, 36), 4, sub(calldatasize(), 4))' - can an attacker pass specially crafted calldata that causes memory corruption or reads beyond the intended calldata boundary?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f97ab3e7-6a70-4c7f-a38d-5abe9f1169a5",
+    "timestamp": "2025-12-02 03:22:07.471938",
+    "report_generated": false
+  },
+  {
+    "question": "In lock() (line 172), after the callback returns, 'tstore(_CURRENT_LOCKER_SLOT, current)' restores the previous locker state - can an attacker exploit reentrancy during the callback to corrupt this restoration, leaving stale locker data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff86acc2-9781-4718-880c-221c930752f3",
+    "timestamp": "2025-12-02 03:22:34.538161",
+    "report_generated": false
+  },
+  {
+    "question": "In lock() (lines 175-181), the DebtsNotZeroed check reads 'tload(add(_NONZERO_DEBT_COUNT_OFFSET, id))' - can an attacker manipulate the non-zero debt count through concurrent operations to bypass this check and exit with outstanding debt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c80cca1-cb76-4bd1-a041-e16f29dfab7d",
+    "timestamp": "2025-12-02 03:23:03.774489",
+    "report_generated": false
   }
 ]
