@@ -15292,5 +15292,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_98f5b392-61ba-4fd3-92d5-cc42d79e884e",
     "timestamp": "2025-12-02 11:30:24.088475",
     "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (lines 98-99), the Oracle's `extrapolateSnapshot()` function is called. If that function's implementation in `src/extensions/Oracle.sol` has a vulnerability allowing front-running or manipulation, could attackers exploit it to temporarily affect prices returned by this contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dcc38f2f-0769-4bbe-85ea-f3f9e94d06bb",
+    "timestamp": "2025-12-02 11:31:29.865410",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreStorageLayout.poolStateSlot(), the function directly casts PoolId to StorageSlot without validation. Could two different PoolKeys hash to PoolIds that differ by exactly FPL_OFFSET, TICKS_OFFSET, or other offset constants, causing storage slot collisions between pool state and fee/tick data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db88568c-6b0d-428b-9a4d-37b5a975a389",
+    "timestamp": "2025-12-02 11:31:43.466149",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreStorageLayout.poolFeesPerLiquiditySlot() (lines 54-58), the slot is computed as poolId + FPL_OFFSET. If a malicious user crafts a PoolKey that hashes to a PoolId close to type(uint256).max, could the addition overflow and wrap around to collide with storage slots of another pool or core state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6bf0aaed-b97f-41a3-a37f-f19d4b2b40bd",
+    "timestamp": "2025-12-02 11:31:56.952129",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreStorageLayout.poolTicksSlot() (lines 64-68), the calculation is poolId + tick + TICKS_OFFSET. For negative ticks near MIN_TICK (-887272), could the arithmetic underflow in assembly and access unintended storage slots, potentially corrupting other pool data or core state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_15f98d7f-2c11-4e8b-b36d-ee7729cbcdf3",
+    "timestamp": "2025-12-02 11:32:11.601014",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot() (lines 75-84), the first slot is poolId + FPL_OUTSIDE_OFFSET_VALUE0 + tick, and the second adds FPL_OUTSIDE_OFFSET_VALUE1. Could the spacing between these two large offset constants cause slot collisions with tick bitmaps or other pool data for certain poolId values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd9383bb-d303-4642-b0f3-8148e874d103",
+    "timestamp": "2025-12-02 11:32:26.239838",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreStorageLayout.tickBitmapsSlot() (lines 89-93), bitmaps start at poolId + BITMAPS_OFFSET. Given bitmaps can span from FIRST_BITMAP_WORD to LAST_BITMAP_WORD, could the bitmap range overlap with the fees-per-liquidity-outside slots for pools with specific PoolId values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_514d9b02-d191-4c29-bc2b-84103b66092d",
+    "timestamp": "2025-12-02 11:32:42.690867",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreStorageLayout.poolPositionsSlot() (lines 100-114), the slot is computed using a nested keccak256 of positionId, poolId, owner, then mapping slot 1. Could an attacker craft inputs that cause this keccak256 to collide with critical core storage slots like extension registration or lock state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ee3f6533-41ca-4ee8-9e78-cdfddba3a21e",
+    "timestamp": "2025-12-02 11:33:00.835126",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreStorageLayout.savedBalancesSlot() (lines 122-135), the hash includes owner, token0, token1, and salt. Could two different combinations of these parameters hash to the same slot, allowing one user to manipulate another user's saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e484259f-36e2-4534-87e3-f1224f31bd14",
+    "timestamp": "2025-12-02 11:33:20.671398",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreStorageLayout.isExtensionRegisteredSlot() (lines 36-42), the slot is keccak256(extension, 0). Could this collide with mapping slot 0 or 1 used elsewhere, or could an attacker register an extension address chosen to collide with other critical storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0b93e026-f5b4-427b-a600-8e6254089446",
+    "timestamp": "2025-12-02 11:33:42.459511",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorageLib.sload() single-slot version (lines 9-18), the function uses staticcall with function selector 0x380eb4e0. If the target contract reverts, the assembly just does revert(0, 0) without preserving the revert reason. Could this hide critical errors from pool operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f538f550-8c5b-4e83-8ee4-d558d0996d15",
+    "timestamp": "2025-12-02 11:34:05.235629",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorageLib.sload() two-slot version (lines 20-36), return data is loaded from offset o and o+32. If the staticcall returns less than 64 bytes due to a malformed Core contract, could this read uninitialized memory or dirty stack values, corrupting pool state data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_85405cb7-b2ab-4c43-9a1f-962ff18300b0",
+    "timestamp": "2025-12-02 11:34:29.486921",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorageLib.sload() three-slot version (lines 38-56), if the Core contract's sload implementation has a bug and returns incorrect data for slot2, would the calling code in CoreLib.poolPositions() detect the corruption, or could it silently use invalid position data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ba15e37a-d5d7-4dba-b646-dcef1eadb43d",
+    "timestamp": "2025-12-02 11:34:53.998307",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorageLib.tload() (lines 58-67), transient storage is read with selector 0xed832830. If an extension modifies transient storage between tload calls, could CoreLib functions relying on tload see inconsistent state within a single transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bddba36d-fc1f-45c8-beb6-de9ab3875365",
+    "timestamp": "2025-12-02 11:35:19.850185",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorageLib, all sload overloads use staticcall to the Core contract. If Core's sload function is non-view (e.g., has a state-changing bug), would staticcall prevent state changes, or could external callers manipulate Core state through CoreLib read functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_33a206a0-435b-4f97-a70e-92e7c271a966",
+    "timestamp": "2025-12-02 11:35:46.416295",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.isExtensionRegistered() (lines 28-30), the function checks if sload result != 0. Could an attacker write arbitrary non-zero values to the extension registration slot through a storage collision, making an unregistered extension appear registered?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29757214-4766-47a0-a1bf-ea1d65bcd762",
+    "timestamp": "2025-12-02 11:36:14.640569",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.isExtensionRegistered(), if the Core contract's storage is corrupted and returns dirty upper bits in the bytes32 result, does uint256 casting properly clean them, or could this cause false positives in extension registration checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ba1617f-ceb6-4fff-a0d4-bdd923ec3c6b",
+    "timestamp": "2025-12-02 11:36:44.288504",
+    "report_generated": false
+  },
+  {
+    "question": "If an extension is registered, then unregistered, does isExtensionRegistered() correctly return false, or could residual storage values cause stale registration state to persist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d3c7f244-43a9-4b3a-b47b-b826d39f4cdf",
+    "timestamp": "2025-12-02 11:37:15.720104",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.poolState() (lines 36-38), PoolState is unpacked from a single bytes32. If the underlying storage slot contains invalid data (e.g., sqrtRatio outside MIN/MAX bounds), does this function validate the data, or could it return an invalid state that causes swaps to fail or drain pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_df9366dc-6776-490d-8984-cb8d6fd5c357",
+    "timestamp": "2025-12-02 11:37:48.358870",
+    "report_generated": false
+  },
+  {
+    "question": "In poolState.sqrtRatio() extraction (poolState.sol lines 10-14), the value is shifted right by 160 bits. If the stored state has dirty bits in the upper 96 bits beyond the sqrtRatio field, could this cause price manipulation or incorrect swap calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b736c826-4caf-4fab-98d7-146d5e8bbaa5",
+    "timestamp": "2025-12-02 11:38:21.588170",
+    "report_generated": false
+  },
+  {
+    "question": "In poolState.tick() extraction (poolState.sol lines 16-20), signextend(3, shr(128, state)) is used. Could improper sign extension for edge case tick values near MIN_TICK or MAX_TICK cause the extracted tick to be incorrect, leading to liquidity miscalculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4dcb964f-e52a-417f-8fe6-8e9c4f4a0a13",
+    "timestamp": "2025-12-02 11:38:52.764433",
+    "report_generated": false
+  },
+  {
+    "question": "In poolState.liquidity() extraction (poolState.sol lines 22-26), the value is extracted with shr(128, shl(128, state)). Could overflow in the shift operations for liquidity values near type(uint128).max cause the extracted liquidity to wrap around and be much smaller than actual?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47aff78e-b42c-4b98-a41f-eb4416a9af01",
+    "timestamp": "2025-12-02 11:39:25.952072",
+    "report_generated": false
+  },
+  {
+    "question": "If a pool is initialized with createPoolState() but one field is at a boundary value (e.g., sqrtRatio = MAX_SQRT_RATIO-1), could subsequent reads via CoreLib.poolState() misinterpret the packed data due to bit overlap between fields?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7faeabae-bee3-4377-bfb0-513d78c8a1e1",
+    "timestamp": "2025-12-02 11:39:57.888421",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.getPoolFeesPerLiquidity() (lines 44-54), two consecutive storage slots are read via sload(fplFirstSlot, fplFirstSlot.next()). If the Core contract is upgraded and changes the storage layout, could fplFirstSlot.next() point to an unrelated slot, returning incorrect fee data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f82e8aa-7f5e-4489-9a16-8fb93afb83e7",
+    "timestamp": "2025-12-02 11:40:28.734498",
+    "report_generated": false
+  },
+  {
+    "question": "In getPoolFeesPerLiquidity(), the values are cast from bytes32 to uint256. If the stored fees-per-liquidity values have overflowed in previous fee accumulation operations, could this function return wrapped-around values that make positions appear to have negative fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_396938ae-0c0e-4de0-9ca3-78c3624f26c9",
+    "timestamp": "2025-12-02 11:40:59.224954",
+    "report_generated": false
+  },
+  {
+    "question": "If getPoolFeesPerLiquidity() is called for an uninitialized pool, it will read zero values. Could a caller mistakenly use these zero fees in position fee calculations, causing users to lose accumulated fees when collecting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_af5f1bfe-c7bd-4350-a534-8c9f933ff01c",
+    "timestamp": "2025-12-02 11:41:31.105067",
+    "report_generated": false
   }
 ]
