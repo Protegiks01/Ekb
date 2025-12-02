@@ -11848,5 +11848,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8897541c-99d7-4fc7-a4bf-f80ea0028c94",
     "timestamp": "2025-12-02 07:52:26.202278",
     "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, if extension inherits from multiple base contracts that each have their own access control modifiers, could there be conflict or bypass opportunities in the modifier hierarchy?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e7511e13-c803-4a01-881c-853e94e54282",
+    "timestamp": "2025-12-02 07:53:37.644286",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol (line 14), CORE is of type ICore interface. If a malicious contract implements ICore interface but violates invariants, could this be detected before extension registration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf74ccb5-9671-4f50-b1f4-8a3e6bab89d8",
+    "timestamp": "2025-12-02 07:53:50.768969",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.onlyCore (line 24-27), if an extension uses address(CORE).call() to interact with Core, and Core uses msg.sender to identify the extension, could there be circular dependency or privilege escalation issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_be5eaf15-fd09-4840-bd39-f28c0b027372",
+    "timestamp": "2025-12-02 07:54:04.946273",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, hooks that modify state should have onlyCore protection. If a hook is view/pure but returns data that Core relies on for security decisions, could external calls to these view functions leak information or enable attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc84c7af-137d-49ee-be09-9774a8aef387",
+    "timestamp": "2025-12-02 07:54:19.204257",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol, if a derived extension implements fallback() or receive() functions, could these be called by non-Core addresses to manipulate extension state outside the onlyCore protection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d72def65-0bec-40b0-8488-5c78c97fe597",
+    "timestamp": "2025-12-02 07:54:34.429307",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.onlyCore modifier (line 24-27), if Core implements multiple extension calling patterns (direct call, low-level call, staticcall), does msg.sender preservation work correctly for all patterns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_41076f79-fc49-4915-9915-896a1418ac3e",
+    "timestamp": "2025-12-02 07:54:52.289506",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol (line 25), the constructor calls UsesCore(core) before registering with Core. If Core's registerExtension() calls back into the extension, could the extension's state be in an incomplete initialization state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac970a7f-5c49-4277-9722-373aeb461e13",
+    "timestamp": "2025-12-02 07:55:10.146101",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol, there's no event or storage update when constructor sets CORE. If an extension is deployed with wrong Core address, how would this be detected before pools start using it?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ada1d3e-6a90-4725-8a2b-bb4c47afd277",
+    "timestamp": "2025-12-02 07:55:30.311423",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol (line 14), if multiple contracts inherit from UsesCore with different CORE addresses, could there be confusion in multi-inheritance scenarios where the wrong Core is checked?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a8c1b6b-9045-4b8b-b1df-34f4f546423a",
+    "timestamp": "2025-12-02 07:55:51.599078",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hook functions (lines 42-82), some take PoolKey memory while others take PoolKey calldata. If onlyCore checks msg.sender but not calldata authenticity, could an attacker relay calls with manipulated PoolKey data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8dc0a744-a153-4ce7-958a-a3e012da2b94",
+    "timestamp": "2025-12-02 07:56:14.333901",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.onlyCore modifier (line 24-27), if Core's address changes (e.g., through upgrade or migration), extensions with immutable CORE become unusable. Could this enable attacks where old extensions are still referenced by pools but no longer secured by onlyCore checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b67f10ff-7b10-4978-a78e-6c1e9cf11f56",
+    "timestamp": "2025-12-02 07:56:39.058923",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol (line 18-20), if _core is address(0), the constructor doesn't revert. Could this allow deployment of extensions with null Core reference that pass some validation checks but fail unpredictably?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_34fdde4b-3e14-47f0-96de-5fb465e0634f",
+    "timestamp": "2025-12-02 07:57:04.899492",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol (line 19), it inherits both IExtension and UsesCore. If IExtension interface adds new hook functions in a future version, but UsesCore.onlyCore isn't automatically applied, could new hooks be vulnerable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8e0704c-a757-42b0-863c-a71fff982dd9",
+    "timestamp": "2025-12-02 07:57:30.265230",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.onlyCore modifier (line 24-27), the check happens after function execution starts. Could there be reentrancy or state changes before the modifier check that an attacker could exploit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1f2bee19-d9da-4de8-90f3-82bf3b8313b3",
+    "timestamp": "2025-12-02 07:57:57.086458",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol (line 11), the CoreOnly error is declared. If an extension hook doesn't revert with CoreOnly when called externally, but instead continues execution, could this lead to unauthorized state changes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55e6715a-9657-4273-beab-59d6efadabac",
+    "timestamp": "2025-12-02 07:58:25.789840",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol (line 14), CORE is internal, not private. Can a derived extension contract expose CORE publicly, allowing attackers to deploy pools targeting the real Core but with manipulated extension logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e8abb30-d6ef-4638-90e5-32072ac392e5",
+    "timestamp": "2025-12-02 07:58:55.032387",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, hooks should only be callable by Core. If UsesCore.onlyCore is not applied to all hook functions, which specific hooks are vulnerable to direct external calls, and what attacks does this enable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_438fda41-7fd8-4ea2-b733-2a75343c086a",
+    "timestamp": "2025-12-02 07:59:26.312345",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol (line 18-20), the constructor accepts ICore _core without validating it's a valid Core contract. Could an attacker deploy an extension with a fake Core address, then manipulate pools to reference this extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4ef619a1-0b24-4a8a-abe9-d8a3dfc01d4c",
+    "timestamp": "2025-12-02 07:59:59.153941",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.onlyCore modifier (line 24-27), it checks msg.sender == address(CORE). If Core uses delegatecall to invoke extension hooks, does msg.sender remain Core, or could delegatecall context changes bypass this check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff053739-6f87-4261-9fc9-e97813928469",
+    "timestamp": "2025-12-02 08:00:33.292287",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol (line 14), CORE is immutable and set in constructor (line 18-20). If an attacker deploys a malicious contract that mimics Core's interface but doesn't enforce proper extension validation, could extensions using this malicious Core be exploited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f9977d1-40cd-4ab4-8a83-23b4971b67af",
+    "timestamp": "2025-12-02 08:01:08.680583",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterUpdatePosition() (line 57-62), the PoolState contains liquidity. If an extension uses this to calculate shares or rewards, but liquidity can change within the same transaction due to other operations, could share calculations be manipulated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19f20b9e-07a7-4756-b4da-096a3dc1e5c9",
+    "timestamp": "2025-12-02 08:01:41.541535",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeUpdatePosition() (line 52-54), the PositionId contains tickLower and tickUpper. If an extension trusts these without validation, could an attacker pass positions with invalid tick ranges that passed Core's validation but violate extension assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c5281aa1-0c9d-47e8-97a4-02df7d53ffc8",
+    "timestamp": "2025-12-02 08:02:13.807039",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterInitializePool() (line 47-49), if an extension allocates storage for the pool but initialization reverts later in Core, is the extension's storage left in an inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4fa88ef3-8af4-4bb9-8c5c-b640ffb6cbc1",
+    "timestamp": "2025-12-02 08:02:47.058199",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeInitializePool() (line 42-44), if an extension validates pool parameters (tokens, tickSpacing) here, but these have already been partially validated by Core, could validation gaps exist between the two validation layers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_664c8583-1608-4f56-81b7-f7de31388d4e",
+    "timestamp": "2025-12-02 08:03:18.985106",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hook functions, if a derived extension doesn't override a hook but Core calls it anyway due to CallPoints misconfiguration, does the CallPointNotImplemented revert safely, or could it be caught and mishandled?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4984a71d-bd61-418e-af66-f420dec527fa",
+    "timestamp": "2025-12-02 08:03:50.623408",
+    "report_generated": false
   }
 ]
