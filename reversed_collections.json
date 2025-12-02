@@ -11248,5 +11248,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_796f1cb5-d8ae-4471-989f-a12d67d97a15",
     "timestamp": "2025-12-02 06:37:00.562756",
     "report_generated": false
+  },
+  {
+    "question": "At line 335 in handleLockData() for CALL_TYPE_WITHDRAW_PROTOCOL_FEES, updateSavedBalances is called with negative deltas to decrease saved balances. If amount0 or amount1 exceeds the actual saved balance, could this cause the savedBalances to underflow to a very large positive value, allowing infinite fee withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0aefab21-a0dd-44f0-ab76-330972e18b17",
+    "timestamp": "2025-12-02 06:38:18.879283",
+    "report_generated": false
+  },
+  {
+    "question": "The FlashAccountantLib.payTwoFrom() at line 118 calls startPayments() with both tokens, then does two separate transferFrom() calls. If the second transferFrom fails, does completePayments() at line 184 correctly revert the delta tracking, or could the first token payment remain registered?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_30458007-c83b-424a-a492-3cf09f402264",
+    "timestamp": "2025-12-02 06:38:32.354549",
+    "report_generated": false
+  },
+  {
+    "question": "In withdraw() at line 324, the amounts returned include deductions for both swap protocol fees (lines 298-299) and withdrawal protocol fees (line 324). Could an off-by-one error in the subtraction order cause the final amount to be greater than what was actually withdrawn from Core, creating artificial tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ba651796-e8af-4e66-900c-efa717e232b2",
+    "timestamp": "2025-12-02 06:38:46.840539",
+    "report_generated": false
+  },
+  {
+    "question": "At line 257 in deposit(), SafeTransferLib.safeTransferETH() is used for native token deposits. This makes an external call to the accountant. Could a malicious accountant contract reenter during this call to manipulate the lock state before completePayments() is called?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b5d251d6-207d-4919-a6a4-818ac986e9af",
+    "timestamp": "2025-12-02 06:39:01.389538",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData() at line 328, withdrawTwo() is called to send tokens to the recipient. If this call fails (e.g., token transfer reverts), the entire lock will revert, but the intermediate state changes (like updateSavedBalances for protocol fees) have already occurred in Core storage. Could this create an inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f0bbf7a7-e4ad-4f0d-81bd-f0f885b85119",
+    "timestamp": "2025-12-02 06:39:16.449722",
+    "report_generated": false
+  },
+  {
+    "question": "The BaseLocker.lock() function at line 44 in BaseLocker.sol uses assembly to call ACCOUNTANT.lock(). If the accountant's lock() function itself calls back into BasePositions (e.g., through an extension), could this create a nested lock scenario where delta tracking becomes corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_88001bc9-9af7-4c1b-9c85-4a14db536711",
+    "timestamp": "2025-12-02 06:39:32.941825",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 293-300 in handleLockData(), protocol fees are deducted from collected fees via updateSavedBalances(). If the calculation of swapProtocolFee0 or swapProtocolFee1 from _computeSwapProtocolFees() exceeds the actual amount0 or amount1, could this cause underflow at line 298-299, leaving the position with negative claimable fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9fe90b36-1986-48d8-80d1-792e3ed5565a",
+    "timestamp": "2025-12-02 06:39:51.072621",
+    "report_generated": false
+  },
+  {
+    "question": "In the withdraw flow at lines 284-287, CORE.collectFees() is called before position update. If collectFees() succeeds but the subsequent updatePosition() at line 304 reverts, could the fees be collected without actually reducing liquidity, allowing double-claiming of fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf5bee05-d4d9-4c20-9ac6-1aac5b78b364",
+    "timestamp": "2025-12-02 06:40:11.780821",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 254 and 260 in the deposit flow, tokens are paid via ACCOUNTANT.payTwoFrom() or separate calls. If payTwoFrom() succeeds for token0 but fails for token1, could the lock exit with a net-negative delta in token1, allowing the depositor to extract value from the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5326c268-85cb-4103-907f-5372dd3c62ec",
+    "timestamp": "2025-12-02 06:40:34.792030",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData() at line 243, CORE.updatePosition() is called which updates the pool state and returns a PoolBalanceUpdate. If this internal call to Core fails partway through (e.g., due to tick crossing issues), could the lock remain open with unbalanced deltas, violating the flash accounting invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b9f380b5-537d-49c9-b6bd-bc5d9c7afec5",
+    "timestamp": "2025-12-02 06:41:00.052499",
+    "report_generated": false
+  },
+  {
+    "question": "In liquidityDeltaToAmountDelta() at line 33 in liquidity.sol, the sign variable is calculated as -1 + 2 * int256(LibBit.rawToUint(isPositive)). Could this bitwise manipulation fail for edge cases, causing deposits (positive liquidity) to be treated as withdrawals (negative liquidity) or vice versa?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c48dc5d-4192-470f-b430-c4c58a6570c3",
+    "timestamp": "2025-12-02 06:41:25.709661",
+    "report_generated": false
+  },
+  {
+    "question": "At line 83, deposit() uses tickToSqrtRatio() to convert tick bounds. If a malicious user provides tickLower or tickUpper values close to MIN_TICK or MAX_TICK, could the sqrtRatio conversion overflow or underflow, producing invalid price ratios that break the maxLiquidity calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_34f1862f-cbb8-4452-a4c8-67c6a4c60b0b",
+    "timestamp": "2025-12-02 06:41:53.360241",
+    "report_generated": false
+  },
+  {
+    "question": "The getPositionFeesAndLiquidity() view at lines 58-60 uses liquidityDeltaToAmountDelta with a negative liquidity value. The comment at line 56 states sqrtRatio may be 0 for uninitialized pools. Could calling this view function on an uninitialized pool with sqrtRatio=0 cause division by zero in the underlying math functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8702be6-1bb9-41ce-9e61-98118d8be8a2",
+    "timestamp": "2025-12-02 06:42:20.611517",
+    "report_generated": false
+  },
+  {
+    "question": "In deposit() at line 80, the sqrtRatio is fetched from poolState. If the pool is uninitialized (sqrtRatio == 0), maxLiquidity() would divide by zero or produce undefined results. Although maybeInitializePool() exists, it's not enforced before deposit(). Could this lead to reverts or incorrect liquidity calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7be8b3d9-5470-4d51-94c7-3134c4008eea",
+    "timestamp": "2025-12-02 06:42:49.759979",
+    "report_generated": false
+  },
+  {
+    "question": "At line 102 in liquidity.sol, maxLiquidityForToken0 is capped at type(uint128).max. However, the calculation involves fullMulDiv which could theoretically exceed this. Could overflow in the intermediate steps before capping cause incorrect liquidity calculations that violate the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a25e8134-e239-4a29-8975-0de5d77b7d9a",
+    "timestamp": "2025-12-02 06:43:20.165055",
+    "report_generated": false
+  },
+  {
+    "question": "In maxLiquidity() at lines 90-119 in liquidity.sol, when sqrtRatio is between sqrtRatioLower and sqrtRatioUpper, the function takes the minimum of maxLiquidityForToken0 and maxLiquidityForToken1. Could an attacker manipulate the pool price via sandwich attacks to change which token becomes the limiting factor, depositing less liquidity than expected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dcbf4c12-cf38-431d-9421-64d7a0171da7",
+    "timestamp": "2025-12-02 06:43:51.445931",
+    "report_generated": false
+  },
+  {
+    "question": "The liquidityDeltaToAmountDelta() function at line 22 in liquidity.sol uses unchecked arithmetic. At lines 38-52, it calls SafeCastLib.toInt128 on potentially large values. Could carefully crafted tick ranges and liquidity amounts cause the intermediate calculations to overflow before the SafeCast check, resulting in incorrect amount deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f06b5507-e5c5-48a7-842f-396da28d72b3",
+    "timestamp": "2025-12-02 06:44:22.837891",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData() at line 277, the withdraw flow checks if liquidity > type(int128).max. However, this check happens after the user has already been authorized. Could an attacker attempt to withdraw a massive liquidity amount that passes authorization but fails here, potentially leaving the position in an inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4bed34a7-2697-4cfa-9055-33940c8fa81e",
+    "timestamp": "2025-12-02 06:44:55.938030",
+    "report_generated": false
+  },
+  {
+    "question": "At line 89, deposit() checks if liquidity > type(int128).max and reverts with DepositOverflow. However, the maxLiquidity() function at line 90 in liquidity.sol already caps the result to type(uint128).max. Is there a scenario where this overflow check is insufficient, allowing a liquidity value that fits in uint128 but causes issues when cast to int128?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a22bdbe2-a527-4c6d-994f-3f8393117e3a",
+    "timestamp": "2025-12-02 06:45:30.122950",
+    "report_generated": false
+  },
+  {
+    "question": "In deposit() at lines 82-83, maxLiquidity() calculates the maximum liquidity from maxAmount0 and maxAmount1. Could precision loss in the division operations within maxLiquidityForToken0() or maxLiquidityForToken1() allow an attacker to deposit slightly more than intended, potentially causing pool imbalance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a0e41c35-7008-45ce-91b0-2695a4d62868",
+    "timestamp": "2025-12-02 06:46:03.114131",
+    "report_generated": false
+  },
+  {
+    "question": "In mintAndDepositWithSalt() at line 172, the salt is user-provided. Could two users accidentally or maliciously use the same salt, causing the second mint to fail but with the first user unaware that someone attempted to create the same position, potentially revealing their trading strategy?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0700e5d6-af5e-4927-b6ff-51bc3012c77c",
+    "timestamp": "2025-12-02 06:46:37.177738",
+    "report_generated": false
+  },
+  {
+    "question": "The getPositionFeesAndLiquidity() view function at line 43 creates a PositionId from user-provided tickLower and tickUpper without validating them against the actual position stored in Core. Could this return incorrect data if the caller provides different ticks than were actually used during deposit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f014164f-7565-41e6-9008-f0913d3fbe9b",
+    "timestamp": "2025-12-02 06:47:10.523512",
+    "report_generated": false
+  },
+  {
+    "question": "In the authorizedForNft modifier at line 81 in BaseNonfungibleToken, _isApprovedOrOwner checks both ownership and approval. Could an attacker exploit the approval mechanism by getting approval for an NFT, then immediately calling withdraw() or collectFees() before the owner revokes approval?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_08c66dd1-7259-4a01-bb14-031c343df2a2",
+    "timestamp": "2025-12-02 06:47:44.855990",
+    "report_generated": false
+  },
+  {
+    "question": "When deposit() is called at line 79 with an NFT ID that was just minted via mintAndDeposit() at line 168, is there a front-running window where an attacker could transfer the NFT to themselves between minting and the actual deposit transaction completing, stealing the deposited liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_028a8881-af65-440d-a3e2-e51979e53233",
+    "timestamp": "2025-12-02 06:48:17.345159",
+    "report_generated": false
+  },
+  {
+    "question": "In createPositionId() at line 31 in positionId.sol, the function uses assembly to pack salt, tickLower, and tickUpper. Could improper bit masking with 0xFFFFFFFF cause sign extension issues where negative tick values corrupt the salt portion of the position ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13bfa7a7-a93a-48b3-a97f-16b2fa3c0fa5",
+    "timestamp": "2025-12-02 06:48:50.238179",
+    "report_generated": false
   }
 ]
