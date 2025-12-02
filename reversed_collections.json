@@ -11698,5 +11698,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a4ddd509-bbbc-43e8-81f4-2564839ab7d1",
     "timestamp": "2025-12-02 07:12:25.913168",
     "report_generated": false
+  },
+  {
+    "question": "In Oracle extension (example: Oracle.sol line 56), it inherits from both BaseExtension and ExposedStorage. If ExposedStorage provides direct storage access, could extension hooks bypass Core's flash accounting invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d48d70f-9a11-45e7-a9f4-f0ea58297e31",
+    "timestamp": "2025-12-02 07:42:36.800511",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM extension (example: TWAMM.sol line 60), it uses TWAMMStorageLayout for custom storage. If TWAMMStorageLayout.sol has storage slot collision with CoreStorageLayout, could TWAMM state corrupt pool state or vice versa?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d2f6ccf1-756e-4e7e-9eb3-e5fd8dd7ea08",
+    "timestamp": "2025-12-02 07:42:50.014489",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterSwap() (line 70-72), if an extension updates price oracle using PoolState data, but PoolState struct layout changes in a protocol upgrade, could oracle calculations become corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4824aac4-7dfd-4abe-9210-332f2d624460",
+    "timestamp": "2025-12-02 07:43:03.597740",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterUpdatePosition() (line 57-62), if an extension stores PoolBalanceUpdate for historical tracking, but these deltas are signed int128, could accumulated tracking overflow or wrap around, corrupting accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28d5334f-aa88-4764-98f1-fd25f9ddc174",
+    "timestamp": "2025-12-02 07:43:17.840068",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hook implementations, if derived contracts use storage variables that overlap with inherited contract storage, could storage collisions corrupt extension state during hook execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a68ffb04-7ce1-4ca2-b0dd-bc7a74452497",
+    "timestamp": "2025-12-02 07:43:34.465815",
+    "report_generated": false
+  },
+  {
+    "question": "In Core's extension registration, if addressToCallPoints() uses a bit pattern that's valid but creates conflicts with future extension features, could this limit extension system evolution or create backward compatibility issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa02bb63-274c-4405-8bb3-b6aed5deb019",
+    "timestamp": "2025-12-02 07:43:51.333852",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.initializePool(), if beforeInitializePool() hook succeeds but pool initialization itself fails (e.g., invalid tick), is the extension's state from the before hook rolled back, or could it be left in a partially initialized state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aa9eb6cf-9972-43c7-891d-46dccada3b8f",
+    "timestamp": "2025-12-02 07:44:10.184034",
+    "report_generated": false
+  },
+  {
+    "question": "In Core, if extension hooks can be called multiple times in a single transaction (e.g., multiple swaps), does Core track hook execution depth or reentrancy, or could an extension be called recursively until gas exhaustion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23c801bb-91b6-42af-8ec1-ca6890d54e2e",
+    "timestamp": "2025-12-02 07:44:30.771855",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.registerExtension(), if an extension's address is maliciously crafted with specific bit patterns, could it register with CallPoints that enable hooks it doesn't actually implement, causing reverts in normal pool operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0ba1e1b1-1aa6-4914-b058-50d236cebc76",
+    "timestamp": "2025-12-02 07:44:52.471050",
+    "report_generated": false
+  },
+  {
+    "question": "In Core's extension system, if an extension implements custom storage layout (like TWAMMStorageLayout), could there be collision between extension's storage and Core's storage for the same pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3b5652f1-4804-4cc2-b519-a7e702138e61",
+    "timestamp": "2025-12-02 07:45:16.358408",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.initializePool(), the pool state is written to storage before afterInitializePool() hook. If the hook reads this state and makes decisions based on it, could the hook's state changes create inconsistencies with Core's expectations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_583b11ce-e8a6-4b8f-9e71-0bbdd4ef79df",
+    "timestamp": "2025-12-02 07:45:41.255624",
+    "report_generated": false
+  },
+  {
+    "question": "In Core hook execution, if an extension's beforeSwap() hook initiates its own swap in a different pool, could nested swap execution corrupt the flash accounting delta tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_050f5711-e32d-4677-b8cb-bef999e1d5d6",
+    "timestamp": "2025-12-02 07:46:07.140594",
+    "report_generated": false
+  },
+  {
+    "question": "In Core, if multiple pools use the same extension, and one pool's hook call causes the extension to malfunction, do all pools sharing that extension become affected, or is failure isolation maintained per-pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_110e45ca-750d-4ab7-8e76-a80cbf314ce2",
+    "timestamp": "2025-12-02 07:46:32.945442",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.registerExtension(), emission of ExtensionRegistered event happens after storage update. If an attacker reverts immediately after registration but before event emission, could this create extensions that are registered but not logged?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_de7cb4de-f81a-43aa-aab5-7abfdf664a7f",
+    "timestamp": "2025-12-02 07:47:01.977964",
+    "report_generated": false
+  },
+  {
+    "question": "In Core storage layout, extension registration status is stored in isExtensionRegisteredSlot(extensionAddress). Could there be storage collisions between extension registration flags and other Core state if CoreStorageLayout.sol has errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca61136e-2816-4f8e-85d3-f37f363e6395",
+    "timestamp": "2025-12-02 07:47:31.338266",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.initializePool(), if beforeInitializePool() hook modifies pool parameters (tokens, fee, tickSpacing), do these changes persist into the pool state, or are they isolated from the actual initialization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2078740-8cf4-4f26-9cd4-5c70739b208a",
+    "timestamp": "2025-12-02 07:48:00.357908",
+    "report_generated": false
+  },
+  {
+    "question": "In Core hook invocations, if an extension's hook function signature changes (different parameter types) after registration, Core's abi.encodeWithSelector call would fail. How are extension upgrades or interface changes handled safely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5defe239-eb76-4f96-a6ef-b194977dd0ab",
+    "timestamp": "2025-12-02 07:48:30.941867",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.registerExtension(), if expectedCallPoints is passed as memory parameter, could a malicious extension modify this struct after validation but before storage, causing registered CallPoints to differ from validated ones?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_69cc57b4-a23d-41ee-8ab3-32e5e2a6a65b",
+    "timestamp": "2025-12-02 07:49:01.938181",
+    "report_generated": false
+  },
+  {
+    "question": "In Core, if extension hooks are called via external call (address(extension).call()), and the extension returns unexpected data or uses excessive gas, does Core properly handle these failures without reverting the entire transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2307be8e-c18e-48bb-b780-cdf8e9c30e23",
+    "timestamp": "2025-12-02 07:49:32.899408",
+    "report_generated": false
+  },
+  {
+    "question": "In ExtensionCallPointsLib.maybeCallBeforeSwap() pattern, hooks are only called if the CallPoints bit is set in the extension address. If address bits are manipulated after deployment (impossible?) or if CREATE2 salt allows choosing bits, could hook execution be bypassed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_df2104d3-0ace-4ab6-8260-cc3071bbdb7b",
+    "timestamp": "2025-12-02 07:50:01.991759",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.initializePool(), the extension address is extracted from poolKey.config.extension(). If an attacker creates a pool with extension=address(0) or unregistered extension, what prevents initialization, and could this be bypassed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_40008ac3-3417-44b1-8ada-87c91ea5b860",
+    "timestamp": "2025-12-02 07:50:31.614649",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.initializePool() (reference: Core.sol line 72-100), extension hooks are called via maybeCallBeforeInitializePool() and maybeCallAfterInitializePool(). If beforeInitializePool() reverts but afterInitializePool() is never called, could this leave extension state inconsistent?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c6fe9d6-dcd1-457d-9c44-ad6a2066cb9d",
+    "timestamp": "2025-12-02 07:50:58.577337",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.registerExtension(), if CallPoints.isValid() returns true for a configuration that's logically invalid (e.g., after hooks without before hooks), could this allow registration of extensions that cause hook execution failures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3927d48-9fff-4888-a7fb-1891a36e9114",
+    "timestamp": "2025-12-02 07:51:27.206446",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.registerExtension(), it checks isExtensionRegisteredSlot(msg.sender) to prevent double registration. If an extension selfdestructs and is redeployed at the same address, could it bypass the already-registered check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_54099d79-a90e-48e5-ae83-c349b9310762",
+    "timestamp": "2025-12-02 07:51:55.929935",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.registerExtension() (reference: Core.sol line 50-61), it validates CallPoints via addressToCallPoints(msg.sender).eq(expectedCallPoints). If an extension deploys to an address with different CallPoints bits than it declares in getCallPoints(), how is this mismatch detected at registration time?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8897541c-99d7-4fc7-a4bf-f80ea0028c94",
+    "timestamp": "2025-12-02 07:52:26.202278",
+    "report_generated": false
   }
 ]
