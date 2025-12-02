@@ -7948,5 +7948,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_51afe4e5-a46c-40dc-ad0b-e1120efa98af",
     "timestamp": "2025-12-02 02:23:16.380001",
     "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payFrom() (line 62), the free memory pointer is saved at line 62 but memory locations 0x60, 0x40, 0x2c, 0x0c are overwritten for transferFrom. If the saved pointer 'm' is less than 0x80, could restoring it at line 75 cause memory corruption for subsequent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_776c6397-ce27-40ee-a3d1-4e46b1486014",
+    "timestamp": "2025-12-02 02:24:30.027372",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payFrom() (line 52-83), the transferFrom calldata is constructed with 'from' at offset 0x2c using shl(96, from) at line 65. If 'from' has dirty upper 96 bits, could this cause transferFrom to pull tokens from an unintended address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ea1a9c92-6cf7-4e8a-bcee-8c96d7e71b21",
+    "timestamp": "2025-12-02 02:24:43.380777",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 30), the success check uses 'and(eq(mload(0x00), 1), success)'. Could a token that returns 0 or false (but doesn't revert) bypass the payment credit, allowing users to withdraw tokens without paying?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_76919ba5-d35c-4c0f-b49a-ed7575a4781e",
+    "timestamp": "2025-12-02 02:24:58.901674",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 15-44), if amount is 0, the function still calls startPayments() and completePayments(). Could repeatedly calling pay() with amount=0 grief the protocol by manipulating transient storage without actual token transfers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e3c1ae0-3207-40ac-b95e-4d9ec241532a",
+    "timestamp": "2025-12-02 02:25:13.630711",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 29), the token.transfer() call forwards all remaining gas(). Could a malicious ERC20 token consume excessive gas in its transfer() hook, causing the subsequent completePayments() call to run out of gas and fail to credit the payment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_be89736a-1642-4ddd-b57a-90c30a5cc53d",
+    "timestamp": "2025-12-02 02:25:29.146283",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 22), startPayments() is called with 36 bytes (4-byte selector + 32-byte token). If the accountant's startPayments() implementation expects different calldata size, could this mismatch cause it to record incorrect initial balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b112e51f-d096-4b7d-bef9-d415a5a85236",
+    "timestamp": "2025-12-02 02:25:46.292954",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 42), completePayments() ignores reverts with pop(call(...)). If completePayments() fails due to PaymentOverflow but the token was already transferred, could the accountant's token balance increase without corresponding debt reduction, violating flash accounting balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_df786cda-664d-4a56-a321-f8bb518f1507",
+    "timestamp": "2025-12-02 02:26:05.753378",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 36), only memory location 0x34 is restored to 0. If completePayments() at line 42 reads memory that was overwritten by the token transfer, could stale data cause incorrect debt calculations in FlashAccountant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_939d30e4-31e3-4f7d-b078-e92a98d72bf0",
+    "timestamp": "2025-12-02 02:26:25.038981",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 30-35), the transfer success check uses 'iszero(lt(or(iszero(extcodesize(token)), returndatasize()), success))'. Could a token contract with zero extcodesize but successful transfer still fail this check, causing false positives when paying legitimate tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2d6b669-e8de-43ae-bba5-bb1815072adb",
+    "timestamp": "2025-12-02 02:26:46.627009",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 24-27), the transfer calldata is constructed at memory offset 0x10 (starting at line 27). If the token returns more than 32 bytes from transfer(), could returndatasize exceed expectations and corrupt memory layout for subsequent completePayments call?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a9c2b4b-fed3-4e36-a2a4-509adf996be8",
+    "timestamp": "2025-12-02 02:27:08.316659",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 15-44), memory location 0x00 is used for multiple operations (startPayments selector at line 17, transfer selector at line 27, error at line 32). Could a malicious token's transfer() return data overwrite the completePayments selector stored at 0x00, causing completePayments to fail and leave unbalanced debts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d831709-22b2-4aab-98ce-48cb803e5e4e",
+    "timestamp": "2025-12-02 02:27:31.705128",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 15-44), the startPayments() call at line 22 uses pop(call(...)) to ignore return values. If startPayments() reverts due to NotLocked error, could an attacker bypass flash accounting by calling pay() outside a lock context, potentially corrupting debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2ce1350-ff36-42ea-b060-d0475c284cde",
+    "timestamp": "2025-12-02 02:27:55.608127",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeInitializePool (line 21), if initializer is a precompile address (0x01-0x09), could the comparison behave unexpectedly due to precompile address handling",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c0fdcce-c43d-42d1-b4fe-27d77417ac7d",
+    "timestamp": "2025-12-02 02:28:21.262313",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterCollectFees function calls the extension at line 266. If the extension has a non-reentrant modifier and was already called in the same transaction, could this revert and prevent fee collection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_138802a2-cbbe-494f-8c1c-03cffb6e9546",
+    "timestamp": "2025-12-02 02:28:48.131596",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeCollectFees (line 232), if the extension is a contract with a fallback function that consumes all gas, could this permanently block fee collection for all users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ba2a5452-762e-4c6a-a60b-69d3620e2c2d",
+    "timestamp": "2025-12-02 02:29:16.405387",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterUpdatePosition function makes a call at line 202. If this is the last operation in a transaction and exactly enough gas remains for the call but not the subsequent cleanup, could this leave the transaction in a half-completed state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bf32b9d7-f2b0-4152-a1e1-1f8d0ada5f0a",
+    "timestamp": "2025-12-02 02:29:45.441914",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeUpdatePosition (line 166), if the call to the extension succeeds but uses exactly 63/64 of remaining gas, could the subsequent operations in Core.sol fail due to insufficient gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e90cacbf-a7e0-45a9-92b3-f945a0eec38f",
+    "timestamp": "2025-12-02 02:30:15.135679",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterSwap function uses gas() at line 134. If the swap consumed nearly all gas, could the afterSwap hook fail due to insufficient gas, causing the entire transaction to revert and breaking withdrawal availability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_632c471a-4601-461c-98e7-39368a71b360",
+    "timestamp": "2025-12-02 02:30:44.663758",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeSwap (line 100), if gas() returns less than 63/64 of the gas forwarded to the extension due to the EIP-150 stipend rule, could the extension always run out of gas when called near the end of a transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_da5daeb9-1fa6-43d2-a4e5-d0b715ebf99c",
+    "timestamp": "2025-12-02 02:31:15.960391",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallAfterCollectFees function checks bit 1 (value 2). If an extension is deployed to an address where only bit 1 is set but beforeCollectFees (bit 2) is not set, could this violate the pairing invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_44d316cc-ad44-4c12-82ce-32b6457531eb",
+    "timestamp": "2025-12-02 02:31:45.114225",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeUpdatePosition (line 142-145), if both extension and locker are address(0), the self-call check evaluates to 'should not call'. Could this prevent legitimate operations on pools with zero-address extensions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1bb0d17d-f108-48cd-89a4-cf79abde5ae2",
+    "timestamp": "2025-12-02 02:32:15.760142",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterInitializePool function stores sqrtRatio at offset 164. If sqrtRatio is MIN_SQRT_RATIO, could the 96-bit value be sign-extended incorrectly when stored as 32 bytes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8da0429f-dcf5-46d4-a0ec-6eca4bf7bf15",
+    "timestamp": "2025-12-02 02:32:45.766724",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeInitializePool (line 39), if tick is MIN_TICK (-887272), does the mstore operation correctly encode the negative value, or could the extension receive an incorrect tick value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3eb84dc8-7da4-4d99-9646-3c2d5e6a1a08",
+    "timestamp": "2025-12-02 02:33:16.364297",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterSwap function stores PoolBalanceUpdate at offset 164. If delta0 and delta1 are both type(int128).min, could the encoding overflow when the extension attempts to decode them?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_951c7f4c-3433-40d5-9c87-b91ff82a1cd7",
+    "timestamp": "2025-12-02 02:33:43.376466",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeSwap (line 98), if SwapParameters is encoded with skipAhead set to type(uint256).max, could this cause the extension to misinterpret the parameters as a different action?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_35bf7038-3e04-4a51-b3cf-b7a81ef63aeb",
+    "timestamp": "2025-12-02 02:34:09.533715",
+    "report_generated": false
   }
 ]
