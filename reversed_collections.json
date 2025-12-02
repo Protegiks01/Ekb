@@ -12898,5 +12898,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e075607f-6d07-4ac5-a23a-07cbb53e7785",
     "timestamp": "2025-12-02 09:13:41.743444",
     "report_generated": false
+  },
+  {
+    "question": "In roll() (line 133), if amountToSpend != 0, increaseSellAmount is called. Could an ERC20 token's balanceOf function revert or return 0 when called within a transaction but non-zero in later calls, causing orders to be skipped when funds are actually available?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e2f61fc-a328-41d0-93ff-e624857223da",
+    "timestamp": "2025-12-02 09:14:58.080331",
+    "report_generated": false
+  },
+  {
+    "question": "When roll() calls ORDERS.increaseSellAmount with {value: isEth ? amountToSpend : 0} (line 134), could reentrancy during the Orders contract's receive() function allow a malicious actor to call roll() again before the first call completes, causing double-spending of the contract's ETH balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e9ba7d6-3f17-4008-8078-1f0de4b4f9fd",
+    "timestamp": "2025-12-02 09:15:11.661532",
+    "report_generated": false
+  },
+  {
+    "question": "The isEth check (line 102) compares token == NATIVE_TOKEN_ADDRESS where NATIVE_TOKEN_ADDRESS = address(0). Could a malicious actor deploy an ERC20 token at address(0) on a chain where this is possible, causing the contract to incorrectly use address(this).balance for an ERC20 token?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd33e687-3161-4cf2-8817-6c797aba0c4d",
+    "timestamp": "2025-12-02 09:15:25.291945",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.roll() (line 103), amountToSpend is set to address(this).balance for native tokens or SafeTransferLib.balanceOf(token, address(this)) for ERC20s. Could a malicious ERC20 token return an inflated balance, causing increaseSellAmount to be called with amount exceeding actual token balance, and would this drain the contract or revert in ORDERS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_832bf44d-f7fe-4e57-8a90-ecb0301bc1e4",
+    "timestamp": "2025-12-02 09:15:39.577505",
+    "report_generated": false
+  },
+  {
+    "question": "When timeRemaining >= minOrderDuration (line 110), the order is extended. Could setting minOrderDuration to 0 (before the isConfigured check) cause all orders to be extended indefinitely, preventing new orders from ever being created even after fee changes or long time periods?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d2d4f21-a60a-40b2-93ea-93dcdd516d2f",
+    "timestamp": "2025-12-02 09:15:54.618011",
+    "report_generated": false
+  },
+  {
+    "question": "The underflow comment (line 107) suggests this is intentional behavior. However, could an attacker manipulate the timing of roll() calls to consistently trigger underflow at predictable times, and use this to front-run or sandwich buyback orders for MEV extraction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2c87a351-8f29-4ee9-bf8a-58fc0981ae56",
+    "timestamp": "2025-12-02 09:16:11.343257",
+    "report_generated": false
+  },
+  {
+    "question": "When nextValidTime() is called (line 117), it's passed block.timestamp + targetOrderDuration - 1. Could targetOrderDuration = 1 cause this to equal block.timestamp, and would nextValidTime() return block.timestamp itself or the next valid time after it, potentially creating orders with startTime = endTime?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3530c899-e746-4750-b4ac-0a59fd575f7f",
+    "timestamp": "2025-12-02 09:16:29.331414",
+    "report_generated": false
+  },
+  {
+    "question": "The order extension logic (lines 109-112) checks three conditions with &&. Could the order of evaluation matter if one check has side effects, or could compiler optimization change the evaluation order in a way that breaks the intended logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e40704e-68d8-40c9-b579-cbde5d8a2096",
+    "timestamp": "2025-12-02 09:16:49.328709",
+    "report_generated": false
+  },
+  {
+    "question": "In roll(), when creating a new order, the code sets lastEndTime to uint32(endTime) (line 123). Could a scenario where endTime >= 2^32 cause data loss in this cast, and would subsequent roll() calls use this truncated lastEndTime to incorrectly calculate timeRemaining?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f16a7d30-d03f-440c-b5d4-e9591ef6396d",
+    "timestamp": "2025-12-02 09:17:10.683611",
+    "report_generated": false
+  },
+  {
+    "question": "The lastOrderDuration check (line 111) ensures timeRemaining doesn't exceed the duration of the previous order. Could setting targetOrderDuration to be much smaller than minOrderDuration create a scenario where orders can never be extended (timeRemaining always exceeds lastOrderDuration), forcing new orders and gas waste?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_36cd9170-ca6f-46eb-b1f2-182f3a7c86f1",
+    "timestamp": "2025-12-02 09:17:33.066391",
+    "report_generated": false
+  },
+  {
+    "question": "When the fee changes (line 110 condition fails), a new order is created. Could rapid fee changes (owner calling configure() repeatedly) between roll() calls cause order fragmentation where many small orders are created instead of one continuous order, and would this increase MEV extraction opportunities or execution slippage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a7990cbb-b12c-40d2-b8ed-60d5ab608a0f",
+    "timestamp": "2025-12-02 09:17:56.426110",
+    "report_generated": false
+  },
+  {
+    "question": "The comment on line 107 states 'time remaining can underflow if the last order has ended'. Could an attacker exploit this by repeatedly calling roll() immediately after orders end, causing consistent underflow conditions that bypass security checks or create orders with unintended timing parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd4992d4-c1ad-4bd2-8e29-352e2a99ec52",
+    "timestamp": "2025-12-02 09:18:21.505176",
+    "report_generated": false
+  },
+  {
+    "question": "In configure() (lines 151-154), the contract validates minOrderDuration <= targetOrderDuration. However, could setting both to very large values (near uint32 max) cause arithmetic operations in roll() (line 117: block.timestamp + targetOrderDuration - 1) to overflow, breaking the order creation logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_99312e42-f3c4-4ecb-9587-86843d7bf0f4",
+    "timestamp": "2025-12-02 09:18:48.328430",
+    "report_generated": false
+  },
+  {
+    "question": "When roll() extends an existing order (line 114), it sets endTime = uint64(block.timestamp + timeRemaining). Could timeRemaining being calculated from an underflowed lastEndTime cause endTime to be set to a timestamp that doesn't align with TWAMM's valid time requirements (not a multiple of stepSize), causing the TWAMM order creation to revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_432e9b57-fbd1-4881-ac4b-c5396ac81c50",
+    "timestamp": "2025-12-02 09:19:16.532579",
+    "report_generated": false
+  },
+  {
+    "question": "The nextValidTime function (time.sol lines 44-64) can return 0 if nextTime > currentTime + type(uint32).max. Could this cause roll() (line 117) to set endTime to 0, and would ORDERS.increaseSellAmount accept an orderKey with endTime = 0, creating an order that immediately expires?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8dd72916-c248-4b92-9875-19206c91fbc1",
+    "timestamp": "2025-12-02 09:19:44.634727",
+    "report_generated": false
+  },
+  {
+    "question": "In roll(), the condition timeRemaining <= state.lastOrderDuration() (line 111) is checked after the underflow. Could an attacker exploit the wrap-around behavior to satisfy this condition when timeRemaining should be negative (order expired), causing the contract to extend an expired order instead of creating a new one?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73f281f9-c246-4f4c-893d-6a533081e335",
+    "timestamp": "2025-12-02 09:20:13.084825",
+    "report_generated": false
+  },
+  {
+    "question": "The targetOrderDuration parameter is uint32 in configure() (line 147). Could passing type(uint32).max cause the addition block.timestamp + uint256(state.targetOrderDuration()) - 1 (line 117) to overflow when block.timestamp is large, passing a wrapped-around value to nextValidTime() and creating orders with invalid timestamps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e4fc95d1-4d8f-4a4f-a37d-197ab32c89a2",
+    "timestamp": "2025-12-02 09:20:42.235669",
+    "report_generated": false
+  },
+  {
+    "question": "When creating a new order (lines 116-126), lastOrderDuration is set to uint32(endTime - block.timestamp). Could endTime < block.timestamp due to nextValidTime() returning 0 (wrap-around case in time.sol line 63) cause this subtraction to underflow, storing a huge lastOrderDuration that breaks future extension logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1cf0aa41-7ee5-4fb1-a461-a98de058950e",
+    "timestamp": "2025-12-02 09:21:13.425325",
+    "report_generated": false
+  },
+  {
+    "question": "The fee change detection (line 110) compares state.fee() == state.lastFee(). If a fee changes between orders, a new order should be created. Could race conditions where the owner calls configure() to change the fee while roll() is executing cause the old lastFee to be preserved in state (line 166), making future roll() calls incorrectly extend orders across the fee change?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_717325fc-3231-4cde-8e16-5eb7abfe4531",
+    "timestamp": "2025-12-02 09:21:42.578541",
+    "report_generated": false
+  },
+  {
+    "question": "In the order extension path (line 114), endTime = uint64(block.timestamp + timeRemaining). Could block.timestamp + timeRemaining overflow uint64, causing endTime to wrap around to a small value, and would this create orders that have already expired or violate TWAMM time validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c19ba6e-88d7-4de7-8a09-1bb2e5cac558",
+    "timestamp": "2025-12-02 09:22:11.870808",
+    "report_generated": false
+  },
+  {
+    "question": "The nextValidTime() function (line 117) is called with (block.timestamp, block.timestamp + uint256(state.targetOrderDuration()) - 1). Could targetOrderDuration being set to 0 cause this to pass block.timestamp - 1, and would nextValidTime handle this correctly or return invalid timestamps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_54c30cbf-6eed-4d55-abd2-99e8c4b9e83f",
+    "timestamp": "2025-12-02 09:22:40.563784",
+    "report_generated": false
+  },
+  {
+    "question": "In roll(), if timeRemaining underflows (line 105), it becomes a very large value. The code relies on it also exceeding lastOrderDuration (line 111) to detect expiry. Could carefully setting lastOrderDuration to uint32 max cause even underflowed timeRemaining to satisfy the extension conditions, creating orders with invalid endTime?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02ff9c1e-07af-491b-bfc9-cd72e771df0d",
+    "timestamp": "2025-12-02 09:23:09.529839",
+    "report_generated": false
+  },
+  {
+    "question": "The order extension condition (lines 109-112) checks if timeRemaining >= state.minOrderDuration() && timeRemaining <= state.lastOrderDuration(). Could edge cases where lastOrderDuration is set to uint32 max cause all timeRemaining values to satisfy this condition, preventing new orders from ever being created?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ec1f964-fa8f-47fd-8c67-ff205e6294b1",
+    "timestamp": "2025-12-02 09:23:39.146677",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.roll() (line 105), timeRemaining is calculated as state.lastEndTime() - uint32(block.timestamp). The comment notes this can underflow. Could an attacker manipulate block.timestamp or lastEndTime to cause timeRemaining to underflow to a very large uint32 value, bypassing the minOrderDuration check and forcing order extension when a new order should be created?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_76346a80-0f36-4fd0-b747-d0f31c5edaa0",
+    "timestamp": "2025-12-02 09:24:10.281735",
+    "report_generated": false
+  },
+  {
+    "question": "In the fee change detection (line 110 in RevenueBuybacks.sol), state.fee() == state.lastFee() is checked. Could bit manipulation errors in the extraction functions cause these to incorrectly report equality even when the stored fee has changed, leading to order extension across fee tier changes and execution on the wrong pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0810684d-7b38-4d60-8cfe-7459862874c4",
+    "timestamp": "2025-12-02 09:24:40.457700",
+    "report_generated": false
   }
 ]
