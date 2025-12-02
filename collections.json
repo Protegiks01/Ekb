@@ -13792,5 +13792,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e404e44-591e-41f0-aebc-03ed4b8eb083",
     "timestamp": "2025-12-02 09:32:31.637381",
     "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.maybeInitializePool properly handle the case where sqrtRatio.isZero() returns false due to precision errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ee62eb3-b9d0-4e1d-8c34-7cedb11c7fdc",
+    "timestamp": "2025-12-02 09:33:42.449267",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.withdrawProtocolFees (line 335), does updateSavedBalances with negative values properly underflow checks, or can it drain more than accumulated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d17d0d89-23c0-44ea-ad54-e4bd3e44856e",
+    "timestamp": "2025-12-02 09:33:55.725150",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.deposit be called repeatedly with the same ID to accumulate unbounded liquidity that causes uint128 overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2cfe711c-29d3-4170-bbda-87b9d487370a",
+    "timestamp": "2025-12-02 09:34:09.184802",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.handleLockData properly handle the case where Core.collectFees returns (0, 0) but withFees = true, wasting gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_85b60b70-52ab-4c9e-9d9f-f7a17ca3fae9",
+    "timestamp": "2025-12-02 09:34:24.788693",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.withdraw (line 324-325), does the amount0 += withdrawnAmount0 - withdrawalFee0 arithmetic properly prevent underflow when withdrawalFee0 > withdrawnAmount0?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_920b3306-386d-4c80-ba92-273ded418653",
+    "timestamp": "2025-12-02 09:34:40.038666",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.collectFees be frontrun where an attacker deposits tiny liquidity, triggers swaps, collects proportional fees, and withdraws?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00132b8c-b8ae-4460-a50b-4082147b478f",
+    "timestamp": "2025-12-02 09:34:56.819257",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.mintAndDeposit properly handle multicall scenarios where multiple positions are created with overlapping tick ranges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17a162bd-7785-4fda-9115-361813c25877",
+    "timestamp": "2025-12-02 09:35:14.387458",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.getPositionFeesAndLiquidity (line 64-67), does the ternary for isFullRange properly handle edge cases where pool config changes mid-query?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7f733eb-86f1-4040-8400-38a2d66f4f18",
+    "timestamp": "2025-12-02 09:35:34.668781",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.withdraw with withFees = false be used to avoid protocol fee collection, allowing users to extract value without paying?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3b31c52f-81ca-47e1-98cb-00346bf75332",
+    "timestamp": "2025-12-02 09:35:55.548713",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.handleLockData CALL_TYPE_DEPOSIT (line 249-250) properly handle delta0/delta1 being negative, or can it cause type confusion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_becc8c61-a0dd-42ca-a099-0753868a694e",
+    "timestamp": "2025-12-02 09:36:18.174586",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.deposit (line 85-87), does the DepositFailedDueToSlippage revert properly refund gas, or can failed deposits still charge users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79874fd5-1d38-4196-89dc-e9fc9aca502a",
+    "timestamp": "2025-12-02 09:36:42.691073",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.withdraw be used during pool initialization to extract funds before price discovery completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b63292b4-4fa5-4802-b6fb-4b7bb1069751",
+    "timestamp": "2025-12-02 09:37:07.734459",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.collectFees properly handle positions where tickLower = MIN_TICK and tickUpper = MAX_TICK, potentially causing bitmap lookup errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_667ed07e-1c3a-4de2-bbc6-2ff76b48743a",
+    "timestamp": "2025-12-02 09:37:34.471315",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.handleLockData (line 304-308), does Core.updatePosition with negative liquidity properly handle the case where position.liquidity < liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_76d7b043-0f58-4883-8ffd-efdf5f1580d8",
+    "timestamp": "2025-12-02 09:38:02.310098",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.mintAndDepositWithSalt be exploited where salt is chosen to create position IDs that collide with existing Core position tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3b7fc134-a02f-43c6-82e3-934e87f31e5f",
+    "timestamp": "2025-12-02 09:38:31.498245",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.withdraw properly handle the case where recipient is a contract with malicious receive() that reenters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f04b097f-fab8-458b-8b8a-e0d3c8a33c73",
+    "timestamp": "2025-12-02 09:39:02.587800",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.getPositionFeesAndLiquidity (line 58-60), does liquidityDeltaToAmountDelta properly handle sqrtRatio at MIN/MAX bounds, or can it overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b349eb29-5804-4f7e-91bc-1a6fd170d914",
+    "timestamp": "2025-12-02 09:39:33.582158",
+    "report_generated": false
+  },
+  {
+    "question": "In ICore.registerExtension (line 182), could an attacker deploy a malicious extension with a crafted address where the lower 8 bits match a valid CallPoints encoding but the extension doesn't actually implement the corresponding hooks, causing reverts when Core attempts to call non-existent functions during pool operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a7ad804-0024-4139-bb8d-06945b00040c",
+    "timestamp": "2025-12-02 09:40:07.146795",
+    "report_generated": false
+  },
+  {
+    "question": "In ICore.registerExtension (line 182), if expectedCallPoints has all bits set to true but the extension implementation reverts in certain hooks (e.g., beforeSwap), could this permanently freeze all pools using that extension by making swaps impossible?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4d4be12c-23cf-4e19-b670-ccd2165d0aa1",
+    "timestamp": "2025-12-02 09:40:41.390774",
+    "report_generated": false
+  },
+  {
+    "question": "In ICore.registerExtension (line 182), could an attacker front-run a legitimate extension registration by deploying an identical extension address (via different salt in CREATE2) and registering first, preventing the legitimate extension from ever being usable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42fa08a5-924e-4e67-9635-008e2c85f9ea",
+    "timestamp": "2025-12-02 09:41:16.244164",
+    "report_generated": false
+  },
+  {
+    "question": "In IExtension hooks (lines 21-96), if an extension's beforeInitializePool (line 25) consumes excessive gas or enters an infinite loop, could this DOS pool initialization for that extension, violating the withdrawal availability invariant for any positions that depend on that pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e03a1b3-c777-4e76-a521-2fc04e5f2609",
+    "timestamp": "2025-12-02 09:41:50.426406",
+    "report_generated": false
+  },
+  {
+    "question": "In IExtension.afterUpdatePosition (lines 48-55), if the extension implementation incorrectly reads the PoolState stateAfter parameter and makes decisions based on corrupted tick/sqrtRatio/liquidity values, could this lead to incorrect virtual order execution in TWAMM or oracle manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4b45d5f-0fbf-4c0f-b65a-39223cee686e",
+    "timestamp": "2025-12-02 09:42:25.479003",
+    "report_generated": false
+  },
+  {
+    "question": "In IExtension.beforeSwap (lines 57-61), could a malicious extension modify transient storage state that affects Core's delta tracking, enabling a flash accounting bypass where debts are not properly settled?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_86f54d87-426e-4be4-8219-5bf2006d8cba",
+    "timestamp": "2025-12-02 09:42:59.542360",
+    "report_generated": false
+  },
+  {
+    "question": "In IExtension.afterSwap (lines 69-75), if the extension reads PoolBalanceUpdate.delta0/delta1 and assumes they represent actual token transfers, but these values haven't been validated against actual balance changes, could this lead to accounting errors in TWAMM order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4c216c2-d661-4cb2-8e8f-b107278774e4",
+    "timestamp": "2025-12-02 09:43:34.852935",
+    "report_generated": false
+  },
+  {
+    "question": "In IExtension.beforeCollectFees (lines 77-81), could an extension reenter Core.collectFees during this hook, creating nested fee collection that double-counts fees or corrupts the fees-per-liquidity tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7b7a5cbe-20a9-4f2f-9707-453f93e80468",
+    "timestamp": "2025-12-02 09:44:08.668477",
+    "report_generated": false
   }
 ]
