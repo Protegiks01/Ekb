@@ -14842,5 +14842,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_667d9302-c61c-4ab9-aaf7-b928cd5d5a23",
     "timestamp": "2025-12-02 10:55:22.227273",
     "report_generated": false
+  },
+  {
+    "question": "In the constructor (line 75), the check `if (twapDuration == 0) revert InvalidTwapDuration()` uses `==` instead of checking for overflow when cast to `uint32`. Could passing a `twapDuration` value larger than `type(uint32).max` silently truncate the duration, creating a shorter-than-intended TWAP window vulnerable to manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ec2e8a5-1d45-4d8c-99e9-d3ebdc38a931",
+    "timestamp": "2025-12-02 10:56:39.121877",
+    "report_generated": false
+  },
+  {
+    "question": "The constructor (lines 68-82) sets immutable proxy tokens without checking if these tokens actually have liquidity pools paired with `NATIVE_TOKEN_ADDRESS` in the Oracle. Could this cause all `getQuote()` calls to revert with `NoPreviousSnapshotExists` if the Oracle hasn't initialized snapshots for these tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_749efdbd-e467-4645-bdac-28b0bcaee8c6",
+    "timestamp": "2025-12-02 10:56:52.628648",
+    "report_generated": false
+  },
+  {
+    "question": "In `normalizeAddress()` (lines 123-135), the function checks three specific ERC-7726 addresses but returns `addr` unchanged for all other addresses (line 134). Could an attacker pass a malicious token address that isn't tracked by the Oracle extension, causing `extrapolateSnapshot()` to revert and DOS all price queries involving that token?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8c81e8f9-5123-4281-b08e-2d035dba48f3",
+    "timestamp": "2025-12-02 10:57:06.966446",
+    "report_generated": false
+  },
+  {
+    "question": "The `normalizeAddress()` function (lines 124-125) maps `IERC7726_ETH_ADDRESS` to `ETH_PROXY_TOKEN`. If `ETH_PROXY_TOKEN` is configured as `NATIVE_TOKEN_ADDRESS` (address(0)) during construction, would this cause confusion in `getAverageTick()` where both the normalized address and the original NATIVE_TOKEN_ADDRESS are treated differently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_96a7797a-179c-4cb7-82b2-89cd632b4d26",
+    "timestamp": "2025-12-02 10:57:22.897792",
+    "report_generated": false
+  },
+  {
+    "question": "In `normalizeAddress()` (lines 123-135), if two different ERC-7726 standard addresses (e.g., `IERC7726_BTC_ADDRESS` and `IERC7726_USD_ADDRESS`) are mapped to the same proxy token due to misconfiguration in the constructor, could this cause incorrect price calculations in cross-pair queries when neither token equals `NATIVE_TOKEN_ADDRESS`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eebc0863-08ba-4cfa-acae-9e70b75d2219",
+    "timestamp": "2025-12-02 10:57:40.865666",
+    "report_generated": false
+  },
+  {
+    "question": "The `normalizeAddress()` function (lines 123-135) is marked `private view`, but doesn't validate that the returned address is valid for use with the Oracle. Could normalizing to an address that the Oracle extension doesn't track cause silent failures or incorrect extrapolations in `getAverageTick()`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8225462-381e-4094-90ce-0defdfcacff4",
+    "timestamp": "2025-12-02 10:57:59.947535",
+    "report_generated": false
+  },
+  {
+    "question": "In `normalizeAddress()` (lines 130-132), if `USD_PROXY_TOKEN` is accidentally set to `IERC7726_USD_ADDRESS` (address(840)) during construction, would this create an infinite mapping loop where the address maps to itself, potentially causing unexpected behavior in price calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04eb320f-f4e5-46da-9066-4e929fad644b",
+    "timestamp": "2025-12-02 10:58:21.058288",
+    "report_generated": false
+  },
+  {
+    "question": "The `normalizeAddress()` function (lines 123-135) doesn't handle the case where `IERC7726_ETH_ADDRESS`, `IERC7726_BTC_ADDRESS`, or `IERC7726_USD_ADDRESS` might be passed as proxy token addresses themselves. Could this cause mapping collisions if proxy tokens accidentally use these standard addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14769321-3cfd-4b38-a9d1-78af52b95179",
+    "timestamp": "2025-12-02 10:58:43.675133",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (lines 91-112), when calculating the average tick for a direct pair with `NATIVE_TOKEN_ADDRESS` (lines 98-101), the tick cumulative difference is divided by `TWAP_DURATION` without checking if this division could result in precision loss. Could this allow price manipulation by making small tick movements over a long TWAP window appear negligible?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6c89b789-c546-430e-8504-de510538fb21",
+    "timestamp": "2025-12-02 10:59:07.791138",
+    "report_generated": false
+  },
+  {
+    "question": "At line 101 in `getAverageTick()`, the calculation `int32((tickCumulativeEnd - tickCumulativeStart) / int64(uint64(TWAP_DURATION)))` performs integer division. Could this truncate fractional ticks, causing the average tick to be systematically biased downward and enabling attackers to exploit rounding errors across many price queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c5ad27a-eaef-46f7-8126-54bfc39e96a7",
+    "timestamp": "2025-12-02 10:59:32.378308",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (line 98), `extrapolateSnapshot()` is called with `block.timestamp - TWAP_DURATION`. If `TWAP_DURATION` is larger than the Oracle's available history, could this revert with `NoPreviousSnapshotExists`, causing all price queries to fail for tokens without sufficient historical data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e9f4e499-92d4-47d0-b875-2484effd4160",
+    "timestamp": "2025-12-02 10:59:58.675125",
+    "report_generated": false
+  },
+  {
+    "question": "At line 99 in `getAverageTick()`, a second call to `extrapolateSnapshot()` uses `block.timestamp`. If the pool has just been created and no swaps have occurred, could both snapshots return identical `tickCumulative` values, resulting in a zero average tick that incorrectly prices the token at 1:1 with the native token?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f8a2d39a-4fd9-41d0-af01-ecf98b7d42bd",
+    "timestamp": "2025-12-02 11:00:26.482612",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (lines 95-96), when `baseIsOracleToken` is true, `tickSign` is set to 1, otherwise -1. At line 101, the result is multiplied by `tickSign`. Could an off-by-one error in this sign logic cause inverted prices where base and quote tokens are swapped, allowing arbitrageurs to exploit mispriced quotes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65257416-cf1f-4d8a-809c-211a7bae143c",
+    "timestamp": "2025-12-02 11:00:56.437067",
+    "report_generated": false
+  },
+  {
+    "question": "The `getAverageTick()` function (lines 98-99) makes two separate calls to `extrapolateSnapshot()`. Between these calls, could the Oracle extension's state change due to another transaction, causing the start and end tick cumulatives to be from different pool states and producing inconsistent TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8a27f89d-303e-43b0-9174-081420b31779",
+    "timestamp": "2025-12-02 11:01:26.791264",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (line 101), the calculation uses `int32()` cast on the final result. If `(tickCumulativeEnd - tickCumulativeStart) / int64(uint64(TWAP_DURATION))` exceeds the range of `int32` (±2^31), could this cause silent overflow, wrapping the tick value and returning a completely incorrect price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5fcb4986-9a12-428f-aa4a-b6b9acfba54a",
+    "timestamp": "2025-12-02 11:01:59.167687",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 98-101 in `getAverageTick()`, the tick cumulative values are `int64` types. When subtracting `tickCumulativeStart` from `tickCumulativeEnd`, could overflow occur if the cumulative values have grown large enough over time, causing wraparound and incorrect TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb993f65-e228-4219-b137-af4f39caa1ec",
+    "timestamp": "2025-12-02 11:02:30.439818",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (line 96), `otherToken` is determined based on whether base or quote is `NATIVE_TOKEN_ADDRESS`. Could passing both `baseToken` and `quoteToken` as `NATIVE_TOKEN_ADDRESS` cause undefined behavior where `otherToken` is incorrectly set, leading to nonsensical price queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65829c17-ad26-417c-8a3d-68ffd70cf031",
+    "timestamp": "2025-12-02 11:02:59.271237",
+    "report_generated": false
+  },
+  {
+    "question": "The `getAverageTick()` function (lines 98-99) calls `extrapolateSnapshot()` with `block.timestamp - TWAP_DURATION` and `block.timestamp`. If these timestamps are very close together due to a small `TWAP_DURATION`, could the division by TWAP_DURATION at line 101 amplify measurement noise in the tick cumulative, making prices highly volatile and manipulable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc78c8e8-624e-44b1-a2d3-899ac950c101",
+    "timestamp": "2025-12-02 11:03:29.906120",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (lines 103-104), when calculating cross-pair prices, two recursive calls are made to get `baseTick` and `quoteTick`. Could an attacker exploit precision loss by chaining multiple conversions through ETH, where each conversion loses precision, ultimately leading to significantly incorrect final prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_41e2af4f-c01e-4063-9130-4750bb845fb0",
+    "timestamp": "2025-12-02 11:04:00.546217",
+    "report_generated": false
+  },
+  {
+    "question": "At line 106 in `getAverageTick()`, cross-pair ticks are calculated as `quoteTick - baseTick`. If both ticks are near the maximum values but on opposite ends of the spectrum, could this subtraction cause integer overflow or underflow, wrapping the result to an incorrect tick value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91977286-413f-497d-81dc-23b4d2e41094",
+    "timestamp": "2025-12-02 11:04:31.108111",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (lines 108-109), the cross-pair result is clamped to `[MIN_TICK, MAX_TICK]` using `FixedPointMathLib.min()` and `max()`. Could this clamping silently hide overflow errors, returning a boundary tick that doesn't represent the actual price ratio between the two tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4307334-f87a-478b-8485-e8606ee9dbd4",
+    "timestamp": "2025-12-02 11:05:01.681715",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 103-104 in `getAverageTick()`, for cross-pair calculations, both `baseTick` and `quoteTick` use the same `NATIVE_TOKEN_ADDRESS` as an intermediary. If the ETH pool is highly volatile or has low liquidity, could this introduce amplified errors in the cross-pair price compared to using multiple intermediary tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0d83b9ab-0a65-4e6c-bec1-838d20583e31",
+    "timestamp": "2025-12-02 11:05:31.867990",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (line 106), the cross-pair calculation is `quoteTick - baseTick`, assuming price transitivity: `Price(quote/base) = Price(quote/ETH) / Price(base/ETH)`. In logarithmic space (ticks), this becomes subtraction. Could arbitrage opportunities arise if this assumption breaks down due to different TWAP windows or liquidity states in the two pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f45c1556-2a4c-424e-b53e-01b00ab6b849",
+    "timestamp": "2025-12-02 11:06:02.392667",
+    "report_generated": false
+  },
+  {
+    "question": "The `getAverageTick()` function (lines 103-104) makes recursive calls for cross-pair calculations. Could an attacker pass token addresses that cause deep recursion chains (e.g., token1 -> token2 -> token3 -> ETH), potentially hitting stack depth limits or consuming excessive gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b593acf6-5b49-45b5-bab0-642a7c3b53b7",
+    "timestamp": "2025-12-02 11:06:30.219021",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAverageTick()` (lines 106-109), when calculating `quoteTick - baseTick`, if both ticks have significant measurement errors from their respective TWAPs, could these errors compound in the subtraction, leading to a cross-pair tick that deviates substantially from the true average price ratio?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9899d9ff-6ff9-4cea-85b2-08ee96e43865",
+    "timestamp": "2025-12-02 11:06:59.259361",
+    "report_generated": false
   }
 ]
