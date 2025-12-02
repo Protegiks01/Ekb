@@ -6598,5 +6598,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc8b2a09-e5d5-4d48-8137-15b5c498e0f5",
     "timestamp": "2025-12-02 00:22:31.368048",
     "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), if handleForwardData calls Locker.parse() which returns both ID and address, could simultaneous use of both values introduce race conditions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f04bff29-23b7-4ccd-a4ac-b203348f0292",
+    "timestamp": "2025-12-02 00:23:43.547938",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), when original Locker is used to compute debt storage slots, could incorrect slot calculation lead to debt tracking corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_11604a5e-0c58-4e1d-81bb-059c0dbe2569",
+    "timestamp": "2025-12-02 00:23:56.749366",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee.forwarded_2374103877 (line 31), if the Locker parameter's address portion points to a contract that selfdestructs during handleForwardData, could this corrupt locker state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2d02ea4-4a67-4848-98cc-1cc0a8decbd9",
+    "timestamp": "2025-12-02 00:24:10.514171",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward() (line 190-221 of FlashAccountant.sol), when forward() temporarily changes the locker to the forwardee address, could debt accumulated by handleForwardData be incorrectly attributed to the original locker after restoration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c3ef3b95-46bc-41eb-ab4c-f33ec1aa8099",
+    "timestamp": "2025-12-02 00:24:24.453497",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), if handleForwardData calls FlashAccountant.updateDebt(), does the debt change apply to the forwardee's temporary locker ID or the original locker's ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_82315025-1aa5-40f3-bc36-d452caecc910",
+    "timestamp": "2025-12-02 00:24:39.570271",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), when forward() restores the original locker at line 215, if handleForwardData left non-zero debt for the forwardee ID, could this debt persist and violate flash accounting balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_806e0ddb-8059-4e32-8b97-9974b2cd5e95",
+    "timestamp": "2025-12-02 00:24:55.798242",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), the forward() function copies calldata starting at byte 36 - if the forwarded data contains nested forward() calls, could recursive forwarding cause stack overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_59e2f9f9-8646-459b-be78-221e32a1d894",
+    "timestamp": "2025-12-02 00:25:13.752629",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), when the forwardee becomes the temporary locker, could it call FlashAccountant._accountDebt() to manipulate debt slots for the original locker?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f7489d6-21f4-4ec8-b1a1-d6c4c323deb8",
+    "timestamp": "2025-12-02 00:25:33.316535",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), if handleForwardData calls FlashAccountant.lock() with the same ID, could nested locks with identical IDs corrupt transient storage tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f9864101-a3ef-4d71-a3cb-ea749165149d",
+    "timestamp": "2025-12-02 00:25:54.045992",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), when forward() calls the forwardee with selector 0x01 (shl(224, 1)), could selector collision with other functions cause unintended execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_658a3481-070f-4ef1-ae3a-9c25a04d386f",
+    "timestamp": "2025-12-02 00:26:17.631953",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), if the forwardee contract has a fallback function, could it intercept the forwarded_2374103877 call and bypass handleForwardData logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4516187a-128d-433a-8ac9-7d7551d458a3",
+    "timestamp": "2025-12-02 00:26:40.540674",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), when forward() passes the original Locker as bytes32 in calldata, could ABI encoding mismatch cause the Locker to be parsed incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_308c0c43-eb64-4bf4-b14f-129fae80ac9d",
+    "timestamp": "2025-12-02 00:27:05.804832",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), if handleForwardData returns data that FlashAccountant.forward() decodes, could malformed return data cause abi.decode to revert, leaving debt unsettled?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_53dde4b3-5688-4658-b25e-8b9eaa77b5e6",
+    "timestamp": "2025-12-02 00:27:32.572758",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), when the temporary locker is restored, if transient storage slots were modified by handleForwardData, could stale values be restored?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb46898f-4601-441d-a4f9-29f4aefa15b0",
+    "timestamp": "2025-12-02 00:28:00.278964",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), if handleForwardData calls FlashAccountant.completePayments() but never called startPayments(), could payment tracking be corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7487eb4f-342c-4271-9c36-db1f71e3c16f",
+    "timestamp": "2025-12-02 00:28:28.656937",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), when forward() bubbles up reverts from handleForwardData, does the revert correctly restore transient storage, or could partial state changes persist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_893851d0-1f5d-426a-a696-afe7d979df12",
+    "timestamp": "2025-12-02 00:28:58.464018",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), if multiple forwardees are chained (A forwards to B forwards to C), could the original Locker be lost or corrupted through multiple forwards?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ffa9c096-80a7-4969-b02d-f939563b2b9a",
+    "timestamp": "2025-12-02 00:29:30.262505",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), when handleForwardData modifies debt for tokens, does the nonzero debt count update correctly for both the temporary and original locker IDs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0961f6a6-f572-4f8b-bc53-be03a359a38c",
+    "timestamp": "2025-12-02 00:30:03.269845",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), if handleForwardData calls FlashAccountant.withdraw() for the native token, could the withdrawal not be properly tracked as debt increase?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_362970b6-e603-4071-97e1-43e5db7bc620",
+    "timestamp": "2025-12-02 00:30:36.560693",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), when forward() uses assembly to prepare the call at line 199-204, could incorrect calldata size calculation cause truncated or padded data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ec9ef976-0445-41a2-9b57-3a22ce9ff5b9",
+    "timestamp": "2025-12-02 00:31:10.983848",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), if handleForwardData accesses _CURRENT_LOCKER_SLOT directly via assembly, could it bypass the temporary locker change and corrupt locker tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ae4ccfa-c35f-4d06-8cf9-402be86a2070",
+    "timestamp": "2025-12-02 00:31:45.299237",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), when the call to forwardee succeeds at line 207, if returndatasize() exceeds available memory, could the returndatacopy at line 218 fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd01690b-9287-4973-8f5e-580bd9af87e0",
+    "timestamp": "2025-12-02 00:32:18.567555",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseForwardee integration with FlashAccountant.forward(), if handleForwardData uses FlashAccountantLib.forward() to forward again, could the calldata encoding cause infinite recursion or stack overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_987e7780-2884-4ca3-8502-35ac3f782e05",
+    "timestamp": "2025-12-02 00:32:54.200381",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData implementation (lines 195-300 of MEVCapture.sol), when MEVCapture receives forwarded swap calls, could a malicious user manipulate the original Locker parameter to bypass MEV fee collection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4835f3b6-8dd7-446d-b199-79564126fb2e",
+    "timestamp": "2025-12-02 00:33:29.847635",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, when the extension executes swaps via forwarding, if the swap leaves non-zero debt, could FlashAccountant.forward() restoration leave debt unsettled?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1500d733-fb4c-43b4-89fb-165e4a84ed40",
+    "timestamp": "2025-12-02 00:34:03.995718",
+    "report_generated": false
   }
 ]
