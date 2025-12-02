@@ -9298,5 +9298,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f055822d-5d9a-455b-8cfc-f2e8df9fdb2e",
     "timestamp": "2025-12-02 04:06:26.916193",
     "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 64-116), the entire function is wrapped in an unchecked block. Could integer overflows in the calculations at line 70 for `lastTimeReal` result in an incorrect timestamp that causes all subsequent time-based calculations to be wrong?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f773809d-e8a1-4ca3-acb8-667170e4c113",
+    "timestamp": "2025-12-02 04:07:41.076558",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()` (line 22), `t` is initialized to `currentTime`. If `currentTime` itself is not a valid time according to `isTimeValid()`, could this cause the first call to `nextValidTime()` to behave unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4fe55ac-a019-45af-a204-8cda2a758ab4",
+    "timestamp": "2025-12-02 04:07:54.196550",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()`, if `nextValidTime()` has a bug where it returns 0 prematurely before reaching `currentTime + type(uint32).max`, could the function return an incomplete set of valid times, causing TWAMM orders with later expiry times to be invisible to external systems?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef2b7ebe-ac20-43b8-b1ec-ac04c393ab10",
+    "timestamp": "2025-12-02 04:08:08.287241",
+    "report_generated": false
+  },
+  {
+    "question": "The `getAllValidFutureTimes()` function relies on `nextValidTime()` from `time.sol` which uses `clz` opcode in `computeStepSize()`. Could incorrect step size calculations due to `clz` behavior with edge case inputs cause the function to return invalid times that don't satisfy `isTimeValid()`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a68a5e3-c643-4917-91e6-bce8f6c523ad",
+    "timestamp": "2025-12-02 04:08:22.314552",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()` (line 29), times are stored in `times[count++]`. If the loop logic fails to break properly and `count` exceeds `MAX_NUM_VALID_TIMES`, could this write to unallocated memory beyond the array bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e7b8b286-4cd6-4e11-bcd7-d8367522b2ca",
+    "timestamp": "2025-12-02 04:08:37.201949",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()` (line 32-34), assembly is used to resize the array by directly modifying its length. If `count` exceeds the allocated array size due to a logic error in the loop, could this corrupt adjacent memory and lead to data corruption or unexpected behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a7878cc-f865-4034-97c9-17ea6d7a29f2",
+    "timestamp": "2025-12-02 04:08:53.326691",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()` (line 25), `nextValidTime(currentTime, t)` is called with `t` that gets updated in each iteration. Could manipulation of the step size calculation in `nextValidTime()` cause the loop to run indefinitely or return incorrect times, consuming excessive gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b8c63ce-4a07-4a70-9257-3e8651ca8831",
+    "timestamp": "2025-12-02 04:09:11.109951",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()` (line 26), the condition `nextTime > type(uint64).max` checks for overflow, but `nextValidTime()` returns `uint256`. Could there be a scenario where `nextTime` is between `type(uint64).max + 1` and `type(uint256).max`, causing the cast at line 28 to silently truncate and produce incorrect time values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_43b6359b-3742-4699-b7ee-04dabf420144",
+    "timestamp": "2025-12-02 04:09:30.542744",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()` (line 18-36), the function uses an unchecked block and calls `nextValidTime()` in a loop. Could an attacker craft a `currentTime` value where `nextValidTime()` returns values that cause the loop to exceed MAX_NUM_VALID_TIMES (91), leading to out-of-bounds array access or DoS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_854764bf-f012-4b07-838f-2cf2bc46c017",
+    "timestamp": "2025-12-02 04:09:52.048599",
+    "report_generated": false
+  },
+  {
+    "question": "The getQuoteData function processes multiple pools in a loop (lines 45-96). Could processing pool i affect the results for pool i+1 through shared storage access patterns or memory reuse, causing cross-contamination of tick data between pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_84fa3329-26cd-47e5-a910-f209dd9dccce",
+    "timestamp": "2025-12-02 04:10:14.444580",
+    "report_generated": false
+  },
+  {
+    "question": "Both getQuoteData and getInitializedTicksInRange access Core storage via CoreLib. Could concurrent state changes in Core (e.g., during a swap) cause inconsistent data where poolState returns one tick but prevInitializedTick returns different initialized ticks, leading to incoherent quote data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_df7016c9-8c10-4cd4-a405-bd9ae65ee701",
+    "timestamp": "2025-12-02 04:10:38.054923",
+    "report_generated": false
+  },
+  {
+    "question": "The public function getInitializedTicksInRange (lines 146-151) directly calls internal _getInitializedTicksInRange without validating fromTick <= toTick. If a malicious caller passes fromTick > toTick, the assert at line 106 will fail. Should the public function validate inputs before calling internal version?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e6054ce-2c4b-47ac-a8a7-9ca2c4dcadbd",
+    "timestamp": "2025-12-02 04:11:02.372101",
+    "report_generated": false
+  },
+  {
+    "question": "If minBitmapsSearched is very large (e.g., 2^32 - 1), the rangeSize calculation at lines 54-55 could produce values near type(int256).max. Could this cause the boundary checks at lines 59-63 to always clamp to MIN_TICK/MAX_TICK, making the parameter effectively meaningless for large values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d0a526d7-cd3c-4e91-9afa-dc4ce486d5e0",
+    "timestamp": "2025-12-02 04:11:28.540441",
+    "report_generated": false
+  },
+  {
+    "question": "The minBitmapsSearched parameter determines how many bitmaps to search. But the actual tick search at lines 113-115 uses calculated skipAhead. Could there be a mismatch where minBitmapsSearched suggests a wide range but skipAhead limits prevInitializedTick to search only nearby ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9a18ad13-8c36-46bf-ab2c-6a80983d4fed",
+    "timestamp": "2025-12-02 04:11:55.346226",
+    "report_generated": false
+  },
+  {
+    "question": "At line 54, minBitmapsSearched is cast to uint256 then int256. Could a caller pass type(uint32).max for minBitmapsSearched, causing the multiplication at line 55 to overflow and wrap, resulting in a small rangeSize that doesn't cover expected ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1b9edd9d-cb2f-4927-9d4a-f01aab9036b7",
+    "timestamp": "2025-12-02 04:12:22.868148",
+    "report_generated": false
+  },
+  {
+    "question": "The minBitmapsSearched parameter at line 38 controls the range size calculation at lines 54-55. Could a caller pass minBitmapsSearched == 0, causing rangeSize to be 0 and minTick == maxTick == tick, returning no tick data even for pools with nearby initialized ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b7ac09a-6a99-460b-8c0f-60261041d244",
+    "timestamp": "2025-12-02 04:12:50.659306",
+    "report_generated": false
+  },
+  {
+    "question": "At line 141, ticks[index++] is assigned. If the loop logic is wrong and index exceeds ticks.length - 1, could this write out of bounds and corrupt adjacent memory, potentially affecting the returned QuoteData struct?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31d3f0fe-1a3a-43bd-9228-15dfabefe1b3",
+    "timestamp": "2025-12-02 04:13:19.103154",
+    "report_generated": false
+  },
+  {
+    "question": "The while loop at lines 133-142 pops from packedTicks and populates the ticks array. If packedTicks.length() decreases unexpectedly (e.g., due to reentrancy or external manipulation), could the loop not fully populate ticks array, leaving some entries as default zero values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d14c4c0b-4f0f-4052-a5b5-19b6081f2101",
+    "timestamp": "2025-12-02 04:13:48.758598",
+    "report_generated": false
+  },
+  {
+    "question": "At line 129, a new TickDelta array is allocated with size packedTicks.length(). If packedTicks was corrupted and has incorrect length, could this allocate wrong-sized array, leading to array access out of bounds at line 141?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72ca630c-2808-40a5-b52b-b0f011b3f3f2",
+    "timestamp": "2025-12-02 04:14:19.735980",
+    "report_generated": false
+  },
+  {
+    "question": "The packed ticks are pushed at line 123 in forward order during loop iteration at lines 112-127 (iterating backwards). Then popped at line 134 in reverse order. Could this ordering logic be incorrect, causing ticks to be returned in the wrong sequence to off-chain quoters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b64bb76c-ea06-45b2-ac09-cd809ee2dc92",
+    "timestamp": "2025-12-02 04:14:50.783486",
+    "report_generated": false
+  },
+  {
+    "question": "At line 110, DynamicArrayLib.DynamicArray is used to collect packed ticks. Could this dynamic array library have bugs where pushing values (line 123) corrupts memory, causing the final ticks array (line 129) to have incorrect length or corrupted data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cffe1457-fa05-440c-a2e2-745c183d1ec4",
+    "timestamp": "2025-12-02 04:15:21.952438",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 73-74, stableswap ticks are manually created with specific liquidityDeltas. But concentrated pools fetch actual tick data from storage at lines 112-127. Could this discrepancy cause stableswap pools to appear to have different liquidity distribution than they actually do?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_01a6d4d9-180b-443c-af80-59f162fddc3d",
+    "timestamp": "2025-12-02 04:15:54.384675",
+    "report_generated": false
+  },
+  {
+    "question": "The stableswapActiveLiquidityTickRange() call at line 71 returns (lower, upper) bounds. Could these bounds be outside the requested [fromTick, toTick] range in the context of getQuoteData, causing irrelevant tick data to be returned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd6d09f0-7a73-4590-9a3c-815c66d16b50",
+    "timestamp": "2025-12-02 04:16:25.102276",
+    "report_generated": false
+  },
+  {
+    "question": "In the stableswap branch at lines 70-75, liquidity > 0 check determines if active bounds should be returned. Could a stableswap pool with liquidity == 0 but initialized ticks have its ticks ignored, causing off-chain quoters to miss available liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4057729-0a20-48fd-9094-0d014c1eb1c9",
+    "timestamp": "2025-12-02 04:16:52.680630",
+    "report_generated": false
+  },
+  {
+    "question": "At line 53, isConcentrated() branches to different logic. Could a pool config with bit 31 == 1 but invalid tickSpacing in lower bits be treated as concentrated, causing the tick search at lines 54-65 to use garbage tickSpacing value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dad90405-ac9f-47d9-9901-f8b1831d360a",
+    "timestamp": "2025-12-02 04:17:18.862626",
+    "report_generated": false
   }
 ]
