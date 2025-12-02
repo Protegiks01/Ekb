@@ -14242,5 +14242,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_36d088fe-aee8-495b-8dff-60e0507fe98b",
     "timestamp": "2025-12-02 10:07:56.297183",
     "report_generated": false
+  },
+  {
+    "question": "In IPositions.collectFees (lines 66-69), if the pool's extension is TWAMM and virtual orders execute during the fee collection, could the fee amounts change between the Core.collectFees call and the actual token transfer, creating accounting discrepancies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb30f3c3-3b67-44ba-b599-0be0fc5129b6",
+    "timestamp": "2025-12-02 10:09:12.784731",
+    "report_generated": false
+  },
+  {
+    "question": "In IPositions.withdraw (lines 94-102), if the implementation doesn't validate that id represents a position in the specified (poolKey, tickLower, tickUpper), could an attacker withdraw liquidity from one position using another position's NFT ID if storage layout has collisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6a3b5db8-d98c-4583-8062-2dc1dbe5b735",
+    "timestamp": "2025-12-02 10:09:25.892634",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM.getRewardRateInside (lines 48-53), if the time range spans multiple epochs where virtual orders expired, could the reward rate calculation incorrectly accumulate rewards from expired orders, inflating the proceeds available to newer orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_def2cd08-5027-43f8-b1ee-68eafb1d0e7e",
+    "timestamp": "2025-12-02 10:09:40.030067",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM.lockAndExecuteVirtualOrders (line 58), if multiple users call this function simultaneously for the same pool, could race conditions in virtual order execution lead to inconsistent order state where some orders are partially executed twice?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f870f89f-2835-43c0-8572-086a2e5d4d8f",
+    "timestamp": "2025-12-02 10:09:54.007545",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM error TimeNumOrdersOverflow (line 31), if the number of orders at a specific timestamp overflows uint256, could this permanently freeze all order operations at that time, preventing order placement, execution, or withdrawal?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12322117-3960-475a-acd8-c74f9d31c841",
+    "timestamp": "2025-12-02 10:10:08.765032",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM error FullRangePoolOnly (line 34), if an attacker creates a pool with tick spacing that appears to be maximum value but is actually a different value due to type casting errors, could they bypass this validation and create TWAMM orders on concentrated liquidity pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e882f57-5589-413d-83d2-61d116c67987",
+    "timestamp": "2025-12-02 10:10:25.931012",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM error OrderAlreadyEnded (line 37), if an order's end time is exactly block.timestamp, could there be an off-by-one error where the order is considered both ended and active in the same block, allowing double execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_87c56684-1bac-47be-bca4-57334616fd3b",
+    "timestamp": "2025-12-02 10:10:43.813186",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM error InvalidTimestamps (line 40), if startTime > endTime due to uint64 overflow when setting timestamps far in the future, could orders be created that immediately execute completely in one block, bypassing time-weighted averaging?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_21d3acf2-e94c-4531-89b0-37d54e798457",
+    "timestamp": "2025-12-02 10:11:03.664884",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM error MaxSaleRateDeltaPerTime (line 43), if this check validates sale rate per time interval but doesn't account for total order count at that time, could many small orders collectively exceed the maximum intended liquidity injection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d59f8895-c22d-457e-bfee-2ab279fb381f",
+    "timestamp": "2025-12-02 10:11:25.069858",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM event OrderUpdated (lines 16-21), if saleRateDelta is negative (order cancellation) but the event doesn't specify whether proceeds were withdrawn, could off-chain indexers incorrectly track order state and show incorrect balances to users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f66adaef-d0e2-404b-baea-d297738a7b77",
+    "timestamp": "2025-12-02 10:11:47.684327",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM event OrderProceedsWithdrawn (lines 23-28), if amount withdrawn is zero due to rounding errors but event is still emitted, could this spam event logs and cause confusion in user interfaces about actual withdrawal status?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e44af9fe-5dee-4a2d-9a42-07ad6674b85f",
+    "timestamp": "2025-12-02 10:12:12.633855",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM.getRewardRateInside (lines 48-53), if the OrderConfig parameter specifies a time range where the pool's sqrtRatio changed dramatically, could the reward rate calculation use stale price information, causing orders to receive incorrect token amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_151c520a-2c84-44aa-8915-c47dd11a42be",
+    "timestamp": "2025-12-02 10:12:37.496660",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM interface (line 15), since it implements ILocker and IForwardee, if an attacker obtains a lock via Core and then forwards to TWAMM, could they manipulate TWAMM's virtual order execution to occur within their lock context, affecting delta accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_49342680-b234-465a-958c-bcb3e6c7ee94",
+    "timestamp": "2025-12-02 10:13:03.652943",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM.lockAndExecuteVirtualOrders (line 58), if this function calls Core.lock and within the locked callback executes multiple time intervals of virtual orders, could gas consumption exceed block limit for pools with many active orders, permanently freezing those pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57be4c45-8b9d-4bfa-975c-436bfc6f0708",
+    "timestamp": "2025-12-02 10:13:31.797470",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM error PoolNotInitialized (line 46), if an order is placed on an uninitialized pool and then the pool is initialized at a drastically different tick, could the order's execution price be completely different from what the user expected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d77aa72-d6c6-43e3-9e85-0adb844ddb66",
+    "timestamp": "2025-12-02 10:14:00.564780",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM interface implementing IExtension (line 15), if the TWAMM's beforeSwap hook executes virtual orders and modifies the pool's tick, could the actual swap then use a different price than intended, causing slippage beyond user's sqrtRatioLimit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7bdc4d0-5f38-4616-afff-4c880ee63ad0",
+    "timestamp": "2025-12-02 10:14:30.489048",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM.getRewardRateInside (lines 48-53), if this view function doesn't update virtual order state but only reads storage, could it return stale reward rates that don't reflect recent order executions, misleading users about available proceeds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55b11d09-3f4e-4bb4-ae46-503b22d4cda9",
+    "timestamp": "2025-12-02 10:15:01.582726",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM with TWAMMStorageLayout, if the storage slot calculation for order state collides with Core's storage due to incorrect offset computation, could virtual order execution corrupt pool state, violating the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b3fbaf9d-f9ea-4fae-985b-297d8f606f6d",
+    "timestamp": "2025-12-02 10:15:34.693474",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM interface (line 15), if the extension's afterSwap hook injects virtual liquidity but the beforeSwap hook fails to remove it due to a revert, could this leave ghost liquidity in the pool, affecting subsequent swap calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aab7e6c5-6873-41df-854e-fac0ff2cf522",
+    "timestamp": "2025-12-02 10:16:08.204644",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM error MaxSaleRateDeltaPerTime (line 43), if an attacker creates many orders with sale rate just below this limit at the same timestamp, could they collectively manipulate the pool's price beyond intended limits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31913614-cf2d-4a62-bf6b-b9f7f8b87779",
+    "timestamp": "2025-12-02 10:16:41.224602",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM event OrderUpdated (lines 16-21), if the salt parameter is not validated as unique per owner, could an attacker overwrite another user's order by front-running with the same salt, stealing their pending proceeds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_71d1afe7-c004-4ca6-9320-ca9450734738",
+    "timestamp": "2025-12-02 10:17:16.000372",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM.lockAndExecuteVirtualOrders (line 58), if virtual order execution crosses ticks and updates tick.liquidityNet, but the pool's extension is changed mid-transaction, could the liquidityNet updates be applied to the wrong tick bitmap storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f0db42c-d8fb-4456-91e4-1c9484ff4caa",
+    "timestamp": "2025-12-02 10:17:51.015123",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM.getRewardRateInside (lines 48-53), if the config specifies isToken1 but the calculation doesn't properly handle this flag, could rewards be computed in the wrong token, leading to zero proceeds when users expect tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_736585fc-1f6d-4b22-9caa-46d9daf409ba",
+    "timestamp": "2025-12-02 10:18:26.046317",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM implementing IExposedStorage (line 15), if an attacker uses sload to read TWAMMStorageLayout slots and determine other users' order salts, could they front-run order modifications or proceed withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_027368a8-0e20-482c-a74d-ddd0c8a0b69e",
+    "timestamp": "2025-12-02 10:18:59.898066",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM.lockAndExecuteVirtualOrders (line 58), if this function is called with a poolKey whose extension is not TWAMM but another extension, could the lock succeed but virtual order execution fail, wasting gas and potentially causing DOS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37af7e08-f660-4d84-a5f7-b097425a0249",
+    "timestamp": "2025-12-02 10:19:33.924241",
+    "report_generated": false
   }
 ]
