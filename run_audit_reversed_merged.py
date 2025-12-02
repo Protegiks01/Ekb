@@ -5,7 +5,7 @@ import os
 
 def merge_validated_into_collections():
     """
-    Merges all data from validated.json into collections.json.
+    Merges all data from reversed_collections.json into collections.json.
     Avoids duplicates based on URL or question field.
     """
     try:
@@ -15,12 +15,12 @@ def merge_validated_into_collections():
             with open("collections.json", "r") as f:
                 collections_data = json.load(f)
 
-        # Load validated.json
-        if not os.path.exists("validated.json"):
-            print("No validated.json found")
+        # Load reversed_collections.json
+        if not os.path.exists("reversed_collections.json"):
+            print("No reversed_collections.json found")
             return
 
-        with open("validated.json", "r") as f:
+        with open("reversed_collections.json", "r") as f:
             validated_data = json.load(f)
 
         # Create a set of existing identifiers to avoid duplicates
@@ -45,7 +45,7 @@ def merge_validated_into_collections():
         with open("collections.json", "w") as f:
             json.dump(collections_data, f, indent=2)
 
-        print(f"Successfully merged {added_count} items from validated.json into collections.json")
+        print(f"Successfully merged {added_count} items from reversed_collections.json into collections.json")
         print(f"Total items in collections.json: {len(collections_data)}")
 
     except Exception as e:
