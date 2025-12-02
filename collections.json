@@ -9448,5 +9448,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29f06219-62d4-4587-a12f-8547b4dbf12b",
     "timestamp": "2025-12-02 03:57:13.433651",
     "report_generated": false
+  },
+  {
+    "question": "Debt slots are calculated as 'add(_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET, add(shl(160, id), token))' - can overflow in 'shl(160, id)' cause storage collisions when id is large?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f748ebc1-0568-48a4-bf0e-840c603d3521",
+    "timestamp": "2025-12-02 03:58:34.980899",
+    "report_generated": false
+  },
+  {
+    "question": "The _NONZERO_DEBT_COUNT_OFFSET calculation 'add(id, _NONZERO_DEBT_COUNT_OFFSET)' (line 78) - can id values cause collisions with the debt token slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f3a1dec-57d3-458e-8275-e5e846714ce6",
+    "timestamp": "2025-12-02 03:58:48.128026",
+    "report_generated": false
+  },
+  {
+    "question": "Payment token slots use '_PAYMENT_TOKEN_ADDRESS_OFFSET + token' - can this collide with debt slots if tokens and offsets overlap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3002447e-4d7b-43ad-8c76-e0becef35498",
+    "timestamp": "2025-12-02 03:59:02.270020",
+    "report_generated": false
+  },
+  {
+    "question": "Transient storage slots are based on keccak hashes of strings (lines 18-34) - can hash collisions between different base contracts cause storage corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7e302bd-504f-4a9e-a646-597cebb68c05",
+    "timestamp": "2025-12-02 03:59:16.445232",
+    "report_generated": false
+  },
+  {
+    "question": "The debt slot formula 'shl(160, id)' shifts id left by 160 bits - can this calculation overflow if id approaches type(uint96).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f1676ca0-14d4-4359-b2ae-6732e168621a",
+    "timestamp": "2025-12-02 03:59:31.744735",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker craft a locker ID that, when used in slot calculations, produces the same slot as _CURRENT_LOCKER_SLOT, allowing them to corrupt the lock state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f90fc32b-d3dc-4764-a7a2-7ad4c08d182d",
+    "timestamp": "2025-12-02 03:59:48.093247",
+    "report_generated": false
+  },
+  {
+    "question": "The Locker type encodes ID in upper 96 bits and address in lower 160 bits - can bit manipulation cause the parsed values to misalign with stored values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6b878c4b-22d8-455b-bd5a-45aa924ee801",
+    "timestamp": "2025-12-02 04:00:05.487380",
+    "report_generated": false
+  },
+  {
+    "question": "locker.id() subtracts 1 from the stored value (types/locker.sol line 10) - can this cause underflow when the locker is newly initialized at id=0?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63fe5b8c-9208-496e-9d7f-c31e035864f6",
+    "timestamp": "2025-12-02 04:00:25.303484",
+    "report_generated": false
+  },
+  {
+    "question": "locker.addr() cleans upper bits with 'shr(96, shl(96, locker))' - can dirty bits in the upper portion cause security issues before cleaning?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_88e97f73-4d3c-48d9-a94b-0c77f00e3b84",
+    "timestamp": "2025-12-02 04:00:46.267202",
+    "report_generated": false
+  },
+  {
+    "question": "The parse() function returns both id and addr - can gas optimization cause the compiler to reuse the locker value incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a90eadd3-e7a4-4a1e-b018-e3f20dc1cb65",
+    "timestamp": "2025-12-02 04:01:08.486087",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker create deeply nested locks by repeatedly calling lock() from within callbacks to exhaust gas or overflow the implicit call stack?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_be07c573-c98f-49da-80bb-e3cd18cc788c",
+    "timestamp": "2025-12-02 04:01:32.235720",
+    "report_generated": false
+  },
+  {
+    "question": "When nested locks occur, each level has its own locker ID - can an attacker exploit ID reuse across nesting levels to manipulate debt accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_595251fd-dd83-484a-8f94-21608e142a0a",
+    "timestamp": "2025-12-02 04:01:57.503942",
+    "report_generated": false
+  },
+  {
+    "question": "If lock A forwards to contract B which calls lock again, does the non-zero debt count tracking remain isolated per lock level?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_09a120cb-5f9f-4741-aac2-1d14543c77b9",
+    "timestamp": "2025-12-02 04:02:22.788338",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit the fact that transient storage persists across nested locks to share state between lock contexts maliciously?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d0167aa0-2655-4d64-983b-7fb962335a8c",
+    "timestamp": "2025-12-02 04:02:50.203434",
+    "report_generated": false
+  },
+  {
+    "question": "In nested locks, can the inner lock manipulate debt that should only be accessible to the outer lock?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_56793a7d-58ef-4e9e-90f5-a8529c5e12c4",
+    "timestamp": "2025-12-02 04:03:18.516193",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker revert an inner lock while keeping outer lock debt changes, violating the all-or-nothing settlement guarantee?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f58bba5b-cb34-4fdc-a3e5-51c5528f436a",
+    "timestamp": "2025-12-02 04:03:47.697306",
+    "report_generated": false
+  },
+  {
+    "question": "When Core.sol calls _updatePairDebt with native token handling, can the special-casing of NATIVE_TOKEN_ADDRESS create accounting discrepancies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8a7988f-2678-418c-ae06-a4ce86934998",
+    "timestamp": "2025-12-02 04:04:17.761188",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit the interaction between Core's _updatePairDebtWithNative and FlashAccountant's _updatePairDebt to double-count debt for native tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d352183a-0302-4e3f-8682-b9a720646b4e",
+    "timestamp": "2025-12-02 04:04:47.906511",
+    "report_generated": false
+  },
+  {
+    "question": "Core.sol inherits FlashAccountant - can storage layout differences cause inherited transient storage to collide with Core's own storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_093d6d30-91c2-4f38-b353-369856e3a44d",
+    "timestamp": "2025-12-02 04:05:19.942321",
+    "report_generated": false
+  },
+  {
+    "question": "When Core performs swap operations, can an attacker manipulate flash accounting to extract tokens without proper settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9625445-b87b-41ec-a137-10e3f07d6480",
+    "timestamp": "2025-12-02 04:05:53.178722",
+    "report_generated": false
+  },
+  {
+    "question": "Can the interaction between Core's tick crossing logic and FlashAccountant's debt tracking create atomic arbitrage opportunities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_51c94e5d-1935-46b9-af13-38a4e1f7eac3",
+    "timestamp": "2025-12-02 04:06:25.541923",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker call startPayments(), then forward() to another contract that calls completePayments(), causing payment tracking corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9fd119cb-87c1-425e-927c-d7bd04cf69dc",
+    "timestamp": "2025-12-02 04:06:58.820679",
+    "report_generated": false
+  },
+  {
+    "question": "If startPayments() is called twice for the same token within one lock, does the second call overwrite the first balance snapshot, enabling double-payment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_627f1262-9248-46c0-8343-80458e036777",
+    "timestamp": "2025-12-02 04:07:31.733502",
+    "report_generated": false
+  },
+  {
+    "question": "Can withdraw() be called before completePayments() within the same lock to extract tokens without balancing the debt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f885d851-44be-4a13-9db2-15a1a98d6aa2",
+    "timestamp": "2025-12-02 04:08:06.111142",
+    "report_generated": false
+  },
+  {
+    "question": "If an attacker calls updateDebt() from a malicious token during withdraw() reentrancy, can they corrupt the non-zero debt count?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f8d87860-23de-4236-8974-b341dc180e0f",
+    "timestamp": "2025-12-02 04:08:40.083640",
+    "report_generated": false
   }
 ]
