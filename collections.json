@@ -10798,5 +10798,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e316fc1-fb32-4ed1-af1a-a3ea070e03fa",
     "timestamp": "2025-12-02 05:41:52.747063",
     "report_generated": false
+  },
+  {
+    "question": "In Router.sol (line 116), amountCalculated is derived from balanceUpdate. Can Core return corrupted balanceUpdate to bypass slippage check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_177b2bc1-982a-4952-9b19-22aea431b4bb",
+    "timestamp": "2025-12-02 05:43:10.625722",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol slippage check uses < comparison (line 117). Should this be <= to prevent exact threshold swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cbb6e234-d60e-4528-9675-2e42d94d37c8",
+    "timestamp": "2025-12-02 05:43:24.292035",
+    "report_generated": false
+  },
+  {
+    "question": "In Router.sol (line 143), else block handles non-ETH token0 payment. Can edge case where both token0 and token1 are ETH cause double payment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7bebc837-6615-40d5-818b-575f57c7e7d6",
+    "timestamp": "2025-12-02 05:43:37.923788",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol _swap function passes value to CORE.swap (line 88). Can incorrect value passing cause ETH to be locked in Core?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a79a9a4f-b1ac-4d36-b1a0-f021ebd1d756",
+    "timestamp": "2025-12-02 05:43:52.305416",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.sol lock function (lines 44-73), assembly is used to call ACCOUNTANT.lock(). Can incorrect selector or calldata format cause lock to fail silently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b16d2ce2-ce61-48ce-ac1d-40b7538e825c",
+    "timestamp": "2025-12-02 05:44:07.475635",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol locked_6416899205 callback (line 25) extracts data from msg.data[36:]. Can incorrect offset cause wrong data to be passed to handleLockData?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1b6da41a-05a6-4419-891e-1c23b9dc718e",
+    "timestamp": "2025-12-02 05:44:24.167972",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.sol lock (line 61), call() is used without checking return data. Can ACCOUNTANT.lock succeed but return invalid data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d369c2fa-8317-4d69-bccb-d694d3f7526e",
+    "timestamp": "2025-12-02 05:44:42.103117",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol uses mcopy (line 58) for calldata copying. Can incorrect length cause data truncation or buffer overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1e973124-5925-44ee-86a3-ebb992cf2512",
+    "timestamp": "2025-12-02 05:45:02.352466",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.sol lockAndExpectRevert (lines 82-111), if call succeeds unexpectedly, it reverts with ExpectedRevertWithinLock. Can this be exploited to DOS quote functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9b20d47-8daf-4396-a896-dbcc164115d6",
+    "timestamp": "2025-12-02 05:45:23.082286",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol updates free memory pointer (line 71). Can incorrect alignment cause subsequent memory operations to corrupt data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_48d479e3-c644-447c-b386-41188d771bbb",
+    "timestamp": "2025-12-02 05:45:45.826037",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.sol locked_6416899205 (line 26), if msg.sender is not ACCOUNTANT, it reverts. Can ACCOUNTANT be compromised to call this with malicious data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_82f772dd-1f3b-4c57-8c49-0f7ad8031168",
+    "timestamp": "2025-12-02 05:46:09.800739",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol handleLockData (line 118) must be implemented by derived contracts. Can incorrect implementation cause lock to never settle deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a0524ef-0c7c-48b7-b082-3a34917bd312",
+    "timestamp": "2025-12-02 05:46:36.357941",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.sol lock (line 61), if call reverts, revert data is copied and bubbled up. Can large revert data cause out-of-gas errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e0290f8-26e7-42e3-ae9a-ab9a622f6293",
+    "timestamp": "2025-12-02 05:47:02.905994",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol uses assembly return (line 34) to return data from callback. Can incorrect return data length cause calling contract to misinterpret result?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_645c3640-800f-4689-aaea-4af6afee2239",
+    "timestamp": "2025-12-02 05:47:31.119538",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.sol lockAndExpectRevert (line 99), successful call reverts with specific selector. Can attacker catch this revert and interpret it as success?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0250551c-1f3e-44cc-b550-2aa81aecba0c",
+    "timestamp": "2025-12-02 05:48:00.031837",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol ACCOUNTANT is immutable (line 14). Can stale ACCOUNTANT reference cause all lock operations to fail if flash accountant is upgraded?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bfaca44c-e7d8-42b5-91f7-4c8b3527996f",
+    "timestamp": "2025-12-02 05:48:28.936250",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.sol lock function (line 54), selector 0xf83d08ba is hardcoded. Can wrong selector cause lock to call incorrect function?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_805942d6-d4af-4de8-987a-1192626a8890",
+    "timestamp": "2025-12-02 05:48:59.162134",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol uses assembly for memory management. Can incorrect free memory pointer updates cause memory corruption in complex call chains?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b123eb96-03f1-4549-9641-86cd783e117d",
+    "timestamp": "2025-12-02 05:49:29.923310",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.sol handleLockData (line 30), result from handler is returned via assembly. Can malformed result cause calling contract to crash?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_383f1603-8747-4269-9c4b-e55e430e751c",
+    "timestamp": "2025-12-02 05:50:01.851867",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol locked_6416899205 has mined selector (line 25). Can selector collision with other functions cause unexpected behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c5b98e96-6618-4565-b32a-d87cc0deab6e",
+    "timestamp": "2025-12-02 05:50:35.759251",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.sol lock (lines 60-64), if call fails, returndatacopy is used. Can this copy corrupt revert data from ACCOUNTANT?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a09eac16-911a-48d2-bbf3-bb1db29d8538",
+    "timestamp": "2025-12-02 05:51:10.937831",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol lockAndExpectRevert (line 99) expects all calls to revert. Can quote functions that legitimately succeed break this assumption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3098b4b4-483e-480d-8766-b951cb37381a",
+    "timestamp": "2025-12-02 05:51:48.986306",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseLocker.sol (line 68), returndatacopy is used to get lock result. Can zero-length return data cause issues in result decoding?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_51f8ae3d-2872-41d0-a5ee-37ab5dea9371",
+    "timestamp": "2025-12-02 05:52:25.657167",
+    "report_generated": false
+  },
+  {
+    "question": "BaseLocker.sol uses assembly for efficiency but lacks safety checks. Can memory corruption occur if ACCOUNTANT returns unexpected data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6334c2b9-7bf8-46aa-a0b5-11509b7be597",
+    "timestamp": "2025-12-02 05:53:03.887550",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.sol getPoolState (line 48), assembly loads state from poolId slot. Can storage slot collision with Core state corrupt pool data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a738106-f523-462e-9590-aefb7e8fadbe",
+    "timestamp": "2025-12-02 05:53:40.451656",
+    "report_generated": false
   }
 ]
