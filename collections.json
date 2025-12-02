@@ -6898,5 +6898,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c859ef20-ea05-49d6-b491-f969696ef9fb",
     "timestamp": "2025-12-02 00:45:35.766353",
     "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, if the extension uses TWAMMStorageLayout.poolRewardRatesSlot() during forwarding, could storage slot calculation collide with CoreStorageLayout?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47247353-0bcb-4462-a0e9-05dd6bcfa83b",
+    "timestamp": "2025-12-02 00:46:53.303829",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, when return data encodes order state changes, could BaseForwardee assembly return cause the encoded data to be misaligned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_156268a3-a632-4c5d-a4f2-84ea75d8eed4",
+    "timestamp": "2025-12-02 00:47:06.506302",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, if multiple orders with same config are processed through forwarding, could reward rate accumulation be double-counted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc29d66b-8242-4160-a702-e96568a076e3",
+    "timestamp": "2025-12-02 00:47:19.947919",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData implementation (lines 163-182 of TokenWrapper.sol), when handling wrap/unwrap operations via forwarding, could debt manipulation through CORE.updateDebt() at line 179 violate flash accounting balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a2e20304-2322-4e83-af9f-d4751ee199e3",
+    "timestamp": "2025-12-02 00:47:35.194325",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData, when forwarded data encodes negative delta for unwrapping, if block.timestamp < UNLOCK_TIME, does the TooEarly revert at line 168 leave the forwardee as temporary locker?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0516dca0-7573-4fac-8b60-f2a9637fb69b",
+    "timestamp": "2025-12-02 00:47:50.245449",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData, when calling CORE.updateSavedBalances() at line 171, could the delta0 parameter cause saved balances to overflow or underflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_85aad49a-7857-472a-bb11-3e5e28cc97f2",
+    "timestamp": "2025-12-02 00:48:07.131217",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData, if the original Locker parameter is ignored and not used for authorization, could any locker wrap/unwrap tokens from TokenWrapper's saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6172cda0-f31c-47a4-b25d-702b117f9ec1",
+    "timestamp": "2025-12-02 00:48:24.700419",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData, when the function calls CORE.updateDebt(SafeCastLib.toInt128(-amount)) at line 179, if amount is int256.min, could negation cause overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d466a481-e35d-4190-b959-2f582979fbba",
+    "timestamp": "2025-12-02 00:48:44.447558",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData, if forwarded data decoding via abi.decode(data, (int256)) fails due to malformed data, does the revert propagate correctly through BaseForwardee?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a313798-1115-4aa1-94ef-4b0f7b95c468",
+    "timestamp": "2025-12-02 00:49:07.450470",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData, when both CORE.updateSavedBalances() and CORE.updateDebt() are called, could the debt update not match the saved balance delta, causing accounting mismatch?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39a5822a-42e8-4961-b005-a183cb4ce5e7",
+    "timestamp": "2025-12-02 00:49:32.143217",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData, if the wrapper token (address(this)) is used in both token0 and token1 positions of the saved balances call, could this cause storage collision?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0fc68dd9-8d1d-4e95-8bf6-4447e3485ea2",
+    "timestamp": "2025-12-02 00:49:57.684335",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData, when unwrapping after UNLOCK_TIME, if multiple users unwrap simultaneously through forwarding, could race conditions cause some users to receive more than their share?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_46623ca5-e9ee-4147-934a-cefa930143ad",
+    "timestamp": "2025-12-02 00:50:25.021800",
+    "report_generated": false
+  },
+  {
+    "question": "In TokenWrapper.handleForwardData, since the function returns bytes('') at line 181, if the caller expects specific return data, could empty return data cause abi.decode failures in the forwarding chain?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f0899e24-9b74-41c6-ad7e-46121ef11053",
+    "timestamp": "2025-12-02 00:50:53.735739",
+    "report_generated": false
+  },
+  {
+    "question": "In `locked_6416899205` (line 25), can an attacker bypass the `msg.sender != address(ACCOUNTANT)` check by deploying a malicious contract at a predicted address before ACCOUNTANT is set, potentially gaining unauthorized callback execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c6b57403-e258-410b-b3ec-189b0f995225",
+    "timestamp": "2025-12-02 00:51:23.957573",
+    "report_generated": false
+  },
+  {
+    "question": "The `locked_6416899205` function (line 25-36) extracts calldata starting at offset 36 (`msg.data[36:]`). Can an attacker craft calldata shorter than 36 bytes to cause out-of-bounds memory access or underflow in the slice operation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23d3e688-62fb-4ab2-8fe0-0a4938cc26df",
+    "timestamp": "2025-12-02 00:51:53.665490",
+    "report_generated": false
+  },
+  {
+    "question": "In `locked_6416899205` (line 28), the calldata slice `msg.data[36:]` creates a new bytes memory. If the accountant passes malicious data with length approaching type(uint256).max - 36, could this cause memory expansion DoS or overflow in memory allocation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28c557b9-d88c-477e-8552-ed3e77c8635c",
+    "timestamp": "2025-12-02 00:52:25.737307",
+    "report_generated": false
+  },
+  {
+    "question": "The `BaseLockerAccountantOnly` error (line 11) is thrown if `msg.sender != address(ACCOUNTANT)` (line 26). Can a malicious derived contract override the `locked_6416899205` function to bypass this check and execute arbitrary lock data without going through the accountant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_509b522f-d693-4c8c-8e31-7fcbf5e8ca42",
+    "timestamp": "2025-12-02 00:52:58.733140",
+    "report_generated": false
+  },
+  {
+    "question": "In `locked_6416899205` (line 30), `handleLockData` is called with the extracted data. If a derived contract's implementation reverts with malicious revert data containing assembly opcodes, could the raw return in line 32-35 execute unintended code?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b080e663-f6b4-48cf-b10a-cde9b6ba8bf2",
+    "timestamp": "2025-12-02 00:53:32.077416",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly block in `locked_6416899205` (line 32-35) uses `return(add(result, 32), mload(result))` to raw return whatever the handler sent. Can an attacker exploit this to return crafted data that manipulates the accountant's state when decoded?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4a3f809-7eef-46ea-ac2e-014a9f1bd14b",
+    "timestamp": "2025-12-02 00:54:05.461418",
+    "report_generated": false
+  },
+  {
+    "question": "In `locked_6416899205`, the `id` parameter (line 25) is passed to `handleLockData` but never validated. Could an attacker exploit a race condition where the lock ID is reused or manipulated between the accountant's assignment and the callback execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91162750-6411-41b9-9eb5-d8328da597bf",
+    "timestamp": "2025-12-02 00:54:37.136801",
+    "report_generated": false
+  },
+  {
+    "question": "The `locked_6416899205` function uses a non-standard selector (0x6416899205). If an attacker can collision-mine a function signature matching this selector in their malicious contract, could they intercept or spoof lock callbacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afb4870e-c9fc-438d-ad9b-fa77d02606ed",
+    "timestamp": "2025-12-02 00:55:10.511383",
+    "report_generated": false
+  },
+  {
+    "question": "In `locked_6416899205` (line 28), `msg.data[36:]` assumes the first 36 bytes contain the function selector (4 bytes) and ID (32 bytes). If the accountant mistakenly calls with offset data, could this cause handleLockData to process corrupted parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b35c5d44-28fe-4747-a9b9-7fd3a6ed9baa",
+    "timestamp": "2025-12-02 00:55:44.065371",
+    "report_generated": false
+  },
+  {
+    "question": "The `handleLockData` function (line 118) is virtual and must be implemented by derived contracts. Can a derived contract implement this to create infinite recursion by calling `lock()` within the handler, potentially causing stack overflow or gas griefing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_718d77fb-9313-4aa6-83ab-bc44313c22ff",
+    "timestamp": "2025-12-02 00:56:15.053753",
+    "report_generated": false
+  },
+  {
+    "question": "In `locked_6416899205` (line 30), if `handleLockData` returns bytes with length 0, the assembly block (line 32-35) will return 0 bytes. Could this empty return be misinterpreted by the accountant as successful execution when it should have reverted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_762a2a81-63eb-45a1-bac5-d7b6efa82604",
+    "timestamp": "2025-12-02 00:56:46.203425",
+    "report_generated": false
+  },
+  {
+    "question": "The `locked_6416899205` callback (line 25) doesn't check if ACCOUNTANT is address(0). If constructor receives address(0) accidentally, could any caller execute the callback, bypassing flash accounting entirely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_209d3856-644e-4768-b995-a7c973239bb7",
+    "timestamp": "2025-12-02 00:57:18.141539",
+    "report_generated": false
   }
 ]
