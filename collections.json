@@ -12748,5 +12748,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_de35b613-d898-4e7b-ac91-e21876fcf34a",
     "timestamp": "2025-12-02 08:09:11.100163",
     "report_generated": false
+  },
+  {
+    "question": "In the reward delta calculation (lines 484-485), `rewardDelta = swapBalanceUpdate.delta - amount` computes the proceeds from swapping. Can rounding errors in the Core's swap execution cause these deltas to be slightly negative even when they should be zero, accumulating to significant losses over time?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e243bcec-6425-4fd4-9ff0-bd282f4d0120",
+    "timestamp": "2025-12-02 08:10:29.925077",
+    "report_generated": false
+  },
+  {
+    "question": "In the single-sided swap logic (lines 486-515), when only one amount is non-zero, the sqrtRatioLimit is set to `MIN_SQRT_RATIO` or `MAX_SQRT_RATIO`. Can this cause swaps to consume all available liquidity in the pool, pushing the price to extreme bounds and making the pool unusable for regular traders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_130f75ea-927c-4fc1-b83a-f4e6bdae1bbd",
+    "timestamp": "2025-12-02 08:10:43.115145",
+    "report_generated": false
+  },
+  {
+    "question": "In the reward rate update (lines 517-525), when `rewardDelta0 < 0`, the reward rate is increased by `rawDiv(-rewardDelta0 << 128, state.saleRateToken1())`. Can division by a very small `saleRateToken1` cause the reward rate to overflow type(uint256).max, corrupting future reward calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_74d8f10f-f745-4ca3-ac8f-a710c4e6e9db",
+    "timestamp": "2025-12-02 08:10:56.430249",
+    "report_generated": false
+  },
+  {
+    "question": "In line 522, `FixedPointMathLib.rawDiv` is used for the reward rate calculation. Does this library function handle division by zero safely? Can an attacker trigger execution when `saleRateToken1 == 0` to cause undefined behavior or unexpected reward rate values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_abcc6862-9dcb-44cc-9845-c28973b39288",
+    "timestamp": "2025-12-02 08:11:11.370229",
+    "report_generated": false
+  },
+  {
+    "question": "In the initialized time handling (lines 537-564), reward rates are loaded if not already accessed (lines 538-545), then stored to `poolRewardRatesBeforeSlot` (lines 547-548). Can an attacker manipulate the order of virtual order execution to cause these snapshots to be taken at incorrect times, disrupting all orders referencing that time?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6740fb25-cbdc-4a96-9a8e-5cc358d7bf73",
+    "timestamp": "2025-12-02 08:11:26.520813",
+    "report_generated": false
+  },
+  {
+    "question": "In line 551, `TimeInfo` is parsed from storage to extract `saleRateDeltaToken0` and `saleRateDeltaToken1`. These deltas are then applied to the current state (lines 554-558). Can an attacker create orders with extreme negative deltas that, when applied via `addSaleRateDelta`, cause underflow and set sale rates to near type(uint112).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c6d6e160-263c-4132-ae3b-ebcb50575ce2",
+    "timestamp": "2025-12-02 08:11:42.855793",
+    "report_generated": false
+  },
+  {
+    "question": "In the time info deletion (line 562), `timeInfoSlot.store(0)` clears the time info after consumption. Can this allow an attacker to create new orders referencing the same time after it's been cleared, causing the time to be reinitialized with different sale rate deltas and disrupting existing orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d35f319-b98a-4a0a-a54d-c0bbf2c04862",
+    "timestamp": "2025-12-02 08:12:01.045719",
+    "report_generated": false
+  },
+  {
+    "question": "In the bitmap flip (line 564), `flipTime` is called to mark the time as consumed. Can an attacker exploit the XOR-based flip operation to flip a time back to initialized state through multiple transactions, causing time periods to be executed multiple times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6b9918de-de89-4746-a49b-c5447aad67cb",
+    "timestamp": "2025-12-02 08:12:20.986539",
+    "report_generated": false
+  },
+  {
+    "question": "In the uninitialized time branch (lines 565-571), the state is updated with the same sale rates but a new `lastVirtualOrderExecutionTime`. Can the function accumulate thousands of these updates if there are large gaps between initialized times, causing excessive gas costs and potential DoS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cfeeda82-7a78-42bf-9869-b4399718c606",
+    "timestamp": "2025-12-02 08:12:43.054883",
+    "report_generated": false
+  },
+  {
+    "question": "In the final balance update (lines 576-578), `saveDelta0` and `saveDelta1` are applied via `CORE.updateSavedBalances` only if non-zero. Can rounding cause these values to be zero when they should be non-zero, leading to gradual loss of pool value over many executions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06b67f99-eb50-431d-8b16-ebeb1fb4ad8d",
+    "timestamp": "2025-12-02 08:13:06.121439",
+    "report_generated": false
+  },
+  {
+    "question": "In the reward rate storage (lines 580-585), the rates are written back to storage only if `rewardRate0Access == 2` or `rewardRate1Access == 2`. Can a transaction revert after setting these flags but before the stores complete, causing the in-memory reward rate updates to be lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b7979458-f220-4f12-8750-526be5130d98",
+    "timestamp": "2025-12-02 08:13:29.549884",
+    "report_generated": false
+  },
+  {
+    "question": "In the state storage (line 587), `stateSlot.store(TwammPoolState.unwrap(state))` writes the final state. If this storage write fails or is front-run by another transaction, can the pool state become inconsistent with the emitted events (line 589), causing off-chain systems to desync?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1632cd70-0b13-4d1d-910a-f563e976b1fd",
+    "timestamp": "2025-12-02 08:13:53.773839",
+    "report_generated": false
+  },
+  {
+    "question": "In the `_emitVirtualOrdersExecuted` event emission (line 589), the function assumes `saleRateToken0` and `saleRateToken1` are <= type(uint112).max. Can these values exceed this bound if multiple orders update rates before virtual order execution, causing the assembly event encoding to truncate values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3d1b36e5-7b06-4c17-8fb5-e24bc806673f",
+    "timestamp": "2025-12-02 08:14:20.390081",
+    "report_generated": false
+  },
+  {
+    "question": "In `_updateTime` (line 141), the function loads `TimeInfo` from storage and parses it (lines 144-145). Can concurrent calls to `_updateTime` for the same `time` from different order updates cause race conditions where one update's sale rate delta overwrites another's?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_56e185aa-1a42-4897-958d-fc61a32dcbc1",
+    "timestamp": "2025-12-02 08:14:47.720446",
+    "report_generated": false
+  },
+  {
+    "question": "In the `numOrdersNext` calculation (lines 148-156), assembly is used to add `numOrdersChange` to `numOrders` with overflow checking. Can an attacker craft transactions that cause `numOrdersChange` values to sum to exactly 2^32, bypassing the overflow check due to modular arithmetic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_46984a1d-ebaa-403e-b5a8-7d46e65fb096",
+    "timestamp": "2025-12-02 08:15:16.731903",
+    "report_generated": false
+  },
+  {
+    "question": "In line 147, the code comment states 'we assume this will never overflow, since it would require 2^32 separate orders'. Can an attacker with sufficient gas and capital create exactly 2^32 orders to break this assumption, causing the overflow check at line 151 to be bypassed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8c3946e5-2160-4a27-86a3-15fc94676650",
+    "timestamp": "2025-12-02 08:15:46.229288",
+    "report_generated": false
+  },
+  {
+    "question": "In the flip detection (line 158), `flip` is true when `numOrders` and `numOrdersNext` have different zero/non-zero states. Can an attacker exploit the transition from 1 order to 0 orders to flip a time that's in the past, causing `flipTime` to corrupt the initialized times bitmap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0d08a930-190f-4677-9c17-b5bfebc611ed",
+    "timestamp": "2025-12-02 08:16:17.569919",
+    "report_generated": false
+  },
+  {
+    "question": "In the reward rates before initialization (lines 163-166), the slots are written with `zeroNumOrders` which is either 0x0 or 0x1 based on whether `numOrders == 0`. Can this cause confusion in `getRewardRateInside` calculations if the value is 1 instead of 0, inflating reward amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_77d9f8d8-a8c5-4a8d-84c0-14d58ae2130a",
+    "timestamp": "2025-12-02 08:16:49.689029",
+    "report_generated": false
+  },
+  {
+    "question": "In line 168, `flipTime` is called on the initialized times bitmap. Can an attacker repeatedly flip times back and forth by creating and cancelling orders, causing the bitmap to consume excessive storage and increase the cost of `searchForNextInitializedTime`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9a291658-7d76-437d-8780-72366502f7dd",
+    "timestamp": "2025-12-02 08:17:21.956163",
+    "report_generated": false
+  },
+  {
+    "question": "In the sale rate delta update (lines 171-175), `_addConstrainSaleRateDelta` is called with the existing delta and the change. Can an attacker split a large order into many smaller orders at the same start/end time to bypass the `MAX_ABS_VALUE_SALE_RATE_DELTA` check through accumulated small deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7b5c77b3-9f09-4817-a91e-965c18c1145c",
+    "timestamp": "2025-12-02 08:17:55.450768",
+    "report_generated": false
+  },
+  {
+    "question": "In line 178, the updated `TimeInfo` is stored back to the slot. If the `timeInfoSlot` calculation in `TWAMMStorageLayout.poolTimeInfosSlot` has an off-by-one error, can this overwrite adjacent storage slots, corrupting other time info or pool state data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9dbe1a0c-9ee5-4e33-a744-902242f85d47",
+    "timestamp": "2025-12-02 08:18:30.356282",
+    "report_generated": false
+  },
+  {
+    "question": "In `_addConstrainSaleRateDelta` (line 118), the function computes `result = int256(saleRateDelta) + saleRateDeltaChange` (line 123). Can integer overflow in the int256 addition be exploited if `saleRateDelta` is type(int112).max and `saleRateDeltaChange` is positive, bypassing the abs check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91b05fb3-86fb-4aac-a04b-e71d6ff34d5a",
+    "timestamp": "2025-12-02 08:19:06.410862",
+    "report_generated": false
+  },
+  {
+    "question": "In the absolute value check (line 126), `FixedPointMathLib.abs(result)` is compared to `MAX_ABS_VALUE_SALE_RATE_DELTA`. Does the `abs` function correctly handle type(int256).min (which has no positive representation), and can this edge case be exploited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f7364d7-d63d-4223-8e02-5b81aab9ef5e",
+    "timestamp": "2025-12-02 08:19:42.600962",
+    "report_generated": false
+  },
+  {
+    "question": "In line 131, the result is downcast to `int112` after validation. Can an attacker exploit the gap between `MAX_ABS_VALUE_SALE_RATE_DELTA` (type(uint112).max / 91) and type(int112).max to cause the downcast to produce unexpected negative values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_111f9b6e-edde-4106-969b-ee25fedd4cf6",
+    "timestamp": "2025-12-02 08:20:18.310064",
+    "report_generated": false
+  },
+  {
+    "question": "In `getRewardRateInside` (line 84), when `block.timestamp >= config.endTime()`, the function calculates `rewardRateEnd - rewardRateStart` (line 94). Can an attacker manipulate the order config to have `endTime < startTime`, causing underflow in this subtraction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4938e0bf-47dd-47ec-9bbc-f352e0d20801",
+    "timestamp": "2025-12-02 08:20:52.257164",
+    "report_generated": false
   }
 ]
