@@ -13648,5 +13648,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ea4c4b2-db82-41f3-a757-e96f0658c7f1",
     "timestamp": "2025-12-02 10:09:50.818477",
     "report_generated": false
+  },
+  {
+    "question": "In `position.sol` line 44-45, the function loads `feesPerLiquidityInsideLast` from position memory at offset 0x40. However, Position struct has `extraData` at offset 0x00 (16 bytes) and `liquidity` at 0x10 (16 bytes). Could incorrect offset calculation cause reading wrong memory values, corrupting fee calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_05f6adab-f621-4fa1-bd67-aceba0575433",
+    "timestamp": "2025-12-02 10:11:09.126353",
+    "report_generated": false
+  },
+  {
+    "question": "In `position.sol` line 33-51, the `fees()` function calculates fees as `(difference * liquidity) >> 128`. If `difference = feesPerLiquidityInside - feesPerLiquidityInsideLast` has wrapped around (uint256 overflow), could this return incorrect fees, allowing double-claiming or fee theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5aabbd7d-2703-468f-be71-c6502289f97a",
+    "timestamp": "2025-12-02 10:11:22.728622",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 116, `collectFees` internally calls `withdraw` with `liquidity=0` and `withFees=true`. If the withdraw function is called directly by another contract via multicall, could the recipient parameter be maliciously set to drain fees to an attacker's address even if they don't own the NFT?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_836257aa-1463-4b90-bd36-ffff8c47e9b7",
+    "timestamp": "2025-12-02 10:11:36.245354",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 100-107, `collectFees` with msg.sender recipient calls the overloaded version. However, line 106 passes `msg.sender` while inside a lock at line 116 which changes context via ACCOUNTANT callback. Could this cause fees to be sent to ACCOUNTANT instead of the original caller?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dad2400a-eeae-4bc2-a1b3-6eaf121e4655",
+    "timestamp": "2025-12-02 10:11:51.644116",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 328, `withdrawTwo` sends both tokens to recipient. However, FlashAccountantLib.sol:199-228 shows this uses packed calldata. If recipient is a malicious contract that reverts on token receipt, could this lock funds in the ACCOUNTANT, violating the withdrawal availability invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_54ed5aad-b403-482f-bfa4-8592f06760b6",
+    "timestamp": "2025-12-02 10:12:06.669063",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 314-325, withdrawal protocol fees are computed and deducted. However, line 324 does `amount0 += withdrawnAmount0 - withdrawalFee0`. If `withdrawalFee0 > withdrawnAmount0` due to miscalculation in `_computeWithdrawalProtocolFees`, could this underflow and send massive tokens to the recipient?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e2c7598-3ecd-492d-9395-3d378f6bf624",
+    "timestamp": "2025-12-02 10:12:22.932621",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 310-311, withdrawn amounts are cast to uint128 assuming negative deltas: `uint128(-balanceUpdate.delta0())`. If Core returns positive deltas for a withdrawal (bug or malicious), could this underflow and wrap to huge withdrawal amounts, draining the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_30cd5123-5e5c-4298-b8af-30002096340e",
+    "timestamp": "2025-12-02 10:12:41.408867",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 304-308, when liquidity > 0, `updatePosition` is called with negative liquidity `-int128(liquidity)`. Could an integer overflow in the negation operation (if liquidity = type(int128).max + 1) cause this to become a positive value, adding instead of removing liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22b0ae7d-3fee-4b86-86e9-4baa21f920eb",
+    "timestamp": "2025-12-02 10:13:01.665250",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 290-300, protocol fees from swaps are deducted from collected fees. The code does `amount0 -= swapProtocolFee0` (line 298). If `swapProtocolFee0 > amount0` due to rounding in `computeFee`, could this cause underflow and revert, preventing users from collecting legitimate fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_92fa979e-eb31-469b-9161-7e792f1f7b89",
+    "timestamp": "2025-12-02 10:13:23.208579",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 284-287, `CORE.collectFees` is called before withdrawing liquidity. However, this updates the position's `feesPerLiquidityInsideLast`. If the position has 0 liquidity but previously had fees, could these fees be permanently locked since collectFees requires liquidity > 0 to accrue fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_730acad8-92fe-4a02-801a-584ae7830d08",
+    "timestamp": "2025-12-02 10:13:45.392121",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 277, the code checks `if (liquidity > uint128(type(int128).max))` but this happens AFTER fees are collected (line 284-300). If collecting fees changes the position state and a re-entrant call adds liquidity, could the overflow check be bypassed, allowing withdrawal of negative liquidity amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cddbf9b7-3c3b-4462-ab69-8de3695f4f50",
+    "timestamp": "2025-12-02 10:14:09.309098",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 120-133, the `withdraw` function allows withdrawing 0 liquidity with fees (`withFees=true`). At line 283-301, fees are collected first. Could an attacker repeatedly call `withdraw(id, pool, ticks, 0, recipient, true)` to collect fees multiple times before the position's `feesPerLiquidityInsideLast` is updated, stealing accumulated fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ea5049b-5c65-4858-bd02-97d69371af67",
+    "timestamp": "2025-12-02 10:14:33.665238",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 254, `payTwoFrom` is used for ERC20 pools. However, FlashAccountantLib.sol:126-189 shows this calls `startPayments` with both tokens. If one token is malicious and reverts during transferFrom (line 148), could the other token's payment complete, creating delta imbalance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_959f2446-4926-4e7a-9cfa-f5d5e9c7c6fa",
+    "timestamp": "2025-12-02 10:14:59.724225",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 253-262, the payment flow differs for native vs ERC20 tokens. For native tokens (line 256-257), if `amount0 != 0`, ETH is sent to ACCOUNTANT. Could a malicious caller send less msg.value than required, causing the flash accounting to fail settlement and lock the position in a corrupted state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b9b2576f-184b-4f19-95d6-6326d7605f7d",
+    "timestamp": "2025-12-02 10:15:26.538041",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 249-250, `amount0` and `amount1` are extracted from `balanceUpdate` assuming they're positive. However, `PoolBalanceUpdate.delta0()` uses sign extension (poolBalanceUpdate.sol:10). Could a malicious Core return negative deltas for a deposit operation, causing underflow when casting to uint128?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2804527-3798-4015-8613-746962ae6c56",
+    "timestamp": "2025-12-02 10:15:54.662179",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 243-247, `CORE.updatePosition` is called with liquidity as `int128(liquidity)`. If the Core contract's position already has liquidity and adding more would overflow `uint128`, could this violate the solvency invariant by creating more liquidity debt than the pool can track?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_32d53c32-a3d6-4ab4-b1e7-a4684d469b03",
+    "timestamp": "2025-12-02 10:16:24.119931",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 89-91, the code checks `if (liquidity > uint128(type(int128).max))` and reverts with `DepositOverflow`. However, line 246 casts to `int128(liquidity)` without this check. Could a malicious re-entry or race condition bypass this check, allowing `updatePosition` to be called with an overflowed negative liquidity value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6bef3675-2232-4a31-9c5c-e7c8fda87eaa",
+    "timestamp": "2025-12-02 10:16:54.701220",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 82-83, `maxLiquidity` is calculated outside the lock and used inside at line 94. If the pool's sqrtRatio changes between these lines due to a swap in another transaction, could the calculated liquidity become stale, allowing slippage beyond `minLiquidity` protection or causing pool insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_575e0983-e4e5-4be8-a3e1-811ed0aa27fc",
+    "timestamp": "2025-12-02 10:17:26.724470",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 79-96, the `deposit` function uses `authorizedForNft(id)` modifier but doesn't verify the NFT was minted. Could an attacker call `deposit` with an unminted ID that they can later mint, front-running the original minter to deposit liquidity into a position they'll control?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_919ed882-f8dc-4671-a101-acf2ddcf5a8a",
+    "timestamp": "2025-12-02 10:18:00.926505",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 50-51, `createPositionId` is called with user-provided `tickLower` and `tickUpper` but these are only validated later in Core. Could an attacker provide invalid ticks (e.g., `tickLower >= tickUpper`) to create a position ID that passes here but causes revert in Core, leading to griefing or lock-up of NFT IDs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_62f8bc7b-3bba-4419-8c89-caa93c84fa07",
+    "timestamp": "2025-12-02 10:18:34.319959",
+    "report_generated": false
+  },
+  {
+    "question": "In `BaseNonfungibleToken.sol` line 133-134, the `burn()` function allows burning NFTs with the `authorizedForNft` modifier. After burning, line 130 says 'The same ID can be recreated by the original minter'. If a user burns their NFT containing active liquidity and an attacker immediately mints the same ID using the same salt, could the attacker gain control of the burned position's liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72981341-360c-497b-b373-e84544755fac",
+    "timestamp": "2025-12-02 10:19:07.195362",
+    "report_generated": false
+  },
+  {
+    "question": "In `BaseNonfungibleToken.sol` line 109-116, the `mint()` function without salt uses `prevrandao()` and `gas()` for pseudorandomness. Since `prevrandao()` is predictable one block in advance and `gas()` is controllable by the caller, could an attacker predict the generated salt and front-run mint transactions to steal deterministic NFT IDs before legitimate users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e5f050b1-125f-48af-babb-3b2b10b773d6",
+    "timestamp": "2025-12-02 10:19:39.949229",
+    "report_generated": false
+  },
+  {
+    "question": "In `BaseNonfungibleToken.sol` line 92-101, `saltToId` generates IDs using `keccak256(minter, salt, chainid, address)`. If the same user mints with the same salt on two different chains after a fork, could positions created on both chains collide in cross-chain bridges, allowing theft of LP positions during chain reorganizations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fe1a0136-aa68-4821-99b5-912a50ce9394",
+    "timestamp": "2025-12-02 10:20:13.711399",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 245, `createPositionId` uses `bytes24(uint192(id))` to convert the NFT ID to a salt. Since NFT IDs are uint256, could an attacker mint two positions with IDs that differ only in the upper 64 bits (e.g., `id` and `id + 2^192`) to create a salt collision, allowing them to control the same position from two different NFTs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a7ffb909-8596-4c74-befa-eac876e4b6b9",
+    "timestamp": "2025-12-02 10:20:46.112188",
+    "report_generated": false
+  },
+  {
+    "question": "In `Positions.sol` line 63-66, the function checks `if (fee != 0 && WITHDRAWAL_PROTOCOL_FEE_DENOMINATOR != 0)` but doesn't validate that `fee / WITHDRAWAL_PROTOCOL_FEE_DENOMINATOR` results in a valid fee rate. Could `fee` being smaller than `WITHDRAWAL_PROTOCOL_FEE_DENOMINATOR` cause the division to round to 0, bypassing withdrawal protocol fees entirely for low-fee pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a5290644-4e85-4515-aa09-9f0e13eece5f",
+    "timestamp": "2025-12-02 10:21:18.646039",
+    "report_generated": false
   }
 ]
