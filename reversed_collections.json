@@ -13198,5 +13198,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e963a222-a5ac-4c93-9b24-0cb2c3aa2685",
     "timestamp": "2025-12-02 09:35:44.466955",
     "report_generated": false
+  },
+  {
+    "question": "In `FlashAccountantLib.sol` line 167, token1's transferFrom is called. If this token has a transfer hook that calls back into Positions contract's `withdraw`, could the callback withdraw liquidity before the deposit is completed, creating negative liquidity state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bdd21784-42a1-4eb9-b238-38999e635198",
+    "timestamp": "2025-12-02 09:36:54.964676",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 260, `payFrom` is called for token1 in native token deposits. If token1 is malicious and reenters `deposit` during transferFrom, could this create nested locks with inconsistent delta tracking, allowing double-spending of tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c8472f4-1075-4956-9c9e-c892f6e484dc",
+    "timestamp": "2025-12-02 09:37:08.051914",
+    "report_generated": false
+  },
+  {
+    "question": "In `FlashAccountantLib.sol` line 29, the token transfer is called with `call(gas(), token, 0, 0x10, 0x44, 0x00, 0x20)`. If token is a malicious contract that consumes all gas in transfer, could this cause the lock to run out of gas, leaving deltas unbalanced and violating flash accounting invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3e860af-d9fa-46cc-b72a-2011dbcc70d6",
+    "timestamp": "2025-12-02 09:37:21.596839",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 59-60, `liquidityDeltaToAmountDelta` is called with negative liquidity to calculate principal. If position.liquidity is type(uint128).max, casting to int128 would overflow. Does SafeCastLib.toInt128 at line 59 prevent this, or could it pass through causing wrong calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ac2b0f6-d459-41f7-a485-57b9ddff9627",
+    "timestamp": "2025-12-02 09:37:35.646241",
+    "report_generated": false
+  },
+  {
+    "question": "In `liquidity.sol` line 102-103, when price is at the lower bound, `maxLiquidityForToken0` is called with sqrtRatioLower and sqrtRatioUpper from user position. If sqrtRatioLower = sqrtRatioUpper (zero-width range), division by zero occurs at line 66, causing all deposits to revert. Is this check present?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e2832ea-4c7c-4cf3-8898-c5a83369f9cb",
+    "timestamp": "2025-12-02 09:37:50.561586",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 310-311, amounts are cast to uint128 by negating deltas. If Core returns `delta0 = type(int128).min`, could the negation overflow, and would `uint128(-type(int128).min)` produce an unexpected value greater than type(uint128).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02440d86-21d9-48fa-a488-b6d27e6767ab",
+    "timestamp": "2025-12-02 09:38:06.582551",
+    "report_generated": false
+  },
+  {
+    "question": "In `Positions.sol` line 46, `computeFee(amount1, SWAP_PROTOCOL_FEE_X64)` is called. If amount1 is type(uint128).max and SWAP_PROTOCOL_FEE_X64 is close to type(uint64).max, could the multiplication in computeFee (fee.sol:8) overflow before the shift, returning incorrect (smaller) protocol fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0183520b-80ca-47a7-b1eb-ddef08da9277",
+    "timestamp": "2025-12-02 09:38:23.969077",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 82-83, `maxLiquidity` is called with user-provided `maxAmount0` and `maxAmount1`. If a user provides type(uint128).max for both, could the calculated liquidity exceed pool limits, causing overflow when added to existing position liquidity in Core?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_90ecc5bd-685f-47c7-b64e-6042fb28c7ad",
+    "timestamp": "2025-12-02 09:38:43.478875",
+    "report_generated": false
+  },
+  {
+    "question": "In `Positions.sol` lines 38-48 and 57-68, both compute protocol fees separately for swaps and withdrawals. If `_computeSwapProtocolFees` is called first (line 290-291) then `_computeWithdrawalProtocolFees` (line 314-315), could double-counting occur if both methods compute fees on the same amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7831ce28-ffa8-4651-be2d-608d9a3d4359",
+    "timestamp": "2025-12-02 09:39:04.475457",
+    "report_generated": false
+  },
+  {
+    "question": "Between `BasePositions.sol` line 167 (mintAndDeposit) and line 182 (mintAndDepositWithSalt), both mint then deposit. If a malicious extension hooks into mint or deposit and causes reentrancy, could an attacker call these functions recursively to mint multiple NFTs with the same underlying position?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_737cf6d8-d80e-44ce-8602-ff85183edae9",
+    "timestamp": "2025-12-02 09:39:27.081323",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol`, `deposit` (line 71) and `withdraw` (line 120) both use `authorizedForNft(id)` modifier. However, if an NFT is transferred (ERC721 transfer) during a lock callback, could the authorization check pass initially but refer to a different owner by the time the lock executes, allowing unauthorized position modification?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_51e38783-3e8a-4320-a575-ae0f24e11636",
+    "timestamp": "2025-12-02 09:39:50.456214",
+    "report_generated": false
+  },
+  {
+    "question": "Between `BasePositions.sol` lines 100-107 and 110-117, both `collectFees` functions end up calling `withdraw` at line 116. Could an attacker use multicall to call both versions simultaneously, causing concurrent withdrawals of the same fees due to state not being updated between calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2c8fdd57-cabe-4a0a-a519-78a69b3229e1",
+    "timestamp": "2025-12-02 09:40:15.610491",
+    "report_generated": false
+  },
+  {
+    "question": "In `FlashAccountantLib.sol` line 91-108, `withdraw` packs withdrawal data with specific byte alignments (line 99-101). If token or recipient addresses have non-zero bits in positions assumed to be zero, could `shl(96, ...)` operations corrupt the values, sending funds to wrong addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2cf4c353-ef2f-4a28-8c18-538ae0355c09",
+    "timestamp": "2025-12-02 09:40:41.678446",
+    "report_generated": false
+  },
+  {
+    "question": "In `FlashAccountantLib.sol` line 199-228, `withdrawTwo` packs two withdrawal requests in a single call. Lines 213-216 pack token0/recipient/amount0, then lines 219-221 pack token1/recipient/amount1. If the packed data overlaps in memory due to incorrect offset calculation, could amounts or addresses get corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d1ae88f4-dddb-47d4-8d69-3e700be8b76c",
+    "timestamp": "2025-12-02 09:41:09.868862",
+    "report_generated": false
+  },
+  {
+    "question": "In `FlashAccountantLib.sol` line 131-136, `startPayments` is called with both tokens at once (68 bytes calldata). If the accountant only expects one token at a time, could this cause undefined behavior, mixing token deltas or applying payments to wrong tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0b10f3eb-b64d-44ad-a3c0-35fce7144655",
+    "timestamp": "2025-12-02 09:41:38.198171",
+    "report_generated": false
+  },
+  {
+    "question": "In `FlashAccountantLib.sol` line 118-189, `payTwoFrom` handles two tokens sequentially. If token0 transfer succeeds (line 142-156) but token1 transfer fails (line 159-174), does completePayments (line 184) still get called? Could this leave token0 payment recorded but token1 missing, corrupting deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00f28f24-348f-4955-97bc-5d0c9a7a0bc4",
+    "timestamp": "2025-12-02 09:42:08.518749",
+    "report_generated": false
+  },
+  {
+    "question": "In `FlashAccountantLib.sol` line 52-83, `payFrom` is similar to `pay` but uses transferFrom. Lines 66-72 check transfer success. If the token has approval for exactly `amount` but transferFrom tries to transfer amount+1 due to rounding, could this cause unexpected revert, locking the entire lock operation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff703239-e9fb-43de-9dbc-6dafb64d10ca",
+    "timestamp": "2025-12-02 09:42:39.451366",
+    "report_generated": false
+  },
+  {
+    "question": "In `FlashAccountantLib.sol` line 29-35, the transfer success check does `if iszero(and(eq(mload(0x00), 1), success))`. This checks if returndata is 1 AND call succeeded. However, line 31-33 also check extcodesize and returndatasize. Could a malicious token with no code but address collision cause this check to pass incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8a22af90-df5f-4014-b399-95cf58a241e0",
+    "timestamp": "2025-12-02 09:43:10.383941",
+    "report_generated": false
+  },
+  {
+    "question": "In `FlashAccountantLib.sol` line 15-44, `pay` function calls `startPayments` then transfers tokens then `completePayments`. Line 22 uses `pop(call(...))` ignoring return value for startPayments. If startPayments fails silently, could the subsequent token transfer succeed without proper accounting, causing delta corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_90f4b35e-fb5d-4fc2-9594-3c03ff082d9f",
+    "timestamp": "2025-12-02 09:43:40.144165",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreLib.sol` line 85-94, `savedBalances` reads a single storage slot and unpacks to two uint128 values. The code does `uint128(value >> 128)` and `uint128(value)`. If value is crafted maliciously to have the high bit set in both halves, could casting to uint128 truncate values incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91c6ad19-9508-4d89-8d27-934fe50a3d12",
+    "timestamp": "2025-12-02 09:44:09.670249",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreLib.sol` line 60-75, `poolPositions` reads 3 storage slots and assembles a Position struct. Line 69-72 use assembly to pack values. If the stored values are corrupted or maliciously crafted, could incorrect memory writes cause the Position struct to have impossible values (e.g., negative liquidity)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ccf93b3e-efc9-436d-a8a2-be9efd1b81fb",
+    "timestamp": "2025-12-02 09:44:40.652527",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreLib.sol` line 48-54, `getPoolFeesPerLiquidity` reads two storage slots sequentially. If a malicious Core contract changes storage between the two reads (reentrancy during sload), could this return inconsistent fee values, causing fee theft or loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f85764b2-7e9b-4727-a5ab-5a33251105c6",
+    "timestamp": "2025-12-02 09:45:13.579184",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreLib.sol` line 36-38, `poolState` reads from Core storage using `sload` and wraps in PoolState type. If the Core contract is malicious or corrupted, could it return crafted storage values that cause PoolState to represent impossible states (e.g., invalid sqrtRatio), breaking position operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e3eca43-f213-43d7-aa6f-294d88879ff1",
+    "timestamp": "2025-12-02 09:45:44.721230",
+    "report_generated": false
+  },
+  {
+    "question": "In `positionId.sol` line 32-35, `createPositionId` performs bitwise operations with `shl`, `shr`, `or`, and `and`. If any of these operations produce values outside the expected ranges due to unchecked inputs, could the resulting PositionId encode invalid tick values that cause positions to become inaccessible?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1ababff3-da31-497a-b516-16f57c2a1fc0",
+    "timestamp": "2025-12-02 09:46:14.629223",
+    "report_generated": false
+  },
+  {
+    "question": "In `BaseNonfungibleToken.sol` line 92-101, `saltToId` uses assembly to hash minter, salt, chainid, and address. Line 94-98 use `mstore` without checking if free memory pointer (0x40) is safe. Could this overwrite important data if called within complex multicalls or callbacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f84bc0a-0662-45f5-b651-bc577572a9e0",
+    "timestamp": "2025-12-02 09:46:46.241840",
+    "report_generated": false
   }
 ]
