@@ -11548,5 +11548,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc93dade-a112-4cef-a065-6ed7019c0b5b",
     "timestamp": "2025-12-02 07:00:15.586309",
     "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeSwap() (line 65-67), if an extension validates swap parameters by calling external price oracles, could the oracle contract reenter to manipulate prices mid-validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4690c7d-38a5-4a1d-addd-d0d218786312",
+    "timestamp": "2025-12-02 07:01:28.110484",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks, if an extension implements callbacks that are invoked by Core after hook execution, could the callback timing allow reentrancy after Core's lock is released but before transaction completion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0267a0b3-3a96-4bb2-85da-b457aa6c9e0d",
+    "timestamp": "2025-12-02 07:01:41.794702",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterCollectFees() (line 80-82), if an extension compounds collected fees by calling Core.updatePosition(), and that triggers beforeCollectFees() hook again, could nested fee collection cause accounting errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ecdb2aaf-e425-46fb-a472-b92116bd7526",
+    "timestamp": "2025-12-02 07:01:55.429647",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeUpdatePosition() (line 52-54), if an extension checks position ownership by calling an NFT contract, and that NFT implements custom transfer hooks, could reentrancy through NFT hooks manipulate position state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d971fbdd-1ec5-4e8c-82a1-4e061d7a5dd4",
+    "timestamp": "2025-12-02 07:02:11.278198",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks, if multiple extensions can be chained for the same pool (hypothetically), could the first extension's external call allow reentrancy that affects the second extension's hook execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8cf1c23-0830-4954-a25c-7586e560b7fa",
+    "timestamp": "2025-12-02 07:02:28.531936",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterSwap() (line 70-72), if an extension updates an oracle that's queried by other contracts, could those contracts reenter through Core to perform swaps based on the newly updated oracle price within the same transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5200cc19-7267-487e-9029-507a3fa12dc7",
+    "timestamp": "2025-12-02 07:02:48.002943",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeCollectFees() (line 75-77), if an extension implements fee rebates by sending tokens directly, could the token transfer trigger receive hooks that reenter Core to collect fees again, creating infinite loops?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_85fa3b51-f73d-472d-ad57-4b4f8d22606a",
+    "timestamp": "2025-12-02 07:03:08.836326",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks, if Core's Locker pattern doesn't prevent reentrancy into hook functions themselves (only into Core), could an attacker reenter extension hooks to bypass state validation or double-process operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_92e22d3e-0951-4e52-9d7e-e83dc3a0807e",
+    "timestamp": "2025-12-02 07:03:30.754687",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterUpdatePosition() (line 57-62), if an extension transfers tokens or calls external contracts, could reentrancy into Core.updatePosition() cause the same position to be updated twice with inconsistent liquidityDelta values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c8bf2084-0f01-4be1-95d3-90d0ad53c282",
+    "timestamp": "2025-12-02 07:03:54.280664",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeSwap() (line 65-67), if an extension makes an external call to a user-controlled address (e.g., for MEV auction bids), could that address reenter Core to initiate another swap, corrupting flash accounting deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9323ef5c-b213-4835-b468-40e0b0c44d85",
+    "timestamp": "2025-12-02 07:04:19.420826",
+    "report_generated": false
+  },
+  {
+    "question": "In extension storage patterns, if an extension uses bitfields or packed storage for gas optimization, could bit manipulation errors cause adjacent fields to be corrupted during updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ee6a6c5-b366-4848-b099-2f13cfbf8839",
+    "timestamp": "2025-12-02 07:04:44.905549",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterInitializePool() (line 47-49), if an extension initializes arrays or mappings based on pool parameters, but doesn't set array lengths or mapping defaults properly, could uninitialized storage be read later?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_11ae1f31-defe-46c3-86df-701605280e2c",
+    "timestamp": "2025-12-02 07:05:12.149052",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks, if an extension stores timestamps for time-based logic, and block.timestamp is manipulated by validators (within consensus rules), could this enable attacks on extension time-dependent features?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8330d75d-fcd0-4a06-bbbe-e04b90de5b22",
+    "timestamp": "2025-12-02 07:05:40.928073",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeUpdatePosition() (line 52-54), if an extension uses liquidityDelta to update reward tracking, but doesn't handle the case where liquidityDelta is 0 (no change), could zero-amount operations exploit reward calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c8492962-df2e-46ef-8469-0e825f97c91a",
+    "timestamp": "2025-12-02 07:06:10.556444",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks that modify state, if the extension doesn't use storage locks or reentrancy guards, could concurrent hook invocations from nested Core.lock() calls cause state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7da38f19-6de2-4a35-bf58-581580b44b83",
+    "timestamp": "2025-12-02 07:06:40.992806",
+    "report_generated": false
+  },
+  {
+    "question": "In extension storage, if multiple extensions are deployed as proxies sharing implementation code, could storage collision between proxy storage and implementation storage cause state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_52d8f9f0-bdd7-4c0a-a614-f6181a74f716",
+    "timestamp": "2025-12-02 07:07:12.631106",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterSwap() (line 70-72), if an extension stores SwapParameters for replay protection, but these parameters include mutable values like sqrtRatioLimit, could parameter manipulation bypass replay checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dcd0e2b9-8159-4c08-b88a-4d7e82f2170e",
+    "timestamp": "2025-12-02 07:07:45.561097",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks, if derived extensions use delegatecall to library contracts for complex logic, and these libraries have their own storage, could delegatecall context corruption affect extension state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00ee0eb6-6950-4258-91e6-b239d00d293a",
+    "timestamp": "2025-12-02 07:08:20.548925",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeCollectFees() (line 75-77), if an extension stores fee collection history per PositionId, could an attacker create positions with colliding IDs (if possible) to manipulate fee tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e324f82a-4e09-4c9a-8586-0d4cc280bc5d",
+    "timestamp": "2025-12-02 07:08:56.483438",
+    "report_generated": false
+  },
+  {
+    "question": "In extension storage patterns, if an extension uses unstructured storage (raw storage slot manipulation) to avoid storage collisions, could errors in slot calculation formulas cause overwrites of Core state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fba77344-894e-4db8-9e83-424e3a9c1162",
+    "timestamp": "2025-12-02 07:09:31.680834",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterUpdatePosition() (line 57-62), if an extension caches PoolState for gas optimization, but doesn't invalidate cache on subsequent operations, could stale state data cause incorrect extension behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b5c36291-6c6b-49b1-8777-e6c9ad4a5128",
+    "timestamp": "2025-12-02 07:10:08.212481",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks that receive PoolKey memory, if the extension passes this to library functions expecting PoolKey calldata, could memory/calldata confusion cause incorrect storage reads/writes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e4654a8d-ff71-42d9-8de2-26b3bc518a56",
+    "timestamp": "2025-12-02 07:10:43.967749",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeSwap() (line 65-67), if an extension modifies global state (not pool-specific), could concurrent swaps in different pools using the same extension cause race conditions or state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e569a0dc-255e-4c6b-bd0e-8551b342dc45",
+    "timestamp": "2025-12-02 07:11:19.474741",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hooks, if an extension uses mappings indexed by PoolId or PositionId, and these IDs are derived from keccak256 hashes, could hash collisions (though improbable) cause state corruption between different pools/positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39f69229-9ad3-405f-819e-dba08c7deda7",
+    "timestamp": "2025-12-02 07:11:51.921339",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture extension (example: MEVCapture.sol line 42), if it stores pool state in extension-specific storage slots, could an attacker manipulate these slots via direct storage access to bypass MEV capture fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a4ddd509-bbbc-43e8-81f4-2564839ab7d1",
+    "timestamp": "2025-12-02 07:12:25.913168",
+    "report_generated": false
   }
 ]
