@@ -11398,5 +11398,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1cb9edf0-f7ce-4bcc-9a76-d7d080163c8d",
     "timestamp": "2025-12-02 06:27:53.857909",
     "report_generated": false
+  },
+  {
+    "question": "The updateSavedBalances() call (line 255) passes token0 and token1 from poolKey. If these tokens are not properly sorted (token0 > token1), could this cause the call to revert with SavedBalanceTokensNotSorted error, breaking the forward flow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_10c8e6a9-fc7b-418e-8879-b06ed71ea8cc",
+    "timestamp": "2025-12-02 06:29:15.147970",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 188-199), saveDelta0 and saveDelta1 are initialized to zero then conditionally modified. If the conditional branches don't execute due to unexpected state, could the function proceed with zero deltas while fees were actually collected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6d5c1fb-3733-49a8-9744-e8ff2864793f",
+    "timestamp": "2025-12-02 06:29:28.646403",
+    "report_generated": false
+  },
+  {
+    "question": "The accumulateAsFees() function is restricted to only be callable by the pool's extension (ICore.sol line 238). If MEVCapture's address changes or is not registered correctly, could this cause accumulateAsFees() to revert, permanently blocking swaps through MEVCapture?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_206ae7c8-62c3-4187-9b9f-ca55d71ff711",
+    "timestamp": "2025-12-02 06:29:42.626662",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205() (line 136), the tick is loaded using PoolState.wrap(v0).tick(). If PoolState's tick extraction has a bug with negative ticks or boundary values, could tickLast be set incorrectly, causing fee multiplier miscalculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_53514f71-e050-4fae-8c63-321e6a5ef45a",
+    "timestamp": "2025-12-02 06:29:57.244481",
+    "report_generated": false
+  },
+  {
+    "question": "The handleForwardData() function (lines 177-260) is called via BaseForwardee.forwarded_2374103877() which only checks msg.sender == ACCOUNTANT. Could a malicious contract become the accountant or exploit a vulnerability in FlashAccountant to call handleForwardData() with arbitrary data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_158971bb-6de1-4e14-932e-f74a7fbdbfcb",
+    "timestamp": "2025-12-02 06:30:12.510303",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 179), the data is abi.decoded as (PoolKey, SwapParameters). If the data is malformed or contains unexpected values, could the decode succeed but result in corrupted memory that affects subsequent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b46585e8-3e18-468a-91d6-374c4b8b78f5",
+    "timestamp": "2025-12-02 06:30:28.603197",
+    "report_generated": false
+  },
+  {
+    "question": "The beforeSwap() hook (lines 84-86) always reverts with SwapMustHappenThroughForward. If there's a path in Core that calls beforeSwap() but then continues execution ignoring the revert (e.g., try-catch), could this allow direct swaps bypassing MEV fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_99827a4d-202d-43c5-b77c-2eb905984edb",
+    "timestamp": "2025-12-02 06:30:46.483103",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 209), CORE.swap() is called with 0 as the first parameter (id). If Core uses this id for tracking purposes and 0 has special meaning, could this cause Core to mistrack swap state or bypass checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ff9f1eb-f12e-4b16-8a7c-8202c1f27a62",
+    "timestamp": "2025-12-02 06:31:06.495428",
+    "report_generated": false
+  },
+  {
+    "question": "The handleForwardData() function modifies balanceUpdate after receiving it from CORE.swap() (lines 227, 235, 243, 249). If Core expects the balance update to match internal accounting exactly, could this modified value cause delta mismatches when the forward callback returns?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a0ca6a26-8e55-4552-b88f-46c67e66507c",
+    "timestamp": "2025-12-02 06:31:28.301802",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 191-207), if loadCoreState() is called and another transaction concurrently updates Core's state, could the loaded values be inconsistent with the state at the time of the swap on line 209?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_53f544c3-5d91-4f48-87ed-34572d553ed4",
+    "timestamp": "2025-12-02 06:31:51.568468",
+    "report_generated": false
+  },
+  {
+    "question": "The forwarded_2374103877() function in BaseForwardee (line 31) extracts data starting from byte 36. If calldata is maliciously crafted with incorrect length encoding, could this extraction read beyond calldata bounds or into arbitrary memory?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae98d4da-83f3-4a55-8185-6330185ac1a0",
+    "timestamp": "2025-12-02 06:32:14.888481",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 258), the result is abi.encoded and returned. If the encoding length exceeds the maximum return data size, could this cause the transaction to revert after fees have been collected but before deltas are settled?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0b080837-76a2-4155-869c-180360b9d67d",
+    "timestamp": "2025-12-02 06:32:40.607048",
+    "report_generated": false
+  },
+  {
+    "question": "The onlyCore modifier on beforeSwap() (line 84) prevents direct calls, but handleForwardData() is called via the forward mechanism. Could an attacker exploit differences in msg.sender, tx.origin, or caller() between these two paths to bypass access control?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb48640c-7112-4bda-b0e5-33d2f0f13446",
+    "timestamp": "2025-12-02 06:33:07.667968",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 177-260), no reentrancy guard is explicitly present. If CORE.swap() or any other called function allows reentrancy back into MEVCapture, could an attacker recursively enter handleForwardData() to corrupt state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_800d3456-6530-4f89-a0f6-66997f3610d5",
+    "timestamp": "2025-12-02 06:33:34.608998",
+    "report_generated": false
+  },
+  {
+    "question": "The BaseForwardee.forwarded_2374103877() function (line 31) uses assembly to return raw results. If handleForwardData() reverts with custom error data, could the assembly block mishandle the revert data size, causing truncation or corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c902d16-24eb-45e9-b19b-e3f377a92f40",
+    "timestamp": "2025-12-02 06:34:03.943612",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 209), the swap is executed with modified params but original poolKey. If params contains a skip_ahead value that points to an invalid tick after fee adjustments, could this cause the swap to revert unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_891f1a01-1574-42cd-aba4-f63cfb20b49c",
+    "timestamp": "2025-12-02 06:34:34.432114",
+    "report_generated": false
+  },
+  {
+    "question": "The forward mechanism passes an original Locker parameter. If this locker value is used by Core to track the caller for delta accounting, could MEVCapture's intervention break Core's assumption about who holds the lock?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c1b6e79d-f3fc-40c9-9f39-8a93d7f39ffd",
+    "timestamp": "2025-12-02 06:35:04.472920",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 254-256), updateSavedBalances() is called after creating the final balanceUpdate. If this call reverts but the balance update has already been modified, could the caller receive incorrect delta information?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_644b3c70-b13e-4b5d-bf63-b925d962fdea",
+    "timestamp": "2025-12-02 06:35:35.538642",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly in BaseForwardee (lines 38-41) uses 'return(add(result, 32), mload(result))' to return data. If the result length in mload(result) is manipulated, could this return more or less data than intended, potentially leaking memory or causing decode errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72aa28df-8d13-4b2d-83e6-786bc5ba4351",
+    "timestamp": "2025-12-02 06:36:07.162422",
+    "report_generated": false
+  },
+  {
+    "question": "In beforeInitializePool() (lines 64-81), if poolKey.config.isStableswap() is true, the function reverts. But if a pool is initialized successfully through Core before the extension is registered, could the pool operate without MEV capture, creating inconsistency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65ab313f-d5b0-4981-be88-d9abb72dcbd6",
+    "timestamp": "2025-12-02 06:36:38.872216",
+    "report_generated": false
+  },
+  {
+    "question": "The beforeInitializePool() function (lines 69-75) checks if config.fee() == 0 and reverts. Could an attacker initialize a pool with a non-zero fee, then use Core's fee update mechanism (if it exists) to change it to zero, breaking MEV capture?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ab3f092-909d-4833-904f-e20dc4e50835",
+    "timestamp": "2025-12-02 06:37:12.238032",
+    "report_generated": false
+  },
+  {
+    "question": "In beforeInitializePool() (line 79), setPoolState() is called with block.timestamp cast to uint32. If this initialization happens exactly at a uint32 boundary, could the cast result in zero or wrap around, causing immediate time-based vulnerabilities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9bb067c2-0a3f-475e-a38a-5c9a4020e260",
+    "timestamp": "2025-12-02 06:37:43.003308",
+    "report_generated": false
+  },
+  {
+    "question": "The getCallPoints() function (lines 24-39) returns a static CallPoints configuration. If Core's extension system allows hot-swapping call points or if multiple versions of MEVCapture are deployed, could mismatched call points cause pools to become stuck?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1b29f64c-dd6c-4f3c-9e73-f0cbe62812b3",
+    "timestamp": "2025-12-02 06:38:15.988942",
+    "report_generated": false
+  },
+  {
+    "question": "In beforeUpdatePosition() (lines 97-102), accumulatePoolFees() is called before every liquidity update. Could an attacker make many small liquidity updates to grief LPs by forcing excessive gas costs for fee accumulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a146cb50-5018-44c3-9296-385fde6e9496",
+    "timestamp": "2025-12-02 06:38:47.207395",
+    "report_generated": false
+  },
+  {
+    "question": "The beforeCollectFees() hook (lines 89-94) calls accumulatePoolFees(). If a user attempts to collect fees immediately after pool initialization, could the lack of prior swap activity cause unexpected behavior or reverts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef6f1d4c-2d58-4fa2-8755-f1b01759e659",
+    "timestamp": "2025-12-02 06:39:18.922446",
+    "report_generated": false
   }
 ]
