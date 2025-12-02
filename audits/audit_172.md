@@ -1,0 +1,1 @@
+I'll conduct a thorough investigation of whether `updateDebt()` called during `withdraw()` reentrancy can corrupt the non-zero debt count.

@@ -1,0 +1,1 @@
+After thorough investigation of the flash accounting system, I need to trace through the `nonzeroDebtCount` mechanism and its synchronization with individual token debts.
