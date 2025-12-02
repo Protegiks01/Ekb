@@ -10348,5 +10348,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75ecc243-2b54-4398-ae68-43a12a3e63ba",
     "timestamp": "2025-12-02 05:24:38.817145",
     "report_generated": false
+  },
+  {
+    "question": "In DropState.getRemaining() (lines 51-54), the unchecked subtraction `funded - claimed` could underflow if claimed > funded due to storage corruption or reentrancy in the Incentives contract. Would IncentivesDataFetcher.isAvailable() then return true with a massively large remaining amount, allowing claims that should be rejected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1978d8f8-39b0-46f0-b75f-4b29f5eda305",
+    "timestamp": "2025-12-02 05:25:48.089652",
+    "report_generated": false
+  },
+  {
+    "question": "Bitmap.geSetBit() (lines 68-72) masks the bitmap with `not(sub(shl(index, 1), 1))`. For index = 255, this should create a mask with only the MSB clear. If the bitmap operations have off-by-one errors in bit position, could IncentivesDataFetcher.getClaimedBitmap() return bitmaps with incorrect bit interpretations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c112423b-ccdb-453d-b5a9-480cfa0350ab",
+    "timestamp": "2025-12-02 05:26:01.758093",
+    "report_generated": false
+  },
+  {
+    "question": "Bitmap.leSetBit() (lines 51-57) uses the `clz` opcode to find set bits. The protocol uses experimental Solidity 0.8.31 with this opcode. If the `clz` implementation has subtle bugs for edge cases (e.g., input is 0, or all bits set), could IncentivesDataFetcher functions that indirectly use bitmaps return corrupted claim status?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa0506fd-772d-488b-9f5b-5377b1280e65",
+    "timestamp": "2025-12-02 05:26:15.314286",
+    "report_generated": false
+  },
+  {
+    "question": "In Bitmap.isSet() (lines 36-40), the bit is checked by `and(shr(index, bitmap), 1)`. If the index parameter passed to IncentivesDataFetcher.isClaimed() is manipulated to be greater than 255 (after the uint8 cast), could the shift exceed 256 bits, resulting in an incorrect zero value and falsely reporting a claim as not made?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b766f7f-d406-4ef9-b726-9bd14c7c991a",
+    "timestamp": "2025-12-02 05:26:29.762063",
+    "report_generated": false
+  },
+  {
+    "question": "The bit position in IncentivesLib.claimIndexToStorageIndex() is calculated as `uint8(index % 256)`. If index is a multiple of 256, the bit is 0. Could an attacker claim index 0 and index 256 would both set bit 0 in different words, but if word calculation overflows, they might collide in the same slot, causing IncentivesDataFetcher.isClaimed() to return true for both when only one was claimed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6158d616-943b-4d57-9864-4d0d4cc45b16",
+    "timestamp": "2025-12-02 05:26:44.984954",
+    "report_generated": false
+  },
+  {
+    "question": "In IncentivesLib.claimIndexToStorageIndex() (line 22), the word is calculated as `index >> 8`. For extremely large index values (e.g., near type(uint256).max), could this right shift produce a word value that, when added to dropId in getClaimedBitmap(), causes storage slot overflow and accesses an unrelated storage region?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b9b41781-5040-4ee2-b94c-2f6f63a8d5cf",
+    "timestamp": "2025-12-02 05:27:02.706722",
+    "report_generated": false
+  },
+  {
+    "question": "ClaimKey.toClaimId() (lines 19-23) similarly assumes no dirty upper bits for the account address. If IncentivesDataFetcher.getClaimInfo() or getClaimInfos() receives a ClaimKey with dirty bits, would the merkle leaf hash mismatch cause the Incentives contract to reject valid claims when users try to claim based on data from this fetcher?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d5d152f-1874-484c-9138-f9f0cf974b09",
+    "timestamp": "2025-12-02 05:27:20.274153",
+    "report_generated": false
+  },
+  {
+    "question": "In DropKey.toDropId() (lines 21-25), the assembly block assumes owner and token addresses have no dirty upper bits when computing keccak256. If IncentivesDataFetcher receives a DropKey with a dirty upper-bit address (e.g., from an external call passing uint256 cast to address), would the hash be incorrect, causing all IncentivesDataFetcher functions to read wrong storage slots and return invalid data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a4aa7005-16f8-4785-90ca-6fb54e11405e",
+    "timestamp": "2025-12-02 05:27:40.345387",
+    "report_generated": false
+  },
+  {
+    "question": "The storage layout assumes bitmaps start at `dropId + 1`. In IncentivesLib.getClaimedBitmap() (line 50), if two different DropKeys hash to dropIds that differ by exactly `(1 + word)` for some word value, could their bitmap storage slots collide, causing IncentivesDataFetcher to report incorrect claim status across different drops?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2c9e73a-24d6-485d-8911-d3f56e2e46b0",
+    "timestamp": "2025-12-02 05:28:01.780064",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesLib.getClaimedBitmap() adds `1 + word` to dropId for bitmap storage slot calculation. If a malicious user provides an extremely large `word` parameter to IncentivesDataFetcher.getClaimedBitmap() or getClaimedBitmaps(), could this overflow in the unchecked addition and point to a different drop's storage, causing cross-drop claim status confusion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_edb6c3b4-3b44-4987-aa62-465804c0dc98",
+    "timestamp": "2025-12-02 05:28:24.323509",
+    "report_generated": false
+  },
+  {
+    "question": "In IncentivesLib.getClaimedBitmap() (lines 41-53), the storage slot is calculated as `bytes32(uint256(dropId) + 1 + word)` in an unchecked block. Could an attacker craft a DropKey such that dropId is near type(uint256).max, causing the addition to overflow and wrap around to access an incorrect storage slot, leading to false claim status being returned by IncentivesDataFetcher.isClaimed()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab865163-32ec-4b46-aa27-670c2f7b71ff",
+    "timestamp": "2025-12-02 05:28:50.284302",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks, state is written via assembly sstore at line 129 but read via RevenueBuybacksLib at other points. Could this dual approach cause compiler optimizations to cache stale values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd3e6c24-f51f-450b-ac4f-08d397ac2de9",
+    "timestamp": "2025-12-02 05:29:17.272132",
+    "report_generated": false
+  },
+  {
+    "question": "The RevenueBuybacksLib.state() function is view-only but depends on storage layout assumptions. Could changes to BuybacksState packing order in buybacksState.sol break RevenueBuybacksLib without compiler errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a4630e4-1d03-49f9-bba9-9fc1bd926289",
+    "timestamp": "2025-12-02 05:29:46.222994",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.configure() at lines 160-167, the function preserves lastEndTime, lastOrderDuration, and lastFee from old state. Could race conditions between configure() and roll() cause these preserved values to become stale and corrupt new orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7846613c-9be0-42b7-a532-be57d532f942",
+    "timestamp": "2025-12-02 05:30:16.535417",
+    "report_generated": false
+  },
+  {
+    "question": "The BuybacksState.parse() function at lines 57-76 returns all six fields, but individual getters (targetOrderDuration, minOrderDuration, etc.) are used separately. Could inconsistent assembly implementations between parse() and individual getters cause state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d05000c4-0b16-46f5-9da6-9f227ab0f2c1",
+    "timestamp": "2025-12-02 05:30:47.457220",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.configure() at line 147, the owner can change fee tiers at any time. Could this be exploited to redirect orders to manipulated pools where the attacker controls liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_44c24473-287c-40a8-8651-3a2f1cacfe26",
+    "timestamp": "2025-12-02 05:31:19.473083",
+    "report_generated": false
+  },
+  {
+    "question": "The RevenueBuybacks.collect() function at line 77 sends proceeds to owner(). Could ownership transfer during order execution redirect buyback proceeds to an attacker?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_277a1ec4-0961-496b-8650-90d0ec64c157",
+    "timestamp": "2025-12-02 05:31:51.820608",
+    "report_generated": false
+  },
+  {
+    "question": "In PositionsOwner.withdrawAndRoll() at lines 61-66, leaving 1 wei in Positions saves gas. Could this gas optimization accumulate to significant locked value over time if tokens have high precision (e.g., USDC with 6 decimals)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3cc43f2-e592-4a88-b0ec-52ef1a1a8ef3",
+    "timestamp": "2025-12-02 05:32:23.156884",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function creates orders with no slippage protection (maxSaleRate = type(uint112).max at line 135). Could a malicious LP remove all liquidity from the buyback pool right before roll(), causing the order to execute at extremely poor prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e65158c-d4d3-469f-bd92-8633fc584632",
+    "timestamp": "2025-12-02 05:32:57.307908",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.roll() at line 103, amountToSpend is set to the full contract balance. Could an attacker donate tokens to the contract to manipulate order size and impact the price execution of buyback orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65f0a19f-4db1-4eea-91ae-7d178edda468",
+    "timestamp": "2025-12-02 05:33:30.687437",
+    "report_generated": false
+  },
+  {
+    "question": "RevenueBuybacks inherits from Multicallable. Could an attacker use multicall to batch multiple roll() calls for the same token, exploiting state inconsistencies between balance reads and order creation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb6a3064-3bfa-4fe3-92c2-6427db566d41",
+    "timestamp": "2025-12-02 05:34:04.043008",
+    "report_generated": false
+  },
+  {
+    "question": "The approveMax() function at line 50 in RevenueBuybacks uses safeApproveWithRetry which can be called by anyone. Could an attacker exploit this by calling approveMax() during a reentrancy window to front-run legitimate roll() calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8b8ac49-665d-401c-8bb9-9d3900401dde",
+    "timestamp": "2025-12-02 05:34:38.172771",
+    "report_generated": false
+  },
+  {
+    "question": "In PositionsOwner.withdrawAndRoll() at line 70, POSITIONS.withdrawProtocolFees is called before BUYBACKS.roll(). Could reentrancy via the recipient (BUYBACKS) allow manipulation of state between withdrawal and roll, causing fee miscalculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b3b206f4-1512-4533-a0b1-3ef116c013a6",
+    "timestamp": "2025-12-02 05:35:11.071273",
+    "report_generated": false
+  },
+  {
+    "question": "The RevenueBuybacks.roll() function at line 134 calls ORDERS.increaseSellAmount which can trigger TWAMM execution callbacks. Could reentrancy during this call allow an attacker to call roll() again with the same token, double-spending the amountToSpend balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64bdd750-1988-4923-8064-554738fd30a6",
+    "timestamp": "2025-12-02 05:35:42.202256",
+    "report_generated": false
+  },
+  {
+    "question": "In BuybacksState, lastEndTime is stored as uint32, limiting timestamps to ~2106. Could the protocol break after this date when lastEndTime wraps around, causing all timeRemaining calculations to underflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_069b8768-81a1-40d4-ae0a-42cc63260584",
+    "timestamp": "2025-12-02 05:36:14.337106",
+    "report_generated": false
   }
 ]
