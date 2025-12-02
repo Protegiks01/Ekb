@@ -10048,5 +10048,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef4ac0a7-0d23-4ec3-af97-ff5bc9e6e090",
     "timestamp": "2025-12-02 05:02:37.688595",
     "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.areClaimsAvailable() (line 185) iterates with `uint256 i`. If indices.length is 2^256-1, would incrementing `i` wrap to 0 and cause an infinite loop? While this is unrealistic due to gas limits, could it indicate a lack of proper bounds checking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17cdcf51-027a-4dde-9d00-9a8a0e3896be",
+    "timestamp": "2025-12-02 05:03:59.357481",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getDropInfos() (line 89) uses `uint256 i` as a loop counter. While `i < keys.length` prevents overflow in the loop condition, if keys.length is type(uint256).max, would the loop ever terminate? Could an attacker exploit this to create an infinite loop in a view function?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_be054364-e64f-4137-a0fd-b1c66c60edf4",
+    "timestamp": "2025-12-02 05:04:12.915110",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesLib calculates bitmap slots as `dropId + 1 + word`. If the Incentives contract uses a different storage layout convention (e.g., using keccak256 of dropId for the base slot), would IncentivesDataFetcher access completely wrong storage and return garbage data for all claim status queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64c7659f-e499-41c5-87dc-3520d3691220",
+    "timestamp": "2025-12-02 05:04:26.511416",
+    "report_generated": false
+  },
+  {
+    "question": "If the Incentives contract has additional storage variables at slots 0, 1, 2, etc., and a dropId happens to hash to one of these slots, could IncentivesDataFetcher.getDropInfo() read the wrong storage (e.g., a different contract variable instead of drop state)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cdfea512-72a5-4111-a34b-b0a8c29953a5",
+    "timestamp": "2025-12-02 05:04:41.560539",
+    "report_generated": false
+  },
+  {
+    "question": "Bitmap.toggle() (lines 24-27) flips a bit. While IncentivesDataFetcher doesn't call toggle (it's in Incentives.claim()), if a user checks claim status via isClaimed() immediately before and after a claim, would the bit flip be correctly reflected? Could there be timing issues in storage access that show stale bitmap data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e82f97ce-9896-4c30-8e41-7bfabff5d6cf",
+    "timestamp": "2025-12-02 05:04:56.844294",
+    "report_generated": false
+  },
+  {
+    "question": "Each bitmap word covers 256 indices (0-255, 256-511, etc.). If IncentivesDataFetcher.isClaimed() is called with index 255, it accesses word 0 bit 255. If called with index 256, it accesses word 1 bit 0. Is there any off-by-one error in the word/bit calculation that could cause indices at word boundaries to be checked in the wrong word?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fed10e27-086a-4579-be19-ff331821ba42",
+    "timestamp": "2025-12-02 05:05:14.239184",
+    "report_generated": false
+  },
+  {
+    "question": "If the Incentives contract's IExposedStorage.sload() implementation has a bug where it modifies state, would IncentivesDataFetcher's view functions still be marked as view but actually change state? Could this violate caller expectations and break integration assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c8f78eda-b791-4a50-929b-f0a54fb1b865",
+    "timestamp": "2025-12-02 05:05:31.820827",
+    "report_generated": false
+  },
+  {
+    "question": "While all IncentivesDataFetcher functions are view, if the Incentives contract's sload function (accessed via ExposedStorageLib) somehow allows state changes (violating view semantics), could an attacker use IncentivesDataFetcher queries to modify storage indirectly, corrupting drop state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_60dd1f92-cbc4-4636-8dbb-40c9f79cc1bf",
+    "timestamp": "2025-12-02 05:05:51.265906",
+    "report_generated": false
+  },
+  {
+    "question": "If INCENTIVES.sload() in ExposedStorageLib reverts for a specific storage slot (e.g., due to a bug in the Incentives contract), would the entire IncentivesDataFetcher call revert? Could this be abused to make certain drops un-queryable, effectively hiding them from visibility even though the funds are still present?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5841707d-f88e-48a4-b747-4b0e5b862641",
+    "timestamp": "2025-12-02 05:06:13.221265",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher has a single error definition ArrayLengthMismatch (line 17) used only in areClaimsAvailable(). If other functions encounter errors (e.g., staticcall failure in ExposedStorageLib), they revert without custom errors. Could the lack of descriptive errors make it difficult for users to diagnose issues when queries fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94290ba9-fb01-43d6-8284-7207e7dbfbdd",
+    "timestamp": "2025-12-02 05:06:35.883709",
+    "report_generated": false
+  },
+  {
+    "question": "ClaimInfo struct (lines 65-72) has a ClaimKey (3 fields) plus 2 bools. When IncentivesDataFetcher.getClaimInfos() creates an array of ClaimInfo, are the bools packed efficiently? Could memory layout differences between Solidity versions cause the returned data to be misinterpreted by calling contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b39eb216-1966-40ba-ba55-f07ac2d17da0",
+    "timestamp": "2025-12-02 05:07:01.255718",
+    "report_generated": false
+  },
+  {
+    "question": "DropInfo struct (lines 53-62) contains DropKey, funded, claimed, and remaining. The DropKey itself has 3 fields. If the struct isn't tightly packed in memory, could there be gas inefficiencies or memory overlap issues when IncentivesDataFetcher.getDropInfos() allocates an array of DropInfo structs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab82b071-42c0-4caf-9659-9dd1287aef8f",
+    "timestamp": "2025-12-02 05:07:28.046649",
+    "report_generated": false
+  },
+  {
+    "question": "If IncentivesDataFetcher functions are called in a multicall where the Incentives contract's state is modified between calls (e.g., a claim happens mid-multicall), would the view functions return inconsistent data across the batch, potentially misleading users about the true state of claims?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a1893333-a4cb-4681-801e-b3a6e38d58e6",
+    "timestamp": "2025-12-02 05:07:55.575902",
+    "report_generated": false
+  },
+  {
+    "question": "While IncentivesDataFetcher itself doesn't inherit Multicallable, if it's called via a multicall from another contract, and multiple getDropInfo() calls are batched, could the repeated sload calls to the same drop state cause any caching issues or unexpected behavior in the EVM's storage access?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3832a291-7df7-4ae0-bcbb-8b61c9bb5306",
+    "timestamp": "2025-12-02 05:08:24.785438",
+    "report_generated": false
+  },
+  {
+    "question": "If indices[i] in IncentivesDataFetcher.areIndicesClaimed() is type(uint256).max, would claimIndexToStorageIndex() compute word as (2^256-1) >> 8 and bit as 255? Could the resulting storage slot calculation `dropId + 1 + word` overflow and wrap to slot 0 or near it, accessing wrong storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4aeba89-9d5e-498f-87a5-6ad4085335d4",
+    "timestamp": "2025-12-02 05:08:54.647586",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.areClaimsAvailable() (line 186) checks `INCENTIVES.isAvailable(key, indices[i], amounts[i])`. If amounts[i] is type(uint128).max, would the comparison in IncentivesLib.isAvailable() (line 80: `state.getRemaining() >= amount`) handle the max value correctly, or could an edge case cause a false positive?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2615f15a-4982-4416-baff-27808bf6841c",
+    "timestamp": "2025-12-02 05:09:24.646525",
+    "report_generated": false
+  },
+  {
+    "question": "If a drop is funded with type(uint128).max tokens and some are claimed, would DropState.getRemaining() in the unchecked block correctly compute the difference? If claimed is also near type(uint128).max, could there be subtle overflow issues in the subtraction that cause IncentivesDataFetcher.isAvailable() to return incorrect availability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f8375e0-7e06-4325-88b4-99930f000726",
+    "timestamp": "2025-12-02 05:09:52.233362",
+    "report_generated": false
+  },
+  {
+    "question": "DropState is a bytes32 wrapper. When IncentivesLib.getDropState() wraps the sload result, could there be issues if the Incentives contract stores state in a different format (e.g., a struct instead of packed bytes32)? Would IncentivesDataFetcher then decode garbage and return incorrect funded/claimed amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd42da32-1a5a-4863-8813-30fde037db7c",
+    "timestamp": "2025-12-02 05:10:19.633519",
+    "report_generated": false
+  },
+  {
+    "question": "Bitmap is a user-defined type wrapping uint256. If IncentivesDataFetcher.getClaimedBitmap() returns Bitmap but the calling contract expects uint256, would the Solidity type system prevent implicit conversion, causing integration failures and forcing external contracts to manually unwrap, increasing attack surface?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2e76ccc7-28d4-451d-9d54-51bebbc53202",
+    "timestamp": "2025-12-02 05:10:47.754214",
+    "report_generated": false
+  },
+  {
+    "question": "In ClaimKey.toClaimId(), if the amount field is a uint128, why does the keccak256 hash 96 bytes instead of 80? Are there padding issues where the upper bits of amount are assumed to be zero? Could dirty upper bits in amount cause the hash to mismatch the expected merkle leaf, breaking claim validation when users rely on IncentivesDataFetcher data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3ba471b-7ef0-4739-bf97-411d6c836721",
+    "timestamp": "2025-12-02 05:11:17.292801",
+    "report_generated": false
+  },
+  {
+    "question": "ClaimKey.toClaimId() (lines 19-23) hashes 96 bytes covering (index, account, amount). If a malicious actor creates two ClaimKeys with identical accounts and amounts but different indices, the merkle leaves would differ. Could IncentivesDataFetcher.getClaimInfo() be used to check if an invalid proof would pass, allowing attackers to pre-compute collision attempts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13768cc1-d3ef-45c8-b1be-ff3ebe851913",
+    "timestamp": "2025-12-02 05:11:47.689920",
+    "report_generated": false
+  },
+  {
+    "question": "In DropKey.toDropId(), the memory-safe assembly assumes the DropKey struct is laid out as (owner, token, root) in memory. If the Solidity compiler changes struct layout in a future version, could the hash be computed over incorrect data, causing IncentivesDataFetcher to access wrong storage slots for all drop queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_edf13289-f5df-46a2-bda4-3c589fa17e37",
+    "timestamp": "2025-12-02 05:12:19.688058",
+    "report_generated": false
+  },
+  {
+    "question": "DropKey.toDropId() (lines 21-25) uses keccak256 over 96 bytes (owner, token, root). While keccak256 collisions are computationally infeasible, if two drops have identical owners and tokens but different roots, their dropIds would differ. Could an attacker intentionally create roots that produce dropIds near each other to increase likelihood of storage slot proximity and potential interference?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_27df5a13-bc70-4230-a61c-62bff6d53e64",
+    "timestamp": "2025-12-02 05:12:50.820110",
+    "report_generated": false
+  },
+  {
+    "question": "If the Incentives contract allows drops with sequential dropIds (e.g., dropId and dropId+1), and both drops use bitmap word 0, would their bitmap storage collide since both would be stored at `dropId + 1`? Could IncentivesDataFetcher then report that indices are claimed in one drop when they were actually claimed in the other?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3172d1c8-55c4-463d-8f5c-882bc7e8b904",
+    "timestamp": "2025-12-02 05:13:21.235127",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesLib.getClaimedBitmap() calculates slot as `dropId + 1 + word`. If a malicious user creates a DropKey with a crafted root value such that `toDropId()` produces a dropId equal to `anotherDropId + 1 + word`, could their bitmap storage overwrite or interfere with another drop's data, causing IncentivesDataFetcher to report false claim statuses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6596d462-b3d6-4a0f-8cdb-2dedab174f01",
+    "timestamp": "2025-12-02 05:13:52.710964",
+    "report_generated": false
   }
 ]
