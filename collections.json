@@ -11098,5 +11098,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a7070595-bb32-4491-b79f-1ab37cec1c76",
     "timestamp": "2025-12-02 06:05:01.963532",
     "report_generated": false
+  },
+  {
+    "question": "The locked_6416899205() callback (lines 127-155) is marked external and onlyCore. However, if Core's lock mechanism has a vulnerability allowing arbitrary callback selection, could an attacker call this with manipulated poolKey/poolId to steal fees from other pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd947e09-e3ed-4e1d-bff7-c119071e1a99",
+    "timestamp": "2025-12-02 06:06:15.988025",
+    "report_generated": false
+  },
+  {
+    "question": "In loadCoreState() (lines 168-174), the assembly subtracts 1 from fees0 and fees1 using 'sub(fees0, gt(fees0, 0))'. This appears to decrement non-zero values by 1. Could this off-by-one adjustment cause cumulative fee loss over many transactions, especially with small fee amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_50d0787c-ded8-4c7d-bf42-3b7f3b64b0ed",
+    "timestamp": "2025-12-02 06:06:29.206938",
+    "report_generated": false
+  },
+  {
+    "question": "The accumulatePoolFees() function (lines 110-124) uses raw assembly mcopy to construct a call to Core.lock(). If mcopy has any edge cases with overlapping memory regions or incorrect length calculations, could this corrupt the call data and cause incorrect fee accumulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0dc2a156-fc72-40c7-8a6a-4287b949776c",
+    "timestamp": "2025-12-02 06:06:43.529848",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205() (lines 138-149), if both fees0 and fees1 are zero, the function skips calling accumulateAsFees but still updates lastUpdateTime. Could an attacker exploit this by forcing zero-fee states to desynchronize the extension's time tracking from actual pool activity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab5f6fb2-fdec-476b-acf7-120418c9fa23",
+    "timestamp": "2025-12-02 06:06:57.535184",
+    "report_generated": false
+  },
+  {
+    "question": "The loadCoreState() function (lines 157-175) reads Core storage using CORE.sload(). If Core's storage layout changes or if CoreStorageLayout.savedBalancesSlot() has a collision with other data, could this return incorrect fee values leading to fund theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa1d6193-62d4-44d0-a4fc-f92d0eab2ee0",
+    "timestamp": "2025-12-02 06:07:12.381611",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 191-200), when lastUpdateTime != currentTime, the code loads fees and calls accumulateAsFees. If loadCoreState() returns stale cached values due to Core's storage implementation, could accumulated fees be double-counted or lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31fa8d01-2709-4417-a91a-41b9a665d07e",
+    "timestamp": "2025-12-02 06:07:28.298691",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly in accumulatePoolFees() (lines 112-123) constructs a manual call to Core.lock() with function selector 0xf83d08ba. If this selector collides with another Core function due to mining or upgrade, could the call execute unintended logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c83b859b-ab71-4c2c-95cb-e1e005d8fdc5",
+    "timestamp": "2025-12-02 06:07:46.515643",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205() (lines 140-148), the unchecked block negates delta values when calling updateSavedBalances. If fees0 or fees1 equal type(uint128).max, could the negation overflow int256 and corrupt saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a544af57-f98c-47b7-bf43-3cac1a40e11c",
+    "timestamp": "2025-12-02 06:08:06.188549",
+    "report_generated": false
+  },
+  {
+    "question": "The beforeCollectFees() hook (lines 89-94) calls accumulatePoolFees() before users collect fees. Could a malicious user frontrun legitimate fee collections by calling this hook directly, forcing fee accumulation to occur at an unfavorable tick for other LPs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_49a4be8e-1ae3-435c-864b-51a8dbe5c473",
+    "timestamp": "2025-12-02 06:08:26.857846",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 211-215), the feeMultiplierX64 calculation uses FixedPointMathLib.abs(stateAfter.tick() - tickLast). If the swap crosses zero tick, could integer overflow in the subtraction before abs() is applied cause incorrect fee multiplier calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d2950344-fbd7-47de-9e7d-fa2c7060d1c2",
+    "timestamp": "2025-12-02 06:08:49.227615",
+    "report_generated": false
+  },
+  {
+    "question": "The fee multiplier formula (line 213) divides by poolKey.config.concentratedTickSpacing(). If this tick spacing is 1, and a swap moves many ticks, could feeMultiplierX64 overflow uint256 before being capped at type(uint64).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e0af8b2-b7d1-4786-ad2e-e4893ca2602f",
+    "timestamp": "2025-12-02 06:09:12.888287",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 215), additionalFee is capped at type(uint64).max. If an attacker intentionally triggers maximum tick movement to reach this cap, could they cause all subsequent swaps in the block to pay excessive fees, creating a griefing vector?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b9522a03-ca94-4999-aea2-037d90b972fe",
+    "timestamp": "2025-12-02 06:09:37.905106",
+    "report_generated": false
+  },
+  {
+    "question": "The tick distance calculation (line 213) uses stateAfter.tick() from the swap result and tickLast from cached state. If Core's swap function doesn't update the tick atomically with other state changes, could this create a race condition where tickLast is stale?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8600253a-605e-4efd-9238-f3fc3cdbac25",
+    "timestamp": "2025-12-02 06:10:04.152142",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 202-206), tickLast is updated from loadCoreState() when lastUpdateTime != currentTime. If the Core tick has moved significantly since the last swap, could the first swap in a new block have an unfairly high fee multiplier based on passive price drift?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4cf5d4f6-fdef-43a9-be2c-eaaf80a0a37c",
+    "timestamp": "2025-12-02 06:10:31.602025",
+    "report_generated": false
+  },
+  {
+    "question": "The additionalFee calculation (line 215) multiplies feeMultiplierX64 by poolFee then shifts right by 64. Could precision loss from this fixed-point division be exploited by making many small swaps instead of one large swap to pay less total fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_858691ed-f472-409c-8450-0c420f2ce182",
+    "timestamp": "2025-12-02 06:11:00.317035",
+    "report_generated": false
+  },
+  {
+    "question": "In beforeInitializePool() (lines 77-80), the extension stores the initial tick. If an attacker initializes a pool at an extreme tick (near MIN_TICK or MAX_TICK), could subsequent swaps cause overflow in the tick distance calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_86c11c68-0374-43a4-a577-75d38b31d0e5",
+    "timestamp": "2025-12-02 06:11:29.610781",
+    "report_generated": false
+  },
+  {
+    "question": "The fee multiplier is proportional to tick crossings (line 213), but tick spacing varies by pool. Could an attacker exploit pools with different tick spacings by routing trades through pools with larger spacing to pay fewer MEV fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b7d6ffec-1817-43f3-b0a7-91c24cdbfa90",
+    "timestamp": "2025-12-02 06:12:00.374917",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 213), the division by concentratedTickSpacing() happens after the left shift by 64. Could this ordering cause different rounding behavior than dividing first, potentially losing precision that accumulates to significant fee discrepancies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_598d5e64-1408-404d-b5e4-fa391cfa4c2c",
+    "timestamp": "2025-12-02 06:12:32.057053",
+    "report_generated": false
+  },
+  {
+    "question": "The code checks if additionalFee != 0 (line 217) before applying fees. If the fee multiplier calculation results in additionalFee == 0 due to rounding, could an attacker make many zero-fee swaps by keeping tick movement below the threshold?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_61df344d-4ec8-458d-9c3a-502f57f3eccb",
+    "timestamp": "2025-12-02 06:13:04.014597",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 211-215), if stateAfter.tick() equals tickLast (no tick movement), feeMultiplierX64 becomes zero. Could an attacker exploit this by making swaps within a single tick to avoid MEV fees entirely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ded3d016-0c7b-4b8c-b0df-ebb5d3c16132",
+    "timestamp": "2025-12-02 06:13:36.532750",
+    "report_generated": false
+  },
+  {
+    "question": "The tickLast update (lines 202-206) only happens when entering a new block. If multiple swaps occur in the same block, all subsequent swaps after the first use the updated tickLast. Could the first swapper pay unfairly high fees while later swappers pay less?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9874e58c-c98b-45a7-ba9f-55c974c86d21",
+    "timestamp": "2025-12-02 06:14:09.942878",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 213), the conversion from tick distance to fee multiplier assumes linear proportionality. Could this create perverse incentives where crossing many small ticks is cheaper than crossing one large tick of equal value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cab9557d-cc08-4e25-b45c-4f867255b740",
+    "timestamp": "2025-12-02 06:14:41.222572",
+    "report_generated": false
+  },
+  {
+    "question": "The abs() function used for tick distance (line 213) treats positive and negative movements equally. Could this be exploited by sandwiching: an attacker swaps in one direction, another user swaps, then the attacker swaps back, with all parties paying MEV fees on total tick distance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_08eb57aa-b177-4fca-90df-52be9643a9a3",
+    "timestamp": "2025-12-02 06:15:13.290356",
+    "report_generated": false
+  },
+  {
+    "question": "In beforeInitializePool() (line 79), the initial tickLast is set to the pool's initialization tick. If this initialization occurs at an unnatural price (market manipulation), could all subsequent swaps be charged incorrect MEV fees relative to fair value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ab01c91-8f9a-4aeb-a0f0-dd6547a006f6",
+    "timestamp": "2025-12-02 06:15:45.417619",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 218-236), for exact-out swaps, the code first removes poolFee using computeFee(), then applies additionalFee using amountBeforeFee(). Could this two-step process create precision loss that allows an attacker to pay less than intended total fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_09f07e2b-d848-4282-babe-993e4183e725",
+    "timestamp": "2025-12-02 06:16:17.910354",
+    "report_generated": false
   }
 ]
