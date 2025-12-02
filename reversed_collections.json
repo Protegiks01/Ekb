@@ -6748,5 +6748,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f3cf08e-d865-4f1e-969d-1364e6e50e48",
     "timestamp": "2025-12-02 00:53:36.527465",
     "report_generated": false
+  },
+  {
+    "question": "The `ClaimKey` at `claimKey.sol:5-12` contains `index`, `account`, and `amount`. Could an attacker create multiple merkle leaves with the same `index` but different `account`/`amount`, causing proof validation to pass for one leaf while claiming with another's data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b3c73890-3d5c-4f9f-ad32-5ede4d4c1981",
+    "timestamp": "2025-12-02 00:54:58.311990",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:claim()` at line 88, it validates the merkle proof AFTER checking if the index is claimed. Could an attacker submit invalid proofs for already-claimed indices to waste gas of validators/searchers who dry-run these transactions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e012b62b-a862-4fa3-9469-e171b15c44f4",
+    "timestamp": "2025-12-02 00:55:11.606087",
+    "report_generated": false
+  },
+  {
+    "question": "In `claimIndexToStorageIndex()` at line 22, if `index` is close to type(uint256).max, does `index >> 8` correctly compute the word, or could extremely large indices cause unexpected word values that collide with other drops' storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a2522d1f-8de8-41ce-b351-4d00174e86cb",
+    "timestamp": "2025-12-02 00:55:25.679110",
+    "report_generated": false
+  },
+  {
+    "question": "In `getRemaining()` via `DropState.getRemaining()` at `dropState.sol:51-54`, the unchecked subtraction could wrap if state is corrupted. Could this wraparound be exploited in a multicall where one call corrupts state and another call uses the wrapped value to authorize an over-claim?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9a5adf2f-1aa4-4990-a1a6-016ba728befb",
+    "timestamp": "2025-12-02 00:55:39.725726",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:claim()` at line 103, it adds `dropState.claimed() + c.amount`. If this sum overflows uint128, does it wrap silently (unchecked) or revert? If it wraps, could an attacker claim massive amounts by overflowing claimed back to a small value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e64c018b-54eb-428c-8e06-b3c5321933e6",
+    "timestamp": "2025-12-02 00:55:54.791223",
+    "report_generated": false
+  },
+  {
+    "question": "In `DropState.setClaimed()` at `dropState.sol:42-46`, if `amount` is close to type(uint128).max, could the bit operations `or(and(state, ...), amount)` corrupt the funded field in the upper 128 bits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_305a4c0a-cad5-42df-bc6b-bebaa7a4de9d",
+    "timestamp": "2025-12-02 00:56:10.881851",
+    "report_generated": false
+  },
+  {
+    "question": "Could an attacker deploy a fake Incentives contract that implements `IExposedStorage.sload()` to return manipulated values, then pass this address to `IncentivesLib` functions in custom contracts to bypass claim checks in their own logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_879ae7a8-7781-481d-b6e2-fcbab6a9fa57",
+    "timestamp": "2025-12-02 00:56:28.383232",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:fund()` at line 39, it uses `SafeTransferLib.safeTransferFrom()`. If the token is a malicious contract that appears to succeed but doesn't actually transfer, would `getFunded()` still show the increased amount, allowing claims that drain other tokens in the contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5dab0fd-b62e-4810-9545-f39b4aed863b",
+    "timestamp": "2025-12-02 00:56:49.293813",
+    "report_generated": false
+  },
+  {
+    "question": "The `IncentivesDataFetcher.getDropInfo()` at lines 77-82 calls multiple storage read functions. If the Incentives contract is upgraded via a proxy pattern, could storage layout changes cause these reads to return corrupted data without the data fetcher knowing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c850b04f-2812-42c4-bdfd-7514907deaec",
+    "timestamp": "2025-12-02 00:57:10.948958",
+    "report_generated": false
+  },
+  {
+    "question": "In `IncentivesDataFetcher`, the `INCENTIVES` address is set in the constructor at line 20-25. If this contract is deployed with an incorrect or malicious Incentives address, could all view functions return fake data, misleading UIs about claim availability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b451944e-1b29-43b0-a361-b5c471f523c9",
+    "timestamp": "2025-12-02 00:57:33.798871",
+    "report_generated": false
+  },
+  {
+    "question": "In `toDropId()` at `dropKey.sol:24`, it hashes 96 bytes. What if `DropKey` has different packing on different EVM chains (e.g., due to endianness), could the same logical key hash to different IDs, breaking cross-chain drops?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_609065fd-05f9-4370-ac46-8203c934c622",
+    "timestamp": "2025-12-02 00:57:57.590756",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:claim()` at line 98, it checks `remaining < c.amount`. What if `c.amount = 0`? Could an attacker claim zero tokens repeatedly to set bitmap bits to true without receiving tokens, griefing future legitimate claimants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_56f2a761-7bb6-40f6-b520-05c85e42a8bd",
+    "timestamp": "2025-12-02 00:58:22.750706",
+    "report_generated": false
+  },
+  {
+    "question": "In `DropState.funded()` at `dropState.sol:15`, if the storage value is all 1s (type(bytes32).max), does `shr(128, state)` return type(uint128).max correctly, or could the shift operation lose data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c8f98e6-d837-41ba-a60c-1eaac111629f",
+    "timestamp": "2025-12-02 00:58:49.289955",
+    "report_generated": false
+  },
+  {
+    "question": "In `Bitmap.isSet()` at `bitmap.sol:36-40`, if `index = 255` (the highest bit), does `shr(255, bitmap)` correctly isolate bit 255, or could bitwise operations wrap around?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94dc86c0-ed9c-4d52-9f36-6ac240d59e57",
+    "timestamp": "2025-12-02 00:59:16.930682",
+    "report_generated": false
+  },
+  {
+    "question": "In `isAvailable()` at line 77, if the `index` hasn't been claimed but `amount = 0`, should it return true (available) or false (zero-amount claims are invalid)? Could an attacker exploit this to manipulate statistics or gas costs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b4565cd-474c-44af-8a6f-0c4f0f7d25c6",
+    "timestamp": "2025-12-02 00:59:44.949062",
+    "report_generated": false
+  },
+  {
+    "question": "In `getRemaining()`, if both `funded` and `claimed` are 0 (unfunded drop), does it return 0 correctly, or does the unchecked subtraction in `DropState.getRemaining()` cause unexpected behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_498be607-d6d0-4fa8-8288-e3156ad52c77",
+    "timestamp": "2025-12-02 01:00:13.905920",
+    "report_generated": false
+  },
+  {
+    "question": "In `getClaimedBitmap()` at line 50, if `word = type(uint256).max - uint256(dropId) - 1`, the addition would overflow to a very small value. Could this cause the function to read from slot 0 or 1, potentially colliding with Solidity's reserved storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2b28f2af-97cb-462c-9880-0438677f738e",
+    "timestamp": "2025-12-02 01:00:42.021242",
+    "report_generated": false
+  },
+  {
+    "question": "In `claimIndexToStorageIndex()` at line 22, what happens when `index = 0`? Does it correctly map to `word=0, bit=0`, or could off-by-one errors cause `index=0` and `index=256` to map to the same bit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9816b5e-1126-45a8-a150-e9fbf140b341",
+    "timestamp": "2025-12-02 01:01:11.020263",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:claim()`, if the merkle proof is extremely long (e.g., 256 proof elements for a 2^256 tree), could an attacker grief the protocol by forcing expensive proof verification, even if the claim ultimately fails, wasting gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_15c7a6f8-0720-4402-aa1a-d342c497081c",
+    "timestamp": "2025-12-02 01:01:41.079781",
+    "report_generated": false
+  },
+  {
+    "question": "The `getClaimedBitmaps()` function at lines 151-160 loops and calls `getClaimedBitmap()` for each word. Could an attacker request an arbitrarily large `words` array, causing frontends to timeout or consume excessive RPC credits, even though the function is view-only?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9236a08-5207-4c53-8f75-d0f10e65c328",
+    "timestamp": "2025-12-02 01:02:09.380854",
+    "report_generated": false
+  },
+  {
+    "question": "In `IncentivesDataFetcher.sol:areIndicesClaimed()` at lines 128-137, it loops over all indices calling `isClaimed()`. Could an attacker pass an array with millions of indices, causing the function to run out of gas, DOS-ing frontends that rely on this data fetcher?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f1a56e8-437e-4109-a5e2-a36ef31baee3",
+    "timestamp": "2025-12-02 01:02:37.942138",
+    "report_generated": false
+  },
+  {
+    "question": "In `claimIndexToStorageIndex()` at line 22, it uses modulo 256 which is more expensive than bitwise AND. While this is a view function, could an attacker cause griefing by querying claim status for extremely large index values, forcing expensive modulo operations in loops?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d520f1f-f902-479e-a3a2-d86163d0e688",
+    "timestamp": "2025-12-02 01:03:07.323182",
+    "report_generated": false
+  },
+  {
+    "question": "In `IncentivesLib`, all storage access goes through `ExposedStorageLib.sload()`. If the Incentives contract uses a proxy pattern with delegatecall, could the storage layout assumptions in IncentivesLib read from wrong slots in the proxy's storage context?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7282448e-ea69-473a-913d-27fe82041a0a",
+    "timestamp": "2025-12-02 01:03:37.483644",
+    "report_generated": false
+  },
+  {
+    "question": "Given that `toDropId()` uses keccak256, the output is uniformly distributed. However, could successive drop IDs (for drops with consecutive roots) have bitmap storage that collides with each other's state slots, causing claim corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dde5ddb7-8ac6-4563-9b83-02ac1d114851",
+    "timestamp": "2025-12-02 01:04:04.517768",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol`, if a drop has a very large number of claims requiring many bitmap words (e.g., word 1000000), could the storage slot calculation overflow and collide with other contracts' storage if Incentives is used as a library or delegatecalled?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f962647b-8799-4e21-a903-36758b6e7a6f",
+    "timestamp": "2025-12-02 01:04:32.207157",
+    "report_generated": false
   }
 ]
