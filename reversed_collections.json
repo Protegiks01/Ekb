@@ -13348,5 +13348,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f84bc0a-0662-45f5-b651-bc577572a9e0",
     "timestamp": "2025-12-02 09:46:46.241840",
     "report_generated": false
+  },
+  {
+    "question": "In `BaseLocker.sol` line 82-111, `lockAndExpectRevert` expects the lock to revert and captures revert data. However, line 99-101 reverts with `ExpectedRevertWithinLock` if call succeeds. Could this be exploited if an attacker forces success (e.g., by setting gas limit), causing quote functions to fail unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db7ddea0-b792-459b-a6ed-5e498d0bd2ce",
+    "timestamp": "2025-12-02 09:48:07.994853",
+    "report_generated": false
+  },
+  {
+    "question": "In `BaseLocker.sol` line 68-69, `returndatacopy` copies return data, then line 71 updates free memory pointer. If returndatasize is maliciously large, could this cause the free memory pointer to wrap around or point to invalid memory, corrupting subsequent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afd48d2e-cc9d-42d5-8be3-a3c109969f6d",
+    "timestamp": "2025-12-02 09:48:21.103996",
+    "report_generated": false
+  },
+  {
+    "question": "In `BaseLocker.sol` line 61-64, the code checks if call failed and passes through revert. However, line 62-63 use `returndatacopy` and `revert` in the failure case. If the accountant runs out of gas during the call, could this cause returndatasize to be 0, leading to reverting with empty data and losing error context?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e8d2c0d-2ffd-4b4a-a444-f79a54d875fc",
+    "timestamp": "2025-12-02 09:48:35.341241",
+    "report_generated": false
+  },
+  {
+    "question": "In `BaseLocker.sol` line 44-73, the `lock` function uses extensive assembly including `mcopy`. Line 58 copies data from memory without checking source bounds. Could malicious data with incorrect length cause mcopy to read beyond data boundaries, potentially reading sensitive data from other memory regions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f6956a1-04ca-4d77-9455-a5bc32ea4f64",
+    "timestamp": "2025-12-02 09:48:49.376953",
+    "report_generated": false
+  },
+  {
+    "question": "In `feesPerLiquidity.sol` line 25-26, the function does `div(shl(128, amount0), liquidity)`. If liquidity is 0, this should revert with division by zero. But is this check present? Could someone create 0-liquidity positions that cause fee calculations to revert, freezing the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a55d776-60a9-43bc-b7de-6ded0671d1f7",
+    "timestamp": "2025-12-02 09:49:04.418932",
+    "report_generated": false
+  },
+  {
+    "question": "In `feesPerLiquidity.sol` line 20-28, `feesPerLiquidityFromAmounts` divides shifted amounts by liquidity. If liquidity is very small (e.g., 1), could this cause feesPerLiquidity values to be huge, and when multiplied back in position.sol:49, overflow and give wrong fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb787545-b163-4994-86bd-71fd01ede906",
+    "timestamp": "2025-12-02 09:49:20.655033",
+    "report_generated": false
+  },
+  {
+    "question": "In `feesPerLiquidity.sol` line 13-18, `sub` function subtracts two FeesPerLiquidity structs without overflow checks. If feesPerLiquidity has wrapped (accumulated fees > 2^256), could subtraction produce wrong differences, causing fee miscalculation and theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_40965b0a-1339-43c1-a38b-567f81c9717e",
+    "timestamp": "2025-12-02 09:49:38.104326",
+    "report_generated": false
+  },
+  {
+    "question": "In `liquidity.sol` line 129-136, `addLiquidityDelta` checks for overflow using assembly bitmask `and(result, shl(128, 0xffffffffffffffffffffffffffffffff))`. Could this check fail to detect overflow if result wraps exactly to a valid uint128 value after overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_08b232c5-71a1-4fad-b24a-467d59a29b7d",
+    "timestamp": "2025-12-02 09:49:57.664487",
+    "report_generated": false
+  },
+  {
+    "question": "In `liquidity.sol` line 100-103, for sqrtRatio <= sqrtRatioLower, only token0 liquidity is considered. But if an attacker provides maxLiquidity of both tokens with sqrtRatio exactly at boundary, could the function return liquidity for token0 while both tokens are deposited, causing over-collateralization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a06884bd-cfcc-44ec-9aa7-4bc05c28c8a4",
+    "timestamp": "2025-12-02 09:50:19.468313",
+    "report_generated": false
+  },
+  {
+    "question": "In `liquidity.sol` line 90-119, `maxLiquidity` returns `uint128(min(type(uint128).max, ...))`. However, if both calculations exceed type(uint128).max, the min returns max uint128. Could this allow depositing max liquidity in both tokens simultaneously, causing pool insolvency when price moves?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63e0fe9d-c16f-4441-9c9f-58e7073a6c44",
+    "timestamp": "2025-12-02 09:50:42.803726",
+    "report_generated": false
+  },
+  {
+    "question": "In `liquidity.sol` line 77-79, `maxLiquidityForToken1` shifts amount left by 128 bits then divides. If amount is type(uint128).max, could `(uint256(amount) << 128)` overflow the division result, returning incorrect liquidity that violates pool constraints?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66399d85-6928-4e69-9a3f-c349c8efa8f1",
+    "timestamp": "2025-12-02 09:51:06.531072",
+    "report_generated": false
+  },
+  {
+    "question": "In `liquidity.sol` line 62-68, `maxLiquidityForToken0` calculates liquidity as `amount * numerator1 / (sqrtRatioUpper - sqrtRatioLower)`. If sqrtRatioUpper and sqrtRatioLower are very close (narrow range), could the division round to type(uint256).max, causing overflow when cast to uint128 at line 102?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dc03fd67-9aa2-4b64-b3ec-087238925f72",
+    "timestamp": "2025-12-02 09:51:31.496920",
+    "report_generated": false
+  },
+  {
+    "question": "In `liquidity.sol` line 38-40, when sqrtRatio <= sqrtRatioLower, only delta0 is calculated. However, SafeCastLib.toInt128 is used at line 38-39. If amount0Delta exceeds int128 max due to extreme liquidity or price ranges, could this revert, making positions unwithdrawable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_07b96382-f252-4092-90c7-d9709ef2d2d0",
+    "timestamp": "2025-12-02 09:51:57.209498",
+    "report_generated": false
+  },
+  {
+    "question": "In `liquidity.sol` line 22-54, `liquidityDeltaToAmountDelta` uses unchecked arithmetic (line 28). At line 35, `magnitude = uint128(abs(liquidityDelta))` assumes absolute value fits in uint128. Could liquidityDelta = type(int128).min cause abs() to overflow, resulting in incorrect magnitude and wrong token amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0be6a366-54cc-4e16-b0a8-ecce4037766c",
+    "timestamp": "2025-12-02 09:52:24.836870",
+    "report_generated": false
+  },
+  {
+    "question": "In `fee.sol` line 18, the denominator is `sub(0x10000000000000000, fee)`. If fee equals `2^64`, could this result in denominator = 0, causing division by zero and reverting all withdrawal operations with non-zero withdrawal fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e0e01a9-1d54-4278-a645-1c094cc6d456",
+    "timestamp": "2025-12-02 09:52:53.868364",
+    "report_generated": false
+  },
+  {
+    "question": "In `fee.sol` line 15-25, `amountBeforeFee` divides and adds based on remainder. Line 19 does `add(iszero(iszero(mod(v, d))), div(v, d))` which rounds up. Could this cause the amount before fee to be larger than type(uint128).max, violating the overflow check at line 20-23?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_44791842-ea7e-4906-a5ff-1e2daf9ffd75",
+    "timestamp": "2025-12-02 09:53:24.511730",
+    "report_generated": false
+  },
+  {
+    "question": "In `fee.sol` line 8, the formula `shr(64, add(mul(amount, fee), 0xffffffffffffffff))` doesn't check for overflow in `mul(amount, fee)`. If amount is close to type(uint128).max and fee is close to type(uint64).max, could this overflow and wrap to a small value, causing protocol fees to be under-collected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ceb3db36-8c27-4048-9317-2e083cd685ea",
+    "timestamp": "2025-12-02 09:53:55.511995",
+    "report_generated": false
+  },
+  {
+    "question": "In `fee.sol` line 6-10, `computeFee` calculates fee as `(amount * fee + 0xffffffffffffffff) >> 64`. The addition of max uint64 rounds up. Could repeated fee calculations with very small amounts cause accumulated rounding error to exceed user's balance, making positions unwithdrawable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e42df90-3f83-41b1-8134-992b140ce3af",
+    "timestamp": "2025-12-02 09:54:26.707099",
+    "report_generated": false
+  },
+  {
+    "question": "In `positionId.sol` line 54-56, for stableswap pools, positions must be exactly at min/max tick. If an attacker creates a concentrated pool with parameters that make it look like stableswap, could they bypass this check and create custom-range positions in stableswap pools, breaking the protocol's invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3781e12f-9c8b-4b41-8e43-8abff0b205db",
+    "timestamp": "2025-12-02 09:54:58.750420",
+    "report_generated": false
+  },
+  {
+    "question": "In `positionId.sol` line 50, bounds are checked against MIN_TICK and MAX_TICK from constants. If these constants are incorrectly defined or if sqrtRatio calculations overflow near these bounds, could positions at extreme ticks cause pool insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d1298f01-a3df-4f4b-94d2-5ec14316325b",
+    "timestamp": "2025-12-02 09:55:31.803468",
+    "report_generated": false
+  },
+  {
+    "question": "In `positionId.sol` line 49, the validation checks `tickLower >= tickUpper` which should revert. But if both ticks are equal (0-width range), could this create a degenerate position that accumulates no fees but locks liquidity, violating withdrawal availability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5f7983aa-1605-4c1e-94ea-ddfccf3db6d3",
+    "timestamp": "2025-12-02 09:56:04.743876",
+    "report_generated": false
+  },
+  {
+    "question": "In `positionId.sol` line 47-57, `validate` function checks tick ordering and spacing. However, this is called from Core, not from BasePositions. Could an attacker call `deposit` with invalid ticks that pass initial checks but fail in Core, consuming gas and wasting the user's NFT?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_715d46b2-cec2-4b97-a2f4-70bc20ab4502",
+    "timestamp": "2025-12-02 09:56:38.476164",
+    "report_generated": false
+  },
+  {
+    "question": "In `positionId.sol` line 24-29, `tickUpper` uses `signextend(3, positionId)` on the lowest 4 bytes. If positionId was created maliciously with the lower 4 bytes not properly sign-extended, could this cause tick validation to pass but operations to fail, locking liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1437c693-caa1-420a-8008-021395d6229e",
+    "timestamp": "2025-12-02 09:57:13.924127",
+    "report_generated": false
+  },
+  {
+    "question": "In `positionId.sol` line 17-22, `tickLower` extraction uses `signextend(3, shr(32, positionId))`. If the original tick was negative and stored improperly, could the sign extension produce incorrect tick values, causing positions to reference wrong price ranges and lose funds during liquidation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ffb60302-6fe5-43ac-aa7b-8f37330b62fc",
+    "timestamp": "2025-12-02 09:57:46.310545",
+    "report_generated": false
+  },
+  {
+    "question": "In `positionId.sol` line 31-36, `createPositionId` uses bitwise operations to pack salt and ticks. The code does `or(shl(64, shr(64, _salt)), ...)` which clears upper 64 bits of salt. If user-provided salt has data in upper bits, could this silent truncation cause two different salts to map to the same PositionId, enabling position collisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3b075d5-934a-49c2-b476-772dff85f1f0",
+    "timestamp": "2025-12-02 09:58:18.101032",
+    "report_generated": false
   }
 ]
