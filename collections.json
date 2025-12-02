@@ -11248,5 +11248,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_09f07e2b-d848-4282-babe-993e4183e725",
     "timestamp": "2025-12-02 06:16:17.910354",
     "report_generated": false
+  },
+  {
+    "question": "The exact-out fee calculation (lines 220-236) uses amountBeforeFee(inputAmount, additionalFee) where additionalFee may be much larger than poolFee. Could this cause AmountBeforeFeeOverflow error (line 12 in fee.sol) when it wouldn't overflow with poolFee alone?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57fb71f0-f9a0-47d8-b0e9-a736fa5440d5",
+    "timestamp": "2025-12-02 06:17:29.786339",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 223), the code subtracts computeFee(inputAmount, poolFee) from inputAmount to reverse the pool fee. If computeFee() rounds up but this subtraction rounds down, could the reversed amount be incorrect, causing fee miscalculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e86daa3-1a6f-4887-a4eb-7197fae74e2d",
+    "timestamp": "2025-12-02 06:17:42.881932",
+    "report_generated": false
+  },
+  {
+    "question": "For exact-in swaps (lines 237-251), the code applies additionalFee using computeFee(outputAmount, additionalFee). If the swap has high slippage and outputAmount is much smaller than expected, could the MEV fee be disproportionately high relative to actual profit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e51211a-0e27-4a31-a14f-f22801e96a4d",
+    "timestamp": "2025-12-02 06:17:56.626887",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 220-236), the code checks which delta is positive to determine the input token. If both deltas are positive (impossible in normal swap but possible with extensions), could this cause the wrong token's fee to be calculated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c5d59773-f97c-409f-b0c0-1e2f00dc228c",
+    "timestamp": "2025-12-02 06:18:10.510047",
+    "report_generated": false
+  },
+  {
+    "question": "The exact-out fee logic (line 224) computes 'amountBeforeFee(inputAmount, additionalFee) - inputAmount' as the fee. If amountBeforeFee() has precision loss and returns exactly inputAmount due to rounding, would the fee be zero when it should be positive?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a5177be6-2e6f-496b-80f9-e69606bbdf91",
+    "timestamp": "2025-12-02 06:18:25.321617",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 228-236), the same fee calculation logic is duplicated for token0 and token1. If these branches have subtle differences (e.g., rounding direction), could an attacker exploit this by choosing which token to swap to minimize fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3957870f-7c64-43bb-9a5e-ee5b491c1c97",
+    "timestamp": "2025-12-02 06:18:41.398765",
+    "report_generated": false
+  },
+  {
+    "question": "For exact-in swaps (lines 238-250), the fee is computed as computeFee(outputAmount, additionalFee). If the swap crosses multiple ticks and outputAmount is calculated at the final tick, could the fee miss intermediate tick movements?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8f2a60bf-42f7-4edd-82cb-939b402efc73",
+    "timestamp": "2025-12-02 06:18:59.112158",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 224), the cast to int128 via SafeCastLib.toInt128() could fail if the fee exceeds type(int128).max. Could an attacker trigger this by making an extremely large swap that causes the function to revert, temporarily DOSing the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_550a6943-2c2b-41b6-a2bc-259a03263596",
+    "timestamp": "2025-12-02 06:19:18.743719",
+    "report_generated": false
+  },
+  {
+    "question": "The exact-out fee calculation (lines 220-236) assumes balanceUpdate.delta0() > 0 implies token0 is the input. If Core's swap function returns deltas in an unexpected order due to a bug, could this assign fees to the wrong token?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42c1063a-5650-4bf5-81e3-5756a935a6dd",
+    "timestamp": "2025-12-02 06:19:40.098053",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 238-250), the code checks if deltas are negative to identify output tokens. If the swap reverts mid-execution leaving non-zero deltas, could this cause incorrect fee application on the next swap attempt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4b28b42-344d-45f9-8162-9d04483c1dd8",
+    "timestamp": "2025-12-02 06:20:02.571276",
+    "report_generated": false
+  },
+  {
+    "question": "The fee adjustment (lines 226-227, 234-235) creates a new PoolBalanceUpdate with the modified delta. If createPoolBalanceUpdate() doesn't properly mask the deltas, could leftover bits cause corruption in the returned balance update?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67d15271-80fd-4dab-8642-968250a5ce68",
+    "timestamp": "2025-12-02 06:20:26.496200",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 240), the negation of balanceUpdate.delta0() and cast to uint128 assumes the delta is negative. If there's a sign error and delta0 is positive, could this cast fail or produce an incorrect outputAmount?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb493018-b043-40ff-8249-175ee53480ea",
+    "timestamp": "2025-12-02 06:20:51.222314",
+    "report_generated": false
+  },
+  {
+    "question": "The exact-in fee logic (lines 237-251) applies the fee by adding it to the balance update delta. If the delta is at the boundary of int128 range, could adding the fee cause overflow in createPoolBalanceUpdate()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_476e91e7-d93c-4de0-adc6-567b394d940f",
+    "timestamp": "2025-12-02 06:21:17.122685",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 217-252), if additionalFee is zero, the entire fee calculation block is skipped. Could a sophisticated attacker manipulate tick movement to keep additionalFee at zero through multiple swaps, avoiding MEV fees entirely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f12d3835-32a9-4d0f-8889-c731239cfc18",
+    "timestamp": "2025-12-02 06:21:44.900778",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 254-256), updateSavedBalances() is called with saveDelta0 and saveDelta1. If these deltas don't exactly match the additional fees collected, could this create an imbalance where the extension holds more or fewer tokens than recorded?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c9a5f9cc-778f-4a21-9701-3d2ed9d3cffc",
+    "timestamp": "2025-12-02 06:22:13.659944",
+    "report_generated": false
+  },
+  {
+    "question": "The saveDelta0/saveDelta1 accumulation (lines 188-189, 198-199, 226, 234, 242, 248) uses unchecked addition. If multiple fees are accumulated and the sum exceeds type(int256).max, could this overflow silently and corrupt the extension's balance tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94416419-7575-4fd8-8b6b-4d1007d6745d",
+    "timestamp": "2025-12-02 06:22:43.640316",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205() (lines 145-147), the code negates fees as uint256 then casts to int256. If fees equal 2^255, could this negation result in type(int256).min which is not representable as a positive value, causing arithmetic issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9cfe5b7d-59ea-42ed-905a-72db680affab",
+    "timestamp": "2025-12-02 06:23:14.788946",
+    "report_generated": false
+  },
+  {
+    "question": "The updateSavedBalances() call (line 255) uses PoolId.unwrap(poolId) as the salt. If another extension uses the same salt, could their saved balances collide in Core's storage, allowing cross-extension fund theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_085304ab-b91e-490e-91dc-9070bbd6c2ac",
+    "timestamp": "2025-12-02 06:23:47.473804",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 254-256), if saveDelta0 or saveDelta1 is zero, the call still executes. Does updateSavedBalances() handle zero deltas efficiently, or could repeated zero-delta calls waste gas or corrupt state through unnecessary storage writes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f04a34a-3696-4923-9d25-19f30f6dc80b",
+    "timestamp": "2025-12-02 06:24:20.864817",
+    "report_generated": false
+  },
+  {
+    "question": "The accumulateAsFees() call (lines 139, 196) takes uint128 amounts, but fees are loaded as uint128 in loadCoreState(). If the protocol fee + MEV fee exceeds uint128, could the fees be truncated, causing loss of user funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f873aa46-3281-4267-91d1-03bc9bf09d63",
+    "timestamp": "2025-12-02 06:24:56.168969",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205() (lines 138-149), if fees0 or fees1 are loaded incorrectly from Core storage due to a bug in loadCoreState(), could this cause accumulateAsFees() to distribute fees that don't exist, violating pool solvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63dd0c88-e6b6-424a-b47c-35cc4c154f80",
+    "timestamp": "2025-12-02 06:25:31.058548",
+    "report_generated": false
+  },
+  {
+    "question": "The savedBalancesSlot calculation (line 163) includes address(this) as the owner. If MEVCapture is deployed via CREATE2 at a predictable address, could an attacker precompute storage slots and front-run deployment to corrupt saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2f3f0c9-a243-4b94-a3c3-05afef17f770",
+    "timestamp": "2025-12-02 06:26:07.258365",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 196), accumulateAsFees() is called within the forward callback. If this call reverts (e.g., pool not initialized), does the revert propagate cleanly, or could it leave the extension in an inconsistent state with updated tickLast but unaccumulated fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7aaae026-b29b-42d0-936b-fc8eda653192",
+    "timestamp": "2025-12-02 06:26:44.260914",
+    "report_generated": false
+  },
+  {
+    "question": "The loadCoreState() function (lines 157-175) reads two storage slots from Core. If Core's storage layout uses transient storage (EIP-1153) for some values, could these reads return stale data that doesn't reflect current pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8692a50-8955-4091-a3c0-7f9fb611a6d4",
+    "timestamp": "2025-12-02 06:27:19.444807",
+    "report_generated": false
+  },
+  {
+    "question": "In locked_6416899205() (lines 140-148), the negation of fees happens in an unchecked block. If the compiler's optimization level changes how unchecked arithmetic is handled, could this introduce subtle bugs in delta calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1cb9edf0-f7ce-4bcc-9a76-d7d080163c8d",
+    "timestamp": "2025-12-02 06:27:53.857909",
+    "report_generated": false
   }
 ]
