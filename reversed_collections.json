@@ -10498,5 +10498,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_069b8768-81a1-40d4-ae0a-42cc63260584",
     "timestamp": "2025-12-02 05:36:14.337106",
     "report_generated": false
+  },
+  {
+    "question": "The computeStepSize() function uses clz (count leading zeros) at line 23. Could incorrect clz implementation cause stepSize to be computed incorrectly, leading to invalid order endTimes that violate isTimeValid()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_806dfeb9-4bb7-40c5-9e58-c2b566af1172",
+    "timestamp": "2025-12-02 05:37:26.783361",
+    "report_generated": false
+  },
+  {
+    "question": "In nextValidTime() at line 63, the function returns 0 if nextTime > currentTime + type(uint32).max. Could this cause roll() to set endTime = 0, permanently breaking order tracking for that token?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e74308c6-dbf0-4c0b-a1f6-4f8774f56829",
+    "timestamp": "2025-12-02 05:37:40.022358",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function at line 114 calculates endTime = uint64(block.timestamp + timeRemaining). Could an attacker exploit block.timestamp manipulation near uint32.max to cause endTime to overflow and wrap to zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_51a440c3-6cde-446d-bcb4-5144dfbed681",
+    "timestamp": "2025-12-02 05:37:53.998780",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.roll() at line 105, timeRemaining is calculated as uint32(state.lastEndTime() - uint32(block.timestamp)). Could an attacker exploit timestamp manipulation to cause underflow and bypass the minOrderDuration check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9ba5a2a9-145a-43c5-a010-937f9f96c224",
+    "timestamp": "2025-12-02 05:38:08.033122",
+    "report_generated": false
+  },
+  {
+    "question": "The collect() function at line 77 calls collectProceeds with an endTime parameter but doesn't validate this against stored state. Could an attacker collect proceeds from non-existent orders by guessing valid endTime values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a0ed17a-2927-4292-9b57-be71b12fce97",
+    "timestamp": "2025-12-02 05:38:23.060115",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks, the NFT_ID is minted once at construction (line 43). Could an attacker exploit the fact that all orders share one NFT to manipulate order state by calling ORDERS functions directly with the known NFT_ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29f43bb4-d472-4c4a-862e-7e76a2c7f155",
+    "timestamp": "2025-12-02 05:38:40.362306",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function at line 117 calls nextValidTime() which uses clz opcode (in computeStepSize). Could incorrect clz behavior in Solidity 0.8.31 cause nextValidTime to return invalid timestamps, breaking order creation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ba9741f6-ea0b-419f-94e8-30191a2f4bba",
+    "timestamp": "2025-12-02 05:39:00.004562",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() at lines 109-112, the logic reuses the previous order endTime if conditions are met. Could an attacker exploit this by repeatedly calling roll() with small amounts to extend order duration indefinitely without ever completing orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f741643-d46d-4315-a4c0-f85004c64608",
+    "timestamp": "2025-12-02 05:39:21.790055",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function at line 103 reads token balance with SafeTransferLib.balanceOf(). Could a malicious ERC20 token return inflated balances to cause RevenueBuybacks to create orders it cannot fulfill, breaking the TWAMM solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a94b421-7db9-4206-8661-9e88995dad05",
+    "timestamp": "2025-12-02 05:39:46.031725",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.roll() at line 135, increaseSellAmount is called with maxSaleRate = type(uint112).max. Could an attacker exploit this by frontrunning roll() with a large opposing order, causing the sale rate to spike and exceed MAX_ABS_VALUE_SALE_RATE_DELTA?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e231276-b90e-4c27-8661-1f42e8d668be",
+    "timestamp": "2025-12-02 05:40:13.019045",
+    "report_generated": false
+  },
+  {
+    "question": "The protocol uses ExposedStorage base contract to allow external storage reads via sload(). Could an attacker exploit this to read uninitialized storage slots and infer private information about configured tokens before they're publicly announced?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_607aa348-7b4d-4c81-a0d6-c3c1d79ca18f",
+    "timestamp": "2025-12-02 05:40:43.703983",
+    "report_generated": false
+  },
+  {
+    "question": "RevenueBuybacksLib.sol doesn't follow the collision-resistant storage pattern used elsewhere in Ekubo (with FPL_OFFSET, TICKS_OFFSET, etc.). Could this lack of offset-based storage make it vulnerable to collision with Solady's Ownable or Multicallable storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9119dfd-e5e7-4441-82c0-978b08d783b4",
+    "timestamp": "2025-12-02 05:41:17.475095",
+    "report_generated": false
+  },
+  {
+    "question": "The BuybacksState storage model stores all configuration in a single bytes32 slot per token. Could an attacker exploit partial storage writes (from interrupted sstore operations) to corrupt multiple fields simultaneously, breaking order creation logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a93962f8-ade0-4a01-a78e-8141925cfb95",
+    "timestamp": "2025-12-02 05:41:53.588440",
+    "report_generated": false
+  },
+  {
+    "question": "RevenueBuybacks.sol uses token addresses directly as storage keys (line 94: 'sload(token)'). Unlike CoreStorageLayout and TWAMMStorageLayout which use keccak-derived offsets, this approach stores state at predictable slots. Could this enable storage collision attacks if RevenueBuybacks is upgraded to inherit from additional contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70ba86e9-6701-443a-9af4-b535e5f6d7ef",
+    "timestamp": "2025-12-02 05:42:33.368106",
+    "report_generated": false
+  },
+  {
+    "question": "In PositionsOwner at line 53, the state() call returns BuybacksState but doesn't validate the fee field. Could an attacker exploit this by configuring an invalid fee tier that causes roll() to revert, permanently locking protocol fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb003043-d820-49c2-9113-6a8a777c9055",
+    "timestamp": "2025-12-02 05:43:15.923563",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawAndRoll() function calls BUYBACKS.roll(token0) and BUYBACKS.roll(token1) sequentially at lines 74-75. Could reentrancy via token hooks between these calls cause double-spending of protocol fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_52ea9d02-5e21-4e07-b336-f1d02f5fc9a3",
+    "timestamp": "2025-12-02 05:43:58.795092",
+    "report_generated": false
+  },
+  {
+    "question": "In withdrawAndRoll() at lines 61-66, the assembly block reduces amount0/amount1 by 1 if non-zero. Could this optimization allow protocol fees to accumulate unbounded over time, eventually exceeding uint128 in POSITIONS contract storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3a12a39-b741-4723-a70f-a6c789d1f96c",
+    "timestamp": "2025-12-02 05:44:43.812822",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawAndRoll() function at lines 54-55 reverts if minOrderDuration == 0 for either token. Could an attacker frontrun a legitimate withdrawAndRoll() call by calling RevenueBuybacks.configure() to set minOrderDuration = 0, causing DOS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3a9bb1a-8e13-4f83-95b1-a63204982386",
+    "timestamp": "2025-12-02 05:45:30.773578",
+    "report_generated": false
+  },
+  {
+    "question": "In PositionsOwner.withdrawAndRoll() at line 53, the function uses RevenueBuybacksLib.state(tokenA, tokenB) to check configuration. Could an attacker exploit the fact that this reads storage directly to bypass configuration checks by manipulating storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8a47d21b-65ad-4f33-a1df-d524c1375120",
+    "timestamp": "2025-12-02 05:46:17.689141",
+    "report_generated": false
+  },
+  {
+    "question": "The approveMax() function at line 50 uses safeApproveWithRetry with type(uint256).max. Could this create issues if the Orders contract is later compromised, allowing unlimited token theft from RevenueBuybacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3193977-a0ca-45b4-9c2f-0a3537240246",
+    "timestamp": "2025-12-02 05:47:04.948749",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() at line 134, ORDERS.increaseSellAmount is called with {value: isEth ? amountToSpend : 0}. Could an attacker cause the contract to send ETH even when token != NATIVE_TOKEN_ADDRESS by manipulating the isEth boolean calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d79fe0e9-aa34-4be7-9e26-f4a010bae7bf",
+    "timestamp": "2025-12-02 05:47:53.595911",
+    "report_generated": false
+  },
+  {
+    "question": "The _createOrderKey() function at lines 175-188 uses assembly to determine token ordering based on token > BUY_TOKEN comparison. Could an attacker exploit address arithmetic to manipulate token ordering and create orders in non-existent pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18262072-edbd-4adf-a766-d5cf4a65cc12",
+    "timestamp": "2025-12-02 05:48:44.823670",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.collect() at line 77, the function calls ORDERS.collectProceeds() with owner() as recipient. If ownership transfer occurs during the call, could proceeds be sent to the wrong address, draining buyback funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5085de83-e7be-4edb-a32d-3e428f4f2683",
+    "timestamp": "2025-12-02 05:49:36.875599",
+    "report_generated": false
+  },
+  {
+    "question": "The configure() function at lines 151-152 validates minOrderDuration <= targetOrderDuration but allows both to be 0. Could an attacker exploit this to 'unconfigure' a token and prevent future roll() calls, permanently locking protocol revenue?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a279d15d-a65a-4d42-a445-cfd1f6745300",
+    "timestamp": "2025-12-02 05:50:28.713473",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.configure() at line 158, state is read, then modified, then written back at line 169. Could reentrancy between read and write (via token transfer hooks) cause lost updates where lastEndTime/lastOrderDuration get overwritten with stale values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d90b585-55fd-4a3a-aa05-ed15aa6e3959",
+    "timestamp": "2025-12-02 05:51:20.154870",
+    "report_generated": false
   }
 ]
