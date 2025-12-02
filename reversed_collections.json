@@ -8698,5 +8698,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2fdaea12-271e-4df8-896b-3ff1a00ec9ef",
     "timestamp": "2025-12-02 03:20:20.293803",
     "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeSwap function (line 98) stores SwapParameters params with `mstore(add(freeMem, 132), params)`. If SwapParameters is a packed struct, could this store operation misalign the data, causing the extension to see incorrect swap parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8530230-d366-4878-8b98-921e6b8bf3a4",
+    "timestamp": "2025-12-02 03:21:39.641146",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterCollectFees (line 255-270), the function copies amount0 and amount1 as uint128 but stores them with mstore (32 bytes each). Could the upper 128 bits contain dirty memory that the extension interprets as larger amounts, enabling theft of protocol fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7790e094-a3c7-4ff0-a7b7-ea489f87efe2",
+    "timestamp": "2025-12-02 03:21:52.846718",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeCollectFees function (line 223-237) uses `call(gas(), extension, 0, freeMem, 164, 0, 0)`. The call uses all remaining gas - could a malicious extension consume all gas in beforeCollectFees, causing the fee collection to fail and permanently locking user fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_97c08ec4-f437-440a-97ae-5ac3d682f790",
+    "timestamp": "2025-12-02 03:22:07.026529",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterUpdatePosition (line 190-207), the assembly stores multiple values (locker, poolKey, positionId, liquidityDelta, balanceUpdate, stateAfter) in sequence. Could an off-by-one error in offset calculation cause parameter misalignment that corrupts the extension's state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c3b120d-ca4c-4bb1-a291-d537b809f42c",
+    "timestamp": "2025-12-02 03:22:21.482588",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeUpdatePosition function (line 156-171) stores liquidityDelta at offset 164 with `mstore(add(freeMem, 164), liquidityDelta)`. If liquidityDelta is int128 but mstore writes 32 bytes, could this overwrite adjacent memory used for other parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf114878-7d8e-4b6f-bd3b-48c5a573e3fb",
+    "timestamp": "2025-12-02 03:22:37.025294",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterSwap (line 123-139), the function copies balanceUpdate and stateAfter at specific offsets. If these types are user-defined and an attacker passes a struct with a malicious memory layout, could the mcopy operation leak sensitive data to the extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e1f3f26f-3da6-4c93-af3b-e38946111d9a",
+    "timestamp": "2025-12-02 03:22:54.148090",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeSwap function (line 91-105) uses `mcopy(add(freeMem, 36), poolKey, 96)`. If the memory region pointed to by poolKey has been freed or reallocated, could this copy stale or attacker-controlled data into the extension call?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b111c0e7-13a5-4d99-bd0c-3c7ff2315ccf",
+    "timestamp": "2025-12-02 03:23:12.251941",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterInitializePool (line 63-78), the assembly constructs calldata manually with offsets 4, 36, 132, 164. If the function signature changes but the hardcoded offsets don't, could this pass malformed parameters to the extension, causing state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9b9ed0ec-9159-42c6-a1e0-3b6d063c85e1",
+    "timestamp": "2025-12-02 03:23:32.815782",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeInitializePool function (line 38) uses `mcopy(add(freeMem, 36), poolKey, 96)` to copy the PoolKey struct. If PoolKey's memory layout changes in a future upgrade while the mcopy size remains 96 bytes, could this copy incorrect data to the extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_85ceaec7-acac-4ddb-b54c-a1249f7a5efd",
+    "timestamp": "2025-12-02 03:23:54.784992",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeInitializePool (line 32-46), the assembly block uses `mload(0x40)` to get free memory. If the free memory pointer was corrupted by a previous malicious external call, could this cause calldata to overwrite critical memory regions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1914ee4f-fe8a-4210-b3ad-998970610004",
+    "timestamp": "2025-12-02 03:24:17.996764",
+    "report_generated": false
+  },
+  {
+    "question": "In all shouldCall functions, the bit checks return a boolean based on assembly operations. Could the lack of explicit bit masking (e.g., `& 1`) after shifting cause non-zero values > 1 to be treated as true, potentially enabling hooks when the actual bit is 0 but adjacent bits are set?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7325b43b-63b1-457e-9c87-6527c0d92245",
+    "timestamp": "2025-12-02 03:24:42.726923",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallBeforeSwap function (line 82-84) shifts by 158 to check bit 6. Could an extension deployed to an address where bit 158 is 1 due to address generation randomness accidentally have beforeSwap enabled when it shouldn't, breaking extension isolation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d7c192f7-bdc0-4b1b-81c5-fe81e435aefb",
+    "timestamp": "2025-12-02 03:25:08.034434",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeInitializePool (line 21), the comparison is `eq(initializer, extension)` which compares full addresses. Could an extension frontrun pool initialization by initializing it themselves, then exploiting the self-call prevention to skip beforeInitializePool validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd70605a-307d-44ab-9185-6a15960af53a",
+    "timestamp": "2025-12-02 03:25:34.796042",
+    "report_generated": false
+  },
+  {
+    "question": "The bit manipulation uses raw shr operations without masking. Could overflow or wrap-around in the shift amounts (if somehow corrupted in memory) cause the wrong bits to be checked, enabling hooks that weren't registered?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_792f2e96-f5c7-462e-a0d7-5f7151f12379",
+    "timestamp": "2025-12-02 03:26:03.001385",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallAfterCollectFees (line 240-243), the self-call prevention compares the locker address. If Core.sol allows nested locks where an extension can be both the locker and extension simultaneously through flash loan callbacks, could this create unauthorized fee collection opportunities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2afe532-1ed9-432f-a92e-367efd1d652d",
+    "timestamp": "2025-12-02 03:26:32.776057",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallBeforeCollectFees function (line 210-213) uses `shr(154, extension)` to check bit 2. If an attacker can cause bit 154 to be set in the extension address through CREATE2 manipulation while other CallPoints bits are clear, could this bypass the isValid() check during registration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bdb1bfc5-60f9-4259-ad9a-c3561fa9c3d3",
+    "timestamp": "2025-12-02 03:27:02.423720",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallAfterSwap (line 108-111), the function doesn't validate that the extension actually has beforeSwap enabled before checking afterSwap. Could this allow an extension to register with only afterSwap, receiving state updates without pre-validation, enabling price manipulation attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9b2ad6cb-e802-4ae2-b628-a5523610c80f",
+    "timestamp": "2025-12-02 03:27:34.345327",
+    "report_generated": false
+  },
+  {
+    "question": "The bit shifts in all shouldCall functions (152-159) target the CallPoints byte in the extension address. Could an extension use Solidity's address(this) in a way that returns a different address format (e.g., checksummed) that affects bit extraction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b554296a-a85f-46b9-8d85-3c7cab423059",
+    "timestamp": "2025-12-02 03:28:07.437084",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeUpdatePosition (line 142-145), the Locker comparison uses `shl(96, locker)`. If the Locker type (bytes32) has its address stored in the upper or lower 160 bits inconsistently across the protocol, could this create self-call detection bypasses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_35ecab0c-a15d-45e0-a14b-9bc1ead9430e",
+    "timestamp": "2025-12-02 03:28:41.351189",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallAfterInitializePool function (line 49-52) checks bit 7 (value 128). According to callPoints.sol lines 60-68, bit 7 is afterInitializePool. Could an error in the bit mapping documentation vs implementation cause hooks to be called incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0624eab3-65f1-4bf2-88d2-f5b8c32a8d68",
+    "timestamp": "2025-12-02 03:29:13.693932",
+    "report_generated": false
+  },
+  {
+    "question": "In Core.sol's registerExtension, the protocol validates that addressToCallPoints(msg.sender) matches expectedCallPoints. However, ExtensionCallPointsLib uses raw bit shifting. Could discrepancies between these two methods allow an extension to pass registration but have different runtime behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_78057436-ef7d-4245-b353-e3ba78bacd53",
+    "timestamp": "2025-12-02 03:29:44.934442",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallBeforeSwap function (line 82-84) performs bit shifting before the self-call check. Could an extension with a specially crafted address where the shifted value is 0 bypass both the CallPoints check and self-call prevention, enabling unauthorized hook invocations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cccfbcc2-2aab-4c68-91ea-fbbbb3202728",
+    "timestamp": "2025-12-02 03:30:15.667812",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeInitializePool (line 20-22), the assembly block uses `and(shr(152, extension), iszero(eq(initializer, extension)))`. If the shr operation produces a value where multiple low bits are set due to address encoding errors, could this cause false positives in hook detection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_84a1c1e9-0daa-401f-a309-9268a5088dfd",
+    "timestamp": "2025-12-02 03:30:44.638097",
+    "report_generated": false
+  },
+  {
+    "question": "The bit extraction logic assumes extension addresses are properly formatted with CallPoints at bits 152-159. Could a malicious actor register an extension at an address where these bits encode valid CallPoints but unintended ones (e.g., beforeSwap=1, afterSwap=0), breaking the hook pairing invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_063ac6b2-53b6-45b1-84d8-fb44c183c254",
+    "timestamp": "2025-12-02 03:31:12.829359",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallAfterCollectFees (line 241-242), the function uses `shr(153, extension)`. Given that the protocol doesn't explicitly validate that afterCollectFees requires beforeCollectFees, could an extension register with only afterCollectFees set, leading to inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1743a70d-5bf6-4737-9bb4-e7029861a7e8",
+    "timestamp": "2025-12-02 03:31:42.816832",
+    "report_generated": false
   }
 ]
