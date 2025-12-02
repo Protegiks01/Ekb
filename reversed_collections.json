@@ -8998,5 +8998,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9dd1174e-e11f-4ea2-9e54-7ee915aee4bd",
     "timestamp": "2025-12-02 03:43:40.041915",
     "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()`, if `MAX_NUM_VALID_TIMES` (91) is insufficient for certain time ranges due to changes in step size calculation, could the loop terminate early and miss valid times, or worse, loop excessively if the constant is incorrect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66620624-30f2-4b94-a4fc-06aebb3ccc2f",
+    "timestamp": "2025-12-02 03:45:01.475605",
+    "report_generated": false
+  },
+  {
+    "question": "In `executeVirtualOrdersAndGetPoolState()`, the state returned by `getPoolState()` reflects post-execution state. Could there be a window where this state is inconsistent with on-chain reality if other transactions execute between the virtual order execution and state read?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_230ea285-fad9-45d5-81df-9ebbee7e87a3",
+    "timestamp": "2025-12-02 03:45:14.613673",
+    "report_generated": false
+  },
+  {
+    "question": "The lens contract assumes TWAMM extension storage layout remains stable. If TWAMM storage layout is upgraded or modified, could this lens continue to read from old slot positions, returning stale or incorrect data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8ad1e95-0300-4946-8b35-d929522c30f6",
+    "timestamp": "2025-12-02 03:45:28.175306",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()`, `TimeSaleRateInfo` array is dynamically sized based on non-zero orders. Could external contracts that expect a fixed-size array encounter issues when the array size varies unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d787ebd0-e097-4da4-a2f9-b9ddbddb9925",
+    "timestamp": "2025-12-02 03:45:43.371161",
+    "report_generated": false
+  },
+  {
+    "question": "The `PoolState` struct defined in TWAMMDataFetcher (line 44-52) duplicates fields from Core's PoolState type. Could confusion between these two types cause external contracts to misinterpret the returned data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_15eceaec-6787-4a88-a158-5b0c7dfd3660",
+    "timestamp": "2025-12-02 03:45:58.410691",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()`, data is fetched from both CORE (line 66) and TWAMM_EXTENSION (line 67-68) in separate calls. If these contracts are in inconsistent states due to a failed transaction or partial update, could the returned PoolState struct contain contradictory data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1deb6e11-9242-4359-b96a-3d40d1976ea9",
+    "timestamp": "2025-12-02 03:46:14.275298",
+    "report_generated": false
+  },
+  {
+    "question": "The constructor validates that `core` is valid via `UsesCore(core)`, but doesn't verify the relationship between `core` and `_twamm`. Could there be scenarios where the TWAMM extension is for a different Core instance, causing cross-protocol data leakage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2feb5d0f-517c-4954-a36b-2766a2f679db",
+    "timestamp": "2025-12-02 03:46:31.756587",
+    "report_generated": false
+  },
+  {
+    "question": "The constructor doesn't validate that `_twamm` is actually a TWAMM contract. Could deploying with an arbitrary address that implements `IExposedStorage.sload()` cause the lens to return fabricated data that appears legitimate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_99d79c3c-4f7c-47ce-a2e1-d72e64c14297",
+    "timestamp": "2025-12-02 03:46:52.194644",
+    "report_generated": false
+  },
+  {
+    "question": "In `TWAMMDataFetcher` constructor (line 60-62), `TWAMM_EXTENSION` is set as immutable. Could deploying this contract with a malicious or incorrect TWAMM address cause all functions to read from or call wrong storage locations, returning corrupted data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f0225f1f-d535-421d-9828-8774331b2cb4",
+    "timestamp": "2025-12-02 03:47:13.829132",
+    "report_generated": false
+  },
+  {
+    "question": "In `twammPoolState.sol` (line 50-56), `createTwammPoolState()` packs values with specific bit shifts. Could the packing order or bit positions be inconsistent with the parsing functions, leading to data corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac77f85a-670d-4400-9ff0-9ee286db2c8a",
+    "timestamp": "2025-12-02 03:47:36.303009",
+    "report_generated": false
+  },
+  {
+    "question": "The `realLastVirtualOrderExecutionTime()` function (line 20-24 of twammPoolState.sol) uses complex bitwise operations with `timestamp()` and multiple masks. Could overflow or underflow in these operations cause it to return a time that's not actually real?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f79549a1-7dac-4df0-b2a7-286a9fedf96d",
+    "timestamp": "2025-12-02 03:47:59.211734",
+    "report_generated": false
+  },
+  {
+    "question": "In `twammPoolState.parse()` (line 38-43), `saleRateToken0` is extracted with `shr(144, shl(112, state))`. Could this double shift with different amounts cause bits to be lost or misaligned, returning incorrect sale rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ccd92831-107b-4b6d-8781-ced63ae2e677",
+    "timestamp": "2025-12-02 03:48:24.085131",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 68), `TWAMM_EXTENSION.poolState()` returns a packed TwammPoolState. The parsing uses bit shifts in twammPoolState.sol. Could bit shift errors cause `lastVirtualOrderExecutionTime` to be extracted incorrectly, corrupting the time calculation at line 70?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0ad65496-b9e4-4170-99e5-346e0786557f",
+    "timestamp": "2025-12-02 03:48:50.938018",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 94), `timeInfo.parse()` extracts sale rate deltas as int112. Could these values exceed the maximum safe values defined by `MAX_ABS_VALUE_SALE_RATE_DELTA`, causing overflow in downstream calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23a438d8-b96c-47e3-8410-c48af9bc5939",
+    "timestamp": "2025-12-02 03:49:19.980451",
+    "report_generated": false
+  },
+  {
+    "question": "The TimeInfo type packs `numOrders`, `saleRateDeltaToken0`, and `saleRateDeltaToken1` into a single bytes32. Could bit overlap or alignment issues cause these fields to corrupt each other when parsed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13919939-48db-48ac-a2e5-1c86d930e4c3",
+    "timestamp": "2025-12-02 03:49:49.403173",
+    "report_generated": false
+  },
+  {
+    "question": "In `timeInfo.sol` (line 44-52), `createTimeInfo()` masks values with `0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF` (112 bits). Could negative `saleRateDelta` values lose sign information during masking, causing them to be interpreted as large positive values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b7ab266d-5a42-43ec-95a7-8150eb0b9350",
+    "timestamp": "2025-12-02 03:50:19.151775",
+    "report_generated": false
+  },
+  {
+    "question": "In `timeInfo.parse()` (line 31-37 of timeInfo.sol), sign extension is performed with `signextend(13, ...)` for 112-bit signed integers. Could incorrect signextend parameter cause sign bits to be dropped or extended incorrectly, misrepresenting negative sale rate deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aa8a2abc-eea5-47cc-89c4-f9564e40b0c8",
+    "timestamp": "2025-12-02 03:50:48.588330",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()`, the loop terminates when `nextValidTime()` returns 0 or exceeds uint64. Could malicious manipulation of block.timestamp cause the loop to enumerate an unexpected number of times, affecting gas costs predictably for attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7923c48b-a799-440c-be2b-5a9d4d195b9c",
+    "timestamp": "2025-12-02 03:51:18.313333",
+    "report_generated": false
+  },
+  {
+    "question": "In `nextValidTime()` (line 54-60), if `nextStepSize != stepSize`, the calculation is redone. Could rapid changes in step size near time boundaries cause the function to return times that don't align with the expected step size, breaking TWAMM order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a843c948-b16d-4831-a05d-8b92dc191dfb",
+    "timestamp": "2025-12-02 03:51:49.666782",
+    "report_generated": false
+  },
+  {
+    "question": "The `computeStepSize()` function in time.sol rounds MSB down to multiples of 4. Could this rounding cause step sizes to be smaller than expected for certain time differences, leading to more valid times than MAX_NUM_VALID_TIMES allows?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_851301a4-8eab-44c8-9903-172280025600",
+    "timestamp": "2025-12-02 03:52:22.439134",
+    "report_generated": false
+  },
+  {
+    "question": "In `nextValidTime()` (line 44-64 of time.sol), the function uses `computeStepSize()` which applies `clz` to calculate MSB. Could inputs where the MSB calculation is on a boundary cause incorrect step sizes that produce invalid times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d7c10295-250b-4f02-abb2-87a5888d84ad",
+    "timestamp": "2025-12-02 03:52:54.040521",
+    "report_generated": false
+  },
+  {
+    "question": "The `nextValidTime()` function used in `getAllValidFutureTimes()` checks if `nextTime > currentTime + type(uint32).max` and returns 0. Could this limit cause valid times beyond uint32 range to be excluded, making long-term TWAMM orders invisible?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dabffc0d-75d4-4567-9808-25a92c1784a1",
+    "timestamp": "2025-12-02 03:53:24.559705",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()`, storage slots are batch-read via staticcall to TWAMM's `sload()`. Could the TWAMM extension's `IExposedStorage.sload()` implementation have vulnerabilities that allow reading arbitrary storage slots beyond the intended TimeInfo data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3b6db0ee-f5cb-40ac-bc74-df184594dc7d",
+    "timestamp": "2025-12-02 03:53:54.377922",
+    "report_generated": false
+  },
+  {
+    "question": "The TIME_INFOS_OFFSET constant in TWAMMStorageLayout is defined as a specific hash. Could there be hash collisions where `poolId + TIME_INFOS_OFFSET + time` equals a slot used by another protocol component, causing data corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c0ee948-8965-4bc5-bf98-ae309ee40acc",
+    "timestamp": "2025-12-02 03:54:24.219375",
+    "report_generated": false
+  },
+  {
+    "question": "In `TWAMMStorageLayout.poolTimeInfosSlot()` (line 60-64), the assembly calculation `slot := add(poolId, add(TIME_INFOS_OFFSET, time))` is unchecked. Could overflow in this addition cause the calculated slot to point to arbitrary storage locations, enabling storage collision attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6bb4c07e-ce96-461e-bc05-6da4db2d7a65",
+    "timestamp": "2025-12-02 03:54:54.517514",
+    "report_generated": false
   }
 ]
