@@ -9748,5 +9748,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02f6f482-8bf1-4a60-9976-4851d92eae77",
     "timestamp": "2025-12-02 04:38:54.828386",
     "report_generated": false
+  },
+  {
+    "question": "Can the combination of multicall with lock() operations create nested lock states that corrupt accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22338819-6110-4302-a330-082609527be0",
+    "timestamp": "2025-12-02 04:40:14.800785",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a vulnerability where msg.sender changes between multicalled functions could lead to authorization bypasses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4041a1c-bf9a-4dab-af3a-8275db062a58",
+    "timestamp": "2025-12-02 04:40:27.934027",
+    "report_generated": false
+  },
+  {
+    "question": "Can multicalling different functions that modify the same transient storage slots lead to state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_99a8fa52-2956-4161-a91c-5345cea0cb04",
+    "timestamp": "2025-12-02 04:40:41.346436",
+    "report_generated": false
+  },
+  {
+    "question": "Does multicalling BasePositions operations with NATIVE_TOKEN_ADDRESS create any ETH accounting issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f60b591-d45d-4940-8645-b8977cda0149",
+    "timestamp": "2025-12-02 04:40:55.666089",
+    "report_generated": false
+  },
+  {
+    "question": "Can the protocol fee collection in _computeSwapProtocolFees be manipulated through multicall reentrancy?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_48d7172d-3d77-4552-928b-b3c66ba92a1d",
+    "timestamp": "2025-12-02 04:41:10.463014",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a vulnerability where multicalling position operations could corrupt liquidity or fee tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8229fbc-a6ee-49f7-9263-1b60feebb3a5",
+    "timestamp": "2025-12-02 04:41:26.488923",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker use multicall to reenter during CORE.updatePosition() or CORE.collectFees() calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ca6d0af-08be-4ec2-8219-e0935185abce",
+    "timestamp": "2025-12-02 04:41:44.020483",
+    "report_generated": false
+  },
+  {
+    "question": "Does multicalling withdraw() and collectFees() in the same transaction create double-withdrawal vulnerabilities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ec8297e-11c0-44eb-96a0-2e600d1e56c6",
+    "timestamp": "2025-12-02 04:42:03.918976",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.deposit() be exploited through reentrancy when multicalled with malicious tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f2f2262-8545-47df-8101-4ba46f1542d1",
+    "timestamp": "2025-12-02 04:42:24.795961",
+    "report_generated": false
+  },
+  {
+    "question": "Can the authorizedForNft modifier be bypassed through clever multicall sequencing in Orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5200afbe-6ef5-4e4c-858c-0568c58177b5",
+    "timestamp": "2025-12-02 04:42:47.104666",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a vulnerability where multicalling order operations could corrupt the sale rate or amount sold tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b016cab1-d4fe-41f9-9cf4-21d417cea722",
+    "timestamp": "2025-12-02 04:43:10.538596",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker multicall collectProceeds() to collect the same proceeds multiple times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_45fd64a4-679b-4903-bf55-76a747567d76",
+    "timestamp": "2025-12-02 04:43:35.487033",
+    "report_generated": false
+  },
+  {
+    "question": "Does the Orders contract's interaction with TWAMM_EXTENSION through multicall create any reentrancy vulnerabilities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29bf0809-1af2-41c6-b0fa-f0dd51fef0bc",
+    "timestamp": "2025-12-02 04:44:01.290314",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.increaseSellAmount() or decreaseSaleRate() be exploited through reentrancy when multicalled?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca9a11ff-f4b7-435e-aead-9e56b1d943c9",
+    "timestamp": "2025-12-02 04:44:29.314399",
+    "report_generated": false
+  },
+  {
+    "question": "Does multicalling Router.swap() with different recipients create any state corruption or fund theft opportunities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8134918d-2188-49b2-afa0-2c7314b200a0",
+    "timestamp": "2025-12-02 04:44:57.690173",
+    "report_generated": false
+  },
+  {
+    "question": "Can the payable multicall be used to exploit the native token handling logic in Router.swap() with NATIVE_TOKEN_ADDRESS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa00960c-48a8-4fc6-9bbc-faa9a78d8a03",
+    "timestamp": "2025-12-02 04:45:27.566544",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a vulnerability in Router's multihopSwap where multicalling could corrupt the totalCalculated or totalSpecified state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_448eeaa0-df58-4d34-830e-1c14031a92e2",
+    "timestamp": "2025-12-02 04:45:58.547516",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker use multicall to reenter Router operations during the ACCOUNTANT.withdraw() or ACCOUNTANT.payFrom() calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cdd99de4-39b4-4a7f-8da6-7c9052a5fdf4",
+    "timestamp": "2025-12-02 04:46:30.702522",
+    "report_generated": false
+  },
+  {
+    "question": "Does the Router's handleLockData function properly guard against reentrancy when multicalled with different CALL_TYPE values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd98575c-5d5e-429e-872c-90be1395533b",
+    "timestamp": "2025-12-02 04:47:03.887314",
+    "report_generated": false
+  },
+  {
+    "question": "Can Router.swap() be exploited through reentrancy by multicalling it with malicious token contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_82cdc7a6-b3c9-43be-af13-cac69daab993",
+    "timestamp": "2025-12-02 04:47:37.906620",
+    "report_generated": false
+  },
+  {
+    "question": "Does refundNativeToken() properly handle the case where address(this).balance includes ETH from FlashAccountant debt settlements?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1af0ee3e-9add-4f9e-a747-4620ee9bb89c",
+    "timestamp": "2025-12-02 04:48:14.601478",
+    "report_generated": false
+  },
+  {
+    "question": "Can the combination of PayableMulticallable and FlashAccountant's receive() function lead to ETH being locked or lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ce8813d1-a62c-42a3-a3f3-3ac1e35b04ae",
+    "timestamp": "2025-12-02 04:48:51.066277",
+    "report_generated": false
+  },
+  {
+    "question": "Is the refundNativeToken() function vulnerable to griefing attacks by repeatedly calling it in a multicall?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c157743-d0d5-42cc-8bb3-56677ae861d6",
+    "timestamp": "2025-12-02 04:49:27.775307",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker multicall operations that intentionally leave ETH in the contract, then call refundNativeToken() to steal it?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4ebe1bdd-5565-42fb-bf9f-1919e5f320ff",
+    "timestamp": "2025-12-02 04:50:05.837664",
+    "report_generated": false
+  },
+  {
+    "question": "Does the ETH refund mechanism properly account for transient debts in FlashAccountant when called mid-transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23f085a7-8625-48c1-9b58-c584fc7eac08",
+    "timestamp": "2025-12-02 04:50:45.002076",
+    "report_generated": false
   }
 ]
