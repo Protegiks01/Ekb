@@ -12598,5 +12598,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a87df79-10eb-4f4a-9541-dd50546f63df",
     "timestamp": "2025-12-02 07:57:27.606639",
     "report_generated": false
+  },
+  {
+    "question": "In lines 281-293, the `currentState` is updated with `addSaleRateDelta(rate, saleRateDelta)`. Can an attacker craft `saleRateDelta` values that, when combined with existing rates, cause the `addSaleRateDelta` function to pass validation but result in a total sale rate that breaks assumptions in `computeNextSqrtRatio`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d353025b-0da2-486c-92fd-fc660f7c397b",
+    "timestamp": "2025-12-02 07:58:43.974761",
+    "report_generated": false
+  },
+  {
+    "question": "In the `durationRemaining` calculation (line 302), `endTime - max(block.timestamp, startTime)` is used. Can an attacker exploit uint256 wraparound if `endTime < max(block.timestamp, startTime)` due to timestamp manipulation or corrupted order config, causing massive `amountRequired` calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_136ae3b8-254c-46be-ae71-44d1c53f7e84",
+    "timestamp": "2025-12-02 07:58:57.176406",
+    "report_generated": false
+  },
+  {
+    "question": "In the `amountRequired` calculation (lines 305-306), `computeAmountFromSaleRate` is called with `roundUp: true`. If `saleRateNext` is type(uint112).max and `durationRemaining` is type(uint32).max, can this overflow despite the roundUp parameter, leading to incorrect fee calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eaea2438-5b1f-402d-a9d4-adbea4f9be79",
+    "timestamp": "2025-12-02 07:59:11.610737",
+    "report_generated": false
+  },
+  {
+    "question": "In the fee deduction logic (lines 319-330), when `amountDelta < 0` (user withdrawing), a fee is computed using `computeFee(uint128(uint256(-amountDelta)), poolKey.config.fee())`. Can the uint128 downcast truncate large withdrawals, causing users to pay insufficient fees and drain pool value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6a1fd2e5-c1f8-490d-9ea3-f2c3efe53a8b",
+    "timestamp": "2025-12-02 07:59:25.881052",
+    "report_generated": false
+  },
+  {
+    "question": "In line 323, `CORE.accumulateAsFees` is called with the computed fee, but line 324 calls `CORE.updateSavedBalances` with `amountDelta` (the negative value before fee deduction). Should the saved balance update use `amountDelta + fee` to account for the fee? Does the current implementation cause accounting discrepancies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_265a676d-528f-4105-a28f-9968b2d7b476",
+    "timestamp": "2025-12-02 07:59:41.132393",
+    "report_generated": false
+  },
+  {
+    "question": "In the fee addition logic (line 330), `amountDelta += int128(fee)` modifies the delta after calling `accumulateAsFees` and `updateSavedBalances`. Can this sequencing cause flash accounting imbalances where the fee is double-counted or not properly tracked in the Core's delta system?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a91da420-6ce2-4ad5-b664-7f2e3d0eda2a",
+    "timestamp": "2025-12-02 07:59:57.788721",
+    "report_generated": false
+  },
+  {
+    "question": "In the deposit path (lines 331-337) where `amountDelta >= 0`, no fee is charged. Can an attacker exploit this by repeatedly cancelling and recreating orders to move tokens in and out of the pool without paying fees, effectively using TWAMM as a fee-free swap mechanism?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dbfeb3d0-0de6-43a5-b987-296b38527d28",
+    "timestamp": "2025-12-02 08:00:15.854457",
+    "report_generated": false
+  },
+  {
+    "question": "In the withdraw proceeds logic (lines 342-379, callType 1), the function loads `orderStateSlot` and `orderRewardRateSnapshotSlot` but doesn't verify that `order.saleRate() > 0` (line 361). Can an attacker call this on a cancelled order (saleRate = 0) and manipulate the reward calculation to extract value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_29189305-294c-489c-9b75-0597fcbced3d",
+    "timestamp": "2025-12-02 08:00:35.736759",
+    "report_generated": false
+  },
+  {
+    "question": "In the proceeds withdrawal (line 361), `purchasedAmount` is computed using the order's current `saleRate()`. If the order was previously cancelled (saleRate set to 0 in a prior transaction), can the `computeRewardAmount` function produce non-zero results due to stale `rewardRateInside` values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc6b76fd-cf14-4c85-b4d1-b1ae6029d486",
+    "timestamp": "2025-12-02 08:00:57.479110",
+    "report_generated": false
+  },
+  {
+    "question": "In line 363, `orderRewardRateSnapshotSlot.store(bytes32(rewardRateInside))` updates the snapshot regardless of whether `purchasedAmount != 0`. Can an attacker spam withdraw calls with zero amounts to manipulate the snapshot value and affect future reward calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c5c3d130-c3c4-4aec-b0a3-a863c025a37c",
+    "timestamp": "2025-12-02 08:01:19.882130",
+    "report_generated": false
+  },
+  {
+    "question": "In the balance update (lines 367-373), `CORE.updateSavedBalances` is called with `-int256(purchasedAmount)`. Can this cause the pool's saved balance to go negative if `purchasedAmount` exceeds the actual pool reserves, violating the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_82eea7b1-6a8f-41ef-8edc-570bb2057d36",
+    "timestamp": "2025-12-02 08:01:43.605861",
+    "report_generated": false
+  },
+  {
+    "question": "In the `OrderProceedsWithdrawn` event emission (line 377), `original.addr()` is used as the address parameter instead of the stored `owner` from the function start. If the locker system allows delegation, can this log the wrong address and create accounting confusion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_45ad4c7d-862c-4206-ac65-18e7002dcbad",
+    "timestamp": "2025-12-02 08:02:08.682321",
+    "report_generated": false
+  },
+  {
+    "question": "In `_executeVirtualOrdersFromWithinLock` (line 386), the function loads `TwammPoolState` and checks if it's zero (line 395). If an attacker can manipulate timestamps to align `lastVirtualOrderExecutionTime` with a uint32 boundary precisely when sale rates are zero, can they bypass the pool initialization check and execute on an uninitialized pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5391865f-7060-423f-bd4d-a59feb1bdb96",
+    "timestamp": "2025-12-02 08:02:37.900020",
+    "report_generated": false
+  },
+  {
+    "question": "In line 401, `realLastVirtualOrderExecutionTime` is computed using a view function that performs modular arithmetic with `block.timestamp`. Can timestamp manipulation by miners within the ~15-second Ethereum variance cause this value to skip over initialized times, preventing virtual orders from executing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39497606-2cb9-46cc-b9a0-695ef11150c5",
+    "timestamp": "2025-12-02 08:03:05.427625",
+    "report_generated": false
+  },
+  {
+    "question": "In the execution guard (line 404), virtual orders are skipped if already executed in the current block (`realLastVirtualOrderExecutionTime == block.timestamp`). Can an attacker front-run victim swaps with a `lockAndExecuteVirtualOrders` call to prevent the victim's transaction from triggering virtual order execution, manipulating execution timing to their advantage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ad18cff6-eea9-499d-8a62-cddc4a5bec2c",
+    "timestamp": "2025-12-02 08:03:35.304799",
+    "report_generated": false
+  },
+  {
+    "question": "In the reward rate tracking (lines 406-410), `rewardRate0Access` and `rewardRate1Access` use a 0/1/2 state system. Can race conditions in multi-call scenarios cause these access flags to be set incorrectly, leading to reward rates being loaded but not stored, losing accumulated rewards?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c26ca0bc-e2f6-4c64-8dc1-ac0ea8c58900",
+    "timestamp": "2025-12-02 08:04:04.541418",
+    "report_generated": false
+  },
+  {
+    "question": "In the time iteration loop (lines 417-574), `time` advances from `realLastVirtualOrderExecutionTime` to `block.timestamp`. If `block.timestamp` overflows uint32, can the loop iterate forever or an incorrect number of times, causing DoS or incorrect reward accumulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_121eca01-f3ca-4e71-8932-97ca13bfb279",
+    "timestamp": "2025-12-02 08:04:34.801953",
+    "report_generated": false
+  },
+  {
+    "question": "In `searchForNextInitializedTime` (lines 420-425), the function searches from `time` to `block.timestamp`. Can an attacker place orders at very granular time intervals to force this search to iterate through many uninitialized times, causing excessive gas consumption and DoS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e88bf4a-d217-4532-b6fe-5839e41b2bf2",
+    "timestamp": "2025-12-02 08:05:07.426613",
+    "report_generated": false
+  },
+  {
+    "question": "In the time elapsed calculation (line 428), `timeElapsed = nextTime - time` is assumed to never exceed type(uint32).max per the code comment. Can an attacker manipulate the bitmap to return a `nextTime` value that causes overflow in this subtraction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ddbc1572-e623-44f0-a629-872742b4f5f0",
+    "timestamp": "2025-12-02 08:05:41.642991",
+    "report_generated": false
+  },
+  {
+    "question": "In the amount calculations (lines 430-436), `computeAmountFromSaleRate` is called with `roundUp: false` for both tokens. Can this consistent rounding direction cause accumulated precision loss over many time periods, allowing orders to execute with less sold than required or more purchased than deserved?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_40f33b3c-2442-4945-a5dd-858b1cd4d863",
+    "timestamp": "2025-12-02 08:06:17.034575",
+    "report_generated": false
+  },
+  {
+    "question": "In the bidirectional swap check (line 441), both amounts are verified as non-zero before executing. However, if one amount is zero due to rounding in `computeAmountFromSaleRate`, the pool state still advances to `nextTime`. Can this create temporal gaps where sale rates are active but no swaps occur, violating time-weighted averaging assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4298ccb7-9516-4de5-b216-8ce34894b542",
+    "timestamp": "2025-12-02 08:06:51.419405",
+    "report_generated": false
+  },
+  {
+    "question": "In the sqrt ratio computation (lines 445-452), `computeNextSqrtRatio` is called with the current pool state. Can an attacker manipulate the pool's liquidity to near-zero before virtual order execution, causing `computeNextSqrtRatio` to return extreme values that break sqrtRatio bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39b5b132-587a-4e58-bd4a-e2236278d809",
+    "timestamp": "2025-12-02 08:07:24.882489",
+    "report_generated": false
+  },
+  {
+    "question": "In the swap execution (lines 454-477), the function performs swaps with `skipAhead: 0`. Can an attacker deliberately fragment liquidity across many ticks to force virtual order swaps to cross excessive ticks, consuming all available gas and causing the `lockAndExecuteVirtualOrders` call to revert, freezing the extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9b0b21d7-67bc-4829-be21-5a35154c59d1",
+    "timestamp": "2025-12-02 08:07:59.345932",
+    "report_generated": false
+  },
+  {
+    "question": "In line 461, when swapping token1, the `_amount` parameter is set to `int128(uint128(amount1))`. Can `amount1` exceed type(uint128).max due to accumulated sale rates over multiple periods, causing the uint128 cast to truncate and execute a smaller swap than intended?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_86779ed7-9acd-4341-82e6-41e6847b8137",
+    "timestamp": "2025-12-02 08:08:35.819699",
+    "report_generated": false
+  },
+  {
+    "question": "In the swap balance update tracking (lines 479-480), `saveDelta0 -= swapBalanceUpdate.delta0()` accumulates deltas across multiple time periods. Can this accumulation overflow or underflow if hundreds of time periods are crossed in a single call, corrupting the final balance update?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_de35b613-d898-4e7b-ac91-e21876fcf34a",
+    "timestamp": "2025-12-02 08:09:11.100163",
+    "report_generated": false
   }
 ]
