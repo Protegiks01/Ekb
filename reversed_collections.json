@@ -14548,5 +14548,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94e5843a-8831-4ba2-a90c-7823f4e93747",
     "timestamp": "2025-12-02 11:20:34.185490",
     "report_generated": false
+  },
+  {
+    "question": "If CoreLib.swap() is called multiple times within a single lock, and each swap modifies pool balances, could delta accumulation in FlashAccountant overflow or underflow, bypassing settlement checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18fae768-75ec-4c66-8632-13566de03b4d",
+    "timestamp": "2025-12-02 11:21:49.629319",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.getPoolFeesPerLiquidity() is called to estimate fee APY, could an attacker inflate fees-per-liquidity by donating to the pool, causing misleading oracle data for dependent protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06a29bd8-32b5-4185-bb92-8fb5ab6dbab7",
+    "timestamp": "2025-12-02 11:22:03.634309",
+    "report_generated": false
+  },
+  {
+    "question": "If an extension relies on CoreLib.poolState() to compute TWAP, could flash loan swaps that temporarily move sqrtRatio manipulate the oracle by reading state at specific block timestamps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_798bf175-e339-462b-825f-bf4cb7bfdcf0",
+    "timestamp": "2025-12-02 11:22:16.971338",
+    "report_generated": false
+  },
+  {
+    "question": "If a position NFT is transferred mid-transaction, and CoreLib.poolPositions() is called with the old owner, could stale position data be returned, allowing the old owner to claim fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d98188f2-0447-4f29-b20e-7b9a53d7ee8b",
+    "timestamp": "2025-12-02 11:22:30.892130",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.poolPositions() is called with an owner address that has been compromised, could the attacker read position data and use it to front-run fee collection or position closure?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fef87ff0-7d73-4fe2-aa48-58f1270b961b",
+    "timestamp": "2025-12-02 11:22:45.702499",
+    "report_generated": false
+  },
+  {
+    "question": "If TWAMM extension calls CoreLib.swap() to execute virtual orders, and the swap triggers another extension's hooks, could nested CoreLib calls cause stack overflow or unexpected state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a4b0b9f-1ffd-4093-bac4-85903c04adfe",
+    "timestamp": "2025-12-02 11:23:01.598752",
+    "report_generated": false
+  },
+  {
+    "question": "If an extension calls CoreLib.isExtensionRegistered() within its own beforeInitializePool hook, could this create circular logic if the registration check itself triggers extension code?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bd1545a9-caef-4307-b172-e9e93ec39731",
+    "timestamp": "2025-12-02 11:23:18.922851",
+    "report_generated": false
+  },
+  {
+    "question": "If an extension's beforeSwap hook calls CoreLib.poolState() to check pool state, then Core.swap() modifies the state, could the extension's afterSwap hook observe an invalid state transition?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6cea6196-1fdf-49d9-bc1e-c559f75b1df7",
+    "timestamp": "2025-12-02 11:23:38.421262",
+    "report_generated": false
+  },
+  {
+    "question": "If Core.sol accumulates fees and updates poolFeesPerLiquidity, could CoreLib.getPoolFeesPerLiquidity() called mid-transaction return fees that don't match the delta tracking in FlashAccountant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_83ffd0eb-b754-4be2-99eb-d9f19723e39b",
+    "timestamp": "2025-12-02 11:23:59.783109",
+    "report_generated": false
+  },
+  {
+    "question": "If Core.sol's swap crosses a tick and updates poolTicks storage, and CoreLib.poolTicks() is called concurrently in an afterSwap hook, could liquidityNet be inconsistent with the new pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b771e0d3-563c-4b5a-9aee-0d828db736ac",
+    "timestamp": "2025-12-02 11:24:24.252294",
+    "report_generated": false
+  },
+  {
+    "question": "If Core.sol's updatePosition() modifies poolPositions storage while CoreLib.poolPositions() is being called in a callback, could the read return half-updated data due to storage slot ordering?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23a78a37-edd1-47d2-a0eb-dc93181d43e3",
+    "timestamp": "2025-12-02 11:24:50.064751",
+    "report_generated": false
+  },
+  {
+    "question": "If getPoolFeesPerLiquidity() is called for a pool where fees have accumulated to near type(uint256).max, could the next fee accumulation overflow and reset fees to 0, causing LP losses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e40aaa68-21ae-48c1-9c4a-253cff3260cf",
+    "timestamp": "2025-12-02 11:25:17.439731",
+    "report_generated": false
+  },
+  {
+    "question": "If savedBalances() is called with token0 = token1 = address(0), does the function revert, or could it read from a predictable slot allowing balance manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bfd773b6-dc54-4102-964b-7e479b9f7c6b",
+    "timestamp": "2025-12-02 11:25:45.107607",
+    "report_generated": false
+  },
+  {
+    "question": "If poolTicks() is called for tick = MAX_TICK, could the storage slot calculation overflow and read tick data from a different pool or uninitialized storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f72680a-2356-4cbc-8db0-9542989f53e4",
+    "timestamp": "2025-12-02 11:26:14.667031",
+    "report_generated": false
+  },
+  {
+    "question": "If poolState() is called for a pool at exactly MAX_SQRT_RATIO - 1, and the packed state has rounding errors, could the extracted sqrtRatio exceed MAX_SQRT_RATIO, violating the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9d126d0b-617c-436f-a9a0-1abbd3460a97",
+    "timestamp": "2025-12-02 11:26:44.537288",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.swap() is called with very large returndata from Core due to a verbose revert message, could the returndatacopy (line 140) consume excessive gas and prevent legitimate swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7fe72846-19f4-4c86-be7c-047ffd1ab0d3",
+    "timestamp": "2025-12-02 11:27:16.187313",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.poolPositions() is called for a position with many fee updates, could the three-slot sload be expensive enough to prevent position withdrawal within block gas limits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a43b0c6-31b8-42f4-8dcd-18bb01a1f9dd",
+    "timestamp": "2025-12-02 11:27:47.899821",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.getPoolFeesPerLiquidity() is called for many pools in a loop, could the repeated staticcall overhead cause transactions to run out of gas, especially if Core's sload is inefficient?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3bf596e8-3d5a-44e1-994b-a335484cd846",
+    "timestamp": "2025-12-02 11:28:21.749265",
+    "report_generated": false
+  },
+  {
+    "question": "When PoolState.wrap() is called with a bytes32 read from storage, if the storage contains invalid packed data, does the wrap operation validate the data or blindly trust it?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bcb0bd34-0d7c-4105-8a51-6814ab0587aa",
+    "timestamp": "2025-12-02 11:28:55.209791",
+    "report_generated": false
+  },
+  {
+    "question": "When StorageSlot (bytes32) is cast to uint256 for arithmetic, then back to StorageSlot, could the round-trip lose information if the slot value has special meaning?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3acafddd-6d63-4a4e-b9e0-3364f379cbdc",
+    "timestamp": "2025-12-02 11:29:29.317321",
+    "report_generated": false
+  },
+  {
+    "question": "When CoreLib functions cast bytes32 to uint256, if the bytes32 contains dirty upper bits (not cleaned by Core), could the uint256 value be unexpectedly large, causing overflow in arithmetic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_74556ca3-4386-45a3-be98-d50c6f8b816a",
+    "timestamp": "2025-12-02 11:30:04.502300",
+    "report_generated": false
+  },
+  {
+    "question": "In swap() line 140, if returndatacopy fails due to insufficient memory, could the revert be silently skipped, causing the function to continue with invalid balanceUpdate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c7993be-979b-439c-ac6f-128ecd730f1c",
+    "timestamp": "2025-12-02 11:30:39.488217",
+    "report_generated": false
+  },
+  {
+    "question": "In poolPositions() assembly (lines 69-72), memory is written with mstore. If the position parameter is not properly memory-allocated, could this overwrite other local variables or return data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb2f00ec-15af-4020-8e97-7d8c57418e9d",
+    "timestamp": "2025-12-02 11:31:14.041828",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.swap() assembly (lines 127-148), mload(0x40) is used to get the free memory pointer. If external code has corrupted the free pointer, could subsequent memory operations overwrite critical data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8bb0e2a6-5937-4e54-be82-319eb27a7b82",
+    "timestamp": "2025-12-02 11:31:46.988875",
+    "report_generated": false
+  },
+  {
+    "question": "Could the range of tick bitmap slots [BITMAPS_OFFSET + FIRST_BITMAP_WORD, BITMAPS_OFFSET + LAST_BITMAP_WORD] overlap with fees-per-liquidity-outside slots for extreme tick values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e5b5c5b-930f-4d11-8f77-259ac98403ec",
+    "timestamp": "2025-12-02 11:32:20.946443",
+    "report_generated": false
   }
 ]
