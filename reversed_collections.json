@@ -6598,5 +6598,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_98aa3aab-01ea-4acc-b253-b61eb0b7cf37",
     "timestamp": "2025-12-02 00:42:35.943867",
     "report_generated": false
+  },
+  {
+    "question": "In Oracle.logicalIndexToStorageIndex() (line 49), the comment states 'We assume index < count and logicalIndex < count'. If OracleLib functions pass invalid values where `index >= count`, could the modulo operation return an incorrect storage index, causing snapshot reads to access the wrong circular buffer slot and corrupt TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_439d6de2-1c4d-47bb-a34c-37a9d3b2c31f",
+    "timestamp": "2025-12-02 00:43:50.742241",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.logicalIndexToStorageIndex() (line 49), the function computes `(index + 1 + logicalIndex) % count`. If `count` is 0 (before initialization), this will cause a division by zero panic. Can OracleLib.getEarliestSnapshotTimestamp() call this before checking `c.count() == 0`, causing DOS of oracle queries for uninitialized tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_469ddf9c-4363-4733-bd40-9b8c3964b60d",
+    "timestamp": "2025-12-02 00:44:03.932504",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getMaximumObservationPeriod() (line 51), if `earliest > block.timestamp`, the function returns 0. However, this could occur legitimately after a timestamp wraparound at 2^32. Could dependent protocols misinterpret this as 'no data available' and fall back to spot prices, enabling sandwich attacks during the wraparound period?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_89d947a7-d7c5-4de5-88c6-58dd84716bcf",
+    "timestamp": "2025-12-02 00:44:17.549233",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getMaximumObservationPeriod() (line 52), the return value is cast to uint32. If `block.timestamp - earliest` exceeds 2^32, the cast will truncate the upper bits. Could this truncation cause the function to report a shorter observation period than actually exists, allowing attackers to manipulate TWAP by including only recent volatile snapshots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2392b989-1ebf-4b87-8666-c2eb9e0c3be0",
+    "timestamp": "2025-12-02 00:44:31.552548",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getEarliestSnapshotTimestamp() (line 40), if `c.count() == 0`, the function returns `type(uint256).max`. If a dependent protocol doesn't handle this sentinel value correctly and subtracts it from block.timestamp in getMaximumObservationPeriod(), could this cause an underflow that's interpreted as a very long observation period, allowing manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e9a384b-dfa5-4a47-a3f2-5b0bbbf700e5",
+    "timestamp": "2025-12-02 00:44:47.343406",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getEarliestSnapshotTimestamp() (line 35), if token equals NATIVE_TOKEN_ADDRESS, the function returns 0 immediately. Since dependent protocols may use this to check data availability, could an attacker exploit this special case by querying NATIVE_TOKEN_ADDRESS and receiving a timestamp of 0, bypassing freshness checks in their TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3666e962-181f-4fa2-89c2-54834aa94cca",
+    "timestamp": "2025-12-02 00:45:03.570527",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getEarliestSnapshotTimestamp() (line 44), if `snapshot.timestamp()` (uint32) is close to wrapping at 2^32 and `uint32(block.timestamp)` has already wrapped past zero, the subtraction `uint32(block.timestamp) - snapshot.timestamp()` could underflow in uint32 arithmetic. Does the unchecked block prevent this from reverting, potentially returning an incorrect earliest timestamp?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc276f53-4dd4-4d6e-b5a9-8eca88254fad",
+    "timestamp": "2025-12-02 00:45:21.477039",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getEarliestSnapshotTimestamp() (line 44), the function computes `block.timestamp - (uint32(block.timestamp) - snapshot.timestamp())`. This involves casting block.timestamp (uint256) to uint32. When block.timestamp exceeds 2^32 seconds (~year 2106), the cast will wrap. Could this wraparound cause the function to return a timestamp in the far future, breaking all oracle queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73c40960-d2ef-40f0-b9bf-9058786268db",
+    "timestamp": "2025-12-02 00:45:42.057461",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.snapshots() (line 30), what prevents an attacker from calling this with an `index` value that hasn't been initialized yet in Oracle.expandCapacity()? Could reading an uninitialized storage slot (which returns 0) be misinterpreted as a valid snapshot with timestamp=0, breaking binary search logic in Oracle.searchRangeForPrevious()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_03974476-eb05-4150-8355-45c8487f9edc",
+    "timestamp": "2025-12-02 00:46:04.083268",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.counts() (line 21), the function uses `oracle.sload()` which is a staticcall to the Oracle contract. If the Oracle contract is upgraded or self-destructs between the call and storage read, could this cause the function to return stale or incorrect Counts data that breaks TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3b07e96f-84a2-4a7b-816a-fd347e960742",
+    "timestamp": "2025-12-02 00:46:26.885978",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.snapshots() (line 30), the index is OR'd with the shifted token address without bounds checking. If `index` exceeds 2^32-1, could the upper bits overflow into the token address portion of the storage slot calculation, causing reads from incorrect storage locations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e76a954-f6ea-43f7-8802-54bfdbeef09e",
+    "timestamp": "2025-12-02 00:46:51.523415",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.snapshots() (line 29-31), the storage slot formula `(uint256(uint160(token)) << 32) | uint256(index)` left-shifts the token address by 32 bits. If two token addresses differ only in their upper 96 bits (beyond bit 160), could they produce colliding storage slots for the same index, corrupting snapshot data across different oracle pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb180dc0-14a8-487c-9573-be01d0d61e5e",
+    "timestamp": "2025-12-02 00:47:16.651990",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.counts() (line 20-22), the storage slot is calculated as `bytes32(uint256(uint160(token)))`. Could an attacker deploy a malicious token contract where the address, when cast to uint160 then uint256, collides with another token's storage slot, allowing them to corrupt or read another token's oracle counts data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cbba401f-a5be-4554-b30f-cb509913f7b4",
+    "timestamp": "2025-12-02 00:47:44.627336",
+    "report_generated": false
+  },
+  {
+    "question": "If the Incentives contract uses a proxy pattern (EIP-1967), could IncentivesLib's direct storage reads via `sload()` bypass the proxy and read from the implementation contract's storage instead of the proxy's storage, returning stale or incorrect data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e4308260-f3d1-4418-92eb-4e70e99b4c7b",
+    "timestamp": "2025-12-02 00:48:12.473036",
+    "report_generated": false
+  },
+  {
+    "question": "In production, could the Incentives contract be paused or upgraded while external contracts still hold references to old IncentivesLib calls, causing view functions to read from deprecated storage layouts and return incorrect claim statuses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_835562a1-b9c4-4831-9706-dfc508405455",
+    "timestamp": "2025-12-02 00:48:39.460076",
+    "report_generated": false
+  },
+  {
+    "question": "The `IncentivesLib` functions don't validate that the `DropKey` has been funded. Could an attacker query `isAvailable()` for a never-funded drop and receive incorrect results due to uninitialized storage returning zeros?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d4522d0-9023-490e-a1bd-7b0714399078",
+    "timestamp": "2025-12-02 00:49:08.630269",
+    "report_generated": false
+  },
+  {
+    "question": "In `IncentivesDataFetcher.sol:areClaimsAvailable()` at lines 177-188, it checks if indices and amounts arrays have matching lengths. If they match but contain thousands of elements, could this function exceed the block gas limit, DOS-ing any external contract that relies on it?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5df9f9d4-4f15-4727-bf55-06bf21bacfbe",
+    "timestamp": "2025-12-02 00:49:39.078275",
+    "report_generated": false
+  },
+  {
+    "question": "Given that IncentivesLib provides view functions for off-chain clients, could an attacker exploit subtle differences between on-chain execution and off-chain simulation (e.g., different gas costs, state changes) to make claims appear available off-chain but fail on-chain?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_861c51e0-8ff0-4e55-ac3e-8a57652cb0b9",
+    "timestamp": "2025-12-02 00:50:10.926279",
+    "report_generated": false
+  },
+  {
+    "question": "In `isAvailable()` at lines 77-80, it makes two separate `sload()` calls (one for bitmap, one for drop state). Could the storage values change between these calls (if another transaction modifies state), returning an inconsistent availability status?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0544ecee-5eda-4d9b-9ee4-e9053f82224f",
+    "timestamp": "2025-12-02 00:50:39.609276",
+    "report_generated": false
+  },
+  {
+    "question": "The library assumes the `IIncentives` contract implements `sload()` correctly. Could a malicious or buggy Incentives implementation return incorrect storage values, and would IncentivesLib have any way to detect or mitigate this?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bdddfd47-a2e4-408d-b0a3-8b15804652c3",
+    "timestamp": "2025-12-02 00:51:07.836709",
+    "report_generated": false
+  },
+  {
+    "question": "In `getClaimedBitmap()` at line 46, it computes `dropId` from the provided `key`. If a contract caches `DropKey` values between transactions, could the cached key become stale (e.g., if root is updated), causing incorrect bitmap reads?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_da18dca2-f66f-4412-939c-30a938cc84c6",
+    "timestamp": "2025-12-02 00:51:37.256680",
+    "report_generated": false
+  },
+  {
+    "question": "The `IncentivesLib` library uses `using ExposedStorageLib for *` at line 14. Could this wildcard import cause namespace collisions if another library also defines `sload()`, leading to incorrect storage reads?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3672d96-5a49-4e93-bda4-3955b559ae1c",
+    "timestamp": "2025-12-02 00:52:07.748996",
+    "report_generated": false
+  },
+  {
+    "question": "In `IncentivesLib`, all functions are `internal view`, meaning they can only be called by contracts that import the library. Could a malicious contract import IncentivesLib and use it to read sensitive claim data from Incentives, then use this data to front-run legitimate claims?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d3a627cd-4233-409b-94e8-2f429edf60d1",
+    "timestamp": "2025-12-02 00:52:36.724680",
+    "report_generated": false
+  },
+  {
+    "question": "In `Incentives.sol:claim()`, the function validates proof against `key.root` from the provided `DropKey`. Could an attacker call `claim()` with a modified `DropKey` (different root) that has the same `toDropId()`, bypassing proof validation while accessing the original drop's funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ee10fd9b-f319-4c21-9ee3-0d104855487b",
+    "timestamp": "2025-12-02 00:53:06.303042",
+    "report_generated": false
+  },
+  {
+    "question": "In `toClaimId()` at `claimKey.sol:19-24`, it hashes 96 bytes assuming no dirty upper bits in `account`. Could an attacker pass a ClaimKey with dirty bits to generate a valid proof for one hash, but claim with a different hash that maps to an unclaimed index?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f3cf08e-d865-4f1e-969d-1364e6e50e48",
+    "timestamp": "2025-12-02 00:53:36.527465",
+    "report_generated": false
   }
 ]
