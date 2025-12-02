@@ -9598,5 +9598,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6ab2190-6308-46e6-8bf7-8fd895062d61",
     "timestamp": "2025-12-02 04:27:47.472861",
     "report_generated": false
+  },
+  {
+    "question": "At line 114, skipAhead is calculated as `uint256(uint32(toTick - fromTick)) / (uint256(tickSpacing) * 256)`. If toTick and fromTick are far apart with small tickSpacing, could skipAhead be insufficient, causing prevInitializedTick to return ticks just before toTick repeatedly, creating an infinite or extremely long loop?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ec6a7194-c481-45a4-b4b9-f37663c4e70f",
+    "timestamp": "2025-12-02 04:28:52.111879",
+    "report_generated": false
+  },
+  {
+    "question": "The loop at line 112 continues while `toTick >= fromTick`. If fromTick is MIN_TICK (-88722835) and toTick is MAX_TICK (88722835), could the loop attempt to iterate through ~177M potential ticks, causing guaranteed out-of-gas for full-range queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_658f7c65-8e8b-4b8e-bac5-831dad3ab88c",
+    "timestamp": "2025-12-02 04:29:05.586647",
+    "report_generated": false
+  },
+  {
+    "question": "In _getInitializedTicksInRange() at lines 112-127, the while loop iterates backwards from toTick to fromTick. For a pool with many initialized ticks (e.g., 10,000+), could this loop consume excessive gas and revert, effectively DOSing quote data fetching for high-activity pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db982382-3590-449c-9d50-994932cd0fc1",
+    "timestamp": "2025-12-02 04:29:19.031984",
+    "report_generated": false
+  },
+  {
+    "question": "At line 134, values are popped from the packedTicks array and unpacked. Could the pop operation return values in a different order than they were pushed, causing ticks to be returned in the wrong order or with mismatched liquidityDelta values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37f0d1fb-0227-451b-95f2-a6c05bfef00f",
+    "timestamp": "2025-12-02 04:29:33.240913",
+    "report_generated": false
+  },
+  {
+    "question": "In the assembly block at lines 120-122, the packed value is created then pushed to packedTicks array at line 123. Could there be a mismatch between the assembly-created value and what DynamicArrayLib.p() expects, potentially corrupting the dynamic array's internal state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a94ee955-e213-4bf7-b53f-230683f37714",
+    "timestamp": "2025-12-02 04:29:48.186695",
+    "report_generated": false
+  },
+  {
+    "question": "The liquidityDelta unpacking at line 139 uses `liquidityDelta := and(packed, 0xffffffffffffffffffffffffffffffff)`. Could this AND operation strip the sign bit of negative liquidityDelta values, converting them to positive and misleading off-chain systems about liquidity removal vs addition?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7c83f41-bcac-4f5c-9578-c4e68aee8c00",
+    "timestamp": "2025-12-02 04:30:05.490661",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 138-139, the unpacking uses `tickNumber := shr(128, packed)` without sign extension. Since tick is int32 (signed), could this right shift fail to sign-extend, causing negative ticks to be interpreted as large positive values when returned in the TickDelta array?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_62f7ff27-3a87-4d03-beb1-52f810f34408",
+    "timestamp": "2025-12-02 04:30:23.029070",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly packing at line 121 uses `and(liquidityDelta, 0xffffffffffffffffffffffffffffffff)` to mask the lower 128 bits. If liquidityDelta is negative (int128 with high bit set), could the AND operation fail to preserve the sign, corrupting the liquidity delta value when unpacked?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aca0d7a5-223f-422d-842a-855214503556",
+    "timestamp": "2025-12-02 04:30:43.230637",
+    "report_generated": false
+  },
+  {
+    "question": "In _getInitializedTicksInRange() at lines 120-122, tick data is packed using assembly: `v := or(shl(128, tick), and(liquidityDelta, 0xffffffffffffffffffffffffffffffff))`. Could this packing operation fail to properly sign-extend the int32 tick value when shifting left, causing positive ticks to be misinterpreted as negative ticks when unpacked?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64b81269-cc10-4228-bc34-1822c8d0d8c1",
+    "timestamp": "2025-12-02 04:31:04.692651",
+    "report_generated": false
+  },
+  {
+    "question": "In line 82-83, the minTick and maxTick results are cast to int32 for the QuoteData struct. If the int256 values somehow exceed int32 bounds due to arithmetic errors, could the type conversion produce wrapped values that don't match the actual range searched?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_34ebddbd-2ff5-4bd6-9f59-c8033c76b3c3",
+    "timestamp": "2025-12-02 04:31:26.908020",
+    "report_generated": false
+  },
+  {
+    "question": "At line 65, minTick and maxTick are cast from int256 to int32. If the boundary checks at lines 59-63 fail to clamp properly and values exceed int32 range, could this cast silently truncate the values, returning incorrect tick ranges to off-chain systems?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2428bfe-c8c2-4f9b-a206-a787b20745d0",
+    "timestamp": "2025-12-02 04:31:50.163642",
+    "report_generated": false
+  },
+  {
+    "question": "The maxTick check at lines 62-63 uses MAX_TICK from constants.sol. Could there be a discrepancy between MAX_TICK (88722835) and the actual maximum tick supported by the protocol, allowing the function to return ticks that would revert when used in actual swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c37767b0-9867-4cb2-a396-61a4c3e8a6ab",
+    "timestamp": "2025-12-02 04:32:15.661400",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 59-60, minTick is checked against MIN_TICK and clamped. However, MIN_TICK is defined as -88722835 in constants.sol. Could the check use the wrong constant (MIN_TICK vs MIN_TICK from math/constants.sol which is -887272), causing ticks outside valid range to be included in results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_257c7d18-853c-42c3-82ef-101dfdf3ba86",
+    "timestamp": "2025-12-02 04:32:42.339789",
+    "report_generated": false
+  },
+  {
+    "question": "In the minTick calculation at line 56, tick is int32 but gets implicitly converted to int256. Could a malicious pool configuration with tick near MIN_TICK cause the subtraction (tick - rangeSize) to underflow below type(int256).min, wrapping to a large positive value and bypassing the MIN_TICK check at line 59-60?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9fa7cd0-8392-4e3a-a88a-5139307223e5",
+    "timestamp": "2025-12-02 04:33:10.165730",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 56-57, minTick and maxTick are calculated by adding/subtracting rangeSize from tick. If rangeSize is very large (near int256 max), could these additions overflow in the int256 domain before the boundary checks at lines 59-63, leading to incorrect tick ranges being returned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3dc5942-7218-496b-83ac-3c850236b90f",
+    "timestamp": "2025-12-02 04:33:39.302676",
+    "report_generated": false
+  },
+  {
+    "question": "In getQuoteData() at lines 54-55, the rangeSize calculation multiplies minBitmapsSearched * tickSpacing * 256 in int256. Could this multiplication overflow before casting to int256, causing the range calculation to wrap and return incorrect minTick/maxTick values that mislead off-chain quoters about available liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0fdd71e3-d90f-400a-9e77-8240acf87b24",
+    "timestamp": "2025-12-02 04:34:09.924964",
+    "report_generated": false
+  },
+  {
+    "question": "Can the multicall be used to exploit differences in how Solidity handles msg.value in delegatecall vs regular calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c430e484-c717-4e0c-b08a-65890dd7a053",
+    "timestamp": "2025-12-02 04:34:40.418734",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a risk that Solady's Multicallable assumptions about non-payable contexts are violated by PayableMulticallable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_041ebac9-42ff-4b6f-ba8d-a11af1ac9d47",
+    "timestamp": "2025-12-02 04:35:10.768309",
+    "report_generated": false
+  },
+  {
+    "question": "Can the multicall batching be exploited to bypass access controls or modifier checks through delegatecall manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2fd9fad-5cc2-48f9-8b31-66e1f51e57f0",
+    "timestamp": "2025-12-02 04:35:42.006097",
+    "report_generated": false
+  },
+  {
+    "question": "Does the payable multicall properly preserve msg.value semantics across delegatecalls as expected by Solady?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f6d2bb87-39ec-4fcb-bae2-fe95cdfd8aff",
+    "timestamp": "2025-12-02 04:36:16.191162",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a vulnerability in how PayableMulticallable handles delegatecall contexts compared to Solady's implementation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d920c7eb-3ea6-4d74-947a-3241a0396280",
+    "timestamp": "2025-12-02 04:36:47.615775",
+    "report_generated": false
+  },
+  {
+    "question": "Can the _multicallDirectReturn pattern be exploited to bypass return value checks or validations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d69ec648-1c2a-4d55-9d44-bb556c309fc4",
+    "timestamp": "2025-12-02 04:37:18.811990",
+    "report_generated": false
+  },
+  {
+    "question": "Does the override of multicall() to make it payable introduce any vulnerabilities not present in Solady's base implementation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a932795-7b2b-4dbe-9cdb-236d3997accd",
+    "timestamp": "2025-12-02 04:37:51.366556",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit the interaction between multicall and the authorizedForNft modifier to operate on unauthorized NFTs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_09009bc3-f6e3-49fd-8d0e-8f3987790e67",
+    "timestamp": "2025-12-02 04:38:22.875323",
+    "report_generated": false
+  },
+  {
+    "question": "Does multicalling functions with different msg.value amounts lead to incorrect debt or balance tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02f6f482-8bf1-4a60-9976-4851d92eae77",
+    "timestamp": "2025-12-02 04:38:54.828386",
+    "report_generated": false
   }
 ]
