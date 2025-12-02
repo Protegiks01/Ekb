@@ -15442,5 +15442,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_af5f1bfe-c7bd-4350-a534-8c9f933ff01c",
     "timestamp": "2025-12-02 11:41:31.105067",
     "report_generated": false
+  },
+  {
+    "question": "In getPoolFeesPerLiquidity(), StorageSlot.next() increments the slot by 1. If FPL storage is not actually consecutive (due to a CoreStorageLayout bug), could this read the wrong slot and return fees-per-liquidity for a different pool or garbage data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_737384e7-3bac-4b83-83ca-d8791640d941",
+    "timestamp": "2025-12-02 11:42:52.218416",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.poolPositions() (lines 61-75), position data is loaded from three consecutive slots. If CoreStorageLayout.poolPositionsSlot() computes the wrong base slot, could this function read another user's position data, enabling unauthorized access to liquidity and fee information?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66ffa61e-8aeb-459b-9bc3-ed8f7ca55975",
+    "timestamp": "2025-12-02 11:43:05.222225",
+    "report_generated": false
+  },
+  {
+    "question": "In poolPositions() assembly block (lines 69-72), extraData and liquidity are unpacked with shl(128, v0) and shr(128, v0). If v0 contains dirty bits outside the expected fields, could the unpacked values be corrupted, causing fee calculation errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3b0b400f-5f94-4353-9123-7251f6c879b7",
+    "timestamp": "2025-12-02 11:43:19.525064",
+    "report_generated": false
+  },
+  {
+    "question": "In poolPositions() line 70, mstore(position, shl(128, v0)) stores extraData. If the position struct is not properly initialized in memory before this, could residual memory data corrupt the extraData field?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_83e75def-95fb-4aad-8686-930bba7577b7",
+    "timestamp": "2025-12-02 11:43:33.572794",
+    "report_generated": false
+  },
+  {
+    "question": "In poolPositions() line 71, mstore(add(position, 0x20), shr(128, v0)) stores liquidity. If the memory offset calculation is off by 32 bytes due to struct layout changes, could this overwrite feesPerLiquidityInsideLast, causing fee theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_824bc40b-f054-427a-91ad-011d341c9b9b",
+    "timestamp": "2025-12-02 11:43:48.642689",
+    "report_generated": false
+  },
+  {
+    "question": "In poolPositions(), feesPerLiquidityInsideLast is assigned from v1 and v2 (line 74). If v1 and v2 are read from incorrect slots due to slot arithmetic errors, could a user claim fees for another position or claim inflated fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a2d37a61-8284-4d55-a442-fd2b4c23f40e",
+    "timestamp": "2025-12-02 11:44:05.559798",
+    "report_generated": false
+  },
+  {
+    "question": "If poolPositions() is called for a position that has been burned (liquidity = 0 but fees remain), could the assembly unpacking mishandle the zero liquidity and corrupt the fees-per-liquidity snapshot, preventing fee collection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19de9199-f4db-41d4-8914-7370799c8429",
+    "timestamp": "2025-12-02 11:44:24.268908",
+    "report_generated": false
+  },
+  {
+    "question": "In poolPositions(), if the owner address is crafted to cause poolPositionsSlot() to collide with another position's storage, could an attacker read and potentially manipulate another user's position data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6bb4142-8baa-4f4c-b09c-73f175c9cdb0",
+    "timestamp": "2025-12-02 11:44:42.826537",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.savedBalances() (lines 85-94), the packed value is split with uint128(value >> 128) and uint128(value). If the stored value was written with overflow, could the unpacked balances be incorrect, allowing users to withdraw more than deposited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c036d0a-2bc2-485f-901b-4748ea67f33c",
+    "timestamp": "2025-12-02 11:45:02.713818",
+    "report_generated": false
+  },
+  {
+    "question": "In savedBalances(), if token0 and token1 are equal (violating the sorting requirement), could the function read from an unexpected storage slot and return another user's saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e9909e4c-eb2e-4f71-b7ec-0aa5e7144575",
+    "timestamp": "2025-12-02 11:45:24.298814",
+    "report_generated": false
+  },
+  {
+    "question": "In savedBalances(), the slot is computed with CoreStorageLayout.savedBalancesSlot(owner, token0, token1, salt). If salt is user-controlled, could two users with different salts collide and manipulate each other's saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc9ea60e-e747-4aac-91b1-b98b85b33b9d",
+    "timestamp": "2025-12-02 11:45:46.291588",
+    "report_generated": false
+  },
+  {
+    "question": "If savedBalances() is called after updateSavedBalances() in the same transaction, but the delta tracking in FlashAccountant is not yet settled, could the read return stale pre-update values, causing accounting errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d128535a-ebe5-41ea-a0f9-1c2917c44e5e",
+    "timestamp": "2025-12-02 11:46:09.702575",
+    "report_generated": false
+  },
+  {
+    "question": "In savedBalances(), uint128 casting truncates upper bits. If a bug in updateSavedBalances() allowed values > type(uint128).max to be stored, could this function silently truncate and return incorrect balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4a4190ab-09f7-438a-8a1d-cd60936a441b",
+    "timestamp": "2025-12-02 11:46:34.541729",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.poolTicks() (lines 102-113), liquidityDelta is extracted with int128(uint128(uint256(data))). Could this multi-step casting introduce errors for negative liquidityDelta values near type(int128).min?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a06783c4-2fd3-4124-a277-a31b880521a1",
+    "timestamp": "2025-12-02 11:47:01.072939",
+    "report_generated": false
+  },
+  {
+    "question": "In poolTicks() line 112, liquidityNet is extracted with uint128(bytes16(data)). Could improper byte-to-uint conversion cause liquidityNet to be incorrectly extracted if the stored data has unexpected byte ordering?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef213e98-dccf-4eb8-b3c4-73b2f8e3b0da",
+    "timestamp": "2025-12-02 11:47:30.091916",
+    "report_generated": false
+  },
+  {
+    "question": "In poolTicks(), the comment says 'takes only least significant 128 bits' for liquidityDelta. If the upper 128 bits contain non-zero liquidityNet data, could bit masking errors cause liquidityNet to leak into liquidityDelta?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_98775b98-427b-49b3-afa4-a8253c439b00",
+    "timestamp": "2025-12-02 11:47:58.704266",
+    "report_generated": false
+  },
+  {
+    "question": "If poolTicks() reads a tick that was partially initialized (e.g., liquidityDelta written but liquidityNet not), could the returned liquidityNet be garbage, causing incorrect tick crossing calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4232146e-860c-40b6-a5a1-6fc0edb6c71d",
+    "timestamp": "2025-12-02 11:48:27.105465",
+    "report_generated": false
+  },
+  {
+    "question": "In poolTicks(), liquidityDelta is sign-extended from uint128 to int128. For boundary values exactly at type(uint128).max / 2, could the sign bit interpretation be ambiguous, causing positive deltas to appear negative?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cd9d73fb-445d-4297-b482-5c8b3a2cca00",
+    "timestamp": "2025-12-02 11:48:56.229852",
+    "report_generated": false
+  },
+  {
+    "question": "If poolTicks() is called for a tick outside MIN_TICK to MAX_TICK range, does the function validate the tick parameter, or could it read uninitialized storage and return incorrect liquidity data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_61daab8f-38ea-4381-bd2f-f65264776b9a",
+    "timestamp": "2025-12-02 11:49:27.088719",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.swap() (lines 123-148), the function selector is hardcoded as 0 (line 131). If Core.sol's swap function selector changes in an upgrade, would this assembly call fail silently or revert, potentially locking all swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_01d671dd-3ebc-460f-bbea-4540d92b22bd",
+    "timestamp": "2025-12-02 11:49:57.136624",
+    "report_generated": false
+  },
+  {
+    "question": "In swap() line 134, mcopy(add(free, 4), poolKey, 96) copies PoolKey. If PoolKey struct size is not exactly 96 bytes (e.g., due to compiler padding), could this copy truncate fields or include garbage, causing swap to operate on wrong pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_78451536-bd87-42b1-8393-29f29fe97ca6",
+    "timestamp": "2025-12-02 11:50:29.436529",
+    "report_generated": false
+  },
+  {
+    "question": "In swap() line 138, SwapParameters is stored with mstore(add(free, 100), params). If params is not a bytes32 type, could dirty upper memory bits contaminate the parameters, causing incorrect swap amount or direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b5ce5804-f85b-45c9-8971-0ef660541948",
+    "timestamp": "2025-12-02 11:51:01.583890",
+    "report_generated": false
+  },
+  {
+    "question": "In swap() lines 139-142, the call is made with call(gas(), core, value, free, 132, free, 64). If the Core contract expects different calldata size or returns unexpected data size, could this cause memory corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a219f28f-f671-4994-b288-9e110a272f76",
+    "timestamp": "2025-12-02 11:51:32.863171",
+    "report_generated": false
+  },
+  {
+    "question": "In swap() line 145, balanceUpdate is loaded from mload(free). If the Core swap function returns data in a different format, could balanceUpdate be misinterpreted, causing incorrect delta tracking in FlashAccountant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_05f6344c-667f-459e-9d93-a4806621ae5a",
+    "timestamp": "2025-12-02 11:52:04.481201",
+    "report_generated": false
+  },
+  {
+    "question": "In swap() line 146, stateAfter is loaded from mload(add(free, 32)). If Core returns less than 64 bytes due to revert or bug, could stateAfter contain uninitialized memory, corrupting subsequent pool state checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06fadfb2-af29-44f2-b1c2-3150fbbb9a2f",
+    "timestamp": "2025-12-02 11:52:36.563868",
+    "report_generated": false
   }
 ]
