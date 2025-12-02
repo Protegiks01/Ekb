@@ -7198,5 +7198,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a367f687-6679-4577-8fae-e78a67b84666",
     "timestamp": "2025-12-02 01:26:16.299443",
     "report_generated": false
+  },
+  {
+    "question": "If FlashAccountantLib.withdraw() is called during a token transfer callback from pay(), could the debt reduction from withdrawal occur before payment credit, allowing double-spending of debt credits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c1c6648e-3f67-4b89-b5bc-8c090371b8cc",
+    "timestamp": "2025-12-02 01:27:22.691748",
+    "report_generated": false
+  },
+  {
+    "question": "Could an attacker call FlashAccountantLib.pay() from within a token's transfer() callback to create nested payment operations that corrupt debt tracking in FlashAccountant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e64d551-7420-4991-9094-aff5183c4838",
+    "timestamp": "2025-12-02 01:27:37.233721",
+    "report_generated": false
+  },
+  {
+    "question": "If a token has a transferFrom() that works differently when called with specific gas amounts, could the gas() forwarding in FlashAccountantLib.payFrom() enable gas-dependent exploits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e9c2d06f-276d-4496-8760-6f0db426e89e",
+    "timestamp": "2025-12-02 01:27:50.768732",
+    "report_generated": false
+  },
+  {
+    "question": "If a malicious token's transferFrom() modifies the 'from' address's balance during execution, could this affect allowance calculations and allow unauthorized token transfers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c44578ce-2b82-42cb-9fc2-5ad06023c249",
+    "timestamp": "2025-12-02 01:28:04.882142",
+    "report_generated": false
+  },
+  {
+    "question": "If a token contract self-destructs during transfer(), could the extcodesize check in FlashAccountantLib.pay() (line 31) treat the failed transfer as successful?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3799a86-cea0-425c-a152-bace73a73b2d",
+    "timestamp": "2025-12-02 01:28:20.061357",
+    "report_generated": false
+  },
+  {
+    "question": "If a token's transfer() writes to return data beyond 32 bytes, could the returndatasize check in FlashAccountantLib.pay() (line 31) be bypassed, allowing fake successful transfers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_96febaa1-7e62-4ab2-b0cb-d8aebe23b91b",
+    "timestamp": "2025-12-02 01:28:36.152923",
+    "report_generated": false
+  },
+  {
+    "question": "If a token's transferFrom() consumes 63/64 of available gas (leaving only 1/64), could the subsequent completePayments() call in FlashAccountantLib.payFrom() run out of gas, leaving tokens transferred but debt not updated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_865a4e1a-bd6d-4398-88d4-4c3159391cc9",
+    "timestamp": "2025-12-02 01:28:53.374061",
+    "report_generated": false
+  },
+  {
+    "question": "If an ERC20 token has a transfer() that re-enters FlashAccountantLib.withdraw() to extract tokens before the original pay() completes, could this drain the accountant's token balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_52ecb907-0fd0-4de9-89eb-ca33edaedd9f",
+    "timestamp": "2025-12-02 01:29:13.032779",
+    "report_generated": false
+  },
+  {
+    "question": "If a malicious ERC20 token's transfer() returns true but doesn't actually move tokens, could FlashAccountantLib.pay() pass the success check at line 30 while the accountant's balance remains unchanged?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_15be159e-3904-44ed-aa51-5bc84a211207",
+    "timestamp": "2025-12-02 01:29:34.528586",
+    "report_generated": false
+  },
+  {
+    "question": "If an ERC20 token's balanceOf() returns different values in quick succession (due to rebasing or rewards), could FlashAccountant.startPayments() record one balance but completePayments() read a different balance, corrupting payment calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db64c6c9-6eac-42cd-98d6-34cfa132bce8",
+    "timestamp": "2025-12-02 01:29:57.144843",
+    "report_generated": false
+  },
+  {
+    "question": "If an ERC20 token has a transferFrom() that succeeds but transfers fewer tokens than requested (fee-on-transfer), could FlashAccountantLib.payFrom() credit the full amount while only partial tokens were received?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a004f11-9669-4fc1-b40d-3ca1c4e4845b",
+    "timestamp": "2025-12-02 01:30:20.870113",
+    "report_generated": false
+  },
+  {
+    "question": "If a malicious ERC20 token's transfer() function modifies the accountant's transient storage via callbacks, could FlashAccountantLib.pay() credit incorrect payment amounts when completePayments() reads the modified storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a7032a96-5d76-48ee-aecf-e24cdd539891",
+    "timestamp": "2025-12-02 01:30:46.239607",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 36), only memory location 0x34 is zeroed. If other memory locations (0x14, 0x20, 0x30) used during transfer aren't cleaned, could stale data affect subsequent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b16cee50-c430-4a96-9b21-be26932e2ccc",
+    "timestamp": "2025-12-02 01:31:12.227864",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payFrom() and payTwoFrom(), the transferFrom selector 0x23b872dd000000000000000000000000 is stored at 0x0c. Why is 0x0c chosen instead of 0x00, and could this offset cause issues with calldata construction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_112bf49d-ce0d-466a-a5ff-fca73cc3876a",
+    "timestamp": "2025-12-02 01:31:39.344801",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib, multiple functions use memory offset 0x00 for function selectors. If these functions are called in quick succession via multicall, could selector data from one call interfere with another?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd8c4a18-1880-465a-a1a9-bce7fb2063d5",
+    "timestamp": "2025-12-02 01:32:08.207844",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.forward() (line 265), the free memory pointer is aligned to 32 bytes with 'and(..., not(31))'. If this alignment calculation underflows, could it set the pointer to 0x00, corrupting scratch space?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e9ec9021-9d56-4c0a-9f21-a8d3729b47db",
+    "timestamp": "2025-12-02 01:32:37.529452",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.forward() (line 252), mcopy copies 'data' to 'result + 36'. If 'data' contains a length prefix that isn't accounted for, could the copy include or exclude unintended bytes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac1a5d9b-c597-45ec-9991-68e1bacb552a",
+    "timestamp": "2025-12-02 01:33:08.117174",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 214-221), two withdrawal entries are packed consecutively. If there's any padding or alignment issue, could the accountant's withdraw() read recipient from the wrong offset?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff133772-5569-4f1a-9272-d9592b8390b7",
+    "timestamp": "2025-12-02 01:33:36.328281",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom() (line 133), token1 is stored at memory 0x40 (the free memory pointer location itself). Could overwriting 0x40 during startPayments() cause subsequent memory allocations to use wrong addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c4c347f6-e1f4-4abe-a70e-97a85c64e79e",
+    "timestamp": "2025-12-02 01:34:05.105697",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payFrom() (line 65), 'from' is shifted with shl(96, from) and stored at 0x2c. If 0x2c isn't 32-byte aligned, could this cause calldata misalignment in the transferFrom call?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_05f5e4bb-206f-4385-8e65-9aad0e13d6a4",
+    "timestamp": "2025-12-02 01:34:33.221402",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 25-27), the transfer calldata is constructed with accountant at offset 0x14. If accountant address is incorrectly shifted, could the transfer send tokens to the wrong address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_963f0b15-639d-4103-889b-08440b70c4ec",
+    "timestamp": "2025-12-02 01:34:59.998815",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.pay() (line 17-18), the startPayments selector 0xf9b6a796 is stored at 0x00, and token at 0x20. If the token address has non-zero upper 96 bits, could mstore(0x20, token) write dirty data that affects subsequent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_26988974-a750-41a4-aa58-373f4c4f306e",
+    "timestamp": "2025-12-02 01:35:27.876091",
+    "report_generated": false
+  },
+  {
+    "question": "FlashAccountantLib.withdraw() uses hardcoded selector 0x3ccfd60b. If FlashAccountant's withdraw() signature changes (e.g., adding parameters), could this selector become invalid, preventing any withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb2ffe81-e98a-459e-8a9b-5d7f4fd35cf9",
+    "timestamp": "2025-12-02 01:35:55.353263",
+    "report_generated": false
+  },
+  {
+    "question": "FlashAccountantLib functions ignore completePayments() reverts. If FlashAccountant's completePayments() reverts with PaymentOverflow (line 290-294), could tokens be transferred to the accountant without corresponding debt reduction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_51a43f2c-ab07-4003-aeaa-1e238b2a217f",
+    "timestamp": "2025-12-02 01:36:23.021208",
+    "report_generated": false
+  },
+  {
+    "question": "FlashAccountantLib functions ignore startPayments() reverts. If FlashAccountant's startPayments() reverts when called outside a lock (NotLocked error), could ignoring this revert allow operations to proceed without proper debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_179639e4-ee35-400d-822f-663ba828c19b",
+    "timestamp": "2025-12-02 01:36:51.967636",
+    "report_generated": false
   }
 ]
