@@ -5848,5 +5848,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8fd0da8-c236-48a7-bb9a-1a3d6e89d6ba",
     "timestamp": "2025-12-01 23:47:20.420752",
     "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolState(): Is the 96-byte hashing window for PoolKey susceptible to memory layout malleability (padding, dirty memory, overlapping regions) that could cause keccak256 to include unintended data and derive an incorrect PoolId? (src/lens/CoreDataFetcher.sol:33, src/types/poolKey.sol:34-38)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5cff7b1b-6d46-4f32-86e3-51139e4d65d8",
+    "timestamp": "2025-12-01 23:48:33.912287",
+    "report_generated": false
+  },
+  {
+    "question": "CoreDataFetcher.poolState(): Can two distinct PoolKey structs be crafted that collide under keccak256 hashing over exactly 96 bytes, causing a PoolId hash collision and returning another pool’s state? (src/lens/CoreDataFetcher.sol:33, src/types/poolKey.sol:34-38)",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23da9957-c939-493a-a00d-779e7c632ec2",
+    "timestamp": "2025-12-01 23:48:47.101890",
+    "report_generated": false
+  },
+  {
+    "question": "RevenueBuybacks has a receive() function (line 82) that accepts ETH. Could an attacker spam the contract with tiny ETH amounts to cause grief by forcing many small TWAMM order creations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c1b331fb-0194-4e7d-ba23-7064e1981a4c",
+    "timestamp": "2025-12-01 23:49:01.119762",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function passes '{value: isEth ? amountToSpend : 0}' (line 134). Could incorrect isEth evaluation cause ETH to be sent when it shouldn't, or fail to send ETH when it should?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4058d9f-ebc5-4980-b6b2-62bf4752639d",
+    "timestamp": "2025-12-01 23:49:15.467409",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() (line 103), ETH balance is checked with 'address(this).balance'. Could an attacker send ETH to the contract via selfdestruct to inflate the balance artificially, creating oversized TWAMM orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75e27d25-8fc4-4638-9029-e5759d0a166b",
+    "timestamp": "2025-12-01 23:49:30.516028",
+    "report_generated": false
+  },
+  {
+    "question": "RevenueBuybacks.roll() checks 'isEth = token == NATIVE_TOKEN_ADDRESS' (line 102). Could an attacker craft a token address that equals NATIVE_TOKEN_ADDRESS to trick the contract into treating a regular ERC20 as ETH?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b5bacb76-ce48-4610-b996-b754a75a5ff4",
+    "timestamp": "2025-12-01 23:49:46.782517",
+    "report_generated": false
+  },
+  {
+    "question": "In nextValidTime() (line 63), the result is clamped to 'currentTime + type(uint32).max'. Could this clamp cause orders to be created with end times that don't match the intended targetOrderDuration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_58db38f1-272d-456b-8bc9-72409c69918a",
+    "timestamp": "2025-12-01 23:50:04.211312",
+    "report_generated": false
+  },
+  {
+    "question": "The isTimeValid() function (line 38) checks 'iszero(mod(time, stepSize))'. Could step size calculation errors cause valid times to be rejected, preventing order creation for certain durations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c47f2445-c1b6-4884-b2e9-4596c9d7c7e5",
+    "timestamp": "2025-12-01 23:50:23.346255",
+    "report_generated": false
+  },
+  {
+    "question": "In computeStepSize() (line 23), the msb calculation uses 'sub(255, clz(diff))'. Could diff=0 cause clz to return undefined behavior, leading to incorrect step sizes and invalid TWAMM order times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_76b64b55-01fe-4da6-91f0-acc4a9079568",
+    "timestamp": "2025-12-01 23:50:45.824473",
+    "report_generated": false
+  },
+  {
+    "question": "The nextValidTime() function (line 44-63) computes step sizes using clz opcode. Could the experimental Solidity 0.8.31 clz implementation have off-by-one errors that cause orders to be created at invalid times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39efa312-7153-42b1-8db3-fc75017b01f6",
+    "timestamp": "2025-12-01 23:51:08.277330",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload(), the function uses a for loop with 'lt(i, calldatasize())'. Could calldatasize() manipulation via malformed transactions cause the loop to read beyond intended storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_33740f14-7589-46f7-9e8d-2302f2f4ca97",
+    "timestamp": "2025-12-01 23:51:31.850561",
+    "report_generated": false
+  },
+  {
+    "question": "ExposedStorage.sload() (lines 16-19) iterates through calldata slots. Could an attacker pass a huge number of slots to cause out-of-gas errors, preventing legitimate users from reading state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9973b9fa-8694-47a1-adfe-16a9e88615b2",
+    "timestamp": "2025-12-01 23:51:57.280715",
+    "report_generated": false
+  },
+  {
+    "question": "The RevenueBuybacksLib reads storage from an external IRevenueBuybacks contract. Could a malicious contract implementation return fake BuybacksState values that bypass validation checks in calling code?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_371d05d7-9573-4744-9f22-fee0930c7257",
+    "timestamp": "2025-12-01 23:52:23.698793",
+    "report_generated": false
+  },
+  {
+    "question": "In BuybacksState storage layout, six fields are packed into a single bytes32. Could partial storage writes (due to bugs or reentrancy) leave the state in an inconsistent state where some fields are updated but others aren't?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3ff731f-832c-416f-b497-d3c766c2b4dd",
+    "timestamp": "2025-12-01 23:52:51.322098",
+    "report_generated": false
+  },
+  {
+    "question": "RevenueBuybacks uses token addresses directly as storage slots (line 94). Could this collide with inherited storage layouts from Ownable, Multicallable, or ExposedStorage base contracts, corrupting critical state like the owner address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c41e57c4-2388-48ba-a758-2df834b0468f",
+    "timestamp": "2025-12-01 23:53:19.569115",
+    "report_generated": false
+  },
+  {
+    "question": "In collect() (line 77), proceeds are collected with 'ORDERS.collectProceeds(NFT_ID, _createOrderKey(...), owner())'. Could an attacker front-run collect() calls to execute TWAMM orders first, stealing proceeds meant for the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7daffa36-a17c-43b4-b9fe-4d3a99d3289f",
+    "timestamp": "2025-12-01 23:53:49.480082",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function passes 'type(uint112).max' as maxSaleRate (line 136). Could this bypass important slippage protection, allowing orders to be created with excessively high sale rates that cause immediate and unfavorable execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55241a7a-fa88-45ba-86a2-5fe2c2565db9",
+    "timestamp": "2025-12-01 23:54:20.416744",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() (line 134-136), increaseSellAmount is called with amountToSpend. Could an attacker exploit the lack of validation on amountToSpend to create orders with 0 amount, wasting gas and creating invalid order NFTs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2422cdeb-84c1-415c-8637-2af0cc25103b",
+    "timestamp": "2025-12-01 23:54:52.723370",
+    "report_generated": false
+  },
+  {
+    "question": "The _createOrderKey() function uses assembly mcopy/mstore to construct the OrderKey (lines 182-185). Could incorrect pointer arithmetic cause the token addresses to be written to the wrong memory locations, creating invalid TWAMM orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3442bbf6-4e88-4cf9-9266-3b6bb1c933d9",
+    "timestamp": "2025-12-01 23:55:24.518925",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks._createOrderKey() (line 180), isToken1 is computed as 'token > BUY_TOKEN'. Could using address comparison for token ordering cause unexpected behavior with tokens near address boundaries (e.g., 0x0, 0xff...ff)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab167eeb-b965-47c9-a0f9-65648bc44de0",
+    "timestamp": "2025-12-01 23:55:57.199300",
+    "report_generated": false
+  },
+  {
+    "question": "The configure() function emits 'Configured(token, state)' (line 172) after storage update. Could an attacker exploit the event emission order to cause off-chain systems to act on stale state before the storage update completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d18d8b7b-00f9-497a-a987-3d2d7f4c1d33",
+    "timestamp": "2025-12-01 23:56:28.921546",
+    "report_generated": false
+  },
+  {
+    "question": "In configure() (lines 160-166), the function preserves lastEndTime, lastOrderDuration, and lastFee from old state. Could an attacker exploit this to create inconsistent state where the old fee doesn't match the new fee, breaking fee comparison logic in roll()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_913ac914-b7d8-4235-afdb-3db589e482b2",
+    "timestamp": "2025-12-01 23:56:59.512391",
+    "report_generated": false
+  },
+  {
+    "question": "The configure() function validates 'minOrderDuration > targetOrderDuration' (line 151) but stores the new values before validation completes. Could an attacker exploit the non-atomic nature of this check to bypass validation via reentrancy?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bafa73f0-a45b-49ed-9a59-7e85be9374b5",
+    "timestamp": "2025-12-01 23:57:29.663331",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.configure() (line 158), the function loads existing state with 'sload(token)'. Could an attacker front-run configure() calls to read the old state before changes, then use that information to exploit the new configuration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_943fe30e-916e-41c5-842e-d48675908da3",
+    "timestamp": "2025-12-01 23:58:01.190271",
+    "report_generated": false
+  },
+  {
+    "question": "The roll() function updates lastEndTime in state (line 123) but doesn't validate that it's greater than the previous lastEndTime. Could this allow orders to move backwards in time, breaking the TWAMM order execution invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf5863f8-8cb3-4082-b9ee-62ef94cd427e",
+    "timestamp": "2025-12-01 23:58:32.698071",
+    "report_generated": false
   }
 ]
