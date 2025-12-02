@@ -15592,5 +15592,89 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06fadfb2-af29-44f2-b1c2-3150fbbb9a2f",
     "timestamp": "2025-12-02 11:52:36.563868",
     "report_generated": false
+  },
+  {
+    "question": "In swap(), if the call to Core reverts (line 139), the assembly does returndatacopy and revert. Could large revert data cause out-of-gas during the copy, preventing the original revert reason from being preserved?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_977ccad4-a71e-43e2-a052-ee6f7aa5b162",
+    "timestamp": "2025-12-02 11:53:52.596937",
+    "report_generated": false
+  },
+  {
+    "question": "In swap(), the native token value is passed directly. If value > 0 but poolKey does not include NATIVE_TOKEN_ADDRESS, could the Core contract accept the ETH but credit it to the wrong pool, causing fund loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8754fe32-055e-4abf-a73e-79ffa782aca1",
+    "timestamp": "2025-12-02 11:54:05.706248",
+    "report_generated": false
+  },
+  {
+    "question": "If swap() is called with poolKey memory not at the free pointer, could the mcopy (line 134) read from incorrect memory locations, causing the swap to execute against an unintended pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d3981e1-e2eb-484b-b33d-e393bf8d27d4",
+    "timestamp": "2025-12-02 11:54:19.141373",
+    "report_generated": false
+  },
+  {
+    "question": "In swap(), if params encoding is ambiguous (e.g., isToken1 bit and skipAhead overlap), could the Core contract misinterpret the swap direction or skip-ahead value, causing incorrect price movement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a92986b6-5a40-46bb-80f8-aab4fda51ab6",
+    "timestamp": "2025-12-02 11:54:34.207651",
+    "report_generated": false
+  },
+  {
+    "question": "In createPoolState() (poolState.sol line 42-46), the assembly packs sqrtRatio, tick, and liquidity. If _tick is negative and the masking with 0xFFFFFFFF is incorrect, could the tick be corrupted in the packed state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28ecfa10-a05e-479b-be32-fdf43be74b63",
+    "timestamp": "2025-12-02 11:54:49.234678",
+    "report_generated": false
+  },
+  {
+    "question": "In createPoolState(), if _sqrtRatio is > type(uint96).max, the shift shl(160, _sqrtRatio) could cause overflow. Would this silent overflow corrupt the pool state, causing swaps to calculate prices incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9cc5e5fd-3c8b-4a4c-937d-d1d0e9c7f619",
+    "timestamp": "2025-12-02 11:55:06.235089",
+    "report_generated": false
+  },
+  {
+    "question": "In poolState.parse() (poolState.sol lines 34-40), all three fields are extracted simultaneously. If the packed state was created with overflow in any field, could parse() return inconsistent values where sqrtRatio doesn't match the tick?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_694a43c8-3930-458c-9c9e-ea99ea6d887f",
+    "timestamp": "2025-12-02 11:55:23.965000",
+    "report_generated": false
+  },
+  {
+    "question": "In poolState.isInitialized() (lines 28-32), the check is iszero(iszero(state)). Could a pool with state = 0 but non-zero storage elsewhere be incorrectly flagged as uninitialized, allowing double initialization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e6e91b3-25d4-4015-a2a1-e7e7124a772c",
+    "timestamp": "2025-12-02 11:55:43.815334",
+    "report_generated": false
+  },
+  {
+    "question": "In position.fees() (position.sol lines 33-51), the function uses fullMulDivN for fee calculation. If feesPerLiquidityInside has overflowed relative to feesPerLiquidityInsideLast, could the subtraction (line 44-45) underflow and wrap around, causing massive fee claims?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e65620f6-7579-4c86-bb00-8615971ba9d0",
+    "timestamp": "2025-12-02 11:56:04.901586",
+    "report_generated": false
+  },
+  {
+    "question": "In position.fees() line 49, the result is cast to uint128, truncating overflow. If the fullMulDivN result exceeds type(uint128).max, could this silent truncation cause users to lose fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_80c31eb8-f039-4653-bcfc-cbf171f5d4db",
+    "timestamp": "2025-12-02 11:56:27.715095",
+    "report_generated": false
+  },
+  {
+    "question": "In position.fees() assembly (lines 40-46), extraData is now at offset 0x20 instead of 0x00. If calling code assumes the old offset, could it read liquidity as extraData, causing fee calculation to use wrong liquidity value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_46b542fd-3d3c-43a1-8ded-a3b4844b1600",
+    "timestamp": "2025-12-02 11:56:50.994220",
+    "report_generated": false
+  },
+  {
+    "question": "In position.fees(), if position.liquidity is 0 but feesPerLiquidity difference is non-zero, could the multiplication overflow or return unexpected results, allowing fee claims on burned positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d4d58d2-a3e7-457f-b71c-72d9ad4670ca",
+    "timestamp": "2025-12-02 11:57:16.430777",
+    "report_generated": false
+  },
+  {
+    "question": "In feesPerLiquidity.sub() (feesPerLiquidity.sol lines 13-18), unchecked subtraction is used. If value0/value1 have wrapped around due to overflow in fee accumulation, could the subtraction produce incorrect negative values that appear as huge positive fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c60133e-74e9-456e-a6bd-0c9416f52c3a",
+    "timestamp": "2025-12-02 11:57:42.363417",
+    "report_generated": false
+  },
+  {
+    "question": "In feesPerLiquidityFromAmounts() (lines 20-28), the calculation is shl(128, amount) / liquidity. If liquidity is very small (e.g., 1), could the division cause extreme precision loss, allowing LPs to donate fees to the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d025871-6a7e-460e-baa0-c0efd2eea14b",
+    "timestamp": "2025-12-02 11:58:09.217824",
+    "report_generated": false
   }
 ]
