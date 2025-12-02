@@ -12598,5 +12598,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b1c6f119-30ab-4437-bd97-270f04bbe65e",
     "timestamp": "2025-12-02 08:50:17.002047",
     "report_generated": false
+  },
+  {
+    "question": "The assembly sstore(token, state) operation (line 129) writes to slot = keccak256(token). However, this is a direct slot write, not a mapping. Could this collide with other storage variables in the contract or inherited contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f78f13c-004c-46f9-a049-8d493bbb3d9d",
+    "timestamp": "2025-12-02 08:51:21.100962",
+    "report_generated": false
+  },
+  {
+    "question": "Storage layout uses token address as key for sload/sstore (lines 94, 129, 158, 169). Could CREATE2-deployed tokens with carefully crafted salts be designed to hash to storage slots used by Solidity's automatic layout (owner slot, name, etc.), causing state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c845fa5-878e-420e-8c41-2551dff96dc9",
+    "timestamp": "2025-12-02 08:51:34.665776",
+    "report_generated": false
+  },
+  {
+    "question": "The ExposedStorage sload() function (lines 15-20 in ExposedStorage.sol) allows reading arbitrary storage slots. Could an attacker use this to read the BuybacksState for any token address, then craft a token address that maps to a collision with other storage, causing corruption via configure()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e47a63bc-edbe-40a0-83d0-07a5d1c32b44",
+    "timestamp": "2025-12-02 08:51:48.620340",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks, BuybacksState is stored using assembly sload(token) where token is an address (line 94). Could the token address coinciding with the storage slot used for immutable variables (ORDERS, NFT_ID, BUY_TOKEN) cause storage collision and corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b4b7095-6ecb-4110-909a-da5c566d2e05",
+    "timestamp": "2025-12-02 08:52:02.485913",
+    "report_generated": false
+  },
+  {
+    "question": "The configure() function (line 147) doesn't emit an event (except line 172). Could lack of proper event emission for parameter changes make it difficult to detect malicious configuration changes by the owner in time to respond?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eedb03ef-1cd1-43ce-9cba-2e380bc26d40",
+    "timestamp": "2025-12-02 08:52:17.359762",
+    "report_generated": false
+  },
+  {
+    "question": "Since RevenueBuybacks inherits Multicallable, could an attacker use multicall to combine roll() with other functions to exploit timing dependencies or state changes within a single transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2097b908-40d8-49b1-b797-fcf143be8bfe",
+    "timestamp": "2025-12-02 08:52:33.656506",
+    "report_generated": false
+  },
+  {
+    "question": "The take() function (line 57) has onlyOwner modifier but doesn't validate the amount parameter. Could an owner accidentally pass amount > contract balance, causing the function to revert, or would SafeTransferLib handle this?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2c0fb068-1cc1-4dec-9ec1-e36bf2ea8f50",
+    "timestamp": "2025-12-02 08:52:51.213818",
+    "report_generated": false
+  },
+  {
+    "question": "The approveMax function (line 49) is permissionless. Could calling it repeatedly for the same token cause unnecessary state changes or trigger events that could be monitored by MEV bots to front-run buyback orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fcb754bb-0a60-4335-82bb-c285dbad44cd",
+    "timestamp": "2025-12-02 08:53:11.089521",
+    "report_generated": false
+  },
+  {
+    "question": "In collect(), the owner() is passed as recipient (line 77). Could a malicious owner contract with a malicious receive() hook exploit reentrancy during the token transfer from ORDERS, potentially draining protocol funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_060497ae-1272-47a5-be26-94c97f823cb1",
+    "timestamp": "2025-12-02 08:53:33.820593",
+    "report_generated": false
+  },
+  {
+    "question": "The Ownable inheritance (line 22) allows ownership transfer. Could a compromised owner transfer ownership to an attacker address, giving them control over take(), takeNative(), and configure(), effectively taking over the buyback system?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13e5734d-2877-4f83-88b0-3d1a9d83b3bd",
+    "timestamp": "2025-12-02 08:53:58.492765",
+    "report_generated": false
+  },
+  {
+    "question": "The owner can call configure() to change minOrderDuration, targetOrderDuration, and fee (line 147). Could an owner set these to extreme values (e.g., targetOrderDuration = type(uint32).max) to DOS the buyback system by making orders impossible to create?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dbfd8b43-fc7f-4323-9d0f-f557a7b6a85d",
+    "timestamp": "2025-12-02 08:54:26.347640",
+    "report_generated": false
+  },
+  {
+    "question": "The ExposedStorage base contract (inherited via line 14) exposes sload() and tload(). Could an attacker read RevenueBuybacks' storage including private owner data or token configurations, gaining information advantage for MEV attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3d8b530-c6cb-4fcb-ab4e-4ad543dda774",
+    "timestamp": "2025-12-02 08:54:54.227459",
+    "report_generated": false
+  },
+  {
+    "question": "Since roll() is permissionless (line 90), could a bot or MEV searcher front-run intended roll() calls to create orders at disadvantageous times, extracting value from the buyback mechanism?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_44987380-5436-415b-9497-46745deb85cb",
+    "timestamp": "2025-12-02 08:55:24.532324",
+    "report_generated": false
+  },
+  {
+    "question": "The takeNative() function (lines 65-68) allows owner to withdraw ETH. Could an owner exploit this by withdrawing ETH intended for buybacks, and would this cause roll() to fail when trying to create orders for native tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b36a1d66-e6df-48e9-ab6f-b8b5e01b8ba7",
+    "timestamp": "2025-12-02 08:55:55.431365",
+    "report_generated": false
+  },
+  {
+    "question": "The Multicallable inheritance allows batching calls. Could an attacker batch multiple roll() calls with different tokens in a single transaction to manipulate the order of buyback execution or cause unintended state changes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ffe39868-48c4-4f21-9121-0230dceb4671",
+    "timestamp": "2025-12-02 08:56:29.434579",
+    "report_generated": false
+  },
+  {
+    "question": "The collect() function (lines 76-78) can be called by anyone but sends proceeds to owner(). Could this be griefed by repeatedly calling collect() with invalid parameters, consuming gas without benefit, or could it be used to trigger unintended owner callbacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a789683f-a657-4da0-b587-26d63cdf6276",
+    "timestamp": "2025-12-02 08:57:04.764966",
+    "report_generated": false
+  },
+  {
+    "question": "The approveMax() function (lines 49-51) has no access control and can be called by anyone. Could an attacker call this to approve a malicious ORDERS contract (if ORDERS is upgradeable or has a bug), allowing that contract to drain tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f176728f-30bc-4fa4-a4b7-9a62855c50be",
+    "timestamp": "2025-12-02 08:57:40.408337",
+    "report_generated": false
+  },
+  {
+    "question": "In configure() (lines 147-173), only the owner can set buyback parameters. However, roll() can be called by anyone (line 90). Could an attacker call roll() immediately after the owner changes configuration, creating an order with old parameters before the state update is finalized?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1676143e-fe92-4bc0-afb7-f071f445ea53",
+    "timestamp": "2025-12-02 08:58:16.286044",
+    "report_generated": false
+  },
+  {
+    "question": "The take() function (lines 57-60) allows the owner to withdraw any ERC20 tokens from the contract. Could an owner exploit this to withdraw revenue tokens before roll() is called, preventing buyback orders from being created and effectively stealing protocol revenue?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a5a1cf93-4f65-4730-a2c7-ab20c0fe06a3",
+    "timestamp": "2025-12-02 08:58:48.882620",
+    "report_generated": false
+  },
+  {
+    "question": "When collect() is called (line 77), proceeds are sent to owner(). Could a malicious owner use this to drain protocol revenue before it's used for buybacks by repeatedly calling collect() immediately after orders are created?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c4e7a62-2e58-4d62-a806-adc2a1159943",
+    "timestamp": "2025-12-02 08:59:23.031796",
+    "report_generated": false
+  },
+  {
+    "question": "The increaseSellAmount call (line 134) doesn't validate the orderKey matches the previously created order when extending. Could this allow orders to be extended on different pools or with different parameters, fragmenting liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7931beeb-08f1-46b1-af9e-b6aeeea736ad",
+    "timestamp": "2025-12-02 08:59:57.137028",
+    "report_generated": false
+  },
+  {
+    "question": "In roll() (line 135), the orderKey uses fee from state.fee(). If this fee doesn't correspond to an existing pool, would TWAMM create a new pool or revert, and could this be exploited to DOS buybacks by configuring invalid fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95807d83-22b1-4cbf-a63f-4aacc16bce24",
+    "timestamp": "2025-12-02 09:00:31.292644",
+    "report_generated": false
+  },
+  {
+    "question": "The Orders contract uses NFT-based authorization (authorizedForNft modifier). Since RevenueBuybacks owns NFT_ID, could a vulnerability in the ownership check allow non-owners to call increaseSellAmount with RevenueBuybacks' NFT_ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d19677d8-d8c1-4533-b3fe-cd5edf69fada",
+    "timestamp": "2025-12-02 09:01:06.606977",
+    "report_generated": false
+  },
+  {
+    "question": "When roll() extends an existing order (line 114), it doesn't update the orderKey's endTime in storage. Could subsequent increaseSellAmount calls with the old endTime conflict with the extended order, creating duplicate orders or causing reverts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bfd5def8-516d-4aa7-9a96-368c28929c82",
+    "timestamp": "2025-12-02 09:01:40.688380",
+    "report_generated": false
+  },
+  {
+    "question": "In _createOrderKey, the assembly block (line 183) uses mstore(add(key, mul(isToken1, 32)), token). Could the memory safety annotation 'memory-safe' be incorrect if key is not properly initialized, causing memory corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47705e6b-e4ef-4e90-b845-dcffe5a0923a",
+    "timestamp": "2025-12-02 09:02:16.532348",
+    "report_generated": false
   }
 ]
