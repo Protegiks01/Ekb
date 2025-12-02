@@ -13498,5 +13498,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3b075d5-934a-49c2-b476-772dff85f1f0",
     "timestamp": "2025-12-02 09:58:18.101032",
     "report_generated": false
+  },
+  {
+    "question": "In `PayableMulticallable.sol` line 26, the check `if (address(this).balance != 0)` doesn't prevent reentrancy. Could a malicious token contract call back into `refundNativeToken` during a payFrom call, draining the contract's ETH balance and causing legitimate operations to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf8f3dd0-b763-4356-9ac2-594ee1e9c0c6",
+    "timestamp": "2025-12-02 09:59:26.304107",
+    "report_generated": false
+  },
+  {
+    "question": "In `PayableMulticallable.sol` line 25-29, `refundNativeToken` sends entire contract balance to msg.sender. If an attacker calls this in a multicall after depositing ETH but before the deposit is processed, could they drain ETH meant for liquidity, causing the deposit to fail and griefing other operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2cb59083-15a1-4d28-9773-fb633e7d85d0",
+    "timestamp": "2025-12-02 09:59:39.816108",
+    "report_generated": false
+  },
+  {
+    "question": "In `PayableMulticallable.sol` line 17-19, `multicall` is payable and calls `_multicall(data)`. If one call in the batch reverts, does the whole transaction revert, or could partial execution leave positions in inconsistent state, especially if earlier calls deposited liquidity and later calls tried to withdraw?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_780c8ca2-dabd-401a-aa58-161d1237178b",
+    "timestamp": "2025-12-02 09:59:53.236772",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 260, `payFrom` is called for token1 in native token pools. However, FlashAccountantLib.sol:52-83 shows this uses transferFrom. If the ACCOUNTANT doesn't have approval for token1, could this revert AFTER the ETH was already sent, locking ETH in ACCOUNTANT?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f4efc80-e01e-4268-83c5-250b4ac42f6e",
+    "timestamp": "2025-12-02 10:00:07.376765",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 256-258, for native token deposits, `SafeTransferLib.safeTransferETH` is called with `amount0`. If msg.value is less than `amount0 + amount1`, could the ETH transfer succeed but token1 payment fail, creating delta imbalance in the flash accountant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a91af3d-1fac-48c3-919e-1088ece2bc83",
+    "timestamp": "2025-12-02 10:00:23.590639",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 253-262, native token handling uses `token0 != NATIVE_TOKEN_ADDRESS` check. However, NATIVE_TOKEN_ADDRESS is imported from constants but not shown in the file. If NATIVE_TOKEN_ADDRESS is address(0) and a pool uses address(0) as token0, could this trigger incorrect payment flow, sending ERC20 tokens as ETH?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4539b7b1-d10d-471d-a007-c633d82b904e",
+    "timestamp": "2025-12-02 10:00:42.009289",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 64-67, for full-range positions, `getPoolFeesPerLiquidity` is used, but for others `getPoolFeesPerLiquidityInside` is called. Could a malicious pool configuration set `isFullRange()` incorrectly, causing fee calculations to use global fees instead of range-specific fees, allowing attackers to claim fees from other ranges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3338ef85-f1a4-42f9-a3d4-d5c5e49836cc",
+    "timestamp": "2025-12-02 10:01:01.191431",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 58-60, `liquidityDeltaToAmountDelta` is called with negative liquidity to calculate principal. However, liquidity.sol:22-54 shows this function uses unchecked arithmetic. Could integer overflow in line 33-35 when computing absolute value cause incorrect principal calculations for max liquidity positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e53e59f6-dca5-4be9-8bd7-3f72e438370a",
+    "timestamp": "2025-12-02 10:01:21.649998",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 43-68, `getPositionFeesAndLiquidity` is a view function that reads pool state and calculates amounts. If the pool's sqrtRatio is 0 (line 56), the function continues but comments say 'amount0Delta isn't called with it'. Could calling this for uninitialized pools return incorrect principal amounts, misleading users about their position value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a16a5c4f-0172-443d-a0a5-c5c910bce862",
+    "timestamp": "2025-12-02 10:01:44.376838",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 167-168, after minting, `deposit` is called which uses `authorizedForNft(id)` modifier. Since msg.sender just minted the NFT, they're authorized. But if mint() is non-deterministic (uses gas/prevrandao), could an attacker manipulate gas to mint an ID they pre-approved themselves for, bypassing authorization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e76b7b24-02aa-477c-a7e2-3ad6bb056aeb",
+    "timestamp": "2025-12-02 10:02:07.440268",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 172-183, `mintAndDepositWithSalt` allows user-specified salt. Could an attacker compute the resulting ID in advance, pre-approve it to themselves, then front-run a legitimate user's mintAndDepositWithSalt call to steal the deposited liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4025bc9-9d06-4645-b025-9039cf42a650",
+    "timestamp": "2025-12-02 10:02:31.597525",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 159-169, `mintAndDeposit` mints an NFT then immediately deposits liquidity. If the mint() call generates an ID that already exists (collision), could the deposit operation add liquidity to an existing position controlled by another user, effectively gifting them funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_820088b1-f1dd-4d3d-b934-a666736f5e26",
+    "timestamp": "2025-12-02 10:02:57.303915",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 150, comment says 'the before update position hook shouldn't be taken into account here'. Could extensions with beforeSwap or beforeUpdatePosition hooks interfere with pool initialization if `maybeInitializePool` is called during a complex multicall with position updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_53216adc-f667-4dc8-9487-8c74085fece8",
+    "timestamp": "2025-12-02 10:03:24.434700",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 151, the function reads `sqrtRatio` without a lock but returns it at line 154. If the pool is initialized by another transaction between line 151 and 154, could the returned `sqrtRatio` be stale, causing subsequent operations in a multicall to use incorrect price data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0989ee4a-afe0-4554-bd76-1a16f44a5e6c",
+    "timestamp": "2025-12-02 10:03:53.105434",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 145-156, `maybeInitializePool` checks if `sqrtRatio.isZero()` and initializes if true. However, it doesn't acquire a lock before checking. Could a race condition allow two transactions to both see uninitialized state and both call `initializePool`, causing the second to revert and waste gas or revert critical multicall operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4202425c-cd19-4439-9a1e-e87a43339a6f",
+    "timestamp": "2025-12-02 10:04:22.167747",
+    "report_generated": false
+  },
+  {
+    "question": "In `BaseLocker.sol` line 32-35, the handler uses raw return with assembly. If `handleLockData` returns memory that overlaps with the free memory pointer update, could subsequent operations read corrupted data, especially in multicall scenarios where multiple locks are nested?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1e8e6f38-0761-4e0a-be99-05f209dae6a1",
+    "timestamp": "2025-12-02 10:04:52.154209",
+    "report_generated": false
+  },
+  {
+    "question": "In `BaseLocker.sol` line 25-36, the `locked_6416899205` callback extracts data from `msg.data[36:]`. If msg.data is shorter than 36 bytes, could this cause out-of-bounds read, or does Solidity handle this safely? Could malicious calldata length cause the handler to read uninitialized memory?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73e34d14-b171-4b12-8678-3fa88fd1d9f1",
+    "timestamp": "2025-12-02 10:05:24.132438",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 232-241, CALL_TYPE_DEPOSIT decodes 7 values from data. If an attacker sends truncated data that causes abi.decode to revert, does this happen inside the lock, potentially corrupting the lock state or leaving unclosed locks that prevent other operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5950296a-b401-4cc9-b8e3-9c384fd62c28",
+    "timestamp": "2025-12-02 10:05:56.281299",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 230, `callType` is decoded as `uint256` from arbitrary bytes. If an attacker sends calldata with callType > 2, the function reaches line 339 and reverts. However, is the revert cost paid by ACCOUNTANT or the attacker, and could this be used for griefing attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13eedafb-d156-4f48-aca2-afab9217f180",
+    "timestamp": "2025-12-02 10:06:30.189408",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 229-341, `handleLockData` decodes `callType` from data. The function uses `if/else if` without a default case, only reverting at line 339 if none match. Could a malformed calldata with invalid callType pass through without reverting, causing undefined behavior in the lock?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca93e100-68c7-45cd-ab88-d30976b317b9",
+    "timestamp": "2025-12-02 10:07:04.003314",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 295-296, protocol fees are saved using `updateSavedBalances` with `bytes32(0)` salt. If the same token pair is used across multiple pools with different fees, could the saved balances mix, causing protocol fees from high-fee pools to be claimed as low-fee pool funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc4f0966-1d5e-4c90-adb4-f48fcacd4aeb",
+    "timestamp": "2025-12-02 10:07:35.829259",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 196-197, `getProtocolFees` uses `bytes32(0)` as salt for saved balances. However, if users or other contracts also use `bytes32(0)` salt for their saved balances with the same token pair, could this cause storage collision, allowing theft of protocol fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94d3d29a-36b0-4497-9fe2-0d2b89112a7c",
+    "timestamp": "2025-12-02 10:08:07.706038",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 335, `updateSavedBalances` casts amounts to `int256`. If `amount0` or `amount1` is `type(uint128).max`, could the negation `-int256(uint256(amount0))` overflow int256.min, causing addition instead of subtraction and inflating saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f53c978d-73f9-4597-bf5b-57af303cd59c",
+    "timestamp": "2025-12-02 10:08:41.122088",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 186-192, `withdrawProtocolFees` is `onlyOwner` but doesn't verify that `amount0` and `amount1` don't exceed saved balances. Could the owner accidentally withdraw more than available, causing `updateSavedBalances` at line 335 to overflow with negative values, corrupting protocol fee accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5425927a-c6b1-4676-bd93-18e76cb7e650",
+    "timestamp": "2025-12-02 10:09:15.322418",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 64-67, `getPoolFeesPerLiquidityInside` is called for non-full-range positions. If the pool is uninitialized (sqrtRatio=0) but this function doesn't check, could it return garbage values for fees, causing massive fee over-calculation and pool insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ea4c4b2-db82-41f3-a757-e96f0658c7f1",
+    "timestamp": "2025-12-02 10:09:50.818477",
+    "report_generated": false
   }
 ]
