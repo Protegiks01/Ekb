@@ -6448,5 +6448,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8c2e6cb-ea44-419a-bcdf-c3096bae790e",
     "timestamp": "2025-12-02 00:31:19.525702",
     "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshotInternal() (line 325-326), the function computes `timePassed = uint32(atTime) - snapshot.timestamp()`. If atTime is passed as a uint256 value greater than uint32 max, the cast truncates. Could an attacker use this to request extrapolation 'backwards in time' (after wraparound), causing the interpolation to use negative time deltas and return incorrect accumulators?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_73938ed4-6840-498e-a462-fbe315da8f45",
+    "timestamp": "2025-12-02 00:32:34.197272",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.searchRangeForPrevious() (line 267), the function converts logicalIndex to storageIndex using `logicalIndexToStorageIndex(c.index(), c.count(), mid)`. If the circular buffer has wrapped and index is small, but mid is computed based on old metadata, could this access a slot from before the last wraparound, mixing old and new snapshots in the search results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3aede011-9596-4410-81af-2a41e8e02f0f",
+    "timestamp": "2025-12-02 00:32:47.645278",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.searchRangeForPrevious() (line 279-282), after the binary search, the function loads the snapshot at the computed logical index and performs a final check at line 283. If `current - snapshot.timestamp() < targetDiff`, it reverts. Could an attacker exploit this by inserting snapshots with future timestamps (via timestamp wraparound) that cause all queries within a certain range to revert, DOSing oracle-dependent protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ad7af473-9d7d-46ba-898a-740a96f69968",
+    "timestamp": "2025-12-02 00:33:01.720307",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.searchRangeForPrevious() (line 272), the condition checks `current - midSnapshot.timestamp() >= targetDiff`. If midSnapshot.timestamp() is from before a uint32 wraparound and current is after, the subtraction could underflow in uint32 space, producing a large value. Could this cause the binary search to always move left, eventually reverting with NoPreviousSnapshotExists even when valid snapshots exist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aea5485f-15f2-49e7-8a9c-cf919855575f",
+    "timestamp": "2025-12-02 00:33:15.912897",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.searchRangeForPrevious() (line 264-277), the binary search uses `mid = (left + right + 1) >> 1`. The `+1` prevents infinite loops when left=right-1. However, if left + right + 1 overflows uint256 (requires left and right both near type(uint256).max), could the overflow cause mid to wrap to a small value, breaking the search and returning an incorrect snapshot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f7bd7d2-23f7-4b2e-8fd6-656aef26b234",
+    "timestamp": "2025-12-02 00:33:30.997654",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.searchRangeForPrevious() (line 260-261), the function converts the target time to `targetDiff = current - uint32(time)`. If `time` exceeds uint32 max (after year 2106), the cast truncates the upper bits. Could this cause the function to search for the wrong timestamp, returning a snapshot from the distant past that produces a manipulated TWAP?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7cb6f04a-ff42-488b-942e-0bda0357d5ae",
+    "timestamp": "2025-12-02 00:33:47.663923",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.maybeInsertSnapshot() (line 139-142), the assembly writes both the updated Counts and new Snapshot in a single block. If the staticcall to CORE.poolState() at line 113 reverts or returns invalid data (e.g., zero liquidity and zero tick), could the snapshot be written with corrupted accumulators that permanently poison all future TWAP queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f8403a02-69eb-4383-ac7d-6f7db9b9fd6b",
+    "timestamp": "2025-12-02 00:34:05.407278",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.maybeInsertSnapshot() (line 131-135), the code checks `isLastIndex` and `incrementCount` to decide whether to grow the circular buffer. If index wraps from count-1 to 0 but incrementCount is false (capacity == count), the next snapshot overwrites the oldest one. Could an attacker monitor this and time an attack to occur right after the oldest snapshot is overwritten, reducing the available TWAP history and enabling manipulation over a shorter period?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb7b3ac5-f7a2-4e9a-a07b-3a37cf56f6ae",
+    "timestamp": "2025-12-02 00:34:25.962458",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.maybeInsertSnapshot() (line 121-126), the snapshot is created with new cumulative values but the assembly at line 139-142 writes it immediately. If another transaction calls maybeInsertSnapshot() concurrently (e.g., through beforeSwap and beforeUpdatePosition for the same pool), could a race condition cause both to read the same `last` snapshot and overwrite each other's updates, losing accumulator increments?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6360a7c1-46d3-4ccd-8ad8-5c0e206645d8",
+    "timestamp": "2025-12-02 00:34:46.763571",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.maybeInsertSnapshot() (line 125), the tickCumulative update is `last.tickCumulative() + int64(uint64(timePassed)) * state.tick()`. If state.tick() is at MIN_TICK (-88722835) and timePassed is large, could the multiplication overflow int64 max (2^63-1), wrapping to a positive value and corrupting the cumulative tick? Does the cast to int64 truncate silently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1fd5c88a-6f85-451c-bc94-6d30858df340",
+    "timestamp": "2025-12-02 00:35:10.241651",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.maybeInsertSnapshot() (line 115-119), the code reads current pool liquidity and sets `nonZeroLiquidity = liquidity + (liquidity == 0 ? 1 : 0)`. This prevents division by zero in the secondsPerLiquidityCumulative calculation at line 124. However, if an attacker repeatedly swaps to drain liquidity to zero, does adding 1 artificially inflate the time-weighted liquidity, allowing them to manipulate dependent lending protocols that use this for collateral valuation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2bee0775-70f2-4efd-bbfb-50b888256fe9",
+    "timestamp": "2025-12-02 00:35:33.837689",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.maybeInsertSnapshot() (line 102-103), if `timePassed == 0`, the function returns early without writing. However, if `c.lastTimestamp()` wraps at 2^32 and equals uint32(block.timestamp) again after the wrap, could this prevent any new snapshots from being written for an entire 2^32 second period (~136 years)? Would this freeze the oracle at pre-wrap values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3e98775-d181-4e67-a9ce-73892c161d2b",
+    "timestamp": "2025-12-02 00:35:58.929650",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.beforeInitializePool() (line 177-179), the function creates a snapshot with zero accumulators. In OracleLib.getEarliestSnapshotTimestamp() (line 43-44), this snapshot is read. If block.timestamp equals exactly the initialization timestamp, could `block.timestamp - (uint32(block.timestamp) - snapshot.timestamp())` equal block.timestamp, allowing immediate TWAP queries before any price data is recorded?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b97d590-5790-44b6-9b91-3c27a81fd04a",
+    "timestamp": "2025-12-02 00:36:24.969539",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.beforeInitializePool() (line 155-157), the function enforces `token0 == NATIVE_TOKEN_ADDRESS`, `fee == 0`, and `isFullRange() == true`. However, OracleLib.counts() and OracleLib.snapshots() don't verify these constraints. Could an attacker create a malicious contract at the Oracle extension address and trick OracleLib functions into reading data for non-compliant pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_947a958d-aad3-463e-b8f4-b80f5c150a20",
+    "timestamp": "2025-12-02 00:36:53.211356",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.beforeInitializePool() (line 150-186), the function initializes the first snapshot with timestamp=block.timestamp and zero accumulators. If an attacker front-runs this by calling Oracle.expandCapacity() first (which doesn't require initialization), could the existing capacity be preserved at line 173 while the first snapshot overwrites index 0? Could this create a situation where count=1 but capacity>1, leaving uninitialized slots that break binary search?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc9fd9c3-8907-4b12-9078-35d2cbf1c27b",
+    "timestamp": "2025-12-02 00:37:21.205656",
+    "report_generated": false
+  },
+  {
+    "question": "In snapshot.sol timestamp() (line 8-12), the function extracts the lower 32 bits. In Oracle.searchRangeForPrevious() (line 272), timestamps are compared using `current - midSnapshot.timestamp() >= targetDiff`. If both current and midSnapshot.timestamp() wrap at 2^32 but at different times, could the subtraction produce incorrect ordering, causing binary search to return the wrong snapshot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f974dc30-ffd8-4768-b9cf-8477e715549f",
+    "timestamp": "2025-12-02 00:37:49.435217",
+    "report_generated": false
+  },
+  {
+    "question": "In snapshot.sol secondsPerLiquidityCumulative() (line 14-18), the function extracts a uint160 value from bits 32-191. In Oracle.maybeInsertSnapshot() (line 122-124), this accumulator is updated with `last.secondsPerLiquidityCumulative() + uint160(rawDiv(...))`. If the rawDiv result exceeds uint160 max, does the cast truncate silently? Could repeated overflow cause the accumulator to wrap and report artificially low time-weighted liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0995e210-22b4-4100-9d39-1282d4ed5d79",
+    "timestamp": "2025-12-02 00:38:19.219265",
+    "report_generated": false
+  },
+  {
+    "question": "In snapshot.sol tickCumulative() (line 20-24), the function uses `signextend(7, shr(192, snapshot))` to extract the signed int64. If the snapshot was created with a corrupted tickCumulative value (e.g., due to overflow in Oracle.maybeInsertSnapshot() line 125), could the sign extension interpret a large positive value as negative, inverting the TWAP direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d64eca65-4478-4da0-9dad-76212f2f8d20",
+    "timestamp": "2025-12-02 00:38:51.008339",
+    "report_generated": false
+  },
+  {
+    "question": "In snapshot.sol createSnapshot() (line 26-39), the tickCumulative value (int64) is stored in the upper 64 bits using `shl(192, and(_tickCumulative, 0xFFFFFFFFFFFFFFFF))`. If _tickCumulative is negative, does the AND mask preserve the sign correctly? Could sign extension issues cause positive values to be stored for negative ticks, corrupting TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4ec8af39-c55f-47de-8079-048373d4bb5c",
+    "timestamp": "2025-12-02 00:39:24.062634",
+    "report_generated": false
+  },
+  {
+    "question": "In counts.sol capacity() (line 20-24), the function extracts bits 64-95. In Oracle.expandCapacity() (line 213-235), capacity can be increased but never decreased. If an attacker front-runs Oracle initialization by calling expandCapacity() with a huge minCapacity value (near 2^32), could this cause out-of-gas errors in subsequent snapshot writes due to the initialization loop at line 220-225?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2346592-ca27-4938-83ad-23b03fbbf868",
+    "timestamp": "2025-12-02 00:39:57.483451",
+    "report_generated": false
+  },
+  {
+    "question": "In counts.sol lastTimestamp() (line 26-30), the function extracts bits 96-127 using `shr(224, shl(128, counts))`. In Oracle.maybeInsertSnapshot() (line 102), the code checks `timePassed == 0` to avoid duplicate snapshots. If lastTimestamp wraps at 2^32 and becomes less than the new block.timestamp after wrapping, could this allow insertion of multiple snapshots in the same block, breaking accumulator calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd3b62d9-ee58-4e65-8414-b6a12d601ad8",
+    "timestamp": "2025-12-02 00:40:30.894683",
+    "report_generated": false
+  },
+  {
+    "question": "In counts.sol index() (line 8-12), the function extracts the lower 32 bits with `and(counts, 0xFFFFFFFF)`. If the Counts value is uninitialized (all zeros), this returns 0. Could OracleLib.getEarliestSnapshotTimestamp() misinterpret index=0 as pointing to a valid snapshot when no snapshots exist, bypassing the count==0 check due to race conditions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cab09346-b219-471f-8240-d0a206a8d6b4",
+    "timestamp": "2025-12-02 00:41:03.277214",
+    "report_generated": false
+  },
+  {
+    "question": "In counts.sol createCounts() (line 32-39), the function packs four uint32 values using OR and bit shifts. If any input exceeds uint32 max (due to unchecked casting elsewhere), could the upper bits overflow into adjacent fields, corrupting the Counts struct? For example, if _count is passed as uint256 with upper bits set, would the bit mask `and(_count, 0xFFFFFFFF)` be sufficient to prevent corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b15f6b63-06be-449b-9d11-0899d073a60a",
+    "timestamp": "2025-12-02 00:41:34.772850",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.logicalIndexToStorageIndex() (line 49), if the circular buffer wraps around (index < count-1 but logicalIndex is large), the modulo ensures correct wrapping. However, if `c.count()` is manipulated through Oracle.expandCapacity() to be less than the actual number of written snapshots, could this cause logicalIndexToStorageIndex() to skip over valid snapshots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_82bde25a-98bb-4178-9c35-39658570ff17",
+    "timestamp": "2025-12-02 00:42:04.990090",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.getEarliestSnapshotTimestamp() (line 43), the function calls `logicalIndexToStorageIndex(c.index(), c.count(), 0)` to get the earliest snapshot. If `c.index()` equals `c.count()` due to an off-by-one error in Oracle.maybeInsertSnapshot(), could this access an out-of-bounds array index?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_98aa3aab-01ea-4acc-b253-b61eb0b7cf37",
+    "timestamp": "2025-12-02 00:42:35.943867",
+    "report_generated": false
   }
 ]
