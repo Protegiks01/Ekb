@@ -12448,5 +12448,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a37c1259-0979-4721-8e76-edf3506f87e2",
     "timestamp": "2025-12-02 07:46:20.023127",
     "report_generated": false
+  },
+  {
+    "question": "In `beforeInitializePool()`, after initializing the first snapshot, `_emitSnapshotEvent()` is called (line 185). If this event emission fails (e.g., due to gas exhaustion), could the pool initialization succeed in Core but fail in Oracle, leaving inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_078162e3-2357-4273-af3d-1e375cac1fab",
+    "timestamp": "2025-12-02 07:47:32.951582",
+    "report_generated": false
+  },
+  {
+    "question": "The Oracle stores data per token (token1), not per pool. If multiple pools exist for the same token (e.g., different extensions or fee tiers), could `beforeInitializePool()` overwrite existing oracle data when a second pool is initialized?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_829ab796-3574-45d3-b3ac-fddff205d4cc",
+    "timestamp": "2025-12-02 07:47:46.628445",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeInitializePool()`, the function is marked as external and can only be called by Core via `onlyCore` modifier. If Core.sol has a vulnerability allowing external calls to hook functions, could an attacker directly call `beforeInitializePool()` to initialize oracle state for non-existent pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ce9a8335-0efc-4963-85a7-29742f8acd42",
+    "timestamp": "2025-12-02 07:48:00.466403",
+    "report_generated": false
+  },
+  {
+    "question": "The first snapshot's timestamp is set to `uint32(block.timestamp)` (line 163). If block.timestamp is manipulated by miners or sequencers to be very large, could this cause all future timestamp comparisons in binary search to fail or behave unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef499650-25df-4338-ab75-18a88eb55091",
+    "timestamp": "2025-12-02 07:48:15.036276",
+    "report_generated": false
+  },
+  {
+    "question": "In `createSnapshot()` (src/types/snapshot.sol:26-39), the tickCumulative packing uses `shl(192, and(_tickCumulative, 0xFFFFFFFFFFFFFFFF))`. If _tickCumulative is negative (e.g., -1), does the `and` mask preserve the sign, or could it convert negative values to large positive uint64 values, corrupting the cumulative?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b516ba86-199d-4d8c-bbd3-aac6d60e7ff8",
+    "timestamp": "2025-12-02 07:48:30.937127",
+    "report_generated": false
+  },
+  {
+    "question": "The function `tickCumulative(Snapshot)` (src/types/snapshot.sol:20-24) uses `signextend(7, shr(192, snapshot))` to extract int64. If the snapshot bytes32 has corrupt data in bits 192-255 (due to storage collision), could signextend produce incorrect sign extension, corrupting TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac3bd000-64c9-439e-8c50-b18df311a514",
+    "timestamp": "2025-12-02 07:48:48.280944",
+    "report_generated": false
+  },
+  {
+    "question": "In `createCounts()` (src/types/counts.sol:32-39), if any of the input uint32 values are actually larger than uint32 (due to improper casting), could the `and(_value, 0xFFFFFFFF)` masks truncate important data, causing count/capacity/index corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_34054d40-15c0-4ec6-9cd7-a1317addf0cb",
+    "timestamp": "2025-12-02 07:49:06.675782",
+    "report_generated": false
+  },
+  {
+    "question": "The Counts extraction functions (src/types/counts.sol:8-30) use complex bit shifts like `shr(224, shl(192, counts))` for count extraction. Could arithmetic errors in these shifts cause off-by-one errors in the extracted values, leading to out-of-bounds array accesses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_05a08792-b8d2-4845-a7b8-b70326e0d815",
+    "timestamp": "2025-12-02 07:49:26.193977",
+    "report_generated": false
+  },
+  {
+    "question": "In `createObservation()` (src/types/observation.sol:20-25), tickCumulative is masked with `and(_tickCumulative, 0xFFFFFFFFFFFFFFFF)` before packing. For int64 values, the two's complement representation could be corrupted by this mask. Could this cause positive values to be stored as negative or vice versa?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04b91bf0-ee8e-4ac4-bd79-4a3fe5ed7a09",
+    "timestamp": "2025-12-02 07:49:46.643216",
+    "report_generated": false
+  },
+  {
+    "question": "The `secondsPerLiquidityCumulative()` getter for Snapshot (src/types/snapshot.sol:14-18) extracts 160 bits starting at bit 32. If the Snapshot was not created via `createSnapshot()` (e.g., read from uninitialized storage), could garbage data in those bits be interpreted as valid cumulative values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc82a555-23c1-482a-9d55-56c62640eed9",
+    "timestamp": "2025-12-02 07:50:07.673363",
+    "report_generated": false
+  },
+  {
+    "question": "In Observation type, `tickCumulative()` (src/types/observation.sol:14-18) uses `signextend(7, observation)` which sign-extends byte 7. If observation is actually a Snapshot that was incorrectly cast, could this sign extension produce completely wrong tick values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_74b05372-c87f-4857-adf4-f57bfa560b2b",
+    "timestamp": "2025-12-02 07:50:31.273466",
+    "report_generated": false
+  },
+  {
+    "question": "The Snapshot timestamp is stored in the lowest 32 bits (src/types/snapshot.sol:8-12). If a Snapshot is accidentally XORed or ANDed with another value during storage operations, could the timestamp be corrupted while secondsPerLiquidity and tickCumulative remain valid, breaking binary search?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e3fe6fc-6f97-4c8f-9a0d-10f9344b764f",
+    "timestamp": "2025-12-02 07:50:54.018028",
+    "report_generated": false
+  },
+  {
+    "question": "In `createSnapshot()`, the three fields are combined via OR operations. If any input field has bits set outside its designated range (e.g., timestamp > uint32.max), could these extra bits overlap with other fields, corrupting the packed snapshot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1d927017-e594-4852-b590-595632cbdc54",
+    "timestamp": "2025-12-02 07:51:19.054253",
+    "report_generated": false
+  },
+  {
+    "question": "The protocol documentation states it doesn't clean upper bits. Could dirty upper bits in intermediate calculations (e.g., `index + 1` in `logicalIndexToStorage",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a02c324f-85e3-4001-b968-daa2d5664c6e",
+    "timestamp": "2025-12-02 07:51:44.856311",
+    "report_generated": false
+  },
+  {
+    "question": "In `handleForwardData` (line 190), when processing callType 0 for order updates, can an attacker manipulate the `salt` parameter to overwrite another user's order state by engineering a storage slot collision in `TWAMMStorageLayout.orderStateSlotFollowedByOrderRewardRateSnapshotSlot` (line 216-217), potentially stealing their accumulated rewards?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6fd4138e-88c7-49fe-9d06-2aebfd8ea6f2",
+    "timestamp": "2025-12-02 07:52:11.895876",
+    "report_generated": false
+  },
+  {
+    "question": "In the order update logic (lines 199-208), the function validates `endTime <= block.timestamp` and reverts with `OrderAlreadyEnded()`. However, if `endTime == block.timestamp` exactly, can an attacker place an order that executes immediately and manipulates reward rates without providing liquidity over time?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_544368c2-3891-4f01-8636-bce69126d9a4",
+    "timestamp": "2025-12-02 07:52:40.643940",
+    "report_generated": false
+  },
+  {
+    "question": "In `handleForwardData` at line 212, `_executeVirtualOrdersFromWithinLock` is called before updating order state. Can a malicious user exploit reentrancy through the Core.swap calls within virtual order execution to modify pool state and then manipulate their order's reward rate snapshot calculation at line 224?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_82f133a4-a2cf-44c0-bbc1-65efb930bc7d",
+    "timestamp": "2025-12-02 07:53:10.714588",
+    "report_generated": false
+  },
+  {
+    "question": "In the order state parsing (line 226), `(lastUpdateTime, saleRate, amountSold)` are extracted from storage. If `lastUpdateTime` is significantly in the past due to infrequent updates, can the `computeAmountFromSaleRate` calculation (lines 255-262) overflow when computing duration as `block.timestamp - lastUpdateTime`, bypassing the uint32 cast?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9264f6c5-17eb-4863-a23c-ffacd204af6e",
+    "timestamp": "2025-12-02 07:53:41.975534",
+    "report_generated": false
+  },
+  {
+    "question": "In the reward calculation (line 228), `purchasedAmount = computeRewardAmount(rewardRateInside - rewardRateSnapshot, saleRate)` assumes `rewardRateInside >= rewardRateSnapshot`. Can an attacker manipulate virtual order execution timing to cause `rewardRateSnapshot > rewardRateInside`, resulting in underflow and claiming excessive rewards?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d84d30f8-5ffa-465f-b0c4-78c44ef2c650",
+    "timestamp": "2025-12-02 07:54:13.244877",
+    "report_generated": false
+  },
+  {
+    "question": "In the assembly block (lines 234-246), `rewardRateSnapshotAdjusted` is computed as `(rewardRateInside - (purchasedAmount << 128) / saleRateNext) * iszero(iszero(saleRateNext))`. If `saleRateNext` is very small (close to 1), can the division result in precision loss that allows users to claim more rewards than they should on subsequent updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_063f9b70-73d1-4e00-b498-1e47c47af26c",
+    "timestamp": "2025-12-02 07:54:45.378649",
+    "report_generated": false
+  },
+  {
+    "question": "In the `numOrdersChange` calculation (line 245), the assembly uses `sub(iszero(saleRate), iszero(saleRateNext))` which returns type(uint256).max when transitioning from active to cancelled. Can this cause the `_updateTime` function (line 272) to underflow `numOrders` and corrupt the TimeInfo state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b066eae6-ff30-41fe-939c-670c7a116739",
+    "timestamp": "2025-12-02 07:55:18.517737",
+    "report_generated": false
+  },
+  {
+    "question": "In the order state update (lines 248-266), `amountSold` is incremented using `computeAmountFromSaleRate`. The duration is calculated as `min(block.timestamp - lastUpdateTime, block.timestamp - startTime)` (lines 257-260). Can an attacker exploit the min logic to double-count sold amounts if they update just before and just after `startTime`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_554e891d-6705-4a63-9b09-adaad09c002a",
+    "timestamp": "2025-12-02 07:55:51.240806",
+    "report_generated": false
+  },
+  {
+    "question": "In line 259, the duration calculation uses `uint32(uint64(block.timestamp) - startTime)` with nested casts. Can the uint64 intermediate cast allow values that overflow when cast to uint32, enabling an attacker to specify a fraudulent duration and manipulate `amountSold`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_898e064d-8f73-4328-b314-b77e190be00e",
+    "timestamp": "2025-12-02 07:56:23.554237",
+    "report_generated": false
+  },
+  {
+    "question": "In the scenario where `block.timestamp < startTime` (line 271), the function calls `_updateTime` for both start and end times. Can an attacker create multiple orders with the same start time to amplify sale rate deltas at that time point, exceeding `MAX_ABS_VALUE_SALE_RATE_DELTA` when the time is eventually crossed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c7757838-1195-477b-88d0-cb1d41448377",
+    "timestamp": "2025-12-02 07:56:54.228370",
+    "report_generated": false
+  },
+  {
+    "question": "In the active order update path (lines 274-299), the current pool state is loaded and modified directly. If two orders update simultaneously in different transactions within the same block, can race conditions cause one update to overwrite the other's sale rate changes, leading to incorrect pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a87df79-10eb-4f4a-9541-dd50546f63df",
+    "timestamp": "2025-12-02 07:57:27.606639",
+    "report_generated": false
   }
 ]
