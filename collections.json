@@ -9598,5 +9598,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f8d87860-23de-4236-8974-b341dc180e0f",
     "timestamp": "2025-12-02 04:08:40.083640",
     "report_generated": false
+  },
+  {
+    "question": "Can the sequence: withdraw() -> ETH transfer callback -> nested lock() -> completePayments() in new lock cause debt to leak between locks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91d52f0e-0287-48de-a9e6-78b2d1b4e6f9",
+    "timestamp": "2025-12-02 04:09:55.679091",
+    "report_generated": false
+  },
+  {
+    "question": "If forward() is called to a contract that immediately calls lock() again, does this create a situation where two locks share the same transient storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_437608b9-872f-478a-a429-9a1785997a82",
+    "timestamp": "2025-12-02 04:10:09.329488",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if an attacker calls lock() when the current locker ID is exactly type(uint96).max? Does the increment overflow and wrap to 0?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94c1734d-e607-4014-aaab-95204d8b9750",
+    "timestamp": "2025-12-02 04:10:23.061727",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker pass type(uint128).max as a withdrawal amount to cause the debt calculation 'add(current, amount)' to overflow silently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_de2af360-3466-49e4-963a-d685d1c963c5",
+    "timestamp": "2025-12-02 04:10:37.298076",
+    "report_generated": false
+  },
+  {
+    "question": "If a token's balanceOf returns exactly type(uint256).max, does the payment calculation in completePayments() overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22b9651f-97c6-4b64-a756-bd8c558e0579",
+    "timestamp": "2025-12-02 04:10:52.974060",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if startPayments() is called with zero tokens (only the selector)? Does the empty loop cause unexpected behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4f3e137-08b5-486e-98bd-66575c2ba269",
+    "timestamp": "2025-12-02 04:11:09.658193",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker call withdraw() with amount=0 to manipulate the non-zero debt count without actually transferring tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2b769f1d-c2aa-4677-bf9b-edf94a814c0c",
+    "timestamp": "2025-12-02 04:11:27.563963",
+    "report_generated": false
+  },
+  {
+    "question": "If completePayments() is called without a prior startPayments(), what is the behavior when lastBalance is uninitialized (0)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d69e6696-f1d8-46bc-8d9b-239c5e49bf13",
+    "timestamp": "2025-12-02 04:11:47.689224",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if an attacker sends exactly 1 wei via receive() when the current debt is already at type(int256).min?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e9b5d83-bbc1-4c2f-b15d-ca708b416764",
+    "timestamp": "2025-12-02 04:12:09.152393",
+    "report_generated": false
+  },
+  {
+    "question": "In lock() (line 155), 'let free := mload(0x40)' reads the free memory pointer - can prior memory corruption cause this to point to already-used memory?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_33d07ea3-8900-4ad7-9884-06b9a431261c",
+    "timestamp": "2025-12-02 04:12:32.399945",
+    "report_generated": false
+  },
+  {
+    "question": "Multiple functions modify memory at the free pointer without updating it - can this cause memory collisions in complex call sequences?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_852013bf-c484-4213-b2c4-e1da214022d5",
+    "timestamp": "2025-12-02 04:12:56.044403",
+    "report_generated": false
+  },
+  {
+    "question": "In withdraw() (line 358), 'mstore(0x14, recipient)' writes to low memory - can this overwrite important scratch space used by Solidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e0f335b-6e8e-452e-8fe0-23a1c6f498be",
+    "timestamp": "2025-12-02 04:13:21.191850",
+    "report_generated": false
+  },
+  {
+    "question": "completePayments() writes payment amounts starting at 'mload(0x40)' - can the return value exceed the free memory space?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57139dfc-08ef-4f5b-a2e5-bc43c2e28531",
+    "timestamp": "2025-12-02 04:13:47.816782",
+    "report_generated": false
+  },
+  {
+    "question": "Can the 'returndatacopy' operations in lock() and forward() overflow allocated memory if return data is extremely large?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_10e91492-7a9c-4720-acad-941c058ce88b",
+    "timestamp": "2025-12-02 04:14:15.340838",
+    "report_generated": false
+  },
+  {
+    "question": "The balanceOf calls use memory locations 0x00-0x24 - can these overwrites corrupt other data if called in unexpected contexts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b942e041-15c1-4f96-9b56-1cc31951f15a",
+    "timestamp": "2025-12-02 04:14:44.565719",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker pass an extremely long token list to startPayments() to cause out-of-gas during iteration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_50de13e7-a906-4a4c-82ac-2ab99f11cca5",
+    "timestamp": "2025-12-02 04:15:14.512864",
+    "report_generated": false
+  },
+  {
+    "question": "If withdraw() is called with thousands of small withdrawals, can this exceed the block gas limit and DOS the lock?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7e48e1e6-2db4-4895-ad12-2cbdcafb1249",
+    "timestamp": "2025-12-02 04:15:46.713565",
+    "report_generated": false
+  },
+  {
+    "question": "Can a malicious token's balanceOf function consume excessive gas in startPayments() to prevent payment completion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ebf9ebcd-9988-4dd9-89ac-d557ccb9138c",
+    "timestamp": "2025-12-02 04:16:17.466868",
+    "report_generated": false
+  },
+  {
+    "question": "If completePayments() is called with many tokens where balanceOf gas costs are high, can this be used to grief other operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7a699e9-501a-423c-886c-eec32dfe2838",
+    "timestamp": "2025-12-02 04:16:51.680221",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker force lock() to revert by consuming nearly all gas in the callback, leaving insufficient gas for the DebtsNotZeroed check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b06b6f60-8c0e-43fa-93aa-bc9b009e49e3",
+    "timestamp": "2025-12-02 04:17:25.922961",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit the fact that lock() returns raw callback return data to inject malicious data into calling contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70d24d16-55a6-4f7d-93c1-6af0db69d1bf",
+    "timestamp": "2025-12-02 04:17:57.647789",
+    "report_generated": false
+  },
+  {
+    "question": "forward() bubbles up return data from the forwardee - can a malicious forwardee craft return data that exploits the original caller?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9500f6db-25ab-4468-8872-cd70ea56b71e",
+    "timestamp": "2025-12-02 04:18:29.083275",
+    "report_generated": false
+  },
+  {
+    "question": "startPayments() returns balance data in a custom format - can calling contracts misinterpret this data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_40466d4a-03f7-4a5f-b5dc-91655800cdfd",
+    "timestamp": "2025-12-02 04:19:00.315589",
+    "report_generated": false
+  },
+  {
+    "question": "completePayments() returns packed uint128 values - can unpacking errors in calling contracts cause security issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0844b245-1600-433f-9b25-e5a4b0f9d489",
+    "timestamp": "2025-12-02 04:19:31.642949",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit the assembly return statements that bypass Solidity's return encoding to inject crafted data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57c9cf54-ff4b-4102-a55b-0fbe9ba7913e",
+    "timestamp": "2025-12-02 04:20:02.408247",
+    "report_generated": false
   }
 ]
