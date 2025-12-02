@@ -8398,5 +8398,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31f450b9-b7f2-4cc7-92c9-1d06e270a628",
     "timestamp": "2025-12-02 02:39:08.866560",
     "report_generated": false
+  },
+  {
+    "question": "The modifier applies to functions in both BasePositions and Orders. If a user approves an address for an Order NFT, and that address can somehow use the approval to interact with a Position NFT with the same ID (due to ID collision or contract confusion), could they perform unauthorized operations across contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8024814d-409f-4ed1-84e5-2630186de0d3",
+    "timestamp": "2025-12-02 02:40:45.872355",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.collectFees() (lines 100-107), the function is marked with `authorizedForNft(id)` but then calls another collectFees() variant. If there's recursion or reentrancy, could the authorization check be bypassed by entering through a different function variant that doesn't re-check authorization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23b00f2e-35d3-418d-92d5-916e6ac9c045",
+    "timestamp": "2025-12-02 02:40:58.901807",
+    "report_generated": false
+  },
+  {
+    "question": "If a user revokes approval after an approved operator's transaction is submitted but before it's mined, the transaction will revert when `authorizedForNft` is checked. Could an MEV searcher exploit this by front-running revoke transactions, causing approved operations to fail at critical moments (e.g., during high slippage) and causing financial loss to users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f669a3c-8608-4bdf-9d61-2e7d3389a69e",
+    "timestamp": "2025-12-02 02:41:12.699321",
+    "report_generated": false
+  },
+  {
+    "question": "The `setMetadata()` function (lines 42-46) allows the owner to change `_name`, `_symbol`, and `baseUrl` at any time. If the owner changes the baseUrl to a malicious domain that serves fake token metadata, could users be phished into approving malicious contracts or sending funds to attacker addresses, believing they're interacting with legitimate Ekubo positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f038cd20-b64d-42ee-9824-379c515de845",
+    "timestamp": "2025-12-02 02:41:26.585344",
+    "report_generated": false
+  },
+  {
+    "question": "In `tokenURI()` (lines 65-76), the function concatenates baseUrl with chainid, contract address, and token ID. If baseUrl contains a path traversal attack vector (e.g., '../../malicious'), could this cause off-chain indexers or wallets to fetch data from unintended locations, potentially serving malicious JSON that tricks users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18df49d0-44ba-428b-88f1-9dba2b46ce4d",
+    "timestamp": "2025-12-02 02:41:41.685904",
+    "report_generated": false
+  },
+  {
+    "question": "The `setMetadata()` function (line 42) is protected by `onlyOwner`, meaning the BaseNonfungibleToken owner (trusted) can change metadata. However, if the owner contract has a vulnerability and is compromised, could an attacker use setMetadata() to change baseUrl to a phishing site, causing all users' wallets to display fake position information?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23bc24c0-b60a-4f2d-b1d6-02cf0d742525",
+    "timestamp": "2025-12-02 02:41:57.922023",
+    "report_generated": false
+  },
+  {
+    "question": "In `tokenURI()` (line 66-75), if baseUrl is set to an empty string, the function still returns a URI starting with chainid. Could off-chain systems misinterpret this as a valid relative URL, causing broken images or metadata in wallets and marketplaces, reducing user trust in the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28a6a0a7-8eaf-4e7d-a0f4-8bf970b861fe",
+    "timestamp": "2025-12-02 02:42:15.764518",
+    "report_generated": false
+  },
+  {
+    "question": "The `name()` and `symbol()` functions (lines 50-58) return storage variables that can be changed by the owner. If a malicious owner changes the name to impersonate another protocol (e.g., 'Uniswap V4 Positions'), could users be tricked into approving or interacting with this contract thinking it's a different protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e25a7f59-c9ac-4829-a701-291720f1d84c",
+    "timestamp": "2025-12-02 02:42:35.801470",
+    "report_generated": false
+  },
+  {
+    "question": "In `setMetadata()` (lines 42-46), there's no validation on the input strings. If the owner sets an extremely long baseUrl (e.g., millions of characters), could calls to tokenURI() run out of gas, preventing users from viewing their position metadata and potentially breaking integrations with wallets and marketplaces?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae2910d7-124d-4b6f-beb8-a90e9df05153",
+    "timestamp": "2025-12-02 02:42:56.643288",
+    "report_generated": false
+  },
+  {
+    "question": "The `tokenURI()` function (lines 65-76) uses `LibString.toHexStringChecksummed(address(this))` to include the contract address. If there's a bug in the checksumming logic, could this generate incorrect URLs that don't match what indexers expect, causing positions to appear as 'not found' and confusing users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5c57dd79-c372-4d40-b538-774702b54d02",
+    "timestamp": "2025-12-02 02:43:18.833407",
+    "report_generated": false
+  },
+  {
+    "question": "In `setMetadata()` (line 42), the function doesn't emit an event to notify off-chain systems of the change. If the baseUrl is changed, existing cached metadata becomes stale. Could this cause NFT marketplaces to display outdated information, misleading users about position values or status?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ec168db-5edf-4e5b-9a5a-956521abf777",
+    "timestamp": "2025-12-02 02:43:41.573041",
+    "report_generated": false
+  },
+  {
+    "question": "The `tokenURI()` function (line 69) includes `block.chainid` in the URL. If Ekubo is deployed on a chain that later changes its chain ID (as happened with some L2s during development), could existing tokenURIs break, causing all position metadata to become inaccessible and violating user expectations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f09c2c2d-8966-4eb0-aad7-b06e8e5659e2",
+    "timestamp": "2025-12-02 02:44:06.404377",
+    "report_generated": false
+  },
+  {
+    "question": "In `setMetadata()` (lines 43-45), the new values are directly assigned to storage without any validation. If newName or newSymbol contain special characters that break ERC721 metadata standards (e.g., null bytes, control characters), could this cause wallets to display garbled text or reject the NFTs entirely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_16be1286-6f96-4e9a-9ba1-670137b90515",
+    "timestamp": "2025-12-02 02:44:32.421471",
+    "report_generated": false
+  },
+  {
+    "question": "The `tokenURI()` function (lines 65-76) is marked as virtual override, allowing child contracts to override it. If BasePositions or Orders forgets to properly validate their overridden tokenURI(), could they introduce vulnerabilities like injecting malicious scripts into JSON metadata served at the URL?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e79fdd55-d2e7-40ca-9045-a96f8e3424d2",
+    "timestamp": "2025-12-02 02:44:59.374596",
+    "report_generated": false
+  },
+  {
+    "question": "In `setMetadata()` (line 42), there's no timelock or delay mechanism. If the owner's private key is compromised, an attacker could immediately change all metadata to malicious values before anyone notices, affecting all users simultaneously. Could this be exploited to coordinate a large-scale phishing attack?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1af77403-4a6a-4b3e-a873-a268d9dccc31",
+    "timestamp": "2025-12-02 02:45:26.897452",
+    "report_generated": false
+  },
+  {
+    "question": "The `baseUrl` variable (line 29) is public, allowing anyone to read it. If the URL contains sensitive query parameters or authentication tokens (which it shouldn't but might if misconfigured), could this expose internal APIs or services to unauthorized access?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f41a08f4-fec0-4de6-a835-4e37a3100672",
+    "timestamp": "2025-12-02 02:45:54.947576",
+    "report_generated": false
+  },
+  {
+    "question": "In `tokenURI()` (lines 71-72), the function concatenates '/' between URL components. If baseUrl already ends with '/', this creates a double slash ('//'). While usually harmless, could this cause issues with poorly implemented HTTP servers or CDNs, making metadata inaccessible?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e4928c65-3574-4182-a0b3-0c081d7d1cff",
+    "timestamp": "2025-12-02 02:46:22.146885",
+    "report_generated": false
+  },
+  {
+    "question": "The `setMetadata()` function (line 42) can be called during active operations. If metadata is changed while users are in the middle of minting or depositing positions, could this cause race conditions where the NFT's name/symbol changes between when the user initiated the transaction and when it confirms, violating user expectations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_62d0d8a2-a40e-41bc-8782-0384ff944465",
+    "timestamp": "2025-12-02 02:46:49.959380",
+    "report_generated": false
+  },
+  {
+    "question": "In `saltToId()` (lines 93-99), the assembly block uses `mstore(free, minter)` where free is `mload(0x40)`. If a previous operation corrupted the free memory pointer without updating it, could this cause saltToId() to overwrite critical data in memory, leading to incorrect ID generation or transaction failures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e6c99e1-8565-4847-a341-b24a562413a9",
+    "timestamp": "2025-12-02 02:47:18.294117",
+    "report_generated": false
+  },
+  {
+    "question": "The `saltToId()` function (line 94) stores the minter address at the free memory pointer, but addresses are only 20 bytes while mstore writes 32",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0b0d2337-dea8-40fc-9372-238cb79cf187",
+    "timestamp": "2025-12-02 02:47:46.465325",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, the assembly block uses `mstore(sub(i, 4), sload(calldataload(i)))` which writes to memory offset `i-4`. Could this memory write operation overwrite critical memory regions like the free memory pointer at 0x40 or the zero slot at 0x60, potentially corrupting subsequent operations that rely on these standard memory locations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7294e9b6-2d80-4103-af33-f803befdf832",
+    "timestamp": "2025-12-02 02:48:14.731881",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, the loop writes storage values to memory starting at offset `sub(i, 4)`. Given that calldata iteration starts at i=4, the first write occurs at memory offset 0. Could this overwrite the scratch space (0x00-0x3f) that may be in use by other operations, causing memory corruption if sload() is called during complex transactions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_587dd811-143c-48ba-b22d-7bc5dca6819a",
+    "timestamp": "2025-12-02 02:48:40.413969",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 18, the function returns `sub(calldatasize(), 4)` bytes starting from memory offset 0. If calldatasize() is exactly 4 (just the function selector), would this return 0 bytes or could it underflow and return an enormous value, potentially exposing arbitrary memory contents beyond what the caller intended?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a22ed7c7-3d98-4855-bc27-86497ec77634",
+    "timestamp": "2025-12-02 02:49:04.761293",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, the identical memory manipulation pattern `mstore(sub(i, 4), tload(calldataload(i)))` is used. Could transient storage reads during an active flash loan expose sensitive delta values that should remain internal, allowing attackers to read the exact debt state mid-transaction and front-run settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3eaeff2d-9baa-4a23-b272-6bfc613d5943",
+    "timestamp": "2025-12-02 02:49:27.956651",
+    "report_generated": false
+  },
+  {
+    "question": "In both ExposedStorage.sload() and tload() (lines 17, 27), the memory-safe annotation claims safety, but the assembly directly manipulates memory offsets without checking bounds. Could a malicious caller provide a calldatasize large enough to cause the loop to write beyond allocated memory, potentially triggering memory expansion costs that brick the transaction due to gas limits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_62965d66-71f7-4652-99fc-c03869410d98",
+    "timestamp": "2025-12-02 02:49:49.735830",
+    "report_generated": false
   }
 ]
