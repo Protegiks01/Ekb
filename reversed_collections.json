@@ -10198,5 +10198,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6596d462-b3d6-4a0f-8cdb-2dedab174f01",
     "timestamp": "2025-12-02 05:13:52.710964",
     "report_generated": false
+  },
+  {
+    "question": "If two DropKeys have owners/tokens that hash to dropIds differing by exactly 1, their storage layouts would be: Drop A at slot X (state) and X+1 (bitmap word 0), Drop B at slot X+1 (state). Would Drop B's state collide with Drop A's bitmap, causing IncentivesDataFetcher.getDropInfo(keyB) to return corrupted data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c14b2723-0e4f-4e9d-9da2-5cb8de957206",
+    "timestamp": "2025-12-02 05:15:07.746313",
+    "report_generated": false
+  },
+  {
+    "question": "The constructor (lines 24-26) takes an IIncentives parameter but does not validate that the address is a contract or implements the required interface. If an attacker deploys IncentivesDataFetcher with a malicious contract address, could the INCENTIVES reference point to a fake contract that returns manipulated claim data to defraud users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2f66c59-b5c4-41aa-88a0-39545cd6a0fc",
+    "timestamp": "2025-12-02 05:15:20.968048",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.INCENTIVES is set in the constructor (lines 24-26) and is immutable. If the INCENTIVES contract is upgraded to a new address but IncentivesDataFetcher still points to the old address, would all functions return stale data, potentially causing users to attempt claims on an abandoned contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_77a83303-4f67-4afd-bf69-7e362db56dbe",
+    "timestamp": "2025-12-02 05:15:34.978984",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getRemainingAmounts() (lines 165-170) returns an array of uint128 values. If any drop's remaining amount underflows (due to the unchecked subtraction in DropState.getRemaining()), would the corresponding entry in the returned array contain a massively inflated value, confusing external contracts about fund availability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_820dbd47-3bcb-4ecf-baad-c83e19156aaa",
+    "timestamp": "2025-12-02 05:15:49.118932",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getClaimedBitmap() (lines 143-145) returns a Bitmap type (which is a uint256 wrapper). If the calling contract expects a raw uint256, could there be ABI decoding issues causing the returned bitmap to be misinterpreted, leading to incorrect claim status interpretation by external integrators?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f8ee1c56-378c-42ad-a6b8-cf7e51ae7aaf",
+    "timestamp": "2025-12-02 05:16:04.268852",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.areIndicesClaimed() (lines 128-137) creates a bool array matching indices length. If an attacker provides the same index value repeated 1000 times in the array, would the function redundantly read the same storage slot 1000 times, wasting gas and potentially enabling griefing attacks on view function infrastructure?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f9662ef9-0a96-4911-8844-3bb4f89d761a",
+    "timestamp": "2025-12-02 05:16:20.955287",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getClaimInfo() checks claim.index for claimed status (line 103) and isAvailable (line 104) separately. If claim.index is extremely large (e.g., 2^256-1), could the claimIndexToStorageIndex calculation overflow, causing both checks to read garbage storage and return incorrect ClaimInfo?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d1f90ca-3569-42f4-b513-8097113e4a7a",
+    "timestamp": "2025-12-02 05:16:38.818581",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getClaimInfo() (lines 101-105) sets claim, isClaimed, and isAvailable in the ClaimInfo struct. If the claim.amount is zero, would isAvailable still return true (since remaining >= 0 is always true), potentially misleading integrators about whether a zero-amount claim is valid?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_227c98f5-d74a-4ebd-8e5c-59826deb3bec",
+    "timestamp": "2025-12-02 05:16:59.667768",
+    "report_generated": false
+  },
+  {
+    "question": "In IncentivesDataFetcher.getDropInfo() (line 81), getRemaining() is called after getFunded() and getClaimed(). If IncentivesLib.getRemaining() recalculates funded - claimed but uses stale storage values, could the remaining field in the returned struct be out of sync with the funded and claimed fields in the same struct?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8870d1b-40e8-4e98-94f6-f46cf877a664",
+    "timestamp": "2025-12-02 05:17:20.719795",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getDropInfo() (lines 77-82) makes three separate storage reads (funded, claimed, remaining). If the Incentives contract allows concurrent modifications to drop state, could these reads be inconsistent with each other, leading to a DropInfo struct where remaining != funded - claimed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bbc38250-9625-4c26-b51f-77c667d95def",
+    "timestamp": "2025-12-02 05:17:43.168449",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getRemaining() (lines 48-50) calls IncentivesLib.getRemaining() which uses unchecked subtraction. If the Incentives contract's funded/claimed values are corrupted such that claimed > funded, would this return a huge uint128 value due to underflow, falsely indicating massive available funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6772931f-a5e1-4ebc-b066-52fa4580cc9f",
+    "timestamp": "2025-12-02 05:18:07.124747",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.isAvailable() (lines 41-43) checks both claim status and remaining funds. If the Incentives contract has a race condition where a claim is processed between the isClaimed and getRemaining checks, could this function return true for a claim that is no longer available, misleading users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b674084d-f85d-4870-81a6-32934f723cd7",
+    "timestamp": "2025-12-02 05:18:32.130623",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.isClaimed() (lines 32-34) directly forwards the call to INCENTIVES.isClaimed(). If the INCENTIVES contract's storage layout changes (e.g., due to an upgrade) but IncentivesLib's hardcoded slot calculation (dropId + 1 + word) remains unchanged, would this function return stale or incorrect claim status?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_86b74399-9341-4bd8-a033-b42224c41540",
+    "timestamp": "2025-12-02 05:18:58.676076",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.areClaimsAvailable() (lines 177-188) checks if indices.length != amounts.length and reverts with ArrayLengthMismatch. However, if both arrays are extremely large but equal in length, could the function still consume excessive gas in the loop at line 185, causing a denial of service for view function users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1892b50e-b22b-4a46-b546-f0ec48fe1801",
+    "timestamp": "2025-12-02 05:19:26.352422",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getClaimedBitmaps() (lines 151-160) has no maximum on the words array length. Could an attacker request bitmaps for words 0 through type(uint256).max-1, causing the function to attempt accessing an unbounded number of storage slots and running out of gas or hitting EVM limitations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6b0ff2eb-7976-43c2-a9c5-e51a0b78fa10",
+    "timestamp": "2025-12-02 05:19:54.463542",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.areIndicesClaimed() (lines 128-137) performs one storage read per index. If an attacker provides an indices array with all values mapping to the same (word, bit) combination, would the EVM's storage access pattern still charge full gas for each read, allowing griefing at the expense of view function callers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e4a43866-54af-4f7a-9320-fa87049aebdf",
+    "timestamp": "2025-12-02 05:20:22.357760",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getClaimInfos() (lines 111-122) iterates over claims array without bounds checking. For each iteration, it makes 2 storage reads (isClaimed, isAvailable). Could a malicious user provide a claims array with thousands of entries, causing excessive gas consumption and potentially blocking legitimate queries in multicall scenarios?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b530714-bb12-42cb-886b-bd4d1a687464",
+    "timestamp": "2025-12-02 05:20:51.224326",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getDropInfos() (lines 87-95) has no limit on the keys array length. Could an attacker call this function with an extremely large keys array (e.g., 10,000 elements), causing the transaction to run out of gas and potentially create a denial of service for block builders or other users sharing the same block?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb7dbe60-f687-4b09-b81c-3070298d84e6",
+    "timestamp": "2025-12-02 05:21:19.265302",
+    "report_generated": false
+  },
+  {
+    "question": "The staticcall in ExposedStorageLib.sload() returns 32 bytes to memory offset 0 (line 14). If multiple sload calls are made in quick succession within the same function (e.g., in loops), could there be a race condition where the result from one call overwrites another, causing IncentivesDataFetcher.getDropInfos() to return duplicate or incorrect data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c80c19d5-9174-40dd-8d55-0fece93d7cc7",
+    "timestamp": "2025-12-02 05:21:47.539586",
+    "report_generated": false
+  },
+  {
+    "question": "ExposedStorageLib.sload() writes the selector and slot to memory at offsets 0 and 4 (lines 11-12). If another function in IncentivesDataFetcher calls sload() while memory at offset 0 contains important data, could this overwrite cause memory corruption, leading to incorrect return values from batch fetch functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6cb0ac1-1c81-4d72-a885-71f24d0d568e",
+    "timestamp": "2025-12-02 05:22:15.848324",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorageLib.sload() (line 14), if the staticcall fails, it reverts with `revert(0, 0)`, providing no error message. If the Incentives contract's storage access has a bug causing reverts, would users of IncentivesDataFetcher be unable to diagnose why their queries fail, potentially blocking legitimate claim attempts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ac72528-0e93-4c56-80d8-c97f7c3e0558",
+    "timestamp": "2025-12-02 05:22:43.485545",
+    "report_generated": false
+  },
+  {
+    "question": "ExposedStorageLib.sload() (lines 9-18) uses assembly to perform a staticcall with hardcoded function selector 0x380eb4e0. If the Incentives contract's sload function signature changes or the selector is wrong, would all IncentivesDataFetcher functions revert, causing a denial of service for users trying to check claim availability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e9b05be-b374-4bb3-9cff-0177f93ef611",
+    "timestamp": "2025-12-02 05:23:10.941259",
+    "report_generated": false
+  },
+  {
+    "question": "In DropState.setFunded() (line 34), the new funded amount is shifted left 128 bits and OR'd with the masked state. If the mask `and(state, 0xffffffffffffffffffffffffffffffff)` doesn't fully clear the upper 128 bits (due to a typo), would subsequent reads by IncentivesDataFetcher.getFunded() return corrupted values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_702e40de-715e-432b-b179-20ae6d8dcc79",
+    "timestamp": "2025-12-02 05:23:40.917142",
+    "report_generated": false
+  },
+  {
+    "question": "DropState.claimed() masks with `and(state, 0xffffffffffffffffffffffffffffffff)` (lines 22-25). If this mask is applied to a state where claimed was supposed to be in the upper bits, would IncentivesDataFetcher.getRemaining() compute an incorrect value, potentially showing more funds available than actually exist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_10a867e5-15c8-458b-b964-01a5d9e12449",
+    "timestamp": "2025-12-02 05:24:09.989887",
+    "report_generated": false
+  },
+  {
+    "question": "DropState.funded() extracts the upper 128 bits with `shr(128, state)` (lines 13-16). If the Incentives contract incorrectly stores funded in the lower 128 bits, would IncentivesDataFetcher.getDropInfo() return zero funded amount while claimed is non-zero, breaking accounting visibility?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75ecc243-2b54-4398-ae68-43a12a3e63ba",
+    "timestamp": "2025-12-02 05:24:38.817145",
+    "report_generated": false
   }
 ]
