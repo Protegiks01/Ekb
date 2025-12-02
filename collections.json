@@ -10948,5 +10948,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a738106-f523-462e-9590-aefb7e8fadbe",
     "timestamp": "2025-12-02 05:53:40.451656",
     "report_generated": false
+  },
+  {
+    "question": "MEVCapture.sol setPoolState (line 54) writes to poolId slot. Can this overwrite Core's pool state causing solvency violations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3e0967c-cf39-4877-895a-72403e7e9949",
+    "timestamp": "2025-12-02 05:54:51.962582",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.sol beforeInitializePool (line 77), MEVCapturePoolState is created and stored. Can overflow in createMEVCapturePoolState corrupt state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e63efde5-1c03-4f91-8199-cd6f7d087163",
+    "timestamp": "2025-12-02 05:55:05.068515",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCapture.sol stores lastUpdateTime and tickLast in packed state. Can bit manipulation errors cause state corruption during reads/writes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e0fee89-5c84-4d08-90fd-e47e6104f308",
+    "timestamp": "2025-12-02 05:55:18.797852",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.sol, Counts storage (line 98) uses assembly to load from token address slot. Can storage collision occur if token address overlaps with other data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d893d70c-f085-4b3c-83ad-42ae3ee16357",
+    "timestamp": "2025-12-02 05:55:33.901028",
+    "report_generated": false
+  },
+  {
+    "question": "Oracle.sol maybeInsertSnapshot (line 95) writes to circular array. Can index wrapping cause old snapshots to be overwritten prematurely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_139252fa-6952-41e5-8ee0-67e33204811b",
+    "timestamp": "2025-12-02 05:55:48.933321",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.sol logicalIndexToStorageIndex (line 46), modulo operation is used. Can incorrect index calculation cause wrong snapshot access?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1023d602-f19c-48bb-898d-ee30d2b6cd14",
+    "timestamp": "2025-12-02 05:56:05.257651",
+    "report_generated": false
+  },
+  {
+    "question": "Oracle.sol stores observations in snapshots array. Can array bounds not be checked allowing out-of-bounds access?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7b90d542-ce4b-44ca-a602-e55914dad785",
+    "timestamp": "2025-12-02 05:56:23.044052",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol, TWAMMStorageLayout is used for custom storage. Can storage slot calculation errors cause collisions with Core storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d814f313-a27a-42d1-aa6f-d2299695c751",
+    "timestamp": "2025-12-02 05:56:42.633537",
+    "report_generated": false
+  },
+  {
+    "question": "TWAMM.sol stores order state using complex storage layout. Can packed storage bit manipulation cause order data corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8b45510-7f80-4f75-a818-b5fee80aed6c",
+    "timestamp": "2025-12-02 05:57:04.111772",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol getRewardRateInside (line 84), storage slots are calculated and accessed. Can incorrect offset cause wrong reward rate retrieval?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_252bc003-3a05-45c9-bdce-55a69737589a",
+    "timestamp": "2025-12-02 05:57:27.036445",
+    "report_generated": false
+  },
+  {
+    "question": "TWAMM.sol uses time bitmap for order expiry tracking. Can bit manipulation errors cause orders to never expire or expire prematurely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8758b487-79a0-4c92-9f3d-89d872f8053e",
+    "timestamp": "2025-12-02 05:57:51.330079",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.sol, extension state persists across pool operations. Can state corruption in one pool affect other pools using same extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1409bb91-96a0-40fd-9291-6f4e90ce9eba",
+    "timestamp": "2025-12-02 05:58:15.138977",
+    "report_generated": false
+  },
+  {
+    "question": "Oracle.sol uses transient storage for observation tracking. Can observation data be lost if transaction reverts after snapshot insertion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8c69f51e-5710-434a-92ff-c6fdaa66ecad",
+    "timestamp": "2025-12-02 05:58:40.272390",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol, virtual order execution modifies pool state temporarily. Can revert during execution leave pool in inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dfaaa319-db4d-47ad-a609-330a1d1bb464",
+    "timestamp": "2025-12-02 05:59:09.828020",
+    "report_generated": false
+  },
+  {
+    "question": "Across all contracts inheriting UsesCore, if Core contract has a bug in lock mechanism, can this cause global protocol insolvency by allowing delta imbalance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f15ed4ad-1b98-4048-a464-7e2d238b9a8c",
+    "timestamp": "2025-12-02 05:59:39.685073",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension, BasePositions, and Router, all trust the CORE immutable. If Core has a vulnerability allowing arbitrary external calls, can it bypass all access controls and steal funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42ed7cf3-dfe6-413f-b927-a6ecce7d19e0",
+    "timestamp": "2025-12-02 06:00:10.004916",
+    "report_generated": false
+  },
+  {
+    "question": "Considering MEVCapture beforeSwap always reverts and Oracle/TWAMM may consume significant gas in hooks, can an attacker DOS pools by triggering these extensions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4386bde-d535-407d-9737-75c6e457e96b",
+    "timestamp": "2025-12-02 06:00:41.459834",
+    "report_generated": false
+  },
+  {
+    "question": "If multiple contracts (Router, Positions, Orders) call Core.lock() with nested locks, can delta tracking become corrupted leading to accounting imbalance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39b9554e-05f5-46be-8981-355388072c6c",
+    "timestamp": "2025-12-02 06:01:13.434845",
+    "report_generated": false
+  },
+  {
+    "question": "Given that UsesCore is inherited by both user-facing contracts (Router, Positions) and extensions (TWAMM, Oracle, MEVCapture), can cross-contract reentrancy through Core.lock() bypass the flash accounting balance invariant and drain protocol funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b976fa07-bb09-4b23-ac7e-6fc1befc5f69",
+    "timestamp": "2025-12-02 06:01:45.260222",
+    "report_generated": false
+  },
+  {
+    "question": "In getPoolState() and setPoolState() (lines 48-58), the assembly blocks directly use poolId as a storage slot without hashing or offset calculation. Could this cause storage slot collisions with Core contract storage or other extensions using the same poolId value as a storage key?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_070dbf79-5dae-4cf8-94de-3e0985b6dfcd",
+    "timestamp": "2025-12-02 06:02:17.294045",
+    "report_generated": false
+  },
+  {
+    "question": "The MEVCapturePoolState type stores lastUpdateTime as uint32 (lines 8-11 in mevCapturePoolState.sol). Can an attacker exploit timestamp manipulation near the uint32 overflow boundary (year 2106) to bypass fee accumulation or cause incorrect fee calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aacd31df-3622-4763-ac44-6bd7313547ed",
+    "timestamp": "2025-12-02 06:02:49.197791",
+    "report_generated": false
+  },
+  {
+    "question": "In createMEVCapturePoolState() (line 20-24 in mevCapturePoolState.sol), the assembly packs tickLast using 'and(_tickLast, 0xffffffff)'. If tickLast is negative, could sign extension issues cause the packed value to be misinterpreted when unpacked via signextend(3, state)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3e2b5031-445f-4e33-822f-ed5d866a9b15",
+    "timestamp": "2025-12-02 06:03:21.432530",
+    "report_generated": false
+  },
+  {
+    "question": "The setPoolState() function (lines 54-58) uses assembly sstore without any access control checks within the assembly block. Could a malicious contract call this via delegatecall or exploit transient execution contexts to corrupt MEVCapture's pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14be2816-4619-4f3e-8a58-2071de6982db",
+    "timestamp": "2025-12-02 06:03:53.404569",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 182-185), the code reads state.lastUpdateTime() and state.tickLast() separately. Could a reentrancy attack between these two reads cause inconsistent state if another transaction updates the pool state mid-execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_26961e61-22a2-4394-acdb-8f62c2875566",
+    "timestamp": "2025-12-02 06:04:27.403547",
+    "report_generated": false
+  },
+  {
+    "question": "In accumulatePoolFees() (lines 105-125), the function only accumulates fees if state.lastUpdateTime() != block.timestamp. Could an attacker continuously call this function in the same block to prevent legitimate users from collecting fees accumulated in previous blocks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a7070595-bb32-4491-b79f-1ab37cec1c76",
+    "timestamp": "2025-12-02 06:05:01.963532",
+    "report_generated": false
   }
 ]
