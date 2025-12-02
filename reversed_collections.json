@@ -11998,5 +11998,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4984a71d-bd61-418e-af66-f420dec527fa",
     "timestamp": "2025-12-02 08:03:50.623408",
     "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterCollectFees() (line 80-82), if an extension implements fee compounding that calls updatePosition() inside this hook, could nested updatePosition -> beforeCollectFees -> updatePosition calls create infinite recursion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_164d6de4-765c-4fe8-99ab-d8a2628913df",
+    "timestamp": "2025-12-02 08:05:06.252181",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeCollectFees() (line 75-77), if multiple extensions are called for the same pool (hypothetically), could the first extension's state changes affect the second extension's fee collection logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b325b84-86ee-4101-bf05-cf15ef7122a4",
+    "timestamp": "2025-12-02 08:05:19.271395",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterSwap() (line 70-72), the PoolBalanceUpdate shows token deltas. If an extension uses these to track volume but doesn't account for fee-on-transfer tokens (despite being out-of-scope), could it be exploited when the protocol expands support?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_60d6d320-f4cd-41c8-b360-85095162cc03",
+    "timestamp": "2025-12-02 08:05:33.406699",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeSwap() (line 65-67), if an extension modifies pool state or calls back into Core, could this create reentrancy where the swap parameters no longer match the actual pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_77237412-2452-4399-ae47-5f04bef15f97",
+    "timestamp": "2025-12-02 08:05:47.340263",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterUpdatePosition() (line 57-62), if an extension needs to perform cleanup when liquidityDelta is negative (burning position), but the function reverts before cleanup, could this leave orphaned state in extension storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f91d896-beed-4518-a8b9-5ec2bc429b1e",
+    "timestamp": "2025-12-02 08:06:02.742776",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeUpdatePosition() (line 52-54), the Locker parameter identifies who holds the lock. If an extension treats certain Locker addresses specially, can an attacker manipulate the lock acquisition sequence to appear as a privileged locker?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2810893-c8e7-4088-bc20-dafe093079b7",
+    "timestamp": "2025-12-02 08:06:19.376801",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hook functions (lines 42-82), none have onlyCore modifier explicitly shown. Does the modifier come from IExtension interface requirements? If not, can anyone call these hooks directly to manipulate extension state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2bcadfa-3448-4a90-9b86-e10f0b7a0eb9",
+    "timestamp": "2025-12-02 08:06:36.626867",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterCollectFees() (line 80-82), amount0 and amount1 are uint128. If an extension implements rebates or fee sharing based on these amounts, could uint128 overflow attacks manipulate the rebate calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e38ff207-3e42-46d5-a6bc-cb905e218685",
+    "timestamp": "2025-12-02 08:06:55.719574",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeCollectFees() (line 75-77), the extension receives PositionId but no indication of how many fees will be collected. Could an attacker repeatedly call collectFees(0 amount) to trigger expensive before-hook logic without collecting meaningful fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0367f558-1610-4eda-a540-aedc0179fbb8",
+    "timestamp": "2025-12-02 08:07:16.621504",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterSwap() (line 70-72), the PoolState includes the post-swap tick and sqrtRatio. If an extension uses these to update an oracle, but the swap was a flash swap that gets reverted, could the oracle record invalid prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_161c500f-eaa1-4040-b2ac-84daff12b4c6",
+    "timestamp": "2025-12-02 08:07:37.910214",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeSwap() (line 65-67), the SwapParameters include sqrtRatioLimit. If an extension validates this limit but doesn't account for Core's tick crossing logic, could multi-tick swaps bypass extension-imposed limits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c23b3399-6499-419d-884b-61467df1f8b6",
+    "timestamp": "2025-12-02 08:08:01.477612",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterUpdatePosition() (line 57-62), the PoolBalanceUpdate contains delta0 and delta1. If an extension accumulates these deltas across multiple calls without checking for overflow, could accumulated delta tracking become corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_784224a5-ac8e-4318-aa04-70f00374a875",
+    "timestamp": "2025-12-02 08:08:25.637560",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeUpdatePosition() (line 52-54), the liquidityDelta is int128. If an extension doesn't handle negative liquidityDelta (position removal) differently from positive, could liquidity removal operations manipulate extension state unsafely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_851be3c3-0d64-4b86-8776-ec53208e715a",
+    "timestamp": "2025-12-02 08:08:50.216703",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.afterInitializePool() (line 47-49), the hook receives the initial sqrtRatio. If an extension stores this for later validation but the pool's sqrtRatio changes due to swaps, could stale sqrtRatio data cause security issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb63f780-c0e5-42f1-a67e-7a5f1ee6ce68",
+    "timestamp": "2025-12-02 08:09:16.871348",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.beforeInitializePool() (line 42-44), the function receives the caller address. If an extension uses this to grant privileges, can an attacker manipulate msg.sender during Core.initializePool() to appear as a different caller?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a620e015-4be0-4a5b-8535-f06af875c669",
+    "timestamp": "2025-12-02 08:09:45.516137",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension hook signatures (lines 42-82), parameters include complex types like PoolBalanceUpdate and PoolState. If these types' internal representation changes (e.g., bit packing), could old extensions interpret them incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c43442d2-1a43-45a9-b488-92033d302401",
+    "timestamp": "2025-12-02 08:10:15.526319",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol, the bit encoding allows 256 possible combinations. Are there invalid combinations (e.g., afterCollectFees without beforeCollectFees) that should be rejected but aren't checked by isValid()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67ef36bd-2ec3-4472-803d-1e4da2259c0d",
+    "timestamp": "2025-12-02 08:10:44.390849",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol addressToCallPoints() (line 53-55), if an extension's address is CREATE2-deployed with a salt that's partially controlled by an attacker, could they manipulate the CallPoints byte to register unwanted hooks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_72730733-349d-4f80-92ea-2364becc0837",
+    "timestamp": "2025-12-02 08:11:14.283285",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.getCallPoints() (line 39), if a derived contract implements this with a pure function that has side effects (via assembly), could registration bypass Core's immutability assumptions about CallPoints?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5694055f-6d15-43c1-b9dd-872663342802",
+    "timestamp": "2025-12-02 08:11:43.657125",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol byteToCallPoints() (line 57-69), the function creates a new CallPoints struct in memory. If this struct is returned from getCallPoints() without being properly copied, could storage corruption occur?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b78b6edf-3665-426d-a7b7-4e7b1162a8f0",
+    "timestamp": "2025-12-02 08:12:14.933075",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, hooks receive different parameter types (some get PoolKey memory, others PoolKey calldata). If a derived extension casts between these incorrectly, could it read corrupted pool parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2724129f-eccd-412f-a68d-ebc20f6366bc",
+    "timestamp": "2025-12-02 08:12:47.592139",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol eq() (line 17-22), if Solidity's boolean comparison behavior changes in future compiler versions, could this affect CallPoints validation during extension registration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e7b1258-bdf2-455c-8605-177648e05190",
+    "timestamp": "2025-12-02 08:13:17.931137",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol isValid() (line 24-26), it doesn't check for mutually exclusive hook combinations. Could a malicious extension register with conflicting hooks (e.g., both TWAMM and Oracle patterns) that cause unexpected interactions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca6ef732-5c02-4552-ad61-7a5a4c5e7e9a",
+    "timestamp": "2025-12-02 08:13:48.224625",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, if getCallPoints() returns a struct where beforeSwap=true and afterSwap=false, but the extension's beforeSwap() implementation makes state changes that afterSwap() was supposed to finalize, could this leave pools in inconsistent states?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2161737-d180-4fac-8398-331461b0aa48",
+    "timestamp": "2025-12-02 08:14:18.086549",
+    "report_generated": false
+  },
+  {
+    "question": "In CallPoints.sol toUint8() assembly (line 30-50), the nested add() operations accumulate bit-shifted values. If any CallPoints boolean is > 1, could this cause bit overflow into the wrong bit position?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bdfe1d57-13e0-49a3-b521-a2547439d720",
+    "timestamp": "2025-12-02 08:14:48.815517",
+    "report_generated": false
   }
 ]
