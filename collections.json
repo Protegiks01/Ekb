@@ -10498,5 +10498,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_266f7bc7-0348-46be-8bc4-03cc3cce0168",
     "timestamp": "2025-12-02 05:18:10.605642",
     "report_generated": false
+  },
+  {
+    "question": "In Orders.sol decreaseSaleRate (line 77), if the NFT is transferred during the lock callback, can the refund be sent to the wrong recipient?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19f160fc-2f3d-4aa1-b9bc-1e4ef8fd6735",
+    "timestamp": "2025-12-02 05:19:28.880058",
+    "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol collectFees (line 100) allows collecting fees to msg.sender or custom recipient. Can an attacker exploit this to collect fees to themselves if they gain temporary NFT approval?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a4286ce-9830-4c67-9fc0-d3729751ce71",
+    "timestamp": "2025-12-02 05:19:42.404397",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol, position data is stored in Core contract using NFT id as salt. Can an attacker predict position IDs to frontrun position creation and claim the ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_105564ec-fb57-431a-967a-61a4b13fcbd0",
+    "timestamp": "2025-12-02 05:19:56.360398",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol executeVirtualOrdersAndGetCurrentOrderInfo (line 122) reads order state. Can an attacker manipulate order state by transferring the order NFT during virtual order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c476097b-99b9-4dce-a002-f8640f5ca3ff",
+    "timestamp": "2025-12-02 05:20:10.609081",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol withdraw (line 116), withFees parameter controls fee collection. Can an attacker set this to false to avoid paying protocol fees on collected fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7cacb0ce-7707-40f3-884e-b2828f43c646",
+    "timestamp": "2025-12-02 05:20:25.640413",
+    "report_generated": false
+  },
+  {
+    "question": "BaseNonfungibleToken (inherited by BasePositions and Orders) must have correct approval logic. Can an attacker use transferFrom during a lock to steal position ownership?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39e5bafe-9462-40db-b388-1b1a3683347f",
+    "timestamp": "2025-12-02 05:20:41.927573",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol collectProceeds (line 108), can an attacker collect proceeds multiple times by exploiting reentrancy during the lock callback?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_041ef601-39ad-4eba-8b6a-adc485df28a9",
+    "timestamp": "2025-12-02 05:21:00.855637",
+    "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol mintAndDepositWithSalt (lines 172-183) uses custom salt. Can attacker create NFTs with known IDs to hijack existing positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b98dfc40-3c2e-4643-ac81-99d7c3a0ca8c",
+    "timestamp": "2025-12-02 05:21:23.122131",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol getPositionFeesAndLiquidity (line 43), position data is read from Core. Can stale data be returned if pool state changes during the call?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a266480-d49f-4b09-9f9e-9ce5953abdf2",
+    "timestamp": "2025-12-02 05:21:46.067437",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol uses NFT id directly as order identifier. Can this allow order state manipulation if NFT ownership transfers during order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7dfa8920-a873-4d9d-9eae-a19f71933a74",
+    "timestamp": "2025-12-02 05:22:08.809508",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol deposit (line 79), if maxAmount0/maxAmount1 are type(uint128).max, can this cause overflow in liquidity calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_555cf1b2-d157-4d2f-a242-406ee5ab4d3b",
+    "timestamp": "2025-12-02 05:22:32.966041",
+    "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol withdraw (line 277) checks liquidity > type(int128).max. Can this check be bypassed to withdraw excessive liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a10a97b5-3a69-442e-9f21-0cb2b0e1ca03",
+    "timestamp": "2025-12-02 05:22:57.805085",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol mintAndIncreaseSellAmount (line 48), saleRate is returned but not validated. Can incorrect saleRate cause order to execute at wrong price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_38a9f70d-a11c-4f88-940a-910a4d7f9050",
+    "timestamp": "2025-12-02 05:23:24.588507",
+    "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol uses createPositionId with NFT id as salt. Can storage collision occur if multiple positions use same salt value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_097939e9-6872-4bbf-acd6-81a4d3078600",
+    "timestamp": "2025-12-02 05:23:52.141159",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol increaseSellAmount (lines 53-74), the function computes saleRate from amount and duration. Can rounding errors in computeSaleRate allow attacker to place orders with zero cost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1913b989-9b09-46d9-b8c0-1aea0bc3d0b3",
+    "timestamp": "2025-12-02 05:24:20.734388",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol uses TWAMM_EXTENSION.updateSaleRate (line 142). If extension state is corrupted, can attacker place orders that execute at manipulated prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ba8791b-a97a-4f81-abe5-604dd1f3cf0b",
+    "timestamp": "2025-12-02 05:24:51.020457",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol decreaseSaleRate (lines 77-95), refund calculation uses negative sale rate delta. Can integer underflow cause attacker to receive more refund than deserved?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac203912-a30a-4f78-9c51-617a1dc99ff3",
+    "timestamp": "2025-12-02 05:25:21.225248",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol collectProceeds (line 165) calls CORE.collectProceeds. Can attacker frontrun to execute virtual orders first and collect inflated proceeds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7e1f2c02-b3dd-4a3f-8de7-e86e002784c2",
+    "timestamp": "2025-12-02 05:25:52.895797",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol handleLockData (line 146), if saleRateDelta is positive, tokens are paid. Can attacker manipulate this to avoid payment while increasing sale rate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75646bcd-c78c-40ba-8aee-59dd475f9b49",
+    "timestamp": "2025-12-02 05:26:24.897077",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol checks orderKey.config.endTime() > realStart (line 62). Can attacker place order with endTime = startTime + 1 to cause division by zero in sale rate calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f1f129c-9876-47d1-9396-d92d9752a45d",
+    "timestamp": "2025-12-02 05:26:57.487591",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol, if multiple orders exist for same NFT but different orderKeys, can storage slot collision corrupt order state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e7630328-1c5f-4fef-9644-b1005a7afe9b",
+    "timestamp": "2025-12-02 05:27:30.235047",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol increaseSellAmount (line 66) computes saleRate with uint32 duration. Can duration = 0 cause divide by zero in computeSaleRate function?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e3c581ca-b99f-461c-a25d-e839da435cad",
+    "timestamp": "2025-12-02 05:28:05.508737",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol collectProceeds (line 165), proceeds are withdrawn to recipient. Can attacker specify malicious recipient contract to reenter and collect proceeds multiple times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_155a1722-a09c-47ea-a39c-57ebb3076173",
+    "timestamp": "2025-12-02 05:28:40.688714",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol uses FixedPointMathLib.max for realStart calculation (line 59). Can block.timestamp manipulation allow attacker to place orders in the past?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2215c66-c807-4792-8466-34d286ba4fdf",
+    "timestamp": "2025-12-02 05:29:14.629223",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol decreaseSaleRate (line 84), the function casts int256 to uint112. Can this overflow if sale rate delta is very large?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4fdffc30-f7e1-4ba7-90ad-2327fd4943c8",
+    "timestamp": "2025-12-02 05:29:49.373169",
+    "report_generated": false
   }
 ]
