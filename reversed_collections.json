@@ -6298,5 +6298,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4c8c8a5-7567-4586-84a7-ce028103b63f",
     "timestamp": "2025-12-02 00:20:46.994543",
     "report_generated": false
+  },
+  {
+    "question": "In Oracle.findPreviousSnapshot() (line 294), the function returns the count, logicalIndex, and snapshot. Dependent protocols may use the count to verify data freshness. However, if Oracle.expandCapacity() has been called with a huge capacity but only a few snapshots are written (count << capacity), could dependent protocols misinterpret the large capacity as indicating extensive historical data, when in reality only a few snapshots exist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f8eb8b0b-dc27-4454-a5a3-f2f12382b898",
+    "timestamp": "2025-12-02 00:21:51.766051",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.findPreviousSnapshot() (line 298-301), the function loads counts from storage and passes it to searchRangeForPrevious() with range [0, count). If count is 1 (only initialization snapshot exists), the search succeeds only if the requested time >= initialization time. Could an attacker query with time = initialization timestamp - 1 to trigger NoPreviousSnapshotExists, causing oracle-dependent protocols to malfunction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5fdf0bc1-aaa4-4eb2-86fc-162a34dafdd8",
+    "timestamp": "2025-12-02 00:22:04.803726",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.findPreviousSnapshot() (line 296), the function checks `if (time > block.timestamp) revert FutureTime()`. However, if time equals exactly block.timestamp and no snapshot has been written in the current block yet, does the search return the previous block's snapshot? Could this introduce a one-block lag in TWAP queries that attackers could exploit by manipulating prices in the current block?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64f4131e-12a3-46d1-ac24-ea482c67ed4f",
+    "timestamp": "2025-12-02 00:22:18.269572",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.expandCapacity() (line 219), the function checks `c.capacity() < minCapacity` to decide whether to expand. If capacity has already been expanded to equal minCapacity but count < capacity (i.e., not all slots are written yet), the function returns early. Could an attacker repeatedly call expandCapacity() with the same value to consume gas without effect, griefing other users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8cf08498-3f10-4c36-ad80-ce9d7c3c612f",
+    "timestamp": "2025-12-02 00:22:32.202106",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.expandCapacity() (line 223), each slot is initialized with the value 1. In Oracle.maybeInsertSnapshot(), snapshots are written over these initialized slots. Could an attacker query uninitialized slots (that still contain value 1) via OracleLib.snapshots() before they're overwritten? Would this be interpreted as a snapshot with timestamp=1 and tiny accumulators, breaking TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a4f3d17-f8cd-405e-be5c-5555939e91a6",
+    "timestamp": "2025-12-02 00:22:47.014066",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.expandCapacity() (line 220-225), the function loops from `c.capacity()` to `minCapacity`, writing 1 to each slot to initialize it. If this loop is called with a minCapacity of 2^32-1, could the gas cost exceed block limits, causing the transaction to revert? Could an attacker front-run pool initialization with a huge capacity expansion to DOS the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47d9c03d-65cf-4c44-ad1a-f4b2971cfe4b",
+    "timestamp": "2025-12-02 00:23:03.442342",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.expandCapacity() (line 213-235), the function allows anyone to call it to expand a token's snapshot capacity. If two callers simultaneously call expandCapacity() with different minCapacity values, could concurrent writes to the Counts storage slot (line 229-231) cause one update to be lost, resulting in capacity being set to the smaller value despite the larger initialzation loop completing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e1f07d9-fa3b-4e99-ab62-008ba1392e99",
+    "timestamp": "2025-12-02 00:23:20.964163",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.beforeInitializePool() (line 150-186), the function is called by Core during pool initialization with the `onlyCore` modifier. If the Core contract's pool initialization is non-reentrant but the Oracle hook triggers other extension hooks (e.g., via cross-extension communication), could circular dependencies cause the initialization to fail or write partially initialized data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e98d9709-2bf1-4eb1-8a87-5aab2ec9c23b",
+    "timestamp": "2025-12-02 00:23:40.870659",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshotInternal() (line 329-330), when extrapolating from the latest snapshot, the function calls `CORE.poolState(poolId)` to get current tick and liquidity. If this is called during a flash loan (while pool state is temporarily modified), could the extrapolation incorporate manipulated values? Could an attacker use this to poison TWAP calculations by triggering extrapolation at specific moments?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_094a24db-8938-4ad4-b669-e06b42ed12c3",
+    "timestamp": "2025-12-02 00:24:01.584951",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.maybeInsertSnapshot() (line 113), the function calls `CORE.poolState(poolId)` which is an external call to the Core singleton. If the Core contract has a reentrancy lock active during this call (e.g., from a swap that triggered beforeSwap hook), could the poolState() call revert? Would this prevent snapshots from being written during normal pool operations, causing oracle data staleness?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_746fd6d3-e9f8-41af-b2af-d1eb93130c01",
+    "timestamp": "2025-12-02 00:24:24.089340",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.counts() (line 21), the function calls `oracle.sload()` which internally performs a staticcall to the Oracle contract. If the Oracle contract has a fallback function that consumes all remaining gas or reverts with custom errors, could this cause OracleLib queries to fail unpredictably? Could an attacker exploit this to DOS oracle-dependent protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22254070-6af2-4293-ace7-eafe110a81e3",
+    "timestamp": "2025-12-02 00:24:47.948789",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.sol, the contract inherits from ExposedStorage which provides direct sload/sstore access. If the Oracle extension's storage layout overlaps with CoreStorageLayout or TWAMMStorageLayout, could writes in Oracle.maybeInsertSnapshot() or Oracle.expandCapacity() corrupt other extensions' state, causing TWAMM orders to execute incorrectly or pool state to become corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2708e1d6-2a30-4afe-8107-716209d0c246",
+    "timestamp": "2025-12-02 00:25:12.676551",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.snapshots() (line 30), the storage slot is `(uint256(uint160(token)) << 32) | uint256(index)`. If index is attacker-controlled and can reach 2^32, could the upper bits collide with storage slots used by the Core singleton for pool state, position data, or tick bitmaps, allowing an attacker to corrupt those structures via Oracle snapshot writes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67f5ebbd-1b4c-47de-aa26-05490664a5f1",
+    "timestamp": "2025-12-02 00:25:38.592710",
+    "report_generated": false
+  },
+  {
+    "question": "In OracleLib.counts() (line 21), the storage slot for counts is simply `bytes32(uint256(uint160(token)))`, which is the token address. If the Core contract or another extension also uses the token address as a storage slot key, could this cause a collision where Oracle counts data overwrites critical protocol state, potentially corrupting pool balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d56d8a24-4a06-4ed5-85e8-f673f9a7c04e",
+    "timestamp": "2025-12-02 00:26:05.734497",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.getExtrapolatedSnapshotsForSortedTimestamps() (line 416), the function updates `indexFirst = logicalIndex` to narrow the search range for subsequent timestamps. However, if a timestamp in the middle of the array is before the current indexFirst (due to user error), could searchRangeForPrevious() revert because the range [indexFirst, indexLast+1] doesn't contain a valid snapshot? Should the function detect this and provide a more informative error?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ec55777f-ae79-4cbc-bf29-3ce98e7ec8fd",
+    "timestamp": "2025-12-02 00:26:34.258142",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.getExtrapolatedSnapshotsForSortedTimestamps() (line 411-416), the function searches for each timestamp in the range [indexFirst, indexLast+1] and updates indexFirst to the found logicalIndex. If the array contains duplicate timestamps, could the search return the same snapshot multiple times? Would this cause extrapolateSnapshotInternal() to be called with the same base snapshot, producing identical observations and wasting computation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e16b31f3-c345-4f19-a386-83bc12a84ec2",
+    "timestamp": "2025-12-02 00:27:03.844866",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.getExtrapolatedSnapshotsForSortedTimestamps() (line 405-406), the function checks `timestamp < lastTimestamp` and reverts with TimestampsNotSorted. However, this check occurs inside the loop. If timestamps are unsorted deep in the array, the function wastes gas on searches before reverting. Could an attacker exploit this by passing mostly sorted arrays with one unsorted element at the end, griefing query callers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e4e8e7c-ebe3-4879-965e-20f975370b4a",
+    "timestamp": "2025-12-02 00:27:34.417170",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.getExtrapolatedSnapshotsForSortedTimestamps() (line 397-398), the function searches for snapshots at startTime and endTime, computing `indexFirst` and `indexLast`. Then at line 412, it searches within the range `[indexFirst, indexLast + 1)`. If indexLast < indexFirst due to circular buffer wraparound, could this cause searchRangeForPrevious() to revert with NoPreviousSnapshotExists, even when valid snapshots exist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d5f038a5-303f-4204-952d-00cae51f931c",
+    "timestamp": "2025-12-02 00:28:05.887662",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.getExtrapolatedSnapshotsForSortedTimestamps() (line 391), the function checks `endTime < startTime` and reverts. However, if both are equal (querying a single timestamp), the check passes. Could an attacker request a massive array with all timestamps equal, causing the loop at line 402 to perform redundant searches and consume excessive gas, DOSing oracle queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_96478edf-e934-405e-acf9-a50153a6eede",
+    "timestamp": "2025-12-02 00:28:36.326406",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshotInternal() (line 354-358), the secondsPerLiquidityCumulative interpolation uses unsigned arithmetic with division by timestampDifference. If timestampDifference is 1 (two consecutive blocks), the division provides full granularity. However, if an attacker can manipulate the spacing between snapshots to be very large (by preventing transactions), could this reduce precision in the interpolation, allowing rounding-based manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02f1c104-946d-4a8e-8123-8b60873de48c",
+    "timestamp": "2025-12-02 00:29:03.594917",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshotInternal() (line 348-353), the tick cumulative interpolation uses `rawSDiv()` (signed division). If the numerator `(next.tickCumulative() - snapshot.tickCumulative())` is negative (price decreasing) but timePassed is positive, could the signed division produce a negative result? When cast to int64, could this cause the extrapolated tickCumulative to be less than the base snapshot value, violating monotonicity assumptions in TWAP consumers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf2a81f9-6a66-4335-8a2c-1a302003a8e0",
+    "timestamp": "2025-12-02 00:29:29.589914",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshotInternal() (line 346), when extrapolating between two snapshots, the function computes `timestampDifference = next.timestamp() - snapshot.timestamp()`. If the timestamps have wrapped at 2^32 boundary with next.timestamp() < snapshot.timestamp(), could this underflow produce a very large uint32 value? Would the division at line 357 then produce tiny extrapolation increments, essentially freezing the TWAP?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6cf0b41e-f1ed-4b06-9f8c-a63fe873bd1e",
+    "timestamp": "2025-12-02 00:29:56.401165",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshotInternal() (line 334-337), when extrapolating from the latest snapshot, the secondsPerLiquidityCumulative is calculated as `timePassed << 128 / max(1, liquidity)`. If liquidity is 1 (from the max() call) but timePassed is large, could the result exceed uint160 max, causing silent truncation when cast at line 333?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3617b1ad-a8c2-4f18-af6e-cba16aff3e48",
+    "timestamp": "2025-12-02 00:30:23.678307",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshotInternal() (line 332), the tick cumulative update is `last.tickCumulative() + int64(state.tick()) * int64(uint64(timePassed))`. If state.tick() is negative (e.g., -88000000) and timePassed is large (e.g., 86400 seconds), could the multiplication overflow int64 max? Does the double cast to int64 cause silent truncation, corrupting the extrapolated tick cumulative?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_44456eff-a1f5-4ce8-949e-8ed4a20ba5c9",
+    "timestamp": "2025-12-02 00:30:51.087668",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.extrapolateSnapshotInternal() (line 332), if extrapolating from the most recent snapshot, the code reads current pool state with `CORE.poolState(poolId)`. If the pool has been manipulated via a large swap in the same transaction, could this include the manipulated tick in the extrapolation, allowing an attacker to inflate/deflate the TWAP over the extrapolated period?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8c2e6cb-ea44-419a-bcdf-c3096bae790e",
+    "timestamp": "2025-12-02 00:31:19.525702",
+    "report_generated": false
   }
 ]
