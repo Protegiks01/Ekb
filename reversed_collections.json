@@ -8098,5 +8098,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_35bf7038-3e04-4a51-b3cf-b7a81ef63aeb",
     "timestamp": "2025-12-02 02:34:09.533715",
     "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterCollectFees function stores uint128 values. If amount0 or amount1 is type(uint128).max, could the upper 128 bits of the 32-byte storage contain garbage data that the extension reads?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0ab1cda4-4b9e-40c7-b0a9-bf765858d7ea",
+    "timestamp": "2025-12-02 02:35:30.478444",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeCollectFees (line 230), if positionId is bytes32(0), does the mstore operation correctly encode the zero value, or could uninitialized memory be copied instead?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef38d31f-7169-4520-96a5-7b66fb837ee1",
+    "timestamp": "2025-12-02 02:35:43.712550",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterUpdatePosition function stores balanceUpdate at offset 196. If balanceUpdate contains type(int128).min for delta0 or delta1, could the encoding be misinterpreted by the extension as a positive value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a959dcfc-d061-4185-bbb1-341d8034535d",
+    "timestamp": "2025-12-02 02:35:57.730837",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeUpdatePosition (line 164), if liquidityDelta is type(int128).min, does the mstore operation correctly encode the negative two's complement value, or could sign extension cause issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e9bf1c5-f5b8-4b14-99c5-a370c88b33ef",
+    "timestamp": "2025-12-02 02:36:11.995839",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallAfterSwap function performs the same comparison. If both locker and extension are the same address with maximum value, could integer overflow in the comparison cause the check to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3bdb5131-90c8-4f7c-acaa-d0d0529bf9b9",
+    "timestamp": "2025-12-02 02:36:26.861057",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeSwap (line 82-84), if the locker address is the maximum uint160 value, does the bit-shifting comparison shl(96, locker) overflow, causing incorrect self-call detection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d2e3ec19-1bf6-4415-b3d5-93f061930ad1",
+    "timestamp": "2025-12-02 02:36:42.923094",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallAfterInitializePool function checks bit 7 (value 128). If an extension address has all CallPoints bits set (0xFF in bits 152-159), could this cause multiple hooks to interfere with each other during initialization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75f3f65f-19f9-41a0-b3d3-2faa955914bc",
+    "timestamp": "2025-12-02 02:37:00.695756",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeInitializePool (line 20-22), if the extension address is 0x0, does the bit shift shr(152, 0x0) correctly return 0, or could there be undefined behavior in the comparison?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3aadca86-f6db-4588-9ae9-d1ce7094de80",
+    "timestamp": "2025-12-02 02:37:20.924707",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterSwap, the PoolState includes pool liquidity. Could an extension use multiple afterSwap hooks across different swaps in a single transaction to aggregate liquidity information for price manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06f6b58a-5057-421a-9da5-5e2fb7f33944",
+    "timestamp": "2025-12-02 02:37:42.104231",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeSwap receives poolKey including token addresses. Could an extension use this to selectively block swaps for certain token pairs, effectively creating permissioned pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c943513-bcd7-4818-bd54-53cc5f77045a",
+    "timestamp": "2025-12-02 02:38:05.696517",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterCollectFees, if the extension maintains a shadow ledger of collected fees, could discrepancies between the extension's records and Core's actual state be exploited to double-claim fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2896bb95-3bfe-4aa5-b187-f894a4b94dc3",
+    "timestamp": "2025-12-02 02:38:29.822871",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeCollectFees could be exploited by an extension to front-run fee collections. Could the extension collect its own fees in beforeCollectFees, reducing the available fees in the pool before the user's collection executes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc865444-2082-4edf-9aba-fe0e40b002af",
+    "timestamp": "2025-12-02 02:38:55.312468",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterUpdatePosition, if liquidityDelta is negative (position decrease), could an extension calculate the removed liquidity and front-run the position owner's exit by removing its own liquidity first?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_213cba4b-9df1-4b1c-9e44-2fa6f3682b34",
+    "timestamp": "2025-12-02 02:39:21.956396",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeUpdatePosition could be used by an extension to block all position decreases during high volatility. Could this prevent LPs from exiting during adverse conditions, exposing them to impermanent loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8779f48a-4201-4876-be49-1958c37db9fd",
+    "timestamp": "2025-12-02 02:39:50.479009",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterSwap, if the swap exhausted all liquidity in the pool, could the extension use this information to manipulate other protocols that depend on this pool's price oracle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_853d5dec-e386-4007-af45-5fd9d4c1325b",
+    "timestamp": "2025-12-02 02:40:18.974438",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeSwap is called for every swap. Could a high-frequency extension exploit this to become a chokepoint that extracts value from every swap in the pool by threatening to revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aa6b0b69-748d-422a-bbdf-dfeacefb308c",
+    "timestamp": "2025-12-02 02:40:48.955898",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterCollectFees, if amount0 or amount1 is zero (no fees collected), could the extension incorrectly assume the position has no fees and fail to update its internal accounting, causing state divergence?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31cede19-d879-4636-8035-74577deed6b2",
+    "timestamp": "2025-12-02 02:41:19.201300",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeCollectFees passes positionId to the extension. Could an extension use this to track which positions are collecting fees and use that information for market intelligence or insider trading?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1500ad57-cc80-4151-81f7-a1f22f9d7a19",
+    "timestamp": "2025-12-02 02:41:50.983109",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterInitializePool, the extension receives sqrtRatio. Could an extension use this to immediately provide liquidity at the best range before other users can react, extracting MEV from pool initialization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c628e301-c727-4859-91fb-7d6ab487c6fa",
+    "timestamp": "2025-12-02 02:42:27.694834",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeInitializePool passes the initial tick. Could an extension front-run initialization with a different tick that's more favorable to existing positions the extension controls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ecf9f5a-8113-4225-b164-e15c599fb8fb",
+    "timestamp": "2025-12-02 02:43:00.723859",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterUpdatePosition, the extension receives balanceUpdate with delta0 and delta1. Could an extension use these values to infer the pool's price and trade against it in a different pool before the transaction completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f2ed627-6623-49a1-9e56-e2502adc815e",
+    "timestamp": "2025-12-02 02:43:34.342326",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeUpdatePosition passes liquidityDelta to the extension. Could an extension enforce minimum liquidity requirements that prevent small LPs from providing liquidity, centralizing the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aaff0a09-9d9a-4f40-8611-48c0719a5967",
+    "timestamp": "2025-12-02 02:44:09.660441",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterSwap, the extension receives PoolBalanceUpdate and PoolState. Could an extension use stateAfter.tick to determine if a profitable tick was crossed and then revert swaps that weren't profitable to it?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57440584-1f1c-4ef0-b256-a22b34bf1210",
+    "timestamp": "2025-12-02 02:44:43.201705",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeSwap passes SwapParameters to the extension. Could an extension decode skipAhead from params and use this to manipulate which ticks are crossed during the swap, affecting the final price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4ce2d181-ecb0-4a4a-9b29-b69686968160",
+    "timestamp": "2025-12-02 02:45:14.800551",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterCollectFees, the extension receives the actual collected amounts. Could a malicious extension use this information to frontrun other users' fee collections with favorable market conditions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf899937-4751-47d6-9ff7-b5035416f1e3",
+    "timestamp": "2025-12-02 02:45:46.617083",
+    "report_generated": false
   }
 ]
