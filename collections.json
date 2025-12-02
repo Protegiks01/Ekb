@@ -13342,5 +13342,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff871257-ccd6-44b6-8e01-e0b8da138327",
     "timestamp": "2025-12-02 08:56:36.070339",
     "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.tokenURI (line 71), does LibString.toHexStringChecksummed properly handle all addresses including those with leading zeros, or can it produce invalid URIs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8df02dd-302d-4ed5-a7ad-2e4e4814da65",
+    "timestamp": "2025-12-02 08:57:55.440456",
+    "report_generated": false
+  },
+  {
+    "question": "Can BaseNonfungibleToken.setMetadata be called multiple times in quick succession to create race conditions where different users see different metadata for the same NFT?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d267e12a-3414-40ae-8a10-394e496b437f",
+    "timestamp": "2025-12-02 08:58:10.140121",
+    "report_generated": false
+  },
+  {
+    "question": "Does BaseNonfungibleToken.burn properly update all internal accounting related to total supply or other derived state, or can burning create inconsistencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9d0e26b3-f51d-4fdd-b832-2bb66515de9d",
+    "timestamp": "2025-12-02 08:58:24.891061",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.mint() random salt (line 112), storing prevrandao() at memory position 0 - does this overwrite any critical data or scratch space used by the compiler?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3183fb71-eaa4-4880-88d5-3a2fb793e120",
+    "timestamp": "2025-12-02 08:58:41.869840",
+    "report_generated": false
+  },
+  {
+    "question": "Can BaseNonfungibleToken.saltToId be manipulated by miners who can influence chainid() on certain networks, allowing them to claim specific token IDs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8abe422f-e37a-4e43-838b-b57fb0c42217",
+    "timestamp": "2025-12-02 08:59:00.363767",
+    "report_generated": false
+  },
+  {
+    "question": "Does BaseNonfungibleToken properly implement ERC721 transfer hooks that could be used by derived contracts to enforce position ownership invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f2d5d4f-c0bc-433f-9de0-b77c0103bc76",
+    "timestamp": "2025-12-02 08:59:20.754553",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.mint(bytes32 salt) (line 124), can an attacker frontrun and mint with a colliding ID if saltToId has a hash collision vulnerability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c77b83dc-603b-4c83-9f0e-d28e4a2158c1",
+    "timestamp": "2025-12-02 08:59:43.056272",
+    "report_generated": false
+  },
+  {
+    "question": "Can BaseNonfungibleToken.burn be used to grief other users by burning NFTs that were approved to the attacker, causing unexpected position closures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2820ae0b-c711-44ce-bc53-5d9f105f147b",
+    "timestamp": "2025-12-02 09:00:06.390610",
+    "report_generated": false
+  },
+  {
+    "question": "Does BaseNonfungibleToken properly handle the case where an NFT is transferred while it has active positions with unclaimed fees, potentially leading to fee theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d9f22ab3-4fac-462e-9887-23ddede192d0",
+    "timestamp": "2025-12-02 09:00:30.279903",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.authorizedForNft, does the NotUnauthorizedForToken error double-negative naming cause confusion that could lead to incorrect authorization checks in derived contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70ec816e-16cd-4340-97be-a85ea1e3e120",
+    "timestamp": "2025-12-02 09:00:56.047796",
+    "report_generated": false
+  },
+  {
+    "question": "Can BaseNonfungibleToken.mint() with msg.value be exploited where the ignored ETH is later claimed by the owner through a withdrawal mechanism not visible in this contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_81f3786b-e3c9-452c-961c-4ae81babfd5d",
+    "timestamp": "2025-12-02 09:01:23.285273",
+    "report_generated": false
+  },
+  {
+    "question": "Does BaseNonfungibleToken.saltToId (line 98) correctly use address() to get the contract address, or could there be issues with delegatecall contexts where address() returns the wrong value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b84a59f-4967-4d09-ba54-f48b57c3ba11",
+    "timestamp": "2025-12-02 09:01:52.229591",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.increaseSellAmount (lines 53-74), does the authorizedForNft modifier properly prevent an attacker who obtains temporary approval from increasing sell amount and then immediately revoking approval to trap funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95ca2b61-f0bc-4ffe-af84-85372aead86f",
+    "timestamp": "2025-12-02 09:02:22.556385",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.mintAndIncreaseSellAmount (lines 43-50) be exploited where mint() assigns an ID that collides with an existing order, causing the increaseSellAmount call to modify someone else's order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f47597c-db7b-44e6-a50e-626684448ad0",
+    "timestamp": "2025-12-02 09:02:53.259587",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.decreaseSaleRate (lines 77-94) properly validate that the NFT owner still owns the token after the lock() callback completes, or can transfer-during-lock create authorization bypasses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_21e78123-23ab-4a03-b119-4ff58b7daf13",
+    "timestamp": "2025-12-02 09:03:25.553747",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.collectProceeds (lines 107-114), can an attacker who gains temporary approval collect all proceeds and then transfer the NFT back, stealing funds from the original owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_90b0162e-68bf-48a9-a13b-cee546ef7842",
+    "timestamp": "2025-12-02 09:03:59.803618",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.handleLockData (lines 134-175) properly handle the case where TWAMM_EXTENSION callback fails during CALL_TYPE_COLLECT_PROCEEDS, potentially locking proceeds permanently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f196a03-2e8c-4fba-a120-06a75e637d64",
+    "timestamp": "2025-12-02 09:04:35.215151",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.increaseSellAmount be called with maxSaleRate set to type(uint112).max to bypass intended rate limits, causing excessive order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_438b5bd6-15c8-4b52-82ef-defc99414814",
+    "timestamp": "2025-12-02 09:05:09.841695",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.decreaseSaleRate (line 88), does the negative int256 casting of saleRateDecrease properly handle edge cases at type boundaries, or can overflow cause incorrect refund amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_124c2947-d758-4d06-9ef1-ca7c09ac4ee9",
+    "timestamp": "2025-12-02 09:05:45.627740",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.mintAndIncreaseSellAmount properly handle the case where mint() succeeds but increaseSellAmount reverts, leaving an empty NFT minted that wastes gas and clutters state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2cf0c60-79b2-495e-ba89-1bc2194752f4",
+    "timestamp": "2025-12-02 09:06:21.565643",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.collectProceeds be frontrun by the NFT owner transferring the NFT to a different address, causing proceeds to be sent to the wrong recipient?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_33528d64-21c2-4efb-ae31-1a1dc26c15d9",
+    "timestamp": "2025-12-02 09:06:55.410818",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.handleLockData CALL_TYPE_CHANGE_SALE_RATE (lines 137-160), does the ACCOUNTANT.payFrom call properly validate token balances before Core.updateSaleRate, or can flash loan manipulations create accounting inconsistencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_60ee5994-8f19-49a8-96d5-bc1bb5f36093",
+    "timestamp": "2025-12-02 09:07:31.267974",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.executeVirtualOrdersAndGetCurrentOrderInfo (lines 122-128) return stale data if called within the same block as an order modification, potentially allowing arbitrage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a974ee73-65f4-43af-9386-a91a1f1a6823",
+    "timestamp": "2025-12-02 09:08:08.107268",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.increaseSellAmount with orderKey.config.endTime() = block.timestamp + 1 be used to create micro-duration orders that manipulate TWAMM pricing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f9cb042-af01-40e5-b9c0-543685b993b4",
+    "timestamp": "2025-12-02 09:08:44.202495",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.decreaseSaleRate (line 103), does calling with recipient = msg.sender create reentrancy opportunities where the refund callback triggers another decreaseSaleRate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_506a5506-fb2d-4571-96ff-7558af681aa3",
+    "timestamp": "2025-12-02 09:09:18.707602",
+    "report_generated": false
   }
 ]
