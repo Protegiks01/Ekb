@@ -13492,5 +13492,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_506a5506-fb2d-4571-96ff-7558af681aa3",
     "timestamp": "2025-12-02 09:09:18.707602",
     "report_generated": false
+  },
+  {
+    "question": "Does Orders.handleLockData properly handle native ETH transfers when sellToken = NATIVE_TOKEN_ADDRESS (line 147-148), or can ETH get stuck in the ACCOUNTANT?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fbb9eb63-3a21-40ac-89d4-fa735c6d6ecb",
+    "timestamp": "2025-12-02 09:10:40.877299",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.collectProceeds be called repeatedly in a multicall to collect the same proceeds multiple times before the lock completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d401ee42-cc84-4d1b-9e26-b263d359fd1d",
+    "timestamp": "2025-12-02 09:10:54.124160",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.increaseSellAmount (line 66), does computeSaleRate properly handle amount = 0 or duration = 0, or can it cause division by zero or return invalid rates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_803f8b09-ae74-400d-82ac-a5f623a6e740",
+    "timestamp": "2025-12-02 09:11:08.217338",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders constructor (line 38-40) properly validate that TWAMM_EXTENSION is not address(0), or can deployment with null extension break all order operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_001fa497-ec98-44b9-86ca-8abf9610acde",
+    "timestamp": "2025-12-02 09:11:22.387366",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.decreaseSaleRate be used to extract more refund than originally deposited by exploiting rounding errors in the TWAMM execution math?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7fe62a12-d0ac-4daa-8af3-a771d261a7ff",
+    "timestamp": "2025-12-02 09:11:37.555143",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.handleLockData (line 142), does Core.updateSaleRate properly revert if the order doesn't exist, or can it create phantom orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f61361af-3e96-43ba-ae8b-88e4e75f687c",
+    "timestamp": "2025-12-02 09:11:53.892777",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.collectProceeds properly handle the case where buyToken accumulation overflows uint128, causing loss of proceeds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b4dffb21-75dd-4c00-aa47-51e29baf61c4",
+    "timestamp": "2025-12-02 09:12:11.260833",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.mintAndIncreaseSellAmount be exploited where the minted ID is known in advance (via saltToId calculation), allowing an attacker to frontrun and claim valuable IDs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca80993f-937a-4523-9b61-0276647e851c",
+    "timestamp": "2025-12-02 09:12:30.830416",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.increaseSellAmount (line 59), does FixedPointMathLib.max properly handle block.timestamp overflow scenarios on long-running chains?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d3947b5-34f7-439e-bc8b-d11d4b5986f3",
+    "timestamp": "2025-12-02 09:12:51.574132",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.decreaseSaleRate properly prevent decreasing to negative sale rates, or can underflow create orders that earn instead of spend?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_694bb798-9d66-403b-8349-4e0a8ef41ff7",
+    "timestamp": "2025-12-02 09:13:14.201259",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.handleLockData revert selector (line 173) be reached through invalid callType values, causing transactions to revert without clear error messages?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_972aac89-a7f6-4adf-8f26-c1d46a7f7415",
+    "timestamp": "2025-12-02 09:13:37.941032",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.collectProceeds (line 165), does CORE.collectProceeds handle reentrancy if the buyToken has malicious transfer hooks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a0bb66cd-780e-4005-b03a-33f1c0cb2445",
+    "timestamp": "2025-12-02 09:14:02.708453",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.increaseSellAmount properly validate that tickLower < tickUpper in the orderKey, or can invalid order ranges be created?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18e88533-961c-48e2-b01d-be902b9f077f",
+    "timestamp": "2025-12-02 09:14:28.196075",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.decreaseSaleRate with saleRateDecrease = 0 be used to trigger TWAMM virtual order execution for free, manipulating pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ff0c59d-643c-498a-9d38-c3150e899211",
+    "timestamp": "2025-12-02 09:14:55.133703",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.handleLockData (line 155), does the uint128 cast properly prevent overflow when converting from uint256(-amount)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5afa5064-bb56-47f9-8f61-8e8f9977ecb6",
+    "timestamp": "2025-12-02 09:15:22.949601",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.executeVirtualOrdersAndGetCurrentOrderInfo properly handle concurrent calls from multiple users, or can race conditions corrupt order state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fcf10cfd-7c49-4007-a97f-92647186eb7a",
+    "timestamp": "2025-12-02 09:15:52.462286",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.mintAndIncreaseSellAmount be used in a sandwich attack where the attacker observes the mint, calculates the ID, and manipulates TWAMM pricing before the increaseSellAmount completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9b36dd55-4437-4abf-bc10-f65b878d36e7",
+    "timestamp": "2025-12-02 09:16:23.310964",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.increaseSellAmount (line 68-70), does the MaxSaleRateExceeded revert properly refund any tokens already transferred, or can funds get stuck?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f6bf8402-502c-4494-8460-7eeffbdd1271",
+    "timestamp": "2025-12-02 09:16:54.168697",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.collectProceeds properly handle tokens with transfer fees, or can fee-on-transfer tokens cause accounting mismatches in the ACCOUNTANT?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_938e9d4f-bbae-4928-9131-6b91164eca59",
+    "timestamp": "2025-12-02 09:17:25.444385",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.handleLockData be exploited through calldata manipulation where data is crafted to decode incorrectly and trigger unintended code paths?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ceaeed83-c3dd-490c-a703-cc41f8bc0cb5",
+    "timestamp": "2025-12-02 09:17:58.271790",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.decreaseSaleRate (line 82-93), does the int256 to uint112 conversion chain properly handle all edge cases, or can casting errors lose funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eb80ac04-2eac-4336-bf39-8b8d15a149d1",
+    "timestamp": "2025-12-02 09:18:31.409175",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.increaseSellAmount properly validate that the NFT ID hasn't been burned between authorization check and lock execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7cc03f4b-9900-4fb0-a62c-4929a26d3cd2",
+    "timestamp": "2025-12-02 09:19:05.300093",
+    "report_generated": false
+  },
+  {
+    "question": "Can Orders.collectProceeds be called with recipient = address(ACCOUNTANT) to manipulate flash accounting deltas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7d730ff9-a76f-48f9-b1a5-b07601115e7c",
+    "timestamp": "2025-12-02 09:19:40.007340",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.handleLockData (line 146-151), does the if-else branching for NATIVE_TOKEN_ADDRESS properly handle edge cases where token0 could be mistaken for native ETH?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22a009c4-2d5c-45d7-9506-59f0e2687a3b",
+    "timestamp": "2025-12-02 09:20:15.658661",
+    "report_generated": false
+  },
+  {
+    "question": "Does Orders.mintAndIncreaseSellAmount properly handle multicall scenarios where multiple orders are created with the same parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_38090829-6787-424e-9c2a-48c01039780c",
+    "timestamp": "2025-12-02 09:20:49.267554",
+    "report_generated": false
   }
 ]
