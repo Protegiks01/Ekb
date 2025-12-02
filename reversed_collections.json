@@ -9898,5 +9898,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23f085a7-8625-48c1-9b58-c584fc7eac08",
     "timestamp": "2025-12-02 04:50:45.002076",
     "report_generated": false
+  },
+  {
+    "question": "Can refundNativeToken() be exploited in a reentrancy attack by calling it from a malicious contract's receive() function?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6fd20fa-eac6-4e0c-9b83-58e899a60ede",
+    "timestamp": "2025-12-02 04:51:58.760251",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a front-running vulnerability where an attacker could call refundNativeToken() before a legitimate user's transaction completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f1a36f27-15da-440f-bca4-825509594e69",
+    "timestamp": "2025-12-02 04:52:12.422981",
+    "report_generated": false
+  },
+  {
+    "question": "Can the refundNativeToken() function be called within a multicall to drain ETH that was meant for other operations in the batch?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6d5f520-ac74-434e-b970-1422b0209d5a",
+    "timestamp": "2025-12-02 04:52:25.922648",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a vulnerability where multicalling operations could bypass the DebtsNotZeroed check in FlashAccountant.lock()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2b5ce7d1-5c32-44cd-a59f-eb29d6f219a8",
+    "timestamp": "2025-12-02 04:52:40.051502",
+    "report_generated": false
+  },
+  {
+    "question": "Can multicalling startPayments() and completePayments() in the same transaction lead to incorrect balance tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c184f831-5d7d-4401-9480-f4bda41b6fe6",
+    "timestamp": "2025-12-02 04:52:55.011997",
+    "report_generated": false
+  },
+  {
+    "question": "Does the payable multicall properly handle scenarios where some calls send ETH and others don't, potentially leading to incorrect debt accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e62db12-2298-4c70-8906-79b4e6826c08",
+    "timestamp": "2025-12-02 04:53:11.770768",
+    "report_generated": false
+  },
+  {
+    "question": "Can the multicall batching interfere with FlashAccountant's nonzero debt count tracking (_NONZERO_DEBT_COUNT_OFFSET)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3125b8ce-161e-48db-bae5-553f4edef9ad",
+    "timestamp": "2025-12-02 04:53:29.423905",
+    "report_generated": false
+  },
+  {
+    "question": "Is there a risk that multicalling multiple lock() operations could corrupt the _CURRENT_LOCKER_SLOT transient storage state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f454b16-9097-45c1-8355-2866cb3dbd8b",
+    "timestamp": "2025-12-02 04:53:49.311605",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit the transient storage debt tracking in FlashAccountant by multicalling operations that create and settle debts in unexpected orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_16a2db10-d433-4aa2-8d6f-fd003f4c09a7",
+    "timestamp": "2025-12-02 04:54:10.442696",
+    "report_generated": false
+  },
+  {
+    "question": "Does the combination of PayableMulticallable's payable multicall with FlashAccountant's receive() function create any vulnerabilities where msg.value is counted multiple times across delegatecalls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4495e1c0-d32e-4cc8-9958-322545b26b11",
+    "timestamp": "2025-12-02 04:54:32.898457",
+    "report_generated": false
+  },
+  {
+    "question": "Can the payable multicall function be exploited to manipulate flash accounting debt tracking by batching withdraw() calls with specific msg.value amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_689bf978-792a-41b0-8f9b-fea243a324a9",
+    "timestamp": "2025-12-02 04:54:56.778061",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher.getClaimedBitmap() accepts any word value without bounds checking. Could a user request word = type(uint256).max-1, causing the slot calculation to overflow and access storage slot 0 or near it, potentially reading critical contract variables instead of bitmap data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc8e6087-dad7-4fec-9dfd-50edbeb84c0a",
+    "timestamp": "2025-12-02 04:55:22.188505",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher functions accept user-provided DropKey and ClaimKey structs without validation. If a user provides a DropKey with zero addresses or invalid root, would the functions still attempt storage access, potentially returning meaningless data that users might misinterpret as legitimate?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_542b3745-2641-4d98-af21-d1000a27d243",
+    "timestamp": "2025-12-02 04:55:48.567528",
+    "report_generated": false
+  },
+  {
+    "question": "If the Incentives contract is malicious or compromised, it could return arbitrary data from sload calls. Would IncentivesDataFetcher functions blindly trust this data and report false claim statuses, potentially causing users to attempt invalid claims or miss valid ones?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_981fb62c-4319-449d-adf9-07d132e769b5",
+    "timestamp": "2025-12-02 04:56:17.950581",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesDataFetcher assumes the INCENTIVES contract correctly implements IExposedStorage.sload(). If the Incentives contract has a bug where sload returns the wrong slot's data, would all IncentivesDataFetcher queries be incorrect? Is there any way for users to verify the correctness of returned data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f673dc06-b1cf-4f92-9b0e-6a2c6d75ce6a",
+    "timestamp": "2025-12-02 04:56:48.851459",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesLib.claimIndexToStorageIndex() converts index to word and bit. What's the maximum valid index? If there's no documented maximum, could a user query IncentivesDataFetcher.isClaimed() with index = type(uint256).max, causing word to be ~2^248, and slot calculation to overflow into storage used by other drops or contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_35b11edd-22da-40eb-9195-146a099a691b",
+    "timestamp": "2025-12-02 04:57:20.159505",
+    "report_generated": false
+  },
+  {
+    "question": "IncentivesLib.getClaimedBitmap() uses unchecked block for `dropId + 1 + word` (lines 49-51). While the comment says storage slot calculation, if dropId is near type(uint256).max and word is large, the overflow is intentional or a bug? Could this cause IncentivesDataFetcher to access storage for a completely different drop?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8b22730e-4bda-4675-91b3-84ed697493e1",
+    "timestamp": "2025-12-02 04:57:51.048154",
+    "report_generated": false
+  },
+  {
+    "question": "DropState.claimed() masks with 0xffffffffffffffffffffffffffffffff (line 24). If this mask has an incorrect number of f's (e.g., one too many or too few), would the extracted claimed value be incorrect, causing IncentivesDataFetcher.getRemaining() to compute wrong remaining amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7ca4b8a0-67e4-41a3-a730-17bbbfa83b29",
+    "timestamp": "2025-12-02 04:58:24.189337",
+    "report_generated": false
+  },
+  {
+    "question": "DropState.funded() shifts right by 128 bits (line 15). If the funded value was stored in the lower 128 bits by mistake, would IncentivesDataFetcher.getDropInfo() return 0 for funded, making drops appear unfunded even when they have tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_24063542-e7d0-4b98-b99a-902039897dac",
+    "timestamp": "2025-12-02 04:58:58.258610",
+    "report_generated": false
+  },
+  {
+    "question": "ExposedStorageLib.sload() uses hardcoded selector 0x380eb4e0 (line 11). If the Incentives contract's sload function signature changes or collides with another function, would the staticcall invoke the wrong function, causing IncentivesDataFetcher to read arbitrary storage slots or revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d3f42bd1-d8f1-47d1-bb97-7ba65ae2e509",
+    "timestamp": "2025-12-02 04:59:33.832520",
+    "report_generated": false
+  },
+  {
+    "question": "INCENTIVES is declared as `public immutable` (line 20). While immutability prevents modification, if the IncentivesDataFetcher is deployed with the wrong INCENTIVES address, all functions would permanently return data from the wrong contract. Is there any validation in the constructor to prevent this misconfiguration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17285d15-c3f5-4fc0-99f6-50e56f98dd0b",
+    "timestamp": "2025-12-02 05:00:10.073735",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorageLib.sload() with multiple slots (lines 20-36), the function expects 64 bytes returned. If the Incentives contract's batch sload implementation is buggy and returns only 32 bytes, would the second slot read uninitialized memory, causing IncentivesDataFetcher.getDropInfo() to return partially correct data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd4c984e-5bed-431c-861f-d70cfd3b0ddb",
+    "timestamp": "2025-12-02 05:00:46.632196",
+    "report_generated": false
+  },
+  {
+    "question": "ExposedStorageLib.sload() expects exactly 32 bytes returned from staticcall (line 14). If the Incentives contract's sload implementation returns more or fewer bytes, would the assembly block read garbage data or revert? Could this cause IncentivesDataFetcher to return incorrect storage values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6d45516-cfc7-404b-aa25-9ca32f1d7502",
+    "timestamp": "2025-12-02 05:01:24.113900",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorageLib.sload() multi-slot overloads (lines 20-56), the free memory pointer is loaded with `mload(0x40)`. If IncentivesDataFetcher calls these functions in a loop, could repeated updates to the free memory pointer cause fragmentation or memory access violations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eba9828c-5195-42d4-bcc9-b539214f2e92",
+    "timestamp": "2025-12-02 05:01:59.736172",
+    "report_generated": false
+  },
+  {
+    "question": "ExposedStorageLib.sload() uses memory-safe assembly (lines 10-17). It writes to memory offset 0 and expects the result at offset 0. If IncentivesDataFetcher functions use memory for temporary storage before calling sload(), could there be memory corruption where sload overwrites important data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef4ac0a7-0d23-4ec3-af97-ff5bc9e6e090",
+    "timestamp": "2025-12-02 05:02:37.688595",
+    "report_generated": false
   }
 ]
