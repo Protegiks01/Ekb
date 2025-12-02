@@ -11698,5 +11698,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7581aa9c-bb9e-42a5-994a-f52f96b87bf4",
     "timestamp": "2025-12-02 06:50:34.607583",
     "report_generated": false
+  },
+  {
+    "question": "The computeFee() function (line 8 in fee.sol) adds 0xffffffffffffffff before shifting to round up. If amount * fee is close to type(uint256).max, could this addition overflow, wrapping to a small value and charging near-zero fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_581cdd54-32a8-43c0-8ceb-707262df02dd",
+    "timestamp": "2025-12-02 06:51:52.463978",
+    "report_generated": false
+  },
+  {
+    "question": "In amountBeforeFee() (lines 17-19 in fee.sol), the division is 'shl(64, afterFee) / (0x10000000000000000 - fee)'. If fee equals 0x10000000000000000 (100%), could this divide by zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_16070fda-c9fc-4a1b-98f3-e1c2cffd1c63",
+    "timestamp": "2025-12-02 06:52:05.743343",
+    "report_generated": false
+  },
+  {
+    "question": "The fee multiplier calculation (line 215) caps at type(uint64).max. If many sequential swaps each hit this cap, could the cumulative additional fees exceed the pool's total liquidity, causing insolvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12b40359-0997-45ed-9a37-b835a7a993ac",
+    "timestamp": "2025-12-02 06:52:19.161361",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 224), 'amountBeforeFee(inputAmount, additionalFee) - inputAmount' computes the fee. If amountBeforeFee() has precision loss and returns a value barely above inputAmount, could the fee be 1 wei when it should be much larger?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b18f19ec-63f2-4fae-83e9-16fab075a952",
+    "timestamp": "2025-12-02 06:52:33.295429",
+    "report_generated": false
+  },
+  {
+    "question": "The FixedPointMathLib.abs() used in line 213 converts int32 tick differences to uint256. If the difference is type(int32).min, could abs() fail to compute the correct absolute value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9565aae8-b760-42ce-a49d-e862ec5719ff",
+    "timestamp": "2025-12-02 06:52:48.595730",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 220-236), the fee calculation reverses pool fees then applies additional fees. If the reversal has different rounding than the forward calculation, could users exploit this by routing through MEVCapture to pay less total fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2a0ec532-d1be-46b2-9e15-546739dfc504",
+    "timestamp": "2025-12-02 06:53:05.594462",
+    "report_generated": false
+  },
+  {
+    "question": "The SafeCastLib.toInt128() calls (lines 224, 232, 240, 246) cast uint128 fees to int128. If a fee equals exactly 2^127, could this cast fail when it should succeed, causing unnecessary reverts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65745303-fe5a-4850-83ec-2e7de8879136",
+    "timestamp": "2025-12-02 06:53:23.637506",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 213), division by concentratedTickSpacing() assumes the spacing is non-zero. If a pool is configured with zero tick spacing (invalid), could this cause division by zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e818359f-678c-45d7-b0a6-56ef31f7807a",
+    "timestamp": "2025-12-02 06:53:43.588590",
+    "report_generated": false
+  },
+  {
+    "question": "The fee multiplier uses 64-bit fixed point (line 213). Could an attacker exploit the limited precision by making swaps where the precise fee should be between two representable values, consistently rounding in their favor?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4ba32907-1f02-4be2-bb36-3338980ab3cc",
+    "timestamp": "2025-12-02 06:54:03.638086",
+    "report_generated": false
+  },
+  {
+    "question": "In loadCoreState() (line 170), 'sub(fees0, gt(fees0, 0))' is used. If fees0 equals 1, this results in 0. Could this create a situation where a 1 wei fee is lost on every accumulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3eafe146-a73e-4ef9-b5b4-52a418080acc",
+    "timestamp": "2025-12-02 06:54:24.760139",
+    "report_generated": false
+  },
+  {
+    "question": "The unchecked block in handleForwardData() (line 178) wraps all fee calculations. If any arithmetic overflow occurs, could it silently wrap, resulting in incorrect fees that violate protocol invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cae9ab89-71ba-40a2-9558-d6fe0c822378",
+    "timestamp": "2025-12-02 06:54:46.485073",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 215), '(feeMultiplierX64 * poolFee) >> 64' could lose precision if poolFee is small. Could an attacker exploit pools with very small base fees to pay near-zero MEV fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_621e9bec-e9ec-4dfa-ac47-e2b56e95bfdf",
+    "timestamp": "2025-12-02 06:55:11.165371",
+    "report_generated": false
+  },
+  {
+    "question": "The exact-in fee calculation (line 240) uses computeFee(outputAmount, additionalFee). If outputAmount is very small due to high slippage, could the fee be larger than the output, effectively confiscating the entire swap output?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37d337d5-865d-4307-b336-6c1173d7453d",
+    "timestamp": "2025-12-02 06:55:36.310859",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 226, 234, 242, 248), fees are added to saveDelta variables. If multiple additions occur and the sum doesn't equal the delta in balanceUpdate, could this create accounting mismatches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_efca97b4-7df8-49a6-9a2c-abb91d8fba1d",
+    "timestamp": "2025-12-02 06:56:00.786345",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 191-207), if a swap occurs at exactly block.timestamp boundary, could two transactions in the same block have different lastUpdateTime states, causing the second to skip fee accumulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ad3e1a8-1f4a-4dbb-a194-e7348fa5caca",
+    "timestamp": "2025-12-02 06:56:26.573440",
+    "report_generated": false
+  },
+  {
+    "question": "The beforeInitializePool() function (line 72-74) requires non-zero fees. If Core allows updating pool fees to zero after initialization, could MEVCapture become non-functional for that pool, blocking all swaps through the forward path?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7d06c65-3ebc-4cd4-bbdb-210af5199965",
+    "timestamp": "2025-12-02 06:56:53.504250",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 209), if the swap reverts mid-execution due to slippage or liquidity, but fees have already been accumulated to saveDelta, could the revert leave the extension in an inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff48c64f-9c1e-4218-8123-de0829a9e541",
+    "timestamp": "2025-12-02 06:57:22.930352",
+    "report_generated": false
+  },
+  {
+    "question": "The loadCoreState() function (line 163) computes savedBalancesSlot with address(this). If MEVCapture is used through a proxy pattern, could address(this) be the proxy address while Core expects the implementation address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2192d2fc-ab10-4a55-a9ed-fcf5b4bb4d0b",
+    "timestamp": "2025-12-02 06:57:54.240398",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (lines 220-236, 238-250), both branches check specific delta signs. If a swap produces zero deltas (no-op swap), could both branches be skipped, leaving fees uncollected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a0bfe093-e1f7-4370-ae51-92a8413ce085",
+    "timestamp": "2025-12-02 06:58:24.698901",
+    "report_generated": false
+  },
+  {
+    "question": "The accumulatePoolFees() function (line 110) compares uint32 timestamps. Could block.timestamp manipulation by miners within the allowed drift cause premature or delayed fee accumulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7fedc6de-3706-415a-ad8e-3838ddd01c92",
+    "timestamp": "2025-12-02 06:58:57.498044",
+    "report_generated": false
+  },
+  {
+    "question": "In beforeInitializePool() (line 79), if block.timestamp equals 0 (unlikely but possible in test environments or custom chains), could this create a state where lastUpdateTime is always in the past?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1770e515-5d58-4780-9aa8-5e975e90fd21",
+    "timestamp": "2025-12-02 06:59:33.200251",
+    "report_generated": false
+  },
+  {
+    "question": "The handleForwardData() function (line 186) casts block.timestamp to uint32. If this is called on a chain with timestamp > type(uint32).max, could the cast wrap, causing bizarre time-based behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b0977ee6-24a1-4116-b166-6c4adf82bada",
+    "timestamp": "2025-12-02 07:00:09.809146",
+    "report_generated": false
+  },
+  {
+    "question": "In loadCoreState() (lines 168-174), if Core's storage returns fees that are equal to type(uint128).max, the subtraction of 1 could wrap. Is this handled correctly, or could it cause fee tracking errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9aa2bbf7-5491-4ee3-9d50-adf0a0b7eb83",
+    "timestamp": "2025-12-02 07:00:45.279716",
+    "report_generated": false
+  },
+  {
+    "question": "The MEVCapture extension stores state per poolId (line 50). If two pools with different token pairs but same configuration hash to the same poolId, could their states collide, causing cross-pool fee corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1060e836-f4a3-48d0-9503-85cbca3a7299",
+    "timestamp": "2025-12-02 07:01:22.209682",
+    "report_generated": false
+  },
+  {
+    "question": "In handleForwardData() (line 202), tickLast is updated from Core's current tick. If Core's tick is at MIN_TICK or MAX_TICK, could subsequent swaps fail due to tick distance overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_86ca529b-9c74-4ac9-aa2e-b9c84676b276",
+    "timestamp": "2025-12-02 07:01:59.321295",
+    "report_generated": false
   }
 ]
