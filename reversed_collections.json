@@ -14698,5 +14698,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e5b5c5b-930f-4d11-8f77-259ac98403ec",
     "timestamp": "2025-12-02 11:32:20.946443",
     "report_generated": false
+  },
+  {
+    "question": "If MIN_TICK is -887272 and TICKS_OFFSET is a large constant, could poolTicksSlot(poolId, MIN_TICK) underflow in assembly and wrap to a high storage slot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_78a15685-0fc8-47fc-9341-11a57bd1e993",
+    "timestamp": "2025-12-02 11:33:36.558242",
+    "report_generated": false
+  },
+  {
+    "question": "Could an attacker create a PoolKey that hashes to a PoolId specifically chosen to cause poolStateSlot() to collide with isExtensionRegisteredSlot() of a critical address?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_48a34c8a-a918-4d6e-9f28-a89b2b6d725b",
+    "timestamp": "2025-12-02 11:33:49.936893",
+    "report_generated": false
+  },
+  {
+    "question": "Are the offset constants FPL_OFFSET, TICKS_OFFSET, FPL_OUTSIDE_OFFSET_VALUE0, FPL_OUTSIDE_OFFSET_VALUE1, and BITMAPS_OFFSET in CoreStorageLayout mathematically proven to never cause slot collisions for any possible PoolId value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c298f48e-d8e4-4ac6-96c9-6509a3266c7c",
+    "timestamp": "2025-12-02 11:34:04.698861",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.swap() calls Core, which calls an extension beforeSwap hook, which calls CoreLib.getPoolFeesPerLiquidity(), could the nested staticcall fail or cause gas issues?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_07271f79-3f59-4b5e-9c0e-0b8e2380a9ba",
+    "timestamp": "2025-12-02 11:34:19.030971",
+    "report_generated": false
+  },
+  {
+    "question": "If an extension calls CoreLib.poolState() which triggers staticcall to Core, and Core's sload has a view-reentrancy bug that calls back to the extension, could this create circular dependencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_20869d5b-6f9e-4c58-bc1d-fcb110114655",
+    "timestamp": "2025-12-02 11:34:34.097279",
+    "report_generated": false
+  },
+  {
+    "question": "Since CoreLib functions use staticcall to read storage, if Core's sload implementation is malicious and makes external calls, could reentrancy occur even though staticcall is used?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_566d7bea-01f0-4202-8273-8078a022d9f0",
+    "timestamp": "2025-12-02 11:34:50.715130",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.poolTicks() reads a tick, then a swap crosses that tick and updates liquidityNet, could concurrent reads in callbacks return inconsistent tick data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_21993a93-915b-4cee-8deb-e4c2dbdcf3cf",
+    "timestamp": "2025-12-02 11:35:07.745705",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.savedBalances() is called, then updateSavedBalances() modifies the balances, could a subsequent read in the same transaction return stale values if sload caching is improper?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_484658c9-68a6-4e39-a4c4-7387754cbe14",
+    "timestamp": "2025-12-02 11:35:27.632789",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.poolPositions() is called for a position, then updatePosition() is called, then poolPositions() is called again, could the second call return cached data instead of updated liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1020f014-e11f-407f-8d7b-bb04cbbd65f3",
+    "timestamp": "2025-12-02 11:35:49.739698",
+    "report_generated": false
+  },
+  {
+    "question": "If an extension calls CoreLib.getPoolFeesPerLiquidity() within a beforeSwap hook, then the swap accumulates fees, could the extension observe inconsistent fees-per-liquidity when called again in afterSwap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6bdf2e70-9d02-4d30-b8b8-61f6edb35da1",
+    "timestamp": "2025-12-02 11:36:12.636227",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.poolState() is called in the same transaction before and after a swap via CoreLib.swap(), could reentrancy in the Core contract cause the first call to return stale state, leading to incorrect calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f8eb17a-6394-4086-a904-dec6ee30d9e8",
+    "timestamp": "2025-12-02 11:36:36.769917",
+    "report_generated": false
+  },
+  {
+    "question": "In StorageSlot.sub() (lines 42-45), unchecked subtraction is used. If subtrahend > slot, could the underflow wrap around and point to high-value storage slots containing critical data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ce01b13e-c9a0-46a4-968d-fbd52a284b80",
+    "timestamp": "2025-12-02 11:37:02.178463",
+    "report_generated": false
+  },
+  {
+    "question": "In StorageSlot.add() (lines 36-40), unchecked addition is used. If slot + addend overflows, could the resulting slot collide with core state or other pools' storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2f078a1-41f2-46cd-805c-4a39f6c83daf",
+    "timestamp": "2025-12-02 11:37:29.450473",
+    "report_generated": false
+  },
+  {
+    "question": "In StorageSlot.next() (storageSlot.sol lines 30-34), the slot is incremented by 1. If slot is type(uint256).max, could the increment wrap to 0, causing critical storage overlap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e0b6fb7-bcc3-41b5-a7f7-e8fe7af3fe7d",
+    "timestamp": "2025-12-02 11:37:56.787220",
+    "report_generated": false
+  },
+  {
+    "question": "In poolBalanceUpdate.delta1() (lines 14-18), if delta1 is exactly type(int128).min, could sign extension overflow and return type(int128).max, flipping the token balance direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_26dd02a9-64bc-44ec-9bc3-eadffbe1b8ed",
+    "timestamp": "2025-12-02 11:38:25.443466",
+    "report_generated": false
+  },
+  {
+    "question": "In poolBalanceUpdate.delta0() (lines 8-12), signextend(15, shr(128, update)) extracts delta0. If the packed update has delta0 = type(int128).min, could sign extension fail and return a positive value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a01cd93-4496-466b-b67b-a7323d02e2db",
+    "timestamp": "2025-12-02 11:38:55.659239",
+    "report_generated": false
+  },
+  {
+    "question": "In createPoolBalanceUpdate() (poolBalanceUpdate.sol lines 20-24), delta1 is masked with 0xffffffffffffffffffffffffffffffff. If _delta1 is negative, could the masking corrupt the sign bit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_86b3798e-3d2c-4d2c-9ce9-62cb89752ec2",
+    "timestamp": "2025-12-02 11:39:27.318313",
+    "report_generated": false
+  },
+  {
+    "question": "In withDefaultSqrtRatioLimit() (lines 74-81), if params already has a non-zero sqrtRatioLimit, the function should not overwrite it. Could the replace condition (line 77) be incorrect, causing valid limits to be replaced with defaults?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_569580c1-bd1c-4bb9-b0cf-8fbd10811f72",
+    "timestamp": "2025-12-02 11:40:00.114973",
+    "report_generated": false
+  },
+  {
+    "question": "In swapParameters.isPriceIncreasing() (lines 66-72), the logic is xor(_isExactOut, _isToken1). Could edge cases in bit extraction cause isPriceIncreasing to return incorrect values, leading to swaps crossing ticks in the wrong direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3b6454c3-7468-4756-95ee-37a645691881",
+    "timestamp": "2025-12-02 11:40:34.269874",
+    "report_generated": false
+  },
+  {
+    "question": "In swapParameters.isExactOut() (lines 60-64), the check is and(shr(159, params), 1). If this bit is part of the amount field, could setting certain amounts inadvertently flip the exact-out flag?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d11ab22-09ee-4b4c-9cd8-90bd31976e85",
+    "timestamp": "2025-12-02 11:41:07.828879",
+    "report_generated": false
+  },
+  {
+    "question": "In swapParameters.isToken1() (lines 30-34), the check is and(shr(31, params), 1). Could bit 31 overlap with the skipAhead field, causing ambiguity in which token is being swapped?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c9b9aa40-2509-43fb-b044-a6a4d620e7c9",
+    "timestamp": "2025-12-02 11:41:42.234313",
+    "report_generated": false
+  },
+  {
+    "question": "In createSwapParameters() line 54, _skipAhead is masked with 0x7fffffff (31 bits). If _skipAhead is provided as a larger value, could the truncation cause the swap to skip fewer ticks than intended, affecting price movement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_371185ef-ca9b-4d00-9726-d91f5d5d7595",
+    "timestamp": "2025-12-02 11:42:14.445788",
+    "report_generated": false
+  },
+  {
+    "question": "In createSwapParameters() line 53, _amount is masked with 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF (128 bits). If _amount is type(int128).min, could the sign bit be lost, causing the swap to execute in the wrong direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f946a54c-a5ca-414e-bce1-cca9aed53aa0",
+    "timestamp": "2025-12-02 11:42:42.964709",
+    "report_generated": false
+  },
+  {
+    "question": "In createSwapParameters() (swapParameters.sol lines 42-58), the sqrtRatioLimit is shifted left by 160 bits. If _sqrtRatioLimit > type(uint96).max, could the shift overflow and corrupt the packed parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c88561bf-9c23-411d-b52b-a90b5bcbf64f",
+    "timestamp": "2025-12-02 11:43:13.165526",
+    "report_generated": false
+  },
+  {
+    "question": "In feesPerLiquidityFromAmounts(), if liquidity is 0, the division will cause a revert. But could a pool reach 0 liquidity transiently during swap, causing fee accumulation to fail and freeze the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c572e03-222a-4227-b4b5-b6278814d104",
+    "timestamp": "2025-12-02 11:43:42.385883",
+    "report_generated": false
   }
 ]
