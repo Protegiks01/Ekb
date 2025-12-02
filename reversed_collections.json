@@ -14248,5 +14248,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06bdb594-6d7a-4f6c-9347-703ec5ec7072",
     "timestamp": "2025-12-02 10:57:09.683067",
     "report_generated": false
+  },
+  {
+    "question": "In `isExtensionRegisteredSlot()` assembly block (lines 37-41), the memory at positions 0 and 32 is used for hashing. If another function in Core.sol uses this memory region without proper cleanup, could stale data cause incorrect extension registration status checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a0415def-e42b-4d10-8254-5c542061e8ed",
+    "timestamp": "2025-12-02 10:58:26.777583",
+    "report_generated": false
+  },
+  {
+    "question": "The `isExtensionRegisteredSlot()` function uses a simple keccak256 hash with a fixed second parameter of 0 (line 39). Could this predictable mapping allow an attacker to precompute extension addresses that collide with other storage regions like poolFeesPerLiquiditySlot or poolTicksSlot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00d95b61-2d15-44c9-ac06-0eee5493a296",
+    "timestamp": "2025-12-02 10:58:40.008582",
+    "report_generated": false
+  },
+  {
+    "question": "In `isExtensionRegisteredSlot()` (lines 36-42), the storage slot is computed using keccak256(extension || 0). Could an attacker craft a malicious extension address that produces a keccak256 collision with critical pool state slots (poolStateSlot) to corrupt pool data or steal funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_07ddd5df-18b3-43e2-aa3f-c070c70f8ce2",
+    "timestamp": "2025-12-02 10:58:54.362156",
+    "report_generated": false
+  },
+  {
+    "question": "If liquidity is very small (e.g., 1 wei), could position.fees() calculation have extreme rounding errors, allowing attackers to drain fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7e9e4b0a-ab6c-4a72-9762-ba00e0a83aaa",
+    "timestamp": "2025-12-02 10:59:08.626261",
+    "report_generated": false
+  },
+  {
+    "question": "If poolPositions() returns liquidity = type(uint128).max, and a position update tries to add more liquidity, could overflow bypass maxLiquidityPerTick checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_694ee78e-3b6c-42f0-9b80-5ea40578bf62",
+    "timestamp": "2025-12-02 10:59:23.959028",
+    "report_generated": false
+  },
+  {
+    "question": "If Core's sload implementation is gas-intensive, could repeated CoreLib calls in a transaction consume all gas, preventing critical operations like position withdrawal?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c7f8d7f-10a3-4c87-817f-d2afed9fb8da",
+    "timestamp": "2025-12-02 10:59:40.594371",
+    "report_generated": false
+  },
+  {
+    "question": "If ExposedStorageLib.sload() is called with insufficient gas, could the staticcall fail silently and return zero, causing CoreLib functions to operate on zero data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ffeef2b-75ab-4248-baf6-023972f670e8",
+    "timestamp": "2025-12-02 10:59:57.930550",
+    "report_generated": false
+  },
+  {
+    "question": "Could an attacker create many pools with carefully chosen PoolKeys to cause their tickBitmaps to overlap, corrupting each other's initialized tick data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c4e0c037-35da-4376-b244-14c2e292cf79",
+    "timestamp": "2025-12-02 11:00:18.294228",
+    "report_generated": false
+  },
+  {
+    "question": "If two pools have PoolIds that differ by exactly one of the offset constants, could their poolFeesPerLiquidity slots collide, causing fee corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b498355e-e131-46be-8430-ce9858f1df79",
+    "timestamp": "2025-12-02 11:00:39.728037",
+    "report_generated": false
+  },
+  {
+    "question": "If token0 or token1 is address(0), could CoreStorageLayout.savedBalancesSlot() hash to a predictable slot that collides with other storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_be62c6f2-70e7-4f38-830f-c94605632da8",
+    "timestamp": "2025-12-02 11:01:02.588783",
+    "report_generated": false
+  },
+  {
+    "question": "If token0 >= token1 in savedBalances(), the function should revert. But if CoreLib.savedBalances() is called without this check, could it read from a different slot and return incorrect balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e9c95160-c227-435b-b1b4-503da8f08e16",
+    "timestamp": "2025-12-02 11:01:27.439408",
+    "report_generated": false
+  },
+  {
+    "question": "If a pool is partially initialized (sqrtRatio set but tick not), could isInitialized() return true but other CoreLib functions fail due to inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c049fcb-9dd5-434f-a5f9-5360ba000f34",
+    "timestamp": "2025-12-02 11:01:53.301529",
+    "report_generated": false
+  },
+  {
+    "question": "If poolState.isInitialized() returns true for a pool that was initialized then corrupted, could subsequent CoreLib.swap() operations fail in unexpected ways?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_41005591-ae69-4aec-9685-10fed28ff430",
+    "timestamp": "2025-12-02 11:02:20.297058",
+    "report_generated": false
+  },
+  {
+    "question": "If fees-per-liquidity-inside is updated between CoreLib.getPoolFeesPerLiquidity() and position.fees() calls, could the mismatch cause fee calculation to overflow or underflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_449276ca-5c6a-4af0-aa4a-12c9a95390b2",
+    "timestamp": "2025-12-02 11:02:48.250497",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.poolPositions() is called to compute fees, then another user collects fees for the same position, could the first user's fee calculation be stale, causing double-claiming?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e39dd77-487a-4b55-8eaa-9499e56dee54",
+    "timestamp": "2025-12-02 11:03:16.789470",
+    "report_generated": false
+  },
+  {
+    "question": "If liquidityDelta is zero but liquidityNet is non-zero, could this indicate corrupted tick data that causes swaps to calculate price incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00f93efd-bfcc-42f8-bccb-85697003d6e6",
+    "timestamp": "2025-12-02 11:03:48.227245",
+    "report_generated": false
+  },
+  {
+    "question": "In poolTicks(), if liquidityDelta is extracted incorrectly and the sign is flipped, could tick crossing add liquidity when it should subtract, breaking pool solvency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_52f2248c-6a70-4fbf-ba49-0d0895c0bd8e",
+    "timestamp": "2025-12-02 11:04:20.002854",
+    "report_generated": false
+  },
+  {
+    "question": "If a concentrated pool and stableswap pool have colliding PoolIds (unlikely but possible via hash collision), could CoreLib.poolState() return mixed state data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3cb3d66d-001f-4bde-9612-64d0cc8792bb",
+    "timestamp": "2025-12-02 11:04:53.468334",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib functions are used with a stableswap pool that has different storage layout assumptions, could the generic slot calculations in CoreStorageLayout read wrong data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e7425662-5599-45b3-9613-2a68a2b1c8bf",
+    "timestamp": "2025-12-02 11:05:24.488422",
+    "report_generated": false
+  },
+  {
+    "question": "If an extension's hook calls CoreLib.getPoolFeesPerLiquidity() while fees are being accumulated, could the read occur mid-update and return half-written fee values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c7d060bf-3f4e-46d3-ba74-fea9bb20997f",
+    "timestamp": "2025-12-02 11:05:57.625342",
+    "report_generated": false
+  },
+  {
+    "question": "If Core.swap() calls an extension's afterSwap hook, and that hook calls CoreLib.poolState() to read updated state, could reentrancy in sload cause deadlock or state inconsistency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_61cb0b1d-4627-44b5-85d4-4a754b66a02c",
+    "timestamp": "2025-12-02 11:06:31.498730",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.swap() is called with value = 0 for a native token pool, does the swap revert or silently fail, potentially locking pool operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6afbc861-45f1-41f0-81ef-15e981bd12e8",
+    "timestamp": "2025-12-02 11:07:04.696470",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.swap(), if value > 0 is sent but the pool does not involve native token, does Core refund the ETH, or is it lost, causing users to accidentally donate ETH?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7aa2fffd-0866-4ff3-b9e9-bf40468ee95f",
+    "timestamp": "2025-12-02 11:07:38.046736",
+    "report_generated": false
+  },
+  {
+    "question": "If a router calls CoreLib.swap() for multiple pools, and one swap consumes all gas, could subsequent swaps fail silently, losing user funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d77e6987-c396-4be5-89f6-8343d03b79ac",
+    "timestamp": "2025-12-02 11:08:09.787217",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.swap() is called in a multi-hop routing scenario, and intermediate swaps fail, could partial state changes corrupt the final balanceUpdate, causing incorrect delta settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a022aa9-7b92-4560-8485-0b77a1b57c06",
+    "timestamp": "2025-12-02 11:08:43.312938",
+    "report_generated": false
   }
 ]
