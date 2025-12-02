@@ -10048,5 +10048,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_709bfb91-0a2c-4b9d-b0ed-a7539177eab4",
     "timestamp": "2025-12-02 04:42:57.482100",
     "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit transient storage persistence across internal calls to violate atomicity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_501d5e7b-8a65-4d40-a618-335c7bffba04",
+    "timestamp": "2025-12-02 04:44:34.897308",
+    "report_generated": false
+  },
+  {
+    "question": "Are there any scenarios where debt can be partially settled due to out-of-gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a96af12d-fa8e-41e5-b2b3-11891b1133e8",
+    "timestamp": "2025-12-02 04:44:49.092276",
+    "report_generated": false
+  },
+  {
+    "question": "Can _accountDebt() and _updatePairDebt() produce different non-zero count results for the same debt changes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b5ba4d39-02a2-4b20-be0c-43116fd7ac87",
+    "timestamp": "2025-12-02 04:45:03.687136",
+    "report_generated": false
+  },
+  {
+    "question": "If debt transitions from -1 to +1, passing through zero, is the count updated correctly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5db46e76-d83f-4764-aced-111f2e3fee7e",
+    "timestamp": "2025-12-02 04:45:18.587971",
+    "report_generated": false
+  },
+  {
+    "question": "Can large positive debt wrapping to large negative debt due to overflow cause count errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a897a7c9-c885-4fdd-aa6d-e219c67ee8bc",
+    "timestamp": "2025-12-02 04:45:33.906788",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if debt is exactly type(int256).min or type(int256).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79760ee3-92ca-4d58-8a87-6aaa8c7ce09e",
+    "timestamp": "2025-12-02 04:45:51.802735",
+    "report_generated": false
+  },
+  {
+    "question": "lock() uses function selector 0 for the callback - can this collide with other function selectors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e47f5583-cf66-4796-b6a3-d8f750b859ab",
+    "timestamp": "2025-12-02 04:46:10.318948",
+    "report_generated": false
+  },
+  {
+    "question": "forward() uses function selector 1 (0x01) - can this be confused with other functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ddfb930d-60d8-4e71-9a19-8b0e5865b0cf",
+    "timestamp": "2025-12-02 04:46:30.629983",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker manipulate function selectors through calldata crafting to call unintended functions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d831a443-a9b3-4bae-bd0a-d4ef8ccb8613",
+    "timestamp": "2025-12-02 04:46:52.375629",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit the combination of withdraw() reentrancy and forward() to corrupt locker state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9038689b-8800-404b-9a55-4db944af0326",
+    "timestamp": "2025-12-02 04:47:15.587690",
+    "report_generated": false
+  },
+  {
+    "question": "Can startPayments() -> revert -> startPayments() again leave stale balance data in transient storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66bf1169-f88c-4baf-bab7-59f218817cce",
+    "timestamp": "2025-12-02 04:47:39.505773",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker use updateDebt() during a forwarded call to manipulate the original locker's debt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e4baf92-8164-4828-a2d9-2004d143bb99",
+    "timestamp": "2025-12-02 04:48:04.622543",
+    "report_generated": false
+  },
+  {
+    "question": "Can the interaction between receive() and withdraw() create a circular debt situation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4c3e39cf-698f-48bb-8d3d-639b479306d9",
+    "timestamp": "2025-12-02 04:48:31.598145",
+    "report_generated": false
+  },
+  {
+    "question": "The receive() function uses 'unchecked' (line 389) - are there any overflow scenarios not covered by the comment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8880fd5f-8057-460d-9d09-0e2d0a821cbb",
+    "timestamp": "2025-12-02 04:48:59.914753",
+    "report_generated": false
+  },
+  {
+    "question": "Can the unchecked arithmetic in _accountDebt() and _updatePairDebt() cause undetected overflows?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_079d2668-dbe1-49e9-b56b-cdeff800a250",
+    "timestamp": "2025-12-02 04:49:29.532718",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker craft a sequence of operations that passes the DebtsNotZeroed check despite having outstanding debt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cfe9ac29-42a8-4650-8ecf-71ffc89b0d68",
+    "timestamp": "2025-12-02 04:49:59.869463",
+    "report_generated": false
+  },
+  {
+    "question": "Can manipulating the non-zero debt count to be exactly zero while individual debts are non-zero bypass settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c0a5963-f027-43c5-a098-dcb9f7f5436b",
+    "timestamp": "2025-12-02 04:50:32.256940",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker exploit the timing of the nonzeroDebtCount check to exit a lock with debt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e90d6fc-5456-461e-af4b-c981f966390b",
+    "timestamp": "2025-12-02 04:51:06.358387",
+    "report_generated": false
+  },
+  {
+    "question": "What happens if nonzeroDebtCount overflows to zero, bypassing the settlement check despite real debts existing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d2b464d-7425-49da-9777-3997620f7fc0",
+    "timestamp": "2025-12-02 04:51:40.371026",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol constructor (line 18-20), can the _core parameter be set to address(0), allowing contracts inheriting UsesCore to operate without a valid Core reference, potentially bypassing all onlyCore access controls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_97345379-8db8-419b-a1b9-f299c427d05b",
+    "timestamp": "2025-12-02 04:52:15.532477",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol, the CORE immutable variable (line 14) is set once in the constructor. If an attacker deploys a malicious contract implementing ICore interface, can they bypass security checks in inheriting contracts like BaseExtension, BasePositions, or Router?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7bd5e558-a9fb-4a75-bb0c-d8f5bfe95a9e",
+    "timestamp": "2025-12-02 04:52:51.204864",
+    "report_generated": false
+  },
+  {
+    "question": "The onlyCore modifier in UsesCore.sol (lines 24-27) only checks msg.sender == address(CORE). Can an attacker use delegatecall from the Core contract to bypass this check and call protected functions in extensions with arbitrary context?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63af2c02-65db-44a1-a90f-770c4bf699cf",
+    "timestamp": "2025-12-02 04:53:26.636771",
+    "report_generated": false
+  },
+  {
+    "question": "In UsesCore.sol, if the CORE contract is upgradeable or has a proxy pattern, can the address(CORE) immutable become stale, causing onlyCore modifier to fail and freeze all extension hooks permanently?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_368c4bad-4d31-4eb7-8e03-d139732b6467",
+    "timestamp": "2025-12-02 04:54:02.544552",
+    "report_generated": false
+  },
+  {
+    "question": "The onlyCore modifier reverts with CoreOnly() error. If an extension like TWAMM or MEVCapture uses this modifier on critical hooks, can a malicious Core implementation DOS specific pools by never calling these hooks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42c984da-78bf-41d6-8a98-dac704ec1699",
+    "timestamp": "2025-12-02 04:54:39.464469",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol (line 25), the constructor calls UsesCore(core) and then registers the extension. Can an attacker frontrun the registration transaction to deploy a malicious extension with the same address, stealing the intended extension's call points?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6857df53-78e4-46ad-b9ce-7ed18bec3a0e",
+    "timestamp": "2025-12-02 04:55:16.337222",
+    "report_generated": false
   }
 ]
