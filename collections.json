@@ -13192,5 +13192,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb07e4a6-24fb-473d-bf29-77da34535317",
     "timestamp": "2025-12-02 08:44:58.920346",
     "report_generated": false
+  },
+  {
+    "question": "Can an attacker create multiple orders with different (token0/token1, startTime, endTime) combinations to engineer specific sale rate patterns that, when executed via `_executeVirtualOrdersFromWithinLock`, cause reward rates to overflow or become misaligned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e9a39cc-4fe4-48de-9836-49492f5cb04a",
+    "timestamp": "2025-12-02 08:46:14.224782",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker place orders that span multiple time periods with carefully chosen sale rates such that the cumulative effect",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e924e107-3785-4d33-9f2c-8a1bbf931770",
+    "timestamp": "2025-12-02 08:46:27.499072",
+    "report_generated": false
+  },
+  {
+    "question": "Does the IBaseNonfungibleToken.setMetadata function allow the owner to change metadata to malicious URIs after users have minted NFTs, potentially creating phishing vectors where users unknowingly approve transactions thinking they own legitimate positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ecfb4657-fb54-4314-9177-9db7b676c67f",
+    "timestamp": "2025-12-02 08:46:42.029006",
+    "report_generated": false
+  },
+  {
+    "question": "Can the saltToId view function in IBaseNonfungibleToken return colliding token IDs if the same minter uses the same salt on different chains but the chainid() is manipulated or if cross-chain replay occurs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_db120eb7-99c7-4e43-a543-ed91f9a278ca",
+    "timestamp": "2025-12-02 08:46:56.325438",
+    "report_generated": false
+  },
+  {
+    "question": "Does the IBaseNonfungibleToken.mint() payable function that ignores msg.value create a vulnerability where users accidentally send ETH that gets permanently locked in the contract without refund mechanisms?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa2ce1a0-a336-4997-901b-79acb787292c",
+    "timestamp": "2025-12-02 08:47:11.743466",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker front-run IBaseNonfungibleToken.mint(bytes32 salt) transactions by observing the mempool, copying the salt, and minting the same ID to themselves, causing the legitimate user's transaction to revert and losing gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_975e766a-7061-4323-9b7b-a5ea49228119",
+    "timestamp": "2025-12-02 08:47:28.223237",
+    "report_generated": false
+  },
+  {
+    "question": "Does IBaseNonfungibleToken.burn allow burning of NFTs that still have active positions with locked liquidity, potentially leading to permanent loss of funds if the position data is keyed by the NFT ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ed9535ad-78b1-409f-aaeb-12496c64bcf5",
+    "timestamp": "2025-12-02 08:47:46.227672",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.saltToId (lines 92-102), the assembly block uses keccak256(free, 128) to hash minter, salt, chainid, and address - can storage collision occur if the free memory pointer (0x40) points to previously written data that wasn't cleaned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_85791f60-1c4f-4398-a46e-a6df2fe739f2",
+    "timestamp": "2025-12-02 08:48:06.132724",
+    "report_generated": false
+  },
+  {
+    "question": "Does BaseNonfungibleToken.saltToId (line 100) properly prevent collisions when uint256 keccak256 output wraps around, potentially allowing two different (minter, salt) pairs to produce the same token ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_05c3ee3f-fac4-495f-a0dc-2f989db8fc9d",
+    "timestamp": "2025-12-02 08:48:29.730274",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.mint() with random salt (lines 109-117), the prevrandao() opcode can return the same value within a block - can a malicious miner or MEV searcher predict or manipulate this to cause token ID collisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8cb7073d-0c2d-4c2f-b366-67f31cc035fa",
+    "timestamp": "2025-12-02 08:48:54.563654",
+    "report_generated": false
+  },
+  {
+    "question": "Does the gas() opcode in BaseNonfungibleToken.mint() random salt generation (line 113) provide sufficient entropy, or can an attacker send multiple identical transactions with carefully calculated gas limits to force ID collisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b7ae4608-ea5c-48a3-8367-640b78bd936d",
+    "timestamp": "2025-12-02 08:49:18.953679",
+    "report_generated": false
+  },
+  {
+    "question": "Can BaseNonfungibleToken.mint(bytes32 salt) (line 123-126) be exploited by calling it repeatedly with incrementing salts to enumerate all possible IDs and squat on IDs that might be valuable in the future?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a6acbd52-4cc9-48f5-9f35-2932e4d73009",
+    "timestamp": "2025-12-02 08:49:43.643295",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.burn (line 133), the authorizedForNft modifier checks _isApprovedOrOwner - but does this properly revert if the token was already burned, or can it cause state corruption in the ERC721 implementation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8459cd28-d051-46e0-a730-ef25e4476bd5",
+    "timestamp": "2025-12-02 08:50:10.349682",
+    "report_generated": false
+  },
+  {
+    "question": "Does BaseNonfungibleToken.setMetadata (lines 42-46) lack events or validation, allowing the owner to silently change baseUrl to point to malicious metadata that could be used in social engineering attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7361ef5-188f-407e-bbf1-6e35b0d7e609",
+    "timestamp": "2025-12-02 08:50:38.163701",
+    "report_generated": false
+  },
+  {
+    "question": "Can BaseNonfungibleToken.tokenURI (lines 65-76) produce excessively long strings if baseUrl is set to a very long value, causing out-of-gas reverts when external contracts try to read token metadata?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e13cdb21-a9c4-4c2c-bbd1-3d9ab4c88aa1",
+    "timestamp": "2025-12-02 08:51:07.314280",
+    "report_generated": false
+  },
+  {
+    "question": "Does the authorizedForNft modifier in BaseNonfungibleToken (lines 81-86) properly handle the case where msg.sender has approval for all tokens via setApprovalForAll, or can there be edge cases where approval is incorrectly denied?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3a08a1a-19b9-41b0-8087-9ef907011c02",
+    "timestamp": "2025-12-02 08:51:37.326177",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.saltToId assembly (line 94-98), are the mstore operations correctly offset, or could misalignment cause the chainid() or address() to overwrite part of the minter or salt data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f61e8e6e-012e-4d86-bfad-65ee64b12be6",
+    "timestamp": "2025-12-02 08:52:08.865641",
+    "report_generated": false
+  },
+  {
+    "question": "Can BaseNonfungibleToken constructor (line 33-35) be exploited if owner is set to address(0), permanently locking the setMetadata function and preventing any metadata updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_301d9ea9-10c9-41ad-8fb9-b2745b956026",
+    "timestamp": "2025-12-02 08:52:42.858518",
+    "report_generated": false
+  },
+  {
+    "question": "Does BaseNonfungibleToken.mint() (line 109) properly handle the case where prevrandao() is 0 on certain L2s or testnets, potentially creating predictable token IDs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3064c509-b457-4a7c-8d57-76da6d7baf5b",
+    "timestamp": "2025-12-02 08:53:17.422807",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.mint(bytes32 salt), if _mint reverts due to ID already existing, does the function properly clean up any side effects, or can it leave the contract in an inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_421d4efb-9c50-4e1b-a777-88b911bc6cd1",
+    "timestamp": "2025-12-02 08:53:51.913422",
+    "report_generated": false
+  },
+  {
+    "question": "Can BaseNonfungibleToken.burn (line 134) be used in a reentrancy attack where the _burn callback triggers external calls that re-enter and burn the same token twice?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67c1fc1a-7fea-463b-a34d-8acee3a12093",
+    "timestamp": "2025-12-02 08:54:26.902351",
+    "report_generated": false
+  },
+  {
+    "question": "Does BaseNonfungibleToken.name() and symbol() (lines 50-58) return uninitialized strings if setMetadata was never called, potentially breaking external integrations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_53cbb191-8b2e-4717-afa8-d4d40f5f9b31",
+    "timestamp": "2025-12-02 08:54:58.118265",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseNonfungibleToken.saltToId (line 100), does using keccak256 on exactly 128 bytes create any EVM-specific vulnerabilities related to memory expansion costs or gas manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_21a1a07c-a576-400b-ba77-ca87d69a9e68",
+    "timestamp": "2025-12-02 08:55:28.851699",
+    "report_generated": false
+  },
+  {
+    "question": "Can BaseNonfungibleToken.mint() be called in a loop within a single transaction to mint thousands of NFTs, causing unbounded gas consumption that could DOS the contract for other users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9d263729-292f-4fbb-9992-1826be822dc0",
+    "timestamp": "2025-12-02 08:56:02.105618",
+    "report_generated": false
+  },
+  {
+    "question": "Does BaseNonfungibleToken.authorizedForNft modifier properly handle the ERC721 approval expiry semantics, or can approvals persist longer than intended?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff871257-ccd6-44b6-8e01-e0b8da138327",
+    "timestamp": "2025-12-02 08:56:36.070339",
+    "report_generated": false
   }
 ]
