@@ -14392,5 +14392,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37af7e08-f660-4d84-a5f7-b097425a0249",
     "timestamp": "2025-12-02 10:19:33.924241",
     "report_generated": false
+  },
+  {
+    "question": "In ITWAMM interface implementing IForwardee (line 15), if the forwarded_2374103877 callback is used to execute virtual orders but the original locker's debt includes tokens unrelated to the order pool, could debt settlement fail, bricking the original operation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_282027ac-603d-4960-bb44-4376eabd9e18",
+    "timestamp": "2025-12-02 10:20:55.403537",
+    "report_generated": false
+  },
+  {
+    "question": "In ITWAMM error OrderAlreadyEnded (line 37), if the implementation checks endTime <= block.timestamp but block.timestamp is manipulated via miner timestamps within allowed 15-second drift, could orders be prematurely ended, causing user losses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_32e8c31d-8cf5-4df9-a1ec-e330f3bf3283",
+    "timestamp": "2025-12-02 10:21:08.755895",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.expandCapacity (lines 46-50), if minCapacity is set to type(uint32).max and the storage array expansion causes out-of-gas error, could this permanently prevent any new observations from being written, freezing the oracle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95443beb-38eb-412b-85f3-8f95387856bc",
+    "timestamp": "2025-12-02 10:21:22.408562",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.findPreviousSnapshot (lines 58-61), if time parameter is before the first snapshot timestamp, but the error NoPreviousSnapshotExists is not triggered due to incorrect boundary check, could a binary search return index 0 with invalid data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_58ed5352-f1c1-4d2c-b234-b824ba466fc9",
+    "timestamp": "2025-12-02 10:21:37.026210",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.extrapolateSnapshot (lines 69-72), if atTime is in the future but the FutureTime check is bypassed via timestamp manipulation, could the extrapolation return incorrect cumulative values that dependent protocols use for pricing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc43b936-8bf0-4743-ad6a-21f372eb649d",
+    "timestamp": "2025-12-02 10:21:52.419785",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.getExtrapolatedSnapshotsForSortedTimestamps (lines 79-82), if timestamps array contains duplicates, could the extrapolation logic incorrectly reuse cached snapshot data, resulting in identical observations for different actual prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d7f9548a-a33c-4ae8-8fbf-186dc445e521",
+    "timestamp": "2025-12-02 10:22:09.606913",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle error PairsWithNativeTokenOnly (line 15), if the native token constant is modified via proxy upgrade or if a token contract mimics the native token address, could non-native pools be created, bypassing the oracle's assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1602e0f2-0dbf-416f-b849-9eef9d18ee6b",
+    "timestamp": "2025-12-02 10:22:28.341793",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle error FeeMustBeZero (line 18), if a pool with non-zero fee is created and the oracle extension is still assigned, could fee accumulation interfere with the observation recording, skewing TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_07e756c5-bc7e-4c9c-b4e6-8401ed871367",
+    "timestamp": "2025-12-02 10:22:49.227177",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle error FullRangePoolOnly (line 21), if an attacker creates a pool with tick spacing that passes validation but is not actually full-range due to implementation bugs in tick math, could concentrated liquidity cause incorrect oracle updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c1d85c04-1906-455e-bb0e-0e0aff3dff4e",
+    "timestamp": "2025-12-02 10:23:11.895774",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle error EndTimeLessThanStartTime (line 32), if start and end times are equal (zero duration query), could the TWAP calculation divide by zero, causing revert or returning infinite price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4fadf8ee-23b8-44a3-a35a-02e93d78c7ba",
+    "timestamp": "2025-12-02 10:23:34.501882",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle error TimestampsNotSorted (line 35), if the sort check uses strict inequality (timestamp[i] < timestamp[i+1]) but array contains equal values, could the check pass incorrectly, leading to inefficient or wrong extrapolation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c0b1510d-088d-4fc6-ac59-61611ebd91cf",
+    "timestamp": "2025-12-02 10:23:58.597765",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle error ZeroTimestampsProvided (line 38), if a function accepts empty timestamps array and attempts to process it without length validation, could out-of-bounds array access corrupt memory or cause undefined behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e28a7a0f-a786-4e2c-8194-255f4d05b748",
+    "timestamp": "2025-12-02 10:24:25.419612",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.getPoolKey (lines 40-44), if this returns a PoolKey with hardcoded native token but the actual token parameter is a wrapped version, could the returned pool key reference a non-existent pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cfc67a46-d8e2-450c-a287-2c83ad7659a7",
+    "timestamp": "2025-12-02 10:24:52.310386",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.expandCapacity (lines 46-50), if capacity expansion requires allocating new storage slots but the transaction runs out of gas mid-expansion, could partial capacity increase corrupt the observation array structure?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d8397fc-0f56-402f-a005-748d78f0e8a9",
+    "timestamp": "2025-12-02 10:25:20.832581",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.findPreviousSnapshot (lines 58-61), if the binary search implementation has off-by-one error at array boundaries (count-1 vs count), could it return the wrong snapshot when time equals an exact observation timestamp?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4d22e952-75e9-4f6b-9f3c-f54ca1dde02f",
+    "timestamp": "2025-12-02 10:25:49.616180",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.extrapolateSnapshot (lines 69-72), if block.timestamp is used for 'current time' but a reorg occurs after the call, could previously valid extrapolations become invalid, causing dependent protocols to use stale prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_434186ee-5d0a-48a0-8cb5-3fdf85424661",
+    "timestamp": "2025-12-02 10:26:18.920079",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.getExtrapolatedSnapshotsForSortedTimestamps (lines 79-82), if the function caches the most recent snapshot to optimize multiple extrapolations, but pool state changes between timestamps in the array, could later timestamps use stale snapshot data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8796b570-b331-49f9-8119-a290bf96d585",
+    "timestamp": "2025-12-02 10:26:48.283522",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle implementing IExtension (line 13), if the afterSwap hook writes a new observation but the swap reverts after the hook completes, could phantom observations be written that don't correspond to actual swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cac9f00a-58d5-41d8-8fa1-8c51a2eb9e71",
+    "timestamp": "2025-12-02 10:27:19.025171",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle Snapshot type, if secondsPerLiquidityCumulative accumulator overflows uint160 after many years of observations, could the overflow go undetected, causing TWAP calculations to wrap and return incorrect average liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5faedda1-e905-4954-bb5f-9a4cf604b065",
+    "timestamp": "2025-12-02 10:27:50.556035",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle Observation type, if tickCumulative is int64 but tick values near MIN_TICK/MAX_TICK are summed over long periods, could int64 overflow, causing TWAP to return completely wrong prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_139db2d9-0f7e-4762-a92a-0deab0f42593",
+    "timestamp": "2025-12-02 10:28:23.099113",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.findPreviousSnapshot (lines 58-61), if cardinality grows beyond uint32 range (4.2 billion observations), could the count variable wrap, causing the binary search to access invalid storage slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39d81671-f804-46eb-8c1f-987d0947b542",
+    "timestamp": "2025-12-02 10:28:56.154217",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.extrapolateSnapshot (lines 69-72), if the previous snapshot's liquidity is zero (pool was empty), could the secondsPerLiquidity calculation divide by zero when extrapolating, even if current liquidity is non-zero?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_acf475e5-adb8-4465-b952-545fca1a0342",
+    "timestamp": "2025-12-02 10:29:28.535994",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.getPoolKey (lines 40-44), if the returned PoolKey has tickSpacing set to MAX_TICK_SPACING but the actual pool initialization used a different spacing, could swaps fail due to tick alignment errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f590329a-b56c-451b-abf6-b98860e2d5ab",
+    "timestamp": "2025-12-02 10:30:01.076961",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle implementing IExposedStorage (line 13), if an attacker uses sload to read observation array storage directly and identifies timestamps where observations haven't been written yet, could they manipulate prices by filling those slots via rapid swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b387503d-0014-4768-b0ea-5181321ee0de",
+    "timestamp": "2025-12-02 10:30:33.890382",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.expandCapacity (lines 46-50), if the expansion doubles capacity each time but doesn't check for uint32 overflow, could capacity wrap to a small value, causing observations to overwrite early data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d3b8593-5be3-4a89-9efc-d158148c0fef",
+    "timestamp": "2025-12-02 10:31:06.232591",
+    "report_generated": false
   }
 ]
