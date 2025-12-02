@@ -13942,5 +13942,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7b7a5cbe-20a9-4f2f-9707-453f93e80468",
     "timestamp": "2025-12-02 09:44:08.668477",
     "report_generated": false
+  },
+  {
+    "question": "In IExtension.afterCollectFees (lines 89-95), if the extension stores amount0/amount1 for later use but doesn't validate that these match the actual tokens transferred to the locker, could this create a mismatch between recorded and actual fee distributions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_40260977-8e09-45cb-8ccc-025675571c44",
+    "timestamp": "2025-12-02 09:45:35.815890",
+    "report_generated": false
+  },
+  {
+    "question": "In ICore.initializePool (line 189), if a pool is initialized with tick near MIN_TICK or MAX_TICK boundaries, and the sqrtRatio calculation overflows or returns an invalid value, could this create a pool in an invalid state that passes initialization but fails on first swap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d831af48-910e-4220-ae54-6814cbb56412",
+    "timestamp": "2025-12-02 09:45:49.185181",
+    "report_generated": false
+  },
+  {
+    "question": "In ICore.prevInitializedTick and nextInitializedTick (lines 198-213), if skipAhead parameter causes the tick search to jump beyond array bounds in the tick bitmap, could this return an uninitialized tick as 'initialized', leading to liquidity calculation errors during swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4494a2d0-a020-4404-b4ff-bfcebe0f4d5d",
+    "timestamp": "2025-12-02 09:46:03.635194",
+    "report_generated": false
+  },
+  {
+    "question": "In ICore.updateSavedBalances (lines 222-224), if token0 and token1 are not properly validated as sorted (token0 < token1) as checked in the SavedBalanceTokensNotSorted error, could an attacker create storage collisions by passing tokens in reverse order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f3de342-bfc9-43b8-9896-2b30f1182f97",
+    "timestamp": "2025-12-02 09:46:17.986651",
+    "report_generated": false
+  },
+  {
+    "question": "In ICore.accumulateAsFees (line 243), since this is only callable by extensions, could a malicious extension accumulate fees without actually transferring tokens, creating phantom fee amounts that inflate the pool's fee accounting and lead to insolvency when users try to collect fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3ca498b-01c5-410e-b1e1-578533541130",
+    "timestamp": "2025-12-02 09:46:33.488783",
+    "report_generated": false
+  },
+  {
+    "question": "In ICore.setExtraData (line 259), if extraData is used to store critical position metadata (e.g., for TWAMM order tracking) but there's no access control beyond the caller being within a lock, could an attacker manipulate other users' position metadata during their own lock callback?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9366d4f5-74c8-47ba-9cde-2b4c5fdd37b9",
+    "timestamp": "2025-12-02 09:46:49.796527",
+    "report_generated": false
+  },
+  {
+    "question": "In ICore.swap_6269342730 (line 272), with the mined zero function selector for gas efficiency, could this create issues with function selector collision if Core is deployed as a proxy or if EIP-3540 changes function dispatch behavior?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c93ff26b-9bc5-4668-b49a-4c94bc03bee5",
+    "timestamp": "2025-12-02 09:47:07.775821",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.lock (line 37), if a malicious locker calls lock again during their locked callback (nested lock), could the transient storage delta tracking get corrupted, allowing them to exit without zeroing debts for the inner lock?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_af691b6a-4548-4144-891b-4407108b0628",
+    "timestamp": "2025-12-02 09:47:28.254229",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.lock (line 37), if the callback to ILocker.locked_6269342730 reverts after multiple settle/take operations have occurred, are the delta changes properly rolled back, or could partial state changes lead to accounting inconsistencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afbad201-45bd-4111-920f-1172550d9274",
+    "timestamp": "2025-12-02 09:47:49.393034",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.forward (line 44), if the forwarded address calls forward again to a third address, creating a forward chain, does the debt tracking correctly attribute all deltas to the original locker, or could nested forwards bypass the DebtsNotZeroed check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ecab84e3-6c71-46c6-9b69-9ea814af83b2",
+    "timestamp": "2025-12-02 09:48:11.982747",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.forward (line 44), could a malicious forwardee reenter the Core contract via external token transfers during IForwardee.forwarded_2374103877, modifying the original locker's debt state before the forward completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04553fc3-8e37-413c-927c-d8516b29595a",
+    "timestamp": "2025-12-02 09:48:35.409045",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.startPayments (line 52), if the function stores balance + 1 to distinguish zero balance from uninitialized state, could an attacker cause uint128 overflow by ensuring a token has exactly type(uint128).max balance before calling startPayments?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab148c96-51e7-4606-85ae-58254b034006",
+    "timestamp": "2025-12-02 09:49:00.945788",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.startPayments and completePayments (lines 52-60), if an attacker front-runs completePayments with a token transfer to the contract, could they increase the computed payment amount beyond what the locker actually sent, allowing them to steal tokens from other users' pending payments?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_287e2384-f3dc-4fe7-9d0f-84ee174789f6",
+    "timestamp": "2025-12-02 09:49:27.440878",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.completePayments (line 60), if multiple tokens are being paid simultaneously and one payment causes uint128 overflow in debt adjustment, could the entire payment batch fail, or would some debts be updated while others aren't, creating accounting inconsistencies?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37f27afe-d080-4837-853f-163c305837b9",
+    "timestamp": "2025-12-02 09:49:54.962038",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.withdraw (line 66), with packed calldata format (token 20 bytes, recipient 20 bytes, amount 16 bytes), if calldata length is not a multiple of 56 bytes, could parsing errors cause tokens to be withdrawn to incorrect recipients or amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a5f84068-8e1d-44c8-8021-ab6f1a73f06b",
+    "timestamp": "2025-12-02 09:50:23.277895",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.withdraw (line 66), if the native token constant NATIVE_TOKEN_ADDRESS is used and an attacker drains the contract's ETH balance mid-transaction, could subsequent withdrawals fail, blocking the locker from settling debts and causing a DebtsNotZeroed revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8baabb5-fb00-4761-9283-dfc02cbd1da1",
+    "timestamp": "2025-12-02 09:50:53.227214",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.updateDebt (line 73), since the calling address is treated as the token address and calldata must be exactly 20 bytes, could an attacker create a malicious token contract at a specific address that exploits this to manipulate debt tracking for legitimate tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef085ae7-53dd-4a81-87e9-602e42023b52",
+    "timestamp": "2025-12-02 09:51:24.305609",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.updateDebt (line 73), if a token contract calls updateDebt with a large positive int128 value, granting itself a credit, and then the locker performs a swap using that token, could the inflated credit allow withdrawing more tokens than were deposited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2c4c0249-6957-4a2a-9705-254040e02805",
+    "timestamp": "2025-12-02 09:51:56.890304",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.receive (line 80), if ETH is sent via selfdestruct instead of a regular call, would msg.value be zero, causing the native token debt to not be credited, leading to stuck ETH and DebtsNotZeroed errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b36b100-ee5e-4175-810d-f436144b874c",
+    "timestamp": "2025-12-02 09:52:29.471830",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant error DebtsNotZeroed (line 25), the id parameter suggests there are multiple debt trackers (one per lock ID), but if the implementation doesn't properly isolate debt state between nested locks, could inner lock debts affect outer lock settlement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2b35a30e-77e2-404c-aee6-89133ff6d446",
+    "timestamp": "2025-12-02 09:53:03.897872",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.lock (line 37), if the implementation uses transient storage (EIP-1153) for debt tracking but a reentrancy occurs via an external call before transient storage is cleared, could stale debt values from a previous transaction affect current accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_80ec1529-cd91-4d7e-ab2d-a4b56212e08e",
+    "timestamp": "2025-12-02 09:53:38.524814",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant error PaymentOverflow (line 27), if a payment computation results in exactly type(uint128).max + 1 but the overflow check is done after casting to uint128, could the overflow be missed, allowing an attacker to wrap around to zero payment?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5062c633-7197-4001-96a2-7ca2d9dcf131",
+    "timestamp": "2025-12-02 09:54:14.585699",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.startPayments (line 52), if an attacker encodes the same token address multiple times in the calldata, could this cause duplicate balance recordings that are incorrectly summed in completePayments, inflating the payment credit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f0b09de7-7c6d-41e0-ab09-1b476dabe89f",
+    "timestamp": "2025-12-02 09:54:51.559497",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.withdraw (line 66), if a withdrawal recipient is a contract that reverts on ETH receive (for native token) or token transfer, does this brick the entire withdrawal batch, preventing the locker from settling any debts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b73fe75-d4a3-4d73-af51-91ee58f2eb21",
+    "timestamp": "2025-12-02 09:55:28.259509",
+    "report_generated": false
+  },
+  {
+    "question": "In IFlashAccountant.forward (line 44), if the original locker is a contract that self-destructs during the forwarded callback, could the debt tracking continue to attribute deltas to a non-existent address, and what happens when trying to verify DebtsNotZeroed at the end?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6d3c0a0-ae3c-427c-b88c-81daa6b72c78",
+    "timestamp": "2025-12-02 09:56:03.438727",
+    "report_generated": false
   }
 ]
