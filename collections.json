@@ -13042,5 +13042,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ebb193e-7012-4e26-95fd-306150c42611",
     "timestamp": "2025-12-02 08:33:39.287291",
     "report_generated": false
+  },
+  {
+    "question": "In line 648, `beforeSwap` is not protected with `onlyCore` modifier. The comment says 'Since anyone can call the method `#lockAndExecuteVirtualOrders`, the method is not protected'. Can an attacker call this directly to manipulate when virtual orders execute relative to other operations in the mempool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f4f587dc-6670-4559-9b10-c7af3ae78726",
+    "timestamp": "2025-12-02 08:34:51.414056",
+    "report_generated": false
+  },
+  {
+    "question": "In `TwammPoolState` parsing (line 279, using twammPoolState.sol:38-43), the `lastVirtualOrderExecutionTime` is extracted with `time := and(state, 0xffffffff)` (twammPoolState.sol:15-17). Can this mask operation fail if the state is corrupted, allowing the time to be incorrect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9f0af80-adf4-4020-ae25-1e91002e39f2",
+    "timestamp": "2025-12-02 08:35:04.458925",
+    "report_generated": false
+  },
+  {
+    "question": "In `realLastVirtualOrderExecutionTime` (line 401, using twammPoolState.sol:20-24), the function computes `timestamp() - ((timestamp() & 0xffffffff) - (state & 0xffffffff)) & 0xffffffff`. Can this nested modular arithmetic produce incorrect results if `state.lastVirtualOrderExecutionTime` is in the future relative to current timestamp?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2cd0627f-a3d8-4f7c-8c7f-661dcd9df8b6",
+    "timestamp": "2025-12-02 08:35:18.678635",
+    "report_generated": false
+  },
+  {
+    "question": "In `createTwammPoolState` (used at lines 282-293, defined in twammPoolState.sol:46-56), the packing uses `or(and(_lastVirtualOrderExecutionTime, 0xffffffff), shr(112, shl(144, _saleRateToken0)))`. Can the bit manipulation for `_saleRateToken0` produce incorrect values if the input is near type(uint112).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d52f71af-7f2d-44cf-ac0a-21cb23fe96aa",
+    "timestamp": "2025-12-02 08:35:33.138511",
+    "report_generated": false
+  },
+  {
+    "question": "In `TimeInfo` parsing (line 145, using timeInfo.sol:31-37), `signextend(13, ...)` is used to extract signed int112 values for sale rate deltas. Is 13 the correct byte offset for sign extension? Can an incorrect offset cause positive deltas to be interpreted as negative or vice versa?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_149da777-6b4c-4d07-b0e3-463df6f7ab15",
+    "timestamp": "2025-12-02 08:35:48.383401",
+    "report_generated": false
+  },
+  {
+    "question": "In `createTimeInfo` (used at line 178, defined in timeInfo.sol:39-52), the packing masks sale rate deltas with `and(_saleRateDeltaToken0, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFF)`. Does this 28-character hex mask (112 bits) correctly represent the int112 type, including the sign bit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_709af5b1-9fa2-4287-8fa7-55600eb48df8",
+    "timestamp": "2025-12-02 08:36:05.235061",
+    "report_generated": false
+  },
+  {
+    "question": "In `OrderKey.toPoolKey` (used at line 210, defined in orderKey.sol:55-60), the function uses `mcopy(poolKey, orderKey, 64)` to copy token addresses. Can this copy operation read uninitialized memory if `orderKey` is not properly aligned or sized in memory?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8c92b3e-aabf-4df8-bd48-a78517bd2ab3",
+    "timestamp": "2025-12-02 08:36:22.803356",
+    "report_generated": false
+  },
+  {
+    "question": "In `OrderKey.toOrderId` (used at line 214, defined in orderKey.sol:44-48), the function computes `keccak256(orderKey, 96)`. Is this the correct length for the OrderKey struct? Can padding or alignment issues cause two different order keys to produce the same order ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22098623-8b96-4ad3-b5e4-39154a45261b",
+    "timestamp": "2025-12-02 08:36:43.572232",
+    "report_generated": false
+  },
+  {
+    "question": "In `computeAmountFromSaleRate` (used at lines 255-262, 305, 312, 430-436, defined in twamm.sol:42-46), the formula `(saleRate * duration + roundUp * 0xffffffff) >> 32` can round up by nearly 2^32. Can this rounding inflate amounts by more than one unit, allowing users to extract excess value over many orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c7e2f43-e478-40b9-9d8f-046479fcc922",
+    "timestamp": "2025-12-02 08:37:05.543130",
+    "report_generated": false
+  },
+  {
+    "question": "In `computeRewardAmount` (used at line 228, 361, defined in twamm.sol:50-52), the formula `(rewardRate * saleRate) >> 128` uses `fullMulDivN`. Can overflow in the multiplication before the shift cause reward amounts to wrap around to small values, underpaying users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e0ef208-379c-4660-9864-0a5791e75a65",
+    "timestamp": "2025-12-02 08:37:29.017796",
+    "report_generated": false
+  },
+  {
+    "question": "In `addSaleRateDelta` (used at lines 230, 285, 290, 556-557, defined in twamm.sol:28-38), the function adds a signed delta to an unsigned rate. Can the assembly implementation `result := add(saleRate, saleRateDelta)` produce incorrect results when `saleRateDelta` is negative and large?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_12cf3280-650b-4789-81a3-daa007b224e8",
+    "timestamp": "2025-12-02 08:37:53.352978",
+    "report_generated": false
+  },
+  {
+    "question": "In `computeNextSqrtRatio` (used at lines 445-452, defined in twamm.sol:89-141), the function uses `exp2` for exponential calculations. Can extreme values of `timeElapsed`, `saleRateToken0`, or `saleRateToken1` cause `exp2` to return values outside the valid SqrtRatio range, violating pool invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f7b65e8-f6eb-49c8-af21-3871f3ed8022",
+    "timestamp": "2025-12-02 08:38:18.147765",
+    "report_generated": false
+  },
+  {
+    "question": "In `computeSqrtSaleRatio` (used in computeNextSqrtRatio, defined in twamm.sol:68-83), the function computes `rawDiv(saleRateToken1 << 128, saleRateToken0)`. Can this division produce zero or overflow if `saleRateToken0` is very large or `saleRateToken1` is very small, breaking the sqrt calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8c600592-dc7e-4906-b919-b0be84546eee",
+    "timestamp": "2025-12-02 08:38:44.464114",
+    "report_generated": false
+  },
+  {
+    "question": "In the `computeC` calculation (used in computeNextSqrtRatio, defined in twamm.sol:56-64), the sign of c is determined by comparing sqrt ratios. Can precision loss in `FixedPointMathLib.dist` cause c to have the wrong sign, leading to price movement in the opposite direction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4aa61bea-fa05-4859-a63a-74eed9542fe1",
+    "timestamp": "2025-12-02 08:39:11.193557",
+    "report_generated": false
+  },
+  {
+    "question": "In `isTimeValid` (used at lines 204, defined in time.sol:34-40), the validation checks `iszero(mod(time, stepSize))` and `lt(sub(time, currentTime), 0x100000000)`. Can an attacker craft time values that pass this check but are invalid for other reasons, such as being in the distant past?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6959fa48-ce0a-4e26-9d6e-d534aba9925e",
+    "timestamp": "2025-12-02 08:39:39.977662",
+    "report_generated": false
+  },
+  {
+    "question": "In `computeStepSize` (used in isTimeValid, defined in time.sol:17-31), the function uses `clz` (count leading zeros) opcode to compute step size. Can incorrect `clz` implementation in experimental Solidity 0.8.31 cause wrong step sizes, allowing invalid times to pass validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc7396a6-27ae-4ecb-998b-83c68978d504",
+    "timestamp": "2025-12-02 08:40:10.266077",
+    "report_generated": false
+  },
+  {
+    "question": "In the step size calculation (time.sol:23-27), `msb := sub(msb, mod(msb, 4))` rounds down to multiples of 4. Can this rounding cause step sizes to be inconsistent between order placement and virtual order execution if timestamps change, breaking order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d75d6cef-3495-4428-a176-bc5ad890a557",
+    "timestamp": "2025-12-02 08:40:41.764800",
+    "report_generated": false
+  },
+  {
+    "question": "In `nextValidTime` (used in timeBitmap.sol, defined in time.sol:44-64), the function can return 0 to indicate no valid time exists. Can this zero value be confused with timestamp 0 (Unix epoch), causing orders to be placed or executed at incorrect times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37fec55c-7b31-4046-bf4f-525ec89e77a8",
+    "timestamp": "2025-12-02 08:41:12.945611",
+    "report_generated": false
+  },
+  {
+    "question": "In `timeToBitmapWordAndIndex` (used in flipTime, defined in timeBitmap.sol:10-15), the calculation uses `word := shr(16, time)` and `index := and(shr(8, time), 0xff)`. Can this leave an 8-bit gap in the time representation, causing times to map to incorrect bitmap positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_57a024b6-db53-4d6b-a497-fb2f9f18b210",
+    "timestamp": "2025-12-02 08:41:45.952646",
+    "report_generated": false
+  },
+  {
+    "question": "In `bitmapWordAndIndexToTime` (used in findNextInitializedTime, defined in timeBitmap.sol:19-23), the reconstruction `add(shl(16, word), shl(8, index))` shifts word left by 16 and index left by 8. Does this match the decomposition in `timeToBitmapWordAndIndex`, or is there an off-by-256 error?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a4127368-f59f-4bf0-93d1-f149f694c612",
+    "timestamp": "2025-12-02 08:42:18.967588",
+    "report_generated": false
+  },
+  {
+    "question": "In `flipTime` (used at lines 168, 564, defined in timeBitmap.sol:26-30), the function XORs the storage slot with `1 << index`. Can this flip operation be called twice in the same transaction through reentrancy, flipping a bit back to its original state and corrupting the bitmap?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0ee74894-83a9-4e05-b449-dc4ada241967",
+    "timestamp": "2025-12-02 08:42:50.767837",
+    "report_generated": false
+  },
+  {
+    "question": "In `findNextInitializedTime` (used in searchForNextInitializedTime, defined in timeBitmap.sol:34-54), `bitmap.geSetBit(uint8(index))` searches for the next set bit. Can this search return incorrect results if the bitmap word contains no set bits at or after `index`, causing the function to return uninitialized times?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d7f3c2f2-8cdd-46ed-884a-773a399b0c0e",
+    "timestamp": "2025-12-02 08:43:22.145948",
+    "report_generated": false
+  },
+  {
+    "question": "In `searchForNextInitializedTime` (used at line 420, defined in timeBitmap.sol:60-82), the while loop continues until `isInitialized` or `nextTime == untilTime`. Can this loop run indefinitely if the bitmap is corrupted or if `nextValidTime` returns values that never reach `untilTime`, causing DoS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95081f6b-8ee2-414c-952a-1d3a61eb1a58",
+    "timestamp": "2025-12-02 08:43:54.606211",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker call `handleForwardData` with callType 0 to update an order, then immediately call callType 1 to withdraw proceeds in the same transaction, exploiting stale reward rate snapshots before virtual orders execute to extract excess value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_054f5d6e-63eb-46eb-9c6d-6ecb72686793",
+    "timestamp": "2025-12-02 08:44:27.224436",
+    "report_generated": false
+  },
+  {
+    "question": "Can an attacker create an order with `startTime` very close to `block.timestamp`, then front-run the next block to call `lockAndExecuteVirtualOrders` before any swaps occur, causing their order to start executing immediately without competition from other orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb07e4a6-24fb-473d-bf29-77da34535317",
+    "timestamp": "2025-12-02 08:44:58.920346",
+    "report_generated": false
   }
 ]
