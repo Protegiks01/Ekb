@@ -14542,5 +14542,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5d3b8593-5be3-4a89-9efc-d158148c0fef",
     "timestamp": "2025-12-02 10:31:06.232591",
     "report_generated": false
+  },
+  {
+    "question": "In IOracle.getExtrapolatedSnapshotsForSortedTimestamps (lines 79-82), if one timestamp in the middle of the sorted array causes a NoPreviousSnapshotExists error, does the function return partial results or revert entirely, potentially causing downstream DOS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3658b02d-e8d1-4663-b39f-d8697d0e9bcc",
+    "timestamp": "2025-12-02 10:32:26.925545",
+    "report_generated": false
+  },
+  {
+    "question": "In IOracle.extrapolateSnapshot (lines 69-72), if the pool has never been swapped (no observations), could the extrapolation attempt to access storage slot 0, returning uninitialized data that dependent protocols interpret as valid price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_859ca24c-9321-40f4-977c-b727c32f2fab",
+    "timestamp": "2025-12-02 10:32:40.249616",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture.accumulatePoolFees (line 29), if this function is called multiple times in the same block for the same pool, could fees be double-accumulated, inflating the pool's fee balance and allowing the extension to drain pool reserves?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_23b20de6-6a27-4d56-a94e-a7022d13eaa9",
+    "timestamp": "2025-12-02 10:32:53.989160",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture error ConcentratedLiquidityPoolsOnly (line 15), if this check validates tick spacing != MAX_TICK_SPACING but doesn't validate that liquidity is actually concentrated, could full-range positions bypass the MEV capture logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2fc0333-fed9-4493-9234-aa56a5a62503",
+    "timestamp": "2025-12-02 10:33:08.252639",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture error NonzeroFeesOnly (line 19), if the pool fee is zero but MEV capture calculates additional fees based on priority fee * tick movement, could the additional fees be credited to the pool without a corresponding base fee, breaking fee accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bbf26d9a-d924-4387-b8fc-93faa7fc12fb",
+    "timestamp": "2025-12-02 10:33:25.039663",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture error SwapMustHappenThroughForward (line 23), if a user calls Core.swap_6269342730 directly on a pool with MEVCapture extension, but the extension's beforeSwap hook doesn't revert, could they bypass MEV fee calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7b853afd-df0f-4c60-aac2-d8324fe13719",
+    "timestamp": "2025-12-02 10:33:43.991186",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture.accumulatePoolFees (line 29), if the function reads block.number to determine if fees should accumulate but miners manipulate block numbers (within consensus rules), could fee accumulation be delayed or triggered multiple times incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac42f7f6-2188-44ef-887d-9b5bb6b12810",
+    "timestamp": "2025-12-02 10:34:04.127541",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture interface implementing IForwardee (line 12), if the forwarded_2374103877 callback is used to perform the swap with MEV fees, but the original locker doesn't have sufficient balance to cover both swap amount and MEV fee, could the transaction revert at settlement, wasting gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f2d1382e-8da7-4512-a2a8-a4e52c41f50c",
+    "timestamp": "2025-12-02 10:34:27.875400",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture interface implementing ILocker (line 12), if the locked_6269342730 callback is used to wrap user swaps but enters a nested lock, could the MEV fee calculation use the wrong locker's priority fee (inner vs outer transaction)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6018fe7b-45cc-42fb-9ebd-6ad106a31195",
+    "timestamp": "2025-12-02 10:34:52.761129",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture.accumulatePoolFees (line 29), if fees are accumulated based on tick movement since last block, but a sandwich attack causes multiple tick movements within the same block, could the attacker avoid paying proportional MEV fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f01d093a-e64d-4c1d-8a77-afded64c8157",
+    "timestamp": "2025-12-02 10:35:18.861631",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture interface implementing IExtension (line 12), if the afterSwap hook reads tx.gasprice to calculate MEV fees but the transaction used EIP-1559 with low base fee and high priority fee, could the fee calculation underestimate actual MEV captured?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19a65f58-59d4-4191-a3d4-bf80e7d8264f",
+    "timestamp": "2025-12-02 10:35:47.312278",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture.accumulatePoolFees (line 29), if this function calls Core.accumulateAsFees with computed fee amounts but doesn't validate that the extension has actually captured those tokens from swappers, could phantom fees be created?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1ed69e85-6301-4144-9cea-6167914f04ce",
+    "timestamp": "2025-12-02 10:36:18.191011",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture error SwapMustHappenThroughForward (line 23), if a user multicalls both forward and swap in the same transaction, could they bypass the forward requirement by manipulating call order?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_89f17038-432a-4123-9824-f21e3c5b136e",
+    "timestamp": "2025-12-02 10:36:48.443204",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture interface (line 12), if the extension's beforeSwap hook modifies the SwapParameters.skipAhead field to reduce gas costs, could this interfere with MEV fee calculations that depend on tick traversal distance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17a104c8-efaa-4312-9c93-8a7234955b9a",
+    "timestamp": "2025-12-02 10:37:19.684188",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture.accumulatePoolFees (line 29), if called during a TWAMM virtual order execution (which happens in afterSwap), could the fee accumulation double-count price movements, inflating MEV fees beyond actual value extracted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a64a9a1a-870a-4d66-8d6b-11f95d7e3445",
+    "timestamp": "2025-12-02 10:37:51.889672",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture interface implementing IExposedStorage (line 12), if an attacker reads the last block number where fees were accumulated and intentionally avoids swapping in certain blocks, could they manipulate when fees accumulate to minimize their MEV fee payments?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9438f977-57d5-461c-9fd8-b8f54b7fbbb5",
+    "timestamp": "2025-12-02 10:38:25.620491",
+    "report_generated": false
+  },
+  {
+    "question": "In IMEVCapture error NonzeroFeesOnly (line 19), if this validation happens during pool initialization but the pool fee is later set to zero via governance, could the MEV capture extension remain active on a zero-fee pool, causing confusion?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f3e1109a-cdc4-4610-b503-df50dfbedfd2",
+    "timestamp": "2025-12-02 10:39:00.471269",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives.fund (lines 34-38), if the funding transaction sends more tokens than necessary to reach minimum, but the excess is not refunded, could repeated funding calls drain the funder's balance without proportional benefit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac14f012-3724-42e1-99b7-ebf91cf88647",
+    "timestamp": "2025-12-02 10:39:34.933933",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives.refund (lines 40-43), if multiple users claim in parallel and the last claim reduces funded amount below zero due to race condition, could the refund call by the owner revert or return negative value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_54637837-72b3-47be-87fd-be840d3ec08f",
+    "timestamp": "2025-12-02 10:40:10.209047",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives.claim (line 49), if the merkle proof verification passes but the claim amount exceeds remaining funded amount, should the claim partially succeed or revert entirely, and could this DOS late claimers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e684e20c-cf75-4939-b89d-40c327cda99e",
+    "timestamp": "2025-12-02 10:40:45.399967",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives error AlreadyClaimed (line 23), if the claim tracking stores a simple boolean per (drop, user) pair, could an attacker re-claim by changing their address slightly (e.g., via CREATE2 contract) and submitting the same proof?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b5eacc5-c1c3-42ff-8395-b8c153c5facf",
+    "timestamp": "2025-12-02 10:41:20.014057",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives error InvalidProof (line 26), if the merkle root is updated by the drop owner after some claims have been made, could previously valid proofs become invalid, preventing legitimate users from claiming their tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b118d6ea-b791-4f8d-a5fb-fa4eb26976de",
+    "timestamp": "2025-12-02 10:41:56.340264",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives error InsufficientFunds (line 29), if this error is thrown after the merkle proof is verified but before the claim is marked as complete, could the user retry the claim immediately after additional funding occurs?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_04a1e923-668e-47fa-9ab0-a577eda2442b",
+    "timestamp": "2025-12-02 10:42:29.073156",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives error DropOwnerOnly (line 32), if ownership is transferred or renounced, could refunds become permanently locked, preventing recovery of unclaimed tokens even after the claim period ends?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3dd1914b-2b4b-43e9-ab6a-fdff9bca527e",
+    "timestamp": "2025-12-02 10:43:04.075679",
+    "report_generated": false
+  },
+  {
+    "question": "In IIncentives.fund (lines 34-38), if the DropKey includes token address but token transfer is not validated, could a malicious drop owner create a drop without actually providing tokens, causing claims to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55bd726c-3f8d-4be2-b01e-d777b05b2932",
+    "timestamp": "2025-12-02 10:43:37.290557",
+    "report_generated": false
   }
 ]
