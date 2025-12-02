@@ -10198,5 +10198,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6857df53-78e4-46ad-b9ce-7ed18bec3a0e",
     "timestamp": "2025-12-02 04:55:16.337222",
     "report_generated": false
+  },
+  {
+    "question": "BaseExtension inherits UsesCore (line 19) and uses onlyCore on all hook implementations. If the Core contract has a bug allowing re-registration of extensions, can an attacker re-register with modified call points to bypass hooks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4378284-7d08-4a4f-9ffc-97c711f0ea50",
+    "timestamp": "2025-12-02 04:56:37.155638",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.sol beforeInitializePool (lines 64-81), the function uses onlyCore modifier. Can an attacker call this directly through a malicious contract pretending to be Core to set arbitrary pool state without actually initializing the pool in Core?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd310f48-9ed6-4acd-9f7c-2c4c23b1f65c",
+    "timestamp": "2025-12-02 04:56:50.508986",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.sol beforeSwap (line 84), the function always reverts with SwapMustHappenThroughForward(). Since it uses onlyCore modifier, can Core still call this during a normal swap, causing all swaps to fail and freezing the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e7df743-8ac2-40b0-886a-62e7cf829cbc",
+    "timestamp": "2025-12-02 04:57:03.958375",
+    "report_generated": false
+  },
+  {
+    "question": "Oracle.sol inherits BaseExtension and UsesCore (line 56). In beforeInitializePool hook, can an attacker manipulate the initial snapshot data by calling Core.initializePool with specific tick values that overflow the accumulator calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00a05694-e79b-4024-aeff-03a99c586bb5",
+    "timestamp": "2025-12-02 04:57:18.295984",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol afterInitializePool (lines 179-185), the hook uses onlyCore but initializes storage. Can an attacker re-initialize a pool by exploiting reentrancy during the Core.initializePool callback, corrupting TWAMM state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00a4bca2-032d-4d1f-a5c0-50a2d4e85b08",
+    "timestamp": "2025-12-02 04:57:33.695123",
+    "report_generated": false
+  },
+  {
+    "question": "BasePositions.sol inherits UsesCore (line 29) and stores CORE as immutable. In deposit function (lines 71-97), can an attacker provide a malicious poolKey that causes Core.updatePosition to succeed but the position NFT to reference wrong pool data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a607c466-ed40-4554-aa94-f812893924e5",
+    "timestamp": "2025-12-02 04:57:50.269666",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol handleLockData (line 229), the function is called during Core.lock() callback. Can an attacker manipulate the callType parameter through reentrancy to execute unintended code paths like CALL_TYPE_WITHDRAW_PROTOCOL_FEES without owner authorization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a119b446-fc8e-4d72-b9a3-ad3cb450950b",
+    "timestamp": "2025-12-02 04:58:08.102103",
+    "report_generated": false
+  },
+  {
+    "question": "Orders.sol inherits UsesCore (line 24) and calls CORE.updateSaleRate (line 142). If the CORE reference points to a malicious contract, can an attacker drain user tokens by faking the returned amount and causing incorrect token transfers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a9c4e8d-fcb7-416b-8533-07e54dd68ea6",
+    "timestamp": "2025-12-02 04:58:28.187312",
+    "report_generated": false
+  },
+  {
+    "question": "Router.sol inherits UsesCore (line 52) and uses CORE.swap in _swap function (line 88). Can an attacker deploy a malicious ICore implementation and pass it to Router constructor to steal tokens during swap operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8f8d217d-62aa-42bc-9565-617f5ec4d56e",
+    "timestamp": "2025-12-02 04:58:49.311094",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, hook functions like beforeInitializePool (line 42) revert with CallPointNotImplemented by default. If an extension doesn't override a hook but registers it as enabled, can this cause permanent pool freezing?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_37023031-8318-4f98-b61f-ecf058fa525c",
+    "timestamp": "2025-12-02 04:59:12.073973",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCapture.sol beforeUpdatePosition (lines 97-100) uses onlyCore but doesn't complete the implementation shown. Can the Core contract call this hook during position updates causing unexpected reverts and preventing liquidity operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_01b6db1a-bc00-42ca-b234-a52b9c7ade32",
+    "timestamp": "2025-12-02 04:59:35.487924",
+    "report_generated": false
+  },
+  {
+    "question": "In Oracle.sol beforeUpdatePosition hook, if the maybeInsertSnapshot function (line 95) fails due to storage issues, will the entire position update revert, preventing users from adding/removing liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f29b1a1-9924-401c-a76d-f624bfe747d0",
+    "timestamp": "2025-12-02 05:00:01.080113",
+    "report_generated": false
+  },
+  {
+    "question": "TWAMM.sol beforeSwap hook calls executeVirtualOrdersUntil. If this function consumes excessive gas, can an attacker create many small orders that cause all swaps to fail due to out-of-gas errors, freezing the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1357ad42-f1eb-4027-8f0d-2c971ff2261c",
+    "timestamp": "2025-12-02 05:00:26.884247",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol afterInitializePool (line 179), the hook initializes TwammPoolState. Can an attacker initialize the pool with a tick that causes overflow in time-weighted calculations, corrupting order execution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cf254231-fe42-4e76-a9e4-dc1d5c4bea89",
+    "timestamp": "2025-12-02 05:00:54.116363",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCapture.sol beforeCollectFees (lines 89-94) calls accumulatePoolFees. If this function modifies pool state, can it be called multiple times via reentrancy during the fee collection process to inflate collected fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67b49a2c-30ad-4e8d-a8b2-4abadb714a93",
+    "timestamp": "2025-12-02 05:01:22.595506",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol constructor (line 26), if _registerInConstructor returns true, the extension registers immediately. Can an attacker deploy multiple contracts with the same extension address to race condition the registration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_62d88b51-ad57-46ca-9d88-16680511320b",
+    "timestamp": "2025-12-02 05:01:52.077912",
+    "report_generated": false
+  },
+  {
+    "question": "Oracle.sol beforeSwap hook calls maybeInsertSnapshot. If block.timestamp manipulation is possible, can an attacker create fake observations by controlling when snapshots are inserted, corrupting TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_66c75db9-40c0-4a18-aabf-e1fd696b2fe6",
+    "timestamp": "2025-12-02 05:02:22.101251",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.sol, the beforeSwap hook (line 84) prevents direct swaps. However, can an attacker use forward() mechanism to bypass priority fee charges by wrapping the swap in a contract that doesn't pay priority fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_209fec96-637a-4227-81d2-add2b07bd8f8",
+    "timestamp": "2025-12-02 05:02:53.044578",
+    "report_generated": false
+  },
+  {
+    "question": "TWAMM.sol beforeUpdatePosition hook prevents position updates during order execution. Can this be exploited to DOS liquidity providers by continuously creating orders that keep the pool in a 'locked' state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b197f5c-6e63-405d-9ebc-a3dc425e7c2a",
+    "timestamp": "2025-12-02 05:03:25.993609",
+    "report_generated": false
+  },
+  {
+    "question": "In BaseExtension.sol, if getCallPoints() (line 39) returns inconsistent values between constructor and later calls, can this cause the extension registration to succeed but Core to call wrong hooks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e2cbd22-a187-4d2f-9ad6-3537fee6bdca",
+    "timestamp": "2025-12-02 05:03:58.442547",
+    "report_generated": false
+  },
+  {
+    "question": "MEVCapture.sol uses onlyCore on beforeInitializePool but the extension can be called by anyone via accumulatePoolFees (public function). Can this inconsistent access control be exploited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8eb73343-e7cc-4a10-af1e-415a9943111e",
+    "timestamp": "2025-12-02 05:04:28.497803",
+    "report_generated": false
+  },
+  {
+    "question": "Oracle.sol stores snapshot data in extension storage. If multiple pools use the same Oracle extension, can storage slot collisions occur causing snapshot data corruption between pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ec55461-0792-4dc7-8d4f-5b9017dbac50",
+    "timestamp": "2025-12-02 05:04:58.902581",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.sol, the locked_6416899205 callback uses onlyCore modifier. Can an attacker deploy a fake Core contract to call this function and manipulate order state without going through proper lock mechanism?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_469e93a8-4633-4e61-97ba-9d7e1553a946",
+    "timestamp": "2025-12-02 05:05:30.019269",
+    "report_generated": false
+  },
+  {
+    "question": "BaseExtension.sol doesn't implement locked_6416899205 by default. If TWAMM or MEVCapture need this callback, can missing implementation cause unexpected behavior when Core tries to forward lock context?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_92d3ebab-a58a-4825-820e-3512d1996203",
+    "timestamp": "2025-12-02 05:06:02.480129",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol handleLockData (line 229), CORE.updatePosition is called within a lock. Can an attacker manipulate the delta accounting by causing reentrancy before ACCOUNTANT.settle is called?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4404cc67-3361-43e2-9ae1-3a027f413c5c",
+    "timestamp": "2025-12-02 05:06:36.018602",
+    "report_generated": false
   }
 ]
