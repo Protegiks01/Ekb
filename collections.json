@@ -7798,5 +7798,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a1f4bf9-9ad3-4533-9e1d-e1b350fb25b8",
     "timestamp": "2025-12-02 01:53:31.342899",
     "report_generated": false
+  },
+  {
+    "question": "In handleLockData implementations, ACCOUNTANT.withdraw() is called with packed calldata (56 bytes per withdrawal). If handleLockData constructs malformed withdrawal data with wrong offsets, could this withdraw wrong amounts or to wrong recipients?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b573c09-205e-4091-b44a-8bd95334f78d",
+    "timestamp": "2025-12-02 01:54:42.166763",
+    "report_generated": false
+  },
+  {
+    "question": "The lock mechanism uses transient storage which is cleared at transaction end. If a derived contract's handleLockData relies on persistent state but transient debt tracking shows zero, could this create discrepancies allowing double-spending?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2637863f-de30-4468-a370-096e92dceca9",
+    "timestamp": "2025-12-02 01:54:55.534326",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.completePayments (line 257-319), payment amounts are calculated as current balance - (lastBalance - 1). If a token's balanceOf is manipulated (e.g., rebasing token), could this under-report payments and leave unsettled debts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f82ef66b-9318-4850-a867-24a57d4a3f99",
+    "timestamp": "2025-12-02 01:55:09.937455",
+    "report_generated": false
+  },
+  {
+    "question": "The BaseLocker.lock() calls FlashAccountant.lock() which enforces debt zeroing at exit. If handleLockData performs operations that zero debts for some tokens but not others, would the partial zeroing bypass the aggregate check?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d87708a5-0d32-41bb-ba82-669c0fb66fa1",
+    "timestamp": "2025-12-02 01:55:24.355102",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant, receive() function (line 384-393) credits ETH payments by reducing debt. If handleLockData sends ETH to FlashAccountant during lock, could this accidentally credit wrong locker if lock ID tracking is corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2b04b4b1-1971-4854-858f-afaa0e6ad2e1",
+    "timestamp": "2025-12-02 01:55:39.516279",
+    "report_generated": false
+  },
+  {
+    "question": "The lock mechanism passes arbitrary data through the accountant. If data contains encoded calls to FlashAccountant.updateDebt() with crafted debt changes, could handleLockData manipulate its own debt without proper token transfers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2538abd3-0371-478e-a952-babe431ac57f",
+    "timestamp": "2025-12-02 01:55:56.356132",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.forward() (line 190-221), lock context is temporarily forwarded to another address. If a derived contract's handleLockData calls forward() to an attacker contract, could the attacker execute operations with original locker's debt context?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c0cc844e-99f9-4d2c-ae5d-5d2db2a6bb70",
+    "timestamp": "2025-12-02 01:56:14.766206",
+    "report_generated": false
+  },
+  {
+    "question": "The BaseLocker.lockAndExpectRevert is used for quotes which shouldn't change state. If the revert in quote operation is caught by try-catch in handleLockData, could state changes persist despite the expected revert, violating read-only guarantee?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8a3cdc0-9144-4485-a9d6-47dea2c355d6",
+    "timestamp": "2025-12-02 01:56:34.904048",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant.startPayments (line 224-254), token balances are stored with +1 offset (line 249: `add(tokenBalance, success)`). If success is 0 due to call failure, would balance be stored as 0, causing completePayments to miscalculate payments?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6effbff4-b217-4034-9f13-1f4c3b01acec",
+    "timestamp": "2025-12-02 01:56:56.336720",
+    "report_generated": false
+  },
+  {
+    "question": "The lock mechanism chains through: BaseLocker.lock() -> FlashAccountant.lock() -> BaseLocker.locked_6416899205() -> handleLockData(). If any link breaks (gas exhaustion, revert), would partial state changes in earlier calls leave system in inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d645494f-e6a1-4a37-aa14-e32b2830e373",
+    "timestamp": "2025-12-02 01:57:19.692730",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData implementations, multiple tokens may be paid via ACCOUNTANT.completePayments(). If one token's balanceOf reverts, would the entire payment batch fail, or would partial payments be credited, causing accounting mismatch?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_026d37db-e3fc-473d-8288-cb844789b0ae",
+    "timestamp": "2025-12-02 01:57:43.500514",
+    "report_generated": false
+  },
+  {
+    "question": "The BaseLocker uses immutable ACCOUNTANT. If multiple derived contracts (Router, Positions, Orders) use different ACCOUNTANT instances due to deployment errors, could cross-contract operations fail due to incompatible debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c38b7ab7-dd83-4156-8899-9583ab0ab09a",
+    "timestamp": "2025-12-02 01:58:08.865506",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountant._updatePairDebt (line 96-129), non-zero debt count is updated once for both tokens. If handleLockData triggers operations affecting three or more tokens, would the optimized pair update logic fail to track all debt changes correctly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_14143ee6-a3b1-4c42-85ac-2721da1eca6e",
+    "timestamp": "2025-12-02 01:58:35.015879",
+    "report_generated": false
+  },
+  {
+    "question": "In `saltToId()` (lines 92-102), the token ID is generated using keccak256(minter, salt, chainid, address()). If a user mints an NFT with salt S, burns it, then re-mints with the same salt S, they get the same ID. However, BasePositions.sol uses bytes24(uint192(id)) as the position salt. Could an attacker exploit ID reuse after burn to access or manipulate a position that was created with a different NFT ID but happens to have the same lower 192 bits, violating the Position Ownership invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ac67c73-1db4-47f0-948a-5f36172d04d8",
+    "timestamp": "2025-12-02 01:59:03.600842",
+    "report_generated": false
+  },
+  {
+    "question": "In `saltToId()` (lines 92-102), the function uses assembly to compute keccak256 of 128 bytes (minter, salt, chainid, address). However, if the free memory pointer (0x40) has been corrupted by external calls or is not at the expected location, could this cause memory overlap with other data structures, potentially leading to ID collisions that violate position uniqueness guarantees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7aa4e0f7-25db-41ba-aec8-20361f66df2b",
+    "timestamp": "2025-12-02 01:59:33.373768",
+    "report_generated": false
+  },
+  {
+    "question": "The `saltToId()` function (lines 92-102) includes chainid() in the hash, preventing cross-chain replay. However, if Ekubo is deployed on a chain that later undergoes a hard fork creating two chains with the same chainid up to a certain block height, could pre-fork NFTs be replayed on both chains, allowing an attacker to claim the same position twice and drain one pool while keeping liquidity in the other?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c46755e1-2ba5-44ec-8606-24669df8d29f",
+    "timestamp": "2025-12-02 02:00:03.988754",
+    "report_generated": false
+  },
+  {
+    "question": "In `saltToId()` (line 100), the keccak256 hash is computed over exactly 128 bytes. If the Solidity compiler pads the data differently than expected, or if the assembly block doesn't properly align the data, could this result in different IDs being generated for the same logical (minter, salt) pair, breaking the determinism that child contracts depend on?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a249d8f-c106-4376-87aa-ef057c597ccb",
+    "timestamp": "2025-12-02 02:00:35.757536",
+    "report_generated": false
+  },
+  {
+    "question": "The `saltToId()` function (lines 92-102) uses `address()` to include the contract address in the hash. If this contract is deployed via CREATE2 at a predictable address, and an attacker deploys a malicious contract at the same address on a different chain before the legitimate deployment, could they pre-generate IDs that will later collide with legitimate user positions when the real contract is deployed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_21008d1e-6bd8-4981-9b33-7a3c47926663",
+    "timestamp": "2025-12-02 02:01:08.078536",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol line 245, NFT IDs are truncated to uint192 via `bytes24(uint192(id))`. Since `saltToId()` returns a uint256, if the computed hash results in an ID where the upper 64 bits are non-zero, two different NFT IDs could map to the same position ID. Could an attacker intentionally craft salts to generate IDs with matching lower 192 bits, creating a position ID collision that allows them to withdraw another user's liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c7357517-6094-4147-b2ac-1f15503fd941",
+    "timestamp": "2025-12-02 02:01:41.267753",
+    "report_generated": false
+  },
+  {
+    "question": "The `mint(bytes32 salt)` function (lines 123-126) doesn't check if an NFT with the computed ID already exists before calling `_mint()`. While Solady's ERC721 will revert on duplicate mints, if there's a race condition between a burn and re-mint, or if the ERC721 implementation has a bug, could an attacker re-mint an existing ID and gain unauthorized access to positions or orders associated with that ID?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3473d68b-ae67-4c51-a3e7-ba6df3d3ca78",
+    "timestamp": "2025-12-02 02:02:16.042795",
+    "report_generated": false
+  },
+  {
+    "question": "In `saltToId()` (lines 92-102), the assembly block uses `mstore(free, minter)` without cleaning the upper bits of the minter address. According to the protocol's stated policy of not cleaning upper bits, could a minter address with dirty upper bits (e.g., 0x0001000000000000000000000000000000000123) generate a different ID than the clean address (0x0123), allowing the same logical user to have multiple non-colliding IDs for the same salt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70d953be-5824-4935-9433-00781d22610e",
+    "timestamp": "2025-12-02 02:02:51.102093",
+    "report_generated": false
+  },
+  {
+    "question": "The `saltToId()` function includes both chainid and contract address, but if Ekubo is deployed as an upgradeable proxy, and the implementation address changes while the proxy address stays the same, does `address()` return the proxy or implementation address? Could this cause ID collisions between positions created before and after an upgrade?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_49a309d4-3289-4820-948f-0a92b1eb5f1a",
+    "timestamp": "2025-12-02 02:03:25.494108",
+    "report_generated": false
+  },
+  {
+    "question": "In the auto-mint function `mint()` (lines 109-117), the salt is generated using prevrandao() and gas(). If an attacker can predict the gas consumption of their transaction (e.g., by simulating it off-chain), and knows that prevrandao() is the same for all transactions in a block, could they front-run a victim's mint transaction by computing the salt the victim will use and minting that ID first, causing the victim's transaction to revert and potentially griefing their position creation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bce79a11-488d-4669-b0d7-df41c26d02bc",
+    "timestamp": "2025-12-02 02:03:59.996402",
+    "report_generated": false
+  },
+  {
+    "question": "The `saltToId()` function (line 100) computes keccak256 over 128 bytes, but only the first 20 bytes (minter) and next 32 bytes (salt) are user-controlled. The chainid (32 bytes) and address (32 bytes, though only 20 significant) are appended. If the contract is deployed at address 0x0000...0001, could the trailing zeros in the address create hash collisions with salts that have specific values in their lower bytes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75722b27-a567-4da7-97d6-4c16e49b0f5e",
+    "timestamp": "2025-12-02 02:04:35.257767",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.sol, the position ID uses `bytes24(uint192(id))` as the salt component. If an NFT ID is exactly 2^192, the cast to uint192 results in 0. Could an attacker intentionally generate an NFT ID of 2^192 by brute-forcing salts, then create a position that collides with position ID 0 (if such a position exists), potentially allowing unauthorized withdrawal of liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b122899f-f568-47e7-97af-322310106117",
+    "timestamp": "2025-12-02 02:05:09.011162",
+    "report_generated": false
   }
 ]
