@@ -8848,5 +8848,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1743a70d-5bf6-4737-9bb4-e7029861a7e8",
     "timestamp": "2025-12-02 03:31:42.816832",
     "report_generated": false
+  },
+  {
+    "question": "The shouldCallBeforeCollectFees function (line 211-212) checks `shr(154, extension)`. Could an extension manipulate its deployment address to have multiple CallPoints bits set simultaneously, causing multiple hooks to be called when only one should be, breaking atomic operation assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d8b9469-ef1b-4574-b4d5-107ae9fa5099",
+    "timestamp": "2025-12-02 03:32:59.175602",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallAfterUpdatePosition (line 175-176), the bit check is `shr(155, extension)`. If the protocol uses proxy patterns for extensions, could the proxy address have different CallPoints bits than the implementation, causing hook mismatches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_223cc5ce-f09a-40a4-890d-dcf09d525c24",
+    "timestamp": "2025-12-02 03:33:12.384760",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallBeforeUpdatePosition function (line 143-144) uses `shr(156, extension)`. Could an attacker exploit address collision vulnerabilities in CREATE2 to deploy multiple extensions with the same CallPoints byte but different code, bypassing registration checks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68bd28ae-adcf-42bb-974a-ce368d169e76",
+    "timestamp": "2025-12-02 03:33:26.538764",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallAfterSwap (line 109-110), the function checks `shr(157, extension)`. If the extension address was computed with an incorrect CREATE2 salt, could the wrong bit be set, causing afterSwap to be called when beforeSwap wasn't, violating state consistency?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_996e3e24-54ec-464e-8da0-0212663994e8",
+    "timestamp": "2025-12-02 03:33:41.670547",
+    "report_generated": false
+  },
+  {
+    "question": "The bit positions for CallPoints are encoded at bits 152-159 of the extension address. Could an extension be deployed to an address where a single bit flip in this range would enable/disable critical hooks like beforeSwap, allowing the extension to change behavior without re-registration?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_35730d8c-e371-4c70-a46f-540afaf345b0",
+    "timestamp": "2025-12-02 03:33:56.689602",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeInitializePool (line 21), the comparison is `eq(initializer, extension)` while other functions use `eq(shl(96, locker), shl(96, extension))`. Does this inconsistency create an attack vector where initializer addresses with upper bits set could bypass self-call prevention?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e9cb576-f6f5-4a12-9f10-3210322abb9a",
+    "timestamp": "2025-12-02 03:34:13.327875",
+    "report_generated": false
+  },
+  {
+    "question": "The self-call prevention in shouldCallBeforeSwap (line 83) uses `shl(96, locker)` and `shl(96, extension)` to compare only the lower 160 bits. Could an attacker craft a Locker value with non-zero upper bits that bypasses this check and enables malicious self-calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff7db28f-4b28-46d0-9dcb-d2a3d8a29b3a",
+    "timestamp": "2025-12-02 03:34:33.055197",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeSwap (line 82-83), the bit check uses `shr(158, extension)`. If an extension address has bits set in positions that don't correspond to valid CallPoints (bits 152-159), could this lead to unintended hook invocations that violate extension isolation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22f232d2-dde6-44d6-bc3e-9748472a9c33",
+    "timestamp": "2025-12-02 03:34:55.171850",
+    "report_generated": false
+  },
+  {
+    "question": "The shouldCallAfterInitializePool function (line 50-51) shifts right by 159 bits. Given that addresses are 160 bits, does this correctly extract bit 7 from the CallPoints byte at position 152-159, or could there be an off-by-one error that checks the wrong bit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb0210a5-1211-47d2-92b9-ef998ad3b8ea",
+    "timestamp": "2025-12-02 03:35:18.385596",
+    "report_generated": false
+  },
+  {
+    "question": "In shouldCallBeforeInitializePool (line 20-22), the function uses `shr(152, extension)` to extract the call point bit. Could an attacker deploy an extension to an address where the upper bits (above bit 152) are manipulated to bypass the intended call point check, potentially causing the wrong hook to be called or skipped?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d8434792-c106-4da6-81fa-21a5d61710b5",
+    "timestamp": "2025-12-02 03:35:41.939203",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()`, if `TWAMM_EXTENSION.poolState()` returns zero values for uninitialized pools, could external contracts mistake these for legitimate state, leading to incorrect decisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b08c34bb-c1e6-470e-a34c-872657fea8c9",
+    "timestamp": "2025-12-02 03:36:07.759127",
+    "report_generated": false
+  },
+  {
+    "question": "The contract doesn't validate that `poolKey` corresponds to a valid, initialized pool. Could calling functions with non-existent pool keys return default zero values that external contracts interpret as valid state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7690a071-f944-4ccb-a318-688f638ccf42",
+    "timestamp": "2025-12-02 03:36:34.972644",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()` (line 26), the loop breaks on `nextTime == 0 || nextTime > type(uint64).max`. Could there be edge cases where neither condition is met but the loop should still terminate, causing infinite gas consumption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_80a0a814-34d9-48bc-89e3-31d2e59b8884",
+    "timestamp": "2025-12-02 03:37:04.912342",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 83), `assert(success)` is used for staticcall failure. Could this cause the entire transaction to revert with no error message, making it difficult for external protocols to handle failures gracefully?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64177f8e-ed78-4248-81a9-fcaad006b5cf",
+    "timestamp": "2025-12-02 03:37:34.583074",
+    "report_generated": false
+  },
+  {
+    "question": "In `executeVirtualOrdersAndGetPoolState()`, state modification happens before reading. Could external contracts calling this expect view-only behavior and be surprised by state changes, breaking their assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_667c9dc7-03d5-4648-9d71-7281a3fbda20",
+    "timestamp": "2025-12-02 03:38:05.631588",
+    "report_generated": false
+  },
+  {
+    "question": "The `getPoolState()` function is view-only but reads dynamic state. Could external contracts caching this state encounter issues if the underlying TWAMM state changes rapidly, leading to stale data attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bcd1534b-bd4f-4244-8d06-3dee79575db2",
+    "timestamp": "2025-12-02 03:38:37.163975",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 98), `allValidTimes[i]` is passed to create `TimeSaleRateInfo`. Could values that fit in uint64 array element but exceed safe time ranges cause issues in TWAMM order calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64c2d0f8-a194-406b-b830-9f17c8705b4f",
+    "timestamp": "2025-12-02 03:39:09.818532",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()` (line 28), `nextTime` is cast from uint256 to uint64. Could this cast silently truncate high bits if `nextTime` is greater than type(uint64).max despite the check at line 26?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_76ad23fb-ca7f-49da-97fd-f9ed1acfca65",
+    "timestamp": "2025-12-02 03:39:42.278709",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 70), multiple type casts are performed: `uint64(block.timestamp)`, `uint32(block.timestamp)`, and final cast back to uint64. Could the intermediate uint32 cast cause data loss if block.timestamp exceeds uint32, corrupting the time calculation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb11ab00-c420-448a-ad4d-127b0b7e65ea",
+    "timestamp": "2025-12-02 03:40:16.998384",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 102-104), array length is modified via assembly. If Solidity's memory allocator has allocated adjacent data structures, could this length modification corrupt neighboring memory regions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2bb2442d-e432-43ca-81be-18b428768f24",
+    "timestamp": "2025-12-02 03:40:49.670661",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 90-92), assembly marked `memory-safe` reads from `result` bytes. Could the memory layout of dynamic bytes returned from staticcall differ from expectations, causing out-of-bounds reads?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_47758edf-578b-4b32-a387-f55b0c9af256",
+    "timestamp": "2025-12-02 03:41:23.586895",
+    "report_generated": false
+  },
+  {
+    "question": "In `getAllValidFutureTimes()` (line 32-34), assembly marked `memory-safe` modifies array length. Could this violate Solidity's memory safety assumptions if the array was allocated in a way that makes the length word immutable or shared?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_49dbbb5d-213d-41a6-a845-a3669ec44280",
+    "timestamp": "2025-12-02 03:41:58.575624",
+    "report_generated": false
+  },
+  {
+    "question": "The `executeVirtualOrdersAndGetPoolState()` function executes virtual orders before reading state. Could an attacker call this repeatedly to force expensive virtual order execution, griefing the network or specific pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fa3e3c0b-ea2a-4f41-8f4e-e66820b86fc7",
+    "timestamp": "2025-12-02 03:42:33.547844",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 88-100), two loops iterate through `allValidTimes.length`. Could an attacker manipulate conditions to maximize this length, causing quadratic gas consumption that makes the function unusable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_602c943c-4a27-42b3-8788-a1ec176676bf",
+    "timestamp": "2025-12-02 03:43:06.657756",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()`, the staticcall to `sload()` reads multiple storage slots (line 81-82). Could an attacker create a pool with many future times to force the contract to read excessive slots, causing the staticcall to run out of gas and revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9dd1174e-e11f-4ea2-9e54-7ee915aee4bd",
+    "timestamp": "2025-12-02 03:43:40.041915",
+    "report_generated": false
   }
 ]
