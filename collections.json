@@ -11998,5 +11998,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19793e31-3644-4a9d-968b-fadcb8bfc066",
     "timestamp": "2025-12-02 07:13:19.709627",
     "report_generated": false
+  },
+  {
+    "question": "The condition `if (timePassed == 0) return;` in `maybeInsertSnapshot()` (line 103) prevents duplicate snapshots in the same block. However, if an attacker can manipulate block timestamps via miner collusion or on L2s with sequencer control, could they prevent snapshot updates by keeping consecutive blocks at the same timestamp, freezing the oracle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9758824a-de26-4858-81d8-b46216d9898c",
+    "timestamp": "2025-12-02 07:14:37.972885",
+    "report_generated": false
+  },
+  {
+    "question": "In `extrapolateSnapshotInternal()` (line 325), `uint32 timePassed = uint32(atTime) - snapshot.timestamp()` is calculated. If `atTime` was validated to be <= block.timestamp, but `snapshot.timestamp()` is from a future block (due to timestamp manipulation or storage corruption), could this underflow and produce massive extrapolation errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_685446eb-a971-4c21-8737-12a166529246",
+    "timestamp": "2025-12-02 07:14:51.437966",
+    "report_generated": false
+  },
+  {
+    "question": "The function `searchRangeForPrevious()` (lines 260-261) calculates `uint32 targetDiff = current - uint32(time)` where `current = uint32(block.timestamp)`. If `time > block.timestamp` somehow (despite validation in line 296), this would underflow. Could an attacker bypass the `FutureTime()` check by exploiting integer casting or timestamp wrapping?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7282b829-1266-44a7-8af2-67601f8fd841",
+    "timestamp": "2025-12-02 07:15:04.751817",
+    "report_generated": false
+  },
+  {
+    "question": "In `maybeInsertSnapshot()` (line 125), `tickCumulative` is updated with `last.tickCumulative() + int64(uint64(timePassed)) * state.tick()`. The multiplication `int64(uint64(timePassed)) * state.tick()` could overflow int64 if timePassed is large (e.g., after weeks without updates) and tick is at MAX_TICK. Could this overflow corrupt tick cumulative, enabling price manipulation in dependent protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2bbd8883-b7b0-42aa-ac90-d48770a7cba2",
+    "timestamp": "2025-12-02 07:15:18.012427",
+    "report_generated": false
+  },
+  {
+    "question": "The `lastTimestamp` field in Counts is uint32. After year 2106, block.timestamp will exceed uint32. In `beforeInitializePool()` (line 163), `uint32 lastTimestamp = uint32(block.timestamp)` will truncate. Could this cause all future snapshots to have truncated timestamps, breaking `searchRangeForPrevious()` comparisons?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67232824-8369-4986-9f09-410afcd06340",
+    "timestamp": "2025-12-02 07:15:31.537362",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeInitializePool()` (line 178), the first snapshot is created with `_timestamp: lastTimestamp` where lastTimestamp is uint32(block.timestamp). If the pool is initialized near uint32.max timestamp, could subsequent snapshots after timestamp wraparound have lower timestamps than the first snapshot, violating the monotonicity assumption in binary search?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0d260817-2079-4083-816c-f4899963515e",
+    "timestamp": "2025-12-02 07:15:45.840210",
+    "report_generated": false
+  },
+  {
+    "question": "The comment on line 240 states 'We make the assumption that all snapshots for the token were written within (2**32 - 1) seconds of the current block timestamp'. If a pool remains inactive for longer than ~136 years, could old snapshots become invalid, and could `searchRangeForPrevious()` return them anyway, causing incorrect TWAP calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c415006f-d6ff-431f-9e0e-48643874f77e",
+    "timestamp": "2025-12-02 07:16:01.227970",
+    "report_generated": false
+  },
+  {
+    "question": "In `searchRangeForPrevious()` (line 272), the comparison `current - midSnapshot.timestamp() >= targetDiff` is used for binary search. If `midSnapshot.timestamp()` was corrupted by storage collision to be larger than `current`, could the subtraction underflow (in unchecked block) and cause the binary search to converge to the wrong snapshot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_17405777-2261-4c8a-96a7-09b02b8bb858",
+    "timestamp": "2025-12-02 07:16:18.936052",
+    "report_generated": false
+  },
+  {
+    "question": "The function `extrapolateSnapshotInternal()` (line 346) calculates `timestampDifference = next.timestamp() - snapshot.timestamp()`. If due to circular array wrapping, 'next' actually refers to a much older snapshot (after array refilled), could `timestampDifference` be negative or zero, causing division by zero in line 357?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_59e11e0b-8ea3-4afa-8b3c-142ece9c9aae",
+    "timestamp": "2025-12-02 07:16:37.226926",
+    "report_generated": false
+  },
+  {
+    "question": "In `maybeInsertSnapshot()` (lines 115-119), liquidity is fetched from pool state and adjusted via `nonZeroLiquidity := add(liquidity, iszero(liquidity))` to avoid division by zero. However, if `state.liquidity()` returns exactly uint128.max, could adding 1 cause overflow to 0, then division by 0 in `rawDiv(uint256(timePassed) << 128, nonZeroLiquidity)` at line 124?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b1b536ca-1a5b-4c14-a791-400271d69de8",
+    "timestamp": "2025-12-02 07:16:57.023921",
+    "report_generated": false
+  },
+  {
+    "question": "The `secondsPerLiquidityCumulative` calculation (lines 123-124) uses `rawDiv(uint256(timePassed) << 128, nonZeroLiquidity)`. If timePassed is very large (e.g., pool inactive for years) and nonZeroLiquidity is 1, could the result overflow uint160, causing truncation and incorrect cumulative values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a5b4e30-debb-4ed2-b082-828a7cfd7560",
+    "timestamp": "2025-12-02 07:17:19.293305",
+    "report_generated": false
+  },
+  {
+    "question": "In `extrapolateSnapshotInternal()` (lines 333-337), when using current pool state for extrapolation, the code uses `FixedPointMathLib.max(1, state.liquidity())` to avoid division by zero. If the pool has zero liquidity and an attacker performs a swap that changes the tick, could the extrapolation with liquidity=1 produce wildly incorrect secondsPerLiquidity values, manipulating TWAP?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65111e85-e43d-4b2c-94f4-ebf696734012",
+    "timestamp": "2025-12-02 07:17:41.830225",
+    "report_generated": false
+  },
+  {
+    "question": "The cumulative `secondsPerLiquidityCumulative` is uint160. Over long time periods, repeatedly adding `rawDiv(uint256(timePassed) << 128, nonZeroLiquidity)` could cause overflow. When overflow occurs at line 124, does Solidity 0.8's overflow protection revert, or is it in an unchecked block? If it reverts, could this DoS the oracle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6a6a3686-101c-4a00-adc1-2e7d341c7405",
+    "timestamp": "2025-12-02 07:18:05.918630",
+    "report_generated": false
+  },
+  {
+    "question": "In `maybeInsertSnapshot()`, if `state.liquidity()` returns 0 and `nonZeroLiquidity` is set to 1, an attacker could drain all liquidity from the pool, causing subsequent snapshots to accumulate secondsPerLiquidity at maximum rate (timePassed << 128 / 1). Could this be exploited to manipulate TWAP by alternating between zero liquidity and normal liquidity periods?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_520b534c-418b-449e-b98d-b7d69d78ed97",
+    "timestamp": "2025-12-02 07:18:32.305553",
+    "report_generated": false
+  },
+  {
+    "question": "The function `extrapolateSnapshotInternal()` (line 334) uses `rawDiv(uint256(timePassed) << 128, FixedPointMathLib.max(1, state.liquidity()))` for current pool state. If `state.liquidity()` changed significantly between when the last snapshot was taken and when extrapolation is performed, could the interpolation be incorrect, and could an attacker exploit this by manipulating liquidity right before TWAP queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0974ac4b-a752-4b64-8042-e8bb48350ef6",
+    "timestamp": "2025-12-02 07:19:00.316625",
+    "report_generated": false
+  },
+  {
+    "question": "In `extrapolateSnapshotInternal()` (lines 354-358), when interpolating between snapshots, the code calculates `(uint256(timePassed) * (next.secondsPerLiquidityCumulative() - snapshot.secondsPerLiquidityCumulative())) / timestampDifference`. If `next.secondsPerLiquidityCumulative()` overflowed and wrapped to a small value, the subtraction would underflow. Is this properly handled as a large uint256 value, or could it corrupt the interpolation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_658f5860-825d-4216-a2bb-4e1ccfbfe1f9",
+    "timestamp": "2025-12-02 07:19:29.678517",
+    "report_generated": false
+  },
+  {
+    "question": "The pool's liquidity value is read from `state.liquidity()` which is a uint128. When used in `rawDiv(uint256(timePassed) << 128, nonZeroLiquidity)`, if liquidity is very small (e.g., 1 wei) and timePassed is large, the division result could be enormous. Could an attacker create pools with 1 wei liquidity to cause uint160 overflow in secondsPerLiquidityCumulative?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dbaffcdc-fb28-4dd1-b3f7-d5166786ddea",
+    "timestamp": "2025-12-02 07:20:00.223756",
+    "report_generated": false
+  },
+  {
+    "question": "In a pool with full-range liquidity (as required by Oracle), if all liquidity is removed then re-added in different blocks, could the gaps in liquidity cause the `secondsPerLiquidityCumulative` to accumulate incorrectly, especially if `maybeInsertSnapshot()` is only called on the add, not the remove?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e5b8c20d-70cc-4267-b689-2a8230b68699",
+    "timestamp": "2025-12-02 07:20:32.985189",
+    "report_generated": false
+  },
+  {
+    "question": "The Oracle requires `isFullRange()` pools (line 157). If a pool is initialized as full-range but Core.sol allows liquidity updates at specific ticks, could partial liquidity removal cause `state.liquidity()` to be zero at certain price points, triggering the `nonZeroLiquidity = 1` fallback and corrupting the oracle's liquidity tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d53cee95-2163-44dc-86f8-ea10bf049841",
+    "timestamp": "2025-12-02 07:21:05.430206",
+    "report_generated": false
+  },
+  {
+    "question": "The `beforeSwap()` hook (lines 202-210) calls `maybeInsertSnapshot()` only if `params.amount() != 0`. Could an attacker make zero-amount swaps to manipulate the oracle by preventing snapshot updates during critical price movements, then use stale snapshots for TWAP manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fd5a4f91-6a77-4359-ba69-68b16d8f94e0",
+    "timestamp": "2025-12-02 07:21:37.075224",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeUpdatePosition()` (lines 190-198), snapshots are inserted only when `liquidityDelta != 0`. If an attacker adds and removes the same amount of liquidity in separate transactions within the same block, could the second transaction's `maybeInsertSnapshot()` return early (timePassed == 0), failing to capture the liquidity change's impact on the oracle?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_353dcb3d-6500-4193-98a2-81060b8e142d",
+    "timestamp": "2025-12-02 07:22:07.426483",
+    "report_generated": false
+  },
+  {
+    "question": "The `beforeInitializePool()` function (lines 150-186) is called by Core.sol before pool initialization. If Core.sol's initialization reverts after this hook executes (e.g., due to invalid tick or liquidity), could the Oracle's storage be left in an initialized state with snapshot data, causing issues if pool initialization is retried?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_380c6dd9-e4f4-4146-be0b-8deb58773486",
+    "timestamp": "2025-12-02 07:22:38.866908",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeInitializePool()` (lines 155-157), the function validates `key.token0 != NATIVE_TOKEN_ADDRESS`, `key.config.fee() != 0`, and `key.config.isFullRange()`. If Core.sol calls this hook with a key that passes validation but Core.sol's own validation differs, could there be a mismatch causing the Oracle to track a pool that Core never actually initializes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_245a1a4e-e15a-453b-b1f4-c4e093f0b502",
+    "timestamp": "2025-12-02 07:23:09.009475",
+    "report_generated": false
+  },
+  {
+    "question": "The hooks `beforeUpdatePosition()` and `beforeSwap()` call `maybeInsertSnapshot()` with `poolKey.token1`. If `poolKey.token0` and `token1` are not sorted correctly, or if token1 equals NATIVE_TOKEN_ADDRESS, could `maybeInsertSnapshot()` update the wrong oracle storage slot?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06222326-3373-4b72-a855-503300bfd98b",
+    "timestamp": "2025-12-02 07:23:38.848542",
+    "report_generated": false
+  },
+  {
+    "question": "In `beforeInitializePool()` (line 159), `address token = key.token1` is extracted. If Core.sol passes a PoolKey with token0 and token1 swapped, could the Oracle initialize storage for the wrong token, causing all subsequent snapshots to be stored incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f3eea9d-6184-429f-97a8-f5383b8640c3",
+    "timestamp": "2025-12-02 07:24:09.322462",
+    "report_generated": false
   }
 ]
