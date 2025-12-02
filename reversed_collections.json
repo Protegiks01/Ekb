@@ -9448,5 +9448,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dad90405-ac9f-47d9-9901-f8b1831d360a",
     "timestamp": "2025-12-02 04:17:18.862626",
     "report_generated": false
+  },
+  {
+    "question": "The function returns results array at line 41, which is memory. Could there be a mismatch between results.length and poolKeys.length if the loop at lines 45-96 exits early due to gas limits, causing array access out of bounds for callers expecting poolKeys.length results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b830f83f-34dd-4d80-9efe-4b72ae3276d4",
+    "timestamp": "2025-12-02 04:18:29.845383",
+    "report_generated": false
+  },
+  {
+    "question": "At line 92, uninitialized pools return maxTick: MAX_TICK. But the ticks array is empty (line 93). Could this inconsistency mislead quoters into thinking liquidity exists throughout the range [MIN_TICK, MAX_TICK] when the pool hasn't been initialized?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aea8d3f9-88a6-4543-b541-1401cb9cfd24",
+    "timestamp": "2025-12-02 04:18:42.890530",
+    "report_generated": false
+  },
+  {
+    "question": "For uninitialized pools (sqrtRatio.isZero() check at line 49), lines 87-94 return QuoteData with empty ticks array. Could an off-chain system not check sqrtRatio and attempt to quote on this data, leading to division by zero or other calculation errors?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_90782fec-0d87-4ccc-8839-b9ba7e8dc2b7",
+    "timestamp": "2025-12-02 04:18:56.692922",
+    "report_generated": false
+  },
+  {
+    "question": "The ticks array in QuoteData (line 84) contains TickDelta structs with liquidityDelta. If assembly unpacking at lines 138-139 corrupts signs of liquidityDelta, could off-chain quoters add liquidity when they should subtract (or vice versa), calculating completely wrong output amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f3ec27c-ad68-4ec9-9ae9-e155623138d1",
+    "timestamp": "2025-12-02 04:19:10.692076",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 78-85, QuoteData struct is populated with tick, sqrtRatio, liquidity from poolState. If poolState parsing at line 47 returns corrupted data due to storage layout issues, could off-chain systems receive incorrect current price/liquidity and calculate dangerous quote amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d86b9ad-c0f0-4931-b9c5-57a856435ffe",
+    "timestamp": "2025-12-02 04:19:25.653822",
+    "report_generated": false
+  },
+  {
+    "question": "In the concentrated pool branch, lines 54-64 calculate and clamp tick ranges. But in the stableswap branch (lines 66-76), minTick and maxTick are simply set to MIN_TICK and MAX_TICK without validation. Could this inconsistency cause stableswap pools to return wider ranges than they should?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e08b3cea-803c-471b-bfd0-8b6fb737703c",
+    "timestamp": "2025-12-02 04:19:43.754473",
+    "report_generated": false
+  },
+  {
+    "question": "After clamping at lines 59-63, minTick and maxTick are cast to int32 at line 65. If the clamped values are exactly MIN_TICK (-88722835) or MAX_TICK (88722835), do these fit in int32 range? MIN_TICK in constants.sol is -88722835, but int32 max is 2147483647, so could there be a mismatch?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2693e65d-f6f9-4ef3-9883-fb63838801fd",
+    "timestamp": "2025-12-02 04:20:01.470449",
+    "report_generated": false
+  },
+  {
+    "question": "The MAX_TICK check at lines 62-63 clamps maxTick. But if maxTick calculation overflowed and wrapped to a negative value, could it pass the `if (maxTick > MAX_TICK)` check (since negative < positive), resulting in a negative maxTick being used when it should be clamped to MAX_TICK?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a86a1fd1-2c39-48c3-b7aa-2734eb298823",
+    "timestamp": "2025-12-02 04:20:21.477294",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 59-60, minTick is clamped to MIN_TICK if below. However, the check `if (minTick < MIN_TICK)` happens after minTick is already calculated. Could minTick be a value that's not just < MIN_TICK but far below (e.g., type(int256).min), causing the assignment `minTick = MIN_TICK` to be performed multiple times or have side effects?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18cb32a5-7b7b-4511-ab5c-70fadb89e4a6",
+    "timestamp": "2025-12-02 04:20:43.209737",
+    "report_generated": false
+  },
+  {
+    "question": "The function _getInitializedTicksInRange() has an assert at line 106: `assert(toTick >= fromTick)`. Could a caller pass fromTick > toTick to getInitializedTicksInRange (line 146-151), causing an assertion failure and reverting quote data fetching for valid pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_27904426-facb-4d15-869c-af94d64f45b5",
+    "timestamp": "2025-12-02 04:21:04.532971",
+    "report_generated": false
+  },
+  {
+    "question": "At line 108, config.isFullRange() is checked. Could a stableswap pool with amplification != 0 but center == 0 be incorrectly classified as full-range, causing _getInitializedTicksInRange to return empty ticks array when it should return active liquidity bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8d644a4e-2fe5-4cd6-a425-59d60b755972",
+    "timestamp": "2025-12-02 04:21:27.963030",
+    "report_generated": false
+  },
+  {
+    "question": "The config validation in poolKey.sol checks tickSpacing <= MAX_TICK_SPACING. However, if a pool was initialized with invalid config that bypassed validation, could QuoteDataFetcher process it and return data for a malformed pool that should never exist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b64efca2-cef7-4364-aae4-569aec4b0719",
+    "timestamp": "2025-12-02 04:21:51.462622",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 73-74, TickDelta structs are created with liquidityDelta = int128(liquidity) and -int128(liquidity). If liquidity is exactly 2^127, could casting to int128 overflow, producing liquidityDelta of -2^127 for both bounds instead of +/- values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_42481010-7b11-43f5-ba23-78351a1b4890",
+    "timestamp": "2025-12-02 04:22:15.760626",
+    "report_generated": false
+  },
+  {
+    "question": "In the stableswap branch at line 71, stableswapActiveLiquidityTickRange() is called. Could this function return (lower, upper) values that are equal or inverted (lower > upper), causing the TickDelta array at lines 72-74 to have incorrect ordering?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3ba9b6ca-f38b-4951-8746-badc12e1047f",
+    "timestamp": "2025-12-02 04:22:39.524298",
+    "report_generated": false
+  },
+  {
+    "question": "At line 55, tickSpacing is multiplied by 256 for bitmap calculation. Could a pool with very large tickSpacing (near MAX_TICK_SPACING = 698605) cause the multiplication tickSpacing * 256 to overflow uint32, wrapping to a small value and calculating incorrect range size?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_284e6af5-cbb2-4add-be27-80b49be06461",
+    "timestamp": "2025-12-02 04:23:05.828269",
+    "report_generated": false
+  },
+  {
+    "question": "In the concentrated pool branch at lines 53-65, tickSpacing is extracted via config.concentratedTickSpacing(). Could a pool with tickSpacing == 0 cause division by zero at line 114 when calculating skipAhead (division by tickSpacing * 256)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b67e771d-7d60-4ceb-8e42-3d8290714089",
+    "timestamp": "2025-12-02 04:23:34.768243",
+    "report_generated": false
+  },
+  {
+    "question": "At line 53, poolKeys[i].config.isConcentrated() determines the code path. Could a malicious pool have config with both concentrated and stableswap bits set simultaneously, causing undefined behavior or accessing wrong tick data structures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_907d6710-406f-4184-971b-d890113f122d",
+    "timestamp": "2025-12-02 04:24:04.998947",
+    "report_generated": false
+  },
+  {
+    "question": "The sload operations via CoreLib access storage using CoreStorageLayout slot calculations. Could there be a storage collision where poolTicks data overlaps with another pool's state, causing ticks from one pool to be returned when querying a different pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb45bde8-1831-4b49-b489-d7614e8a18e6",
+    "timestamp": "2025-12-02 04:24:32.961398",
+    "report_generated": false
+  },
+  {
+    "question": "At line 118, poolTicks(poolId, tick) is called to fetch liquidityDelta. Could the Core contract return a liquidityDelta of 0 for an initialized tick, misleading off-chain quoters into thinking the tick has no liquidity effect when it actually does?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_25aa5269-2544-4209-96aa-534c91d80466",
+    "timestamp": "2025-12-02 04:25:00.553493",
+    "report_generated": false
+  },
+  {
+    "question": "The prevInitializedTick call at line 113-115 passes skipAhead parameter. If the Core contract ignores skipAhead and always returns the next initialized tick, could this cause the loop to run longer than expected, potentially hitting gas limits for pools with many initialized ticks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b30bb1a7-48d3-4461-8534-c623b7ff9171",
+    "timestamp": "2025-12-02 04:25:29.121859",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 113-115, prevInitializedTick is called on CORE contract. Could a malicious Core implementation return initialized == true but tick value outside the requested range [fromTick, toTick], causing the function to include ticks beyond the requested range in results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_342763df-5aeb-4675-9457-378d5a1b3d73",
+    "timestamp": "2025-12-02 04:25:57.817669",
+    "report_generated": false
+  },
+  {
+    "question": "The poolState call at line 47 returns (sqrtRatio, tick, liquidity). If the Core contract's storage is corrupted or manipulated via storage collision, could it return a tick value outside MIN_TICK..MAX_TICK bounds, which then gets used in range calculations at lines 56-57 without validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_784a9df3-dcc0-464d-8389-6fde0ac4ac39",
+    "timestamp": "2025-12-02 04:26:26.761862",
+    "report_generated": false
+  },
+  {
+    "question": "At line 47, CORE.poolState(poolId) is called via CoreLib.poolState which uses sload. Could a malicious CORE contract implementation return crafted PoolState data with sqrtRatio outside valid bounds (< MIN_SQRT_RATIO or > MAX_SQRT_RATIO), causing downstream calculations to produce incorrect tick ranges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e6416993-93f8-45a6-9141-e8c822e656cb",
+    "timestamp": "2025-12-02 04:26:54.476899",
+    "report_generated": false
+  },
+  {
+    "question": "In getQuoteData() at lines 45-96, the outer loop processes poolKeys.length pools. If a caller passes a very large poolKeys array (e.g., 1000+ pools), combined with inner loop operations fetching ticks, could the total gas consumption exceed block gas limit, making the function unusable for batch queries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ba44f42e-a559-4bb6-93de-26d9b1eff026",
+    "timestamp": "2025-12-02 04:27:21.782780",
+    "report_generated": false
+  },
+  {
+    "question": "The loop at line 126 updates toTick to `tick - 1`. If prevInitializedTick at line 113-115 returns tick == fromTick with initialized == true, could the next iteration set toTick to fromTick - 1, causing the loop to exit prematurely and miss the tick exactly at fromTick?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b6ab2190-6308-46e6-8bf7-8fd895062d61",
+    "timestamp": "2025-12-02 04:27:47.472861",
+    "report_generated": false
   }
 ]
