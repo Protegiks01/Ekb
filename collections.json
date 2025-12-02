@@ -13642,5 +13642,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_38090829-6787-424e-9c2a-48c01039780c",
     "timestamp": "2025-12-02 09:20:49.267554",
     "report_generated": false
+  },
+  {
+    "question": "Can Orders.decreaseSaleRate be used to grief other orders by decreasing rate to near-zero and forcing expensive TWAMM recalculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b63d799-f058-4302-ace9-452335aa4f32",
+    "timestamp": "2025-12-02 09:22:04.934271",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.executeVirtualOrdersAndGetCurrentOrderInfo, does bytes32(id) casting properly preserve the full uint256 ID information, or is data lost?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0dd2b5ed-5053-4454-8cc4-70012b4a19f5",
+    "timestamp": "2025-12-02 09:22:19.447378",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.deposit (lines 71-97), does the authorizedForNft modifier prevent reentrancy where an attacker approves themselves mid-transaction to deposit to someone else's position?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ed78ac49-c642-46af-ace2-6c737f62f65d",
+    "timestamp": "2025-12-02 09:22:32.869623",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.mintAndDeposit (lines 159-169) be exploited where mint() creates a predictable ID that an attacker can frontrun to steal the deposited liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a1c69ec-1487-4c53-8566-97ce7e4d822f",
+    "timestamp": "2025-12-02 09:22:47.250942",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.withdraw (lines 120-133) properly handle the case where NFT is transferred during the lock() callback, causing funds to be sent to the old owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1c4b3222-9650-456b-8864-73c6a76c6ecb",
+    "timestamp": "2025-12-02 09:23:02.387440",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.getPositionFeesAndLiquidity (lines 43-68), does the view function return stale fee data if called within the same block as fee-generating swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cdb4f9c3-8500-4c7d-b4db-08ae6c1344a7",
+    "timestamp": "2025-12-02 09:23:19.008023",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.collectFees (lines 100-107) be exploited where an attacker with temporary approval collects all fees and then revokes approval before the owner can act?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fdc7933a-8055-4c01-8177-a92650d2599c",
+    "timestamp": "2025-12-02 09:23:39.810611",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.handleLockData CALL_TYPE_DEPOSIT (lines 232-264) properly validate that liquidity > 0 before calling Core.updatePosition, or can zero-liquidity positions corrupt state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_25192fd5-4b98-4e0f-9c0b-1514c2a33818",
+    "timestamp": "2025-12-02 09:24:00.602744",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.deposit (line 82-83), does maxLiquidity calculation properly handle sqrtRatio = 0 for uninitialized pools, or can it return invalid liquidity values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a34a138-7fbe-4880-94dc-d4d8a8ec815c",
+    "timestamp": "2025-12-02 09:24:23.151360",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.withdraw with liquidity = type(uint128).max be used to overflow position accounting and withdraw more than deposited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9eccc417-4767-440c-9cca-3c8c9370f3f0",
+    "timestamp": "2025-12-02 09:24:46.817444",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.maybeInitializePool (lines 145-156) properly prevent race conditions where multiple users try to initialize the same pool simultaneously?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8d64440-28b1-44e2-9790-ecc7c9424fac",
+    "timestamp": "2025-12-02 09:25:11.302052",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.withdrawProtocolFees (lines 186-192), does the onlyOwner modifier properly prevent reentrancy through malicious token callbacks during ACCOUNTANT.withdrawTwo?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8f952339-ba60-42d2-836e-327dd077fe23",
+    "timestamp": "2025-12-02 09:25:36.884688",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.deposit be called with maxAmount0 = 0 and maxAmount1 = 0 to create empty positions that bloat storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b2661f5e-d0cc-41cc-83ff-eab3ec1c870d",
+    "timestamp": "2025-12-02 09:26:04.010045",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.handleLockData CALL_TYPE_WITHDRAW (lines 265-330) properly handle the case where position liquidity = 0 but withFees = true, causing incorrect fee distributions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5b5a97f9-924c-4ed8-be2a-a19d37b789bb",
+    "timestamp": "2025-12-02 09:26:31.603921",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.withdraw (line 277), does the liquidity > type(int128).max check properly prevent overflow in Core.updatePosition, or can negative liquidity be passed?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68104207-6787-4bee-829f-078cb0843750",
+    "timestamp": "2025-12-02 09:27:01.255405",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.collectFees be used in a sandwich attack where fees are collected immediately before/after swaps to capture disproportionate fee share?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_057d68b5-2e5d-4f22-8041-802a01511831",
+    "timestamp": "2025-12-02 09:27:32.589329",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.mintAndDepositWithSalt (lines 172-183) properly handle salt collisions where two users independently choose the same salt?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_77ebf239-1435-48f5-a24c-e6a44697a16f",
+    "timestamp": "2025-12-02 09:28:03.580521",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.getPositionFeesAndLiquidity (line 51), does createPositionId with bytes24(uint192(id)) properly handle token IDs > uint192.max, or is data truncated causing position ID collisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ca3d85e-d398-45b5-b423-d05a22b7a873",
+    "timestamp": "2025-12-02 09:28:37.037588",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.deposit be exploited where minLiquidity is set to 0, allowing deposits with unfavorable price ratios that can be sandwiched?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8415b377-cc80-47b7-85f4-2fbd24f54b36",
+    "timestamp": "2025-12-02 09:29:10.946536",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.handleLockData properly validate tickLower < tickUpper for all position operations, or can invalid tick ranges be created?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0a87834e-7a49-4aa1-a9a2-0ca3efdb26d6",
+    "timestamp": "2025-12-02 09:29:44.658207",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.withdraw (line 284-300), do the protocol fee calculations (_computeSwapProtocolFees) properly handle zero amounts without dividing by zero or reverting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_591eb3b8-7488-4a02-8958-4ea111aed73b",
+    "timestamp": "2025-12-02 09:30:18.172174",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.collectFees with recipient = address(this) create recursive callback loops that drain gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_18cc324f-f8ea-470d-a248-3743988ff167",
+    "timestamp": "2025-12-02 09:30:51.876489",
+    "report_generated": false
+  },
+  {
+    "question": "Does BasePositions.deposit (line 89-91) properly validate that SafeCastLib.toInt128 doesn't overflow, or can large liquidity values cause silent truncation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ef7975f9-8403-4b0b-8159-c0e4616c8046",
+    "timestamp": "2025-12-02 09:31:25.770219",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.handleLockData (line 253-262), does the if-else branching for NATIVE_TOKEN_ADDRESS properly prevent ETH from being sent twice or to wrong addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_01700507-a19c-425e-b15a-b9e27f7cc86b",
+    "timestamp": "2025-12-02 09:31:59.015008",
+    "report_generated": false
+  },
+  {
+    "question": "Can BasePositions.withdraw be used to extract liquidity while leaving dust amounts that accumulate rounding errors over time?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5e404e44-591e-41f0-aebc-03ed4b8eb083",
+    "timestamp": "2025-12-02 09:32:31.637381",
+    "report_generated": false
   }
 ]
