@@ -10798,5 +10798,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_10ecb24b-0b5f-4932-8ebc-d59ccb63af61",
     "timestamp": "2025-12-02 06:02:33.271051",
     "report_generated": false
+  },
+  {
+    "question": "At line 67, position.fees() is called with the current feesPerLiquidityInside. However, if there are pending updates to feesPerLiquidity that haven't been written to storage yet, could this view function underreport accumulated fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3217fb99-de9d-477f-9a74-b5d8379e9aa3",
+    "timestamp": "2025-12-02 06:03:48.476396",
+    "report_generated": false
+  },
+  {
+    "question": "In getPositionFeesAndLiquidity() at line 49, sqrtRatio is read from poolState. If the pool state is updated in the same block before the view function is called, could the returned data be stale, especially in terms of fee calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_68ba2e96-37c3-416a-961f-c2697a54520c",
+    "timestamp": "2025-12-02 06:04:01.626820",
+    "report_generated": false
+  },
+  {
+    "question": "The getProtocolFees() view at line 195 reads savedBalances with salt=bytes32(0). If the contract's actual protocol fee accounting uses a different salt or storage location, could this view function return incorrect or stale protocol fee data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67162ae0-39e8-44e6-9859-7c2311c02fe9",
+    "timestamp": "2025-12-02 06:04:15.472959",
+    "report_generated": false
+  },
+  {
+    "question": "At line 64-66, getPositionFeesAndLiquidity() computes fees differently for full-range vs ranged positions. If this logic doesn't match the Core contract's actual fee accrual logic, could the view function show incorrect fees, misleading users about their earnings?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_20e4d6be-ed1f-4d14-9e4c-f1509a07e634",
+    "timestamp": "2025-12-02 06:04:29.514535",
+    "report_generated": false
+  },
+  {
+    "question": "In getPositionFeesAndLiquidity() at lines 58-62, principal amounts are calculated by negating the liquidity delta. If the view function's calculation differs from the actual withdrawal amounts due to rounding in liquidityDeltaToAmountDelta(), could users make incorrect decisions about closing positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0abcd163-bfc9-4966-9e16-3bf3e1a36afb",
+    "timestamp": "2025-12-02 06:04:44.483256",
+    "report_generated": false
+  },
+  {
+    "question": "At line 168, after minting a new NFT, deposit() is immediately called. If the deposit fails (e.g., due to slippage), the NFT remains minted. Could this lead to accumulation of empty NFTs that waste storage and confuse users?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_58adda91-3cef-449f-8ed0-3632ea0b474a",
+    "timestamp": "2025-12-02 06:05:01.461608",
+    "report_generated": false
+  },
+  {
+    "question": "The authorizedForNft modifier at line 79 only checks NFT ownership, not which specific position within that NFT is being accessed. Could an approved operator maliciously operate on all positions associated with an NFT without the owner's specific consent per position?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_43be77f1-2947-41e6-a0d5-24622faff531",
+    "timestamp": "2025-12-02 06:05:18.357965",
+    "report_generated": false
+  },
+  {
+    "question": "In getPositionFeesAndLiquidity() at line 52, the position is read from Core storage. If Core has a bug where positions with similar parameters collide, could this return aggregated data from multiple positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a7482c5a-a9a7-4dd1-8388-e94fe47f038b",
+    "timestamp": "2025-12-02 06:05:38.439571",
+    "report_generated": false
+  },
+  {
+    "question": "At line 286 in handleLockData(), positions are identified by NFT ID, tickLower, and tickUpper. Could a malicious user create many positions with the same NFT but different tick ranges to complicate position management or cause DOS?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b1310a1f-3929-4504-80db-4c30004e9044",
+    "timestamp": "2025-12-02 06:06:00.364185",
+    "report_generated": false
+  },
+  {
+    "question": "The mintAndDeposit() at line 166 creates a new NFT and immediately deposits. Could a user accidentally create multiple NFTs for what they intended to be a single position, fragmenting their liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e13115a4-530b-456f-84b9-1d9e3a400a47",
+    "timestamp": "2025-12-02 06:06:22.738161",
+    "report_generated": false
+  },
+  {
+    "question": "In withdraw() at line 120, if a user has multiple positions with the same NFT in different tick ranges, could they accidentally withdraw from the wrong position by providing incorrect tick parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0fa3e5ba-326e-45e0-81c9-1be52b9cffa6",
+    "timestamp": "2025-12-02 06:06:45.700568",
+    "report_generated": false
+  },
+  {
+    "question": "At line 243 in handleLockData(), the position ID uniquely identifies a combination of NFT ID and tick range. Could two users who happen to have the same position parameters (salt, tickLower, tickUpper) interfere with each other's positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ab72cc34-5676-480d-ab1d-1ca4cc9ddd9f",
+    "timestamp": "2025-12-02 06:07:10.733748",
+    "report_generated": false
+  },
+  {
+    "question": "The getPositionFeesAndLiquidity() at line 43 requires explicit tickLower and tickUpper parameters. Could a user query the wrong tick range and make decisions based on incorrect position data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b8bafd4a-a5fa-496a-a148-c52d8905456e",
+    "timestamp": "2025-12-02 06:07:36.400346",
+    "report_generated": false
+  },
+  {
+    "question": "In collectFees() at line 100, only the NFT ID and pool key are provided, not the tick range. If the same NFT has multiple positions in the same pool, how does the contract determine which position's fees to collect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_80bbc71f-c2ae-4e15-b12b-3430b0e03c3f",
+    "timestamp": "2025-12-02 06:08:03.934629",
+    "report_generated": false
+  },
+  {
+    "question": "Since a single NFT ID can map to multiple positions (different tick ranges), could a user confuse which position they're operating on when calling deposit() or withdraw(), accidentally adding liquidity to the wrong tick range?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2bb41c64-0ea1-426b-85f7-52d28f0653fb",
+    "timestamp": "2025-12-02 06:08:31.792315",
+    "report_generated": false
+  },
+  {
+    "question": "In withdraw() at line 128, the recipient parameter allows sending withdrawn tokens to any address. Could this be exploited in a flash loan attack where tokens are withdrawn to a attacker-controlled address, used for manipulation, and then the original position is somehow restored?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6348e81d-91a4-4868-a159-72973e232c82",
+    "timestamp": "2025-12-02 06:08:59.634097",
+    "report_generated": false
+  },
+  {
+    "question": "The getPositionFeesAndLiquidity() view function at line 43 is not protected against front-running. Could a user query this function to see their accumulated fees, then have a front-runner dilute those fees before the user's collectFees() transaction executes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ecb392c8-fcbc-402b-b0e9-8371268383be",
+    "timestamp": "2025-12-02 06:09:29.514873",
+    "report_generated": false
+  },
+  {
+    "question": "At line 82, maxLiquidity() determines how much of maxAmount0 and maxAmount1 to actually use. Could a user intentionally set very high maxAmount values, and a front-runner manipulates the price to cause an unexpectedly large deposit?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13c6ba71-556b-45d0-86c8-03789f84605f",
+    "timestamp": "2025-12-02 06:10:00.586459",
+    "report_generated": false
+  },
+  {
+    "question": "In deposit() at line 80, sqrtRatio is read from poolState. Between reading this value and the actual updatePosition() call at line 243, could the pool price change due to another transaction, causing the deposit to execute at a different price?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc778079-dbf2-49e6-9d04-351902a51661",
+    "timestamp": "2025-12-02 06:10:32.678582",
+    "report_generated": false
+  },
+  {
+    "question": "The mintAndDeposit() at line 166 combines minting and depositing in one transaction. However, the NFT ID generation depends on gas() at line 113 in BaseNonfungibleToken. Could a front-runner cause the mint to generate a different ID than expected by manipulating gas prices?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f469a8ab-9187-4a3b-8029-db5b94fb4a6e",
+    "timestamp": "2025-12-02 06:11:05.462866",
+    "report_generated": false
+  },
+  {
+    "question": "At line 106 in collectFees(), fees are collected without any slippage protection. Could an attacker front-run fee collection by depositing massive liquidity, diluting the fees per liquidity, and causing the collector to receive fewer fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cbe236b3-61b2-4677-b89b-87126921ff61",
+    "timestamp": "2025-12-02 06:11:37.988056",
+    "report_generated": false
+  },
+  {
+    "question": "In withdraw() at line 120, there's no minAmount0 or minAmount1 parameter. Could a sandwich attacker manipulate the pool price immediately before the withdrawal, causing the user to receive fewer tokens than expected?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afc80b35-65eb-47dd-8008-884ac6c7de0d",
+    "timestamp": "2025-12-02 06:12:08.834826",
+    "report_generated": false
+  },
+  {
+    "question": "The deposit() function has no deadline parameter. Could a transaction be held in the mempool indefinitely, and when finally executed, the pool price has changed so much that the deposit happens at very unfavorable terms despite passing minLiquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e3b0794-9192-4a73-ba33-ad3e85d53430",
+    "timestamp": "2025-12-02 06:12:40.369021",
+    "report_generated": false
+  },
+  {
+    "question": "At line 82, maxLiquidity() is calculated using the current sqrtRatio from poolState. If a malicious MEV bot front-runs the deposit transaction with a large swap, could this drastically change the liquidity calculation, causing the depositor to provide a very different token ratio than intended?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6bc425f3-21d4-48f4-b82d-541ec628ed87",
+    "timestamp": "2025-12-02 06:13:12.861951",
+    "report_generated": false
+  },
+  {
+    "question": "In deposit() at lines 85-87, minLiquidity is checked against the calculated liquidity. Could a front-runner manipulate the pool price by swapping tokens, causing maxLiquidity() to return a value slightly below minLiquidity, making the victim's deposit fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_11e834a1-27b4-45a1-83b6-09f4f0ee03b5",
+    "timestamp": "2025-12-02 06:13:43.453845",
+    "report_generated": false
   }
 ]
