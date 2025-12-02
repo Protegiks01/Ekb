@@ -14398,5 +14398,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7a022aa9-7b92-4560-8485-0b77a1b57c06",
     "timestamp": "2025-12-02 11:08:43.312938",
     "report_generated": false
+  },
+  {
+    "question": "If a malicious Core implementation is deployed at the address used by CoreLib, could it return fake storage values to manipulate swaps, positions, or fee claims?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b238c8b6-c987-478b-93de-7aa8b2001ec4",
+    "timestamp": "2025-12-02 11:09:50.591596",
+    "report_generated": false
+  },
+  {
+    "question": "Since CoreLib reads Core's storage directly via sload, if Core's storage layout changes in an upgrade without updating CoreStorageLayout, could all CoreLib functions read garbage data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e1c94e01-8aa5-4b55-8a8a-dac4c3d3ac1c",
+    "timestamp": "2025-12-02 11:10:04.232367",
+    "report_generated": false
+  },
+  {
+    "question": "If tick bitmaps are corrupted and indicate a tick is initialized when it's not, could CoreLib.poolTicks() return zero liquidity, causing swaps to skip that tick incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_320f4fdf-6f80-42f9-802d-bb0d05b4e9ad",
+    "timestamp": "2025-12-02 11:10:18.243968",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.poolTicks() is called for a tick that is being concurrently flipped by a swap, could the read return inconsistent liquidityDelta vs liquidityNet, breaking liquidity tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dbcaa3f5-49b3-495e-b596-01142d18faae",
+    "timestamp": "2025-12-02 11:10:32.376099",
+    "report_generated": false
+  },
+  {
+    "question": "If fees-per-liquidity-outside values overflow for a tick, could CoreLib.poolTicks() return incorrect liquidityNet, causing fee calculations in position.fees() to be wrong?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f646c3b-b3f5-4c48-ab92-cea9cc2ff43a",
+    "timestamp": "2025-12-02 11:10:49.237534",
+    "report_generated": false
+  },
+  {
+    "question": "If fees-per-liquidity value0 or value1 overflows type(uint256).max over time, could CoreLib.getPoolFeesPerLiquidity() return wrapped values that make new positions appear to owe huge negative fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_82b8eb8e-5728-40c4-a5b8-6eb883b67b0c",
+    "timestamp": "2025-12-02 11:11:07.328110",
+    "report_generated": false
+  },
+  {
+    "question": "If extraData is user-controlled and used by extensions for authorization, could an attacker manipulate extraData via setExtraData to bypass extension access controls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a7140cf-2be9-493c-901d-73f67f1f9824",
+    "timestamp": "2025-12-02 11:11:27.507976",
+    "report_generated": false
+  },
+  {
+    "question": "In poolPositions(), extraData is loaded from storage. If malicious owner sets extraData to craft specific bit patterns, could this corrupt the unpacking of liquidity or fees-per-liquidity?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_13228d03-f06b-4edd-b15d-beff4f7bcc06",
+    "timestamp": "2025-12-02 11:11:48.892293",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.swap() is called with poolKey pointing to freed memory, could mcopy read garbage data and cause the swap to execute against an invalid pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_22a98661-9fad-4aaf-94b8-389547d41416",
+    "timestamp": "2025-12-02 11:12:12.222151",
+    "report_generated": false
+  },
+  {
+    "question": "In CoreLib.swap() line 134, mcopy is used to copy PoolKey. If mcopy has a compiler bug or is not available in the deployment EVM, could the fallback behavior corrupt memory?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b62bfabb-4a36-4755-a26b-6a7fe4638d13",
+    "timestamp": "2025-12-02 11:12:35.721117",
+    "report_generated": false
+  },
+  {
+    "question": "If savedBalances are used to temporarily store tokens during complex operations, could CoreLib.savedBalances() returning stale values cause tokens to be lost or double-counted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_75fa65b6-5580-4670-9458-0aeda16465f0",
+    "timestamp": "2025-12-02 11:13:00.802007",
+    "report_generated": false
+  },
+  {
+    "question": "In updateSavedBalances (Core.sol lines 124-171), the assembly addDelta function checks for overflow. But if CoreLib.savedBalances() is called before updateSavedBalances settles, could race conditions allow double-spending of saved balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bfa837c8-26b6-4a77-b8dc-483a6a5ce979",
+    "timestamp": "2025-12-02 11:13:27.303152",
+    "report_generated": false
+  },
+  {
+    "question": "If a swap in pool A triggers an extension that swaps in pool B via CoreLib.swap(), could nested lock handling in FlashAccountant corrupt delta tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8346220a-1e66-46a7-8be7-160f88fe444c",
+    "timestamp": "2025-12-02 11:13:53.795930",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib functions are called for two different pools in the same transaction, could storage slot collisions cause operations on pool A to corrupt pool B's state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_27dd361d-b53a-4e19-8e02-9690da57b510",
+    "timestamp": "2025-12-02 11:14:22.761807",
+    "report_generated": false
+  },
+  {
+    "question": "If an extension is registered, then its registration storage is corrupted, could CoreLib.isExtensionRegistered() return false mid-transaction, causing extension hooks to be skipped and breaking pool invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0845bdb8-2117-4cf8-b75d-ea1de8db7d41",
+    "timestamp": "2025-12-02 11:14:52.877317",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.isExtensionRegistered() returns true for a malicious extension, could that extension call CoreLib.swap() with crafted parameters to drain pools via beforeSwap/afterSwap hooks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4ddce3ab-987b-4e4d-95af-9ec869385d9a",
+    "timestamp": "2025-12-02 11:15:24.411637",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.poolTicks() is called for all ticks in a range, could the returned liquidityNet data be used to predict upcoming tick crossings and front-run swaps?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_535d80fb-a61d-4e5b-b00e-8ba7ac2657aa",
+    "timestamp": "2025-12-02 11:15:56.533691",
+    "report_generated": false
+  },
+  {
+    "question": "Could an attacker use CoreLib read functions to probe Core's storage layout, identify pools with high liquidity or fees, and target them for MEV extraction or flash loan attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f67a53e-aadf-4a63-9b5c-5676f56ebc92",
+    "timestamp": "2025-12-02 11:16:31.146950",
+    "report_generated": false
+  },
+  {
+    "question": "The protocol uses assembly with 'memory-safe' annotation. If the compiler's memory safety checker has false negatives, could CoreLib functions corrupt memory without detection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ffa55c2b-8857-464a-ba0b-08bfd9f3c67a",
+    "timestamp": "2025-12-02 11:17:05.967517",
+    "report_generated": false
+  },
+  {
+    "question": "CoreLib uses Solidity >=0.8.30, which is experimental. Could compiler bugs in assembly or mcopy opcode cause memory corruption in CoreLib.swap()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e91e62c-9459-4060-9e6b-87b311a1ab50",
+    "timestamp": "2025-12-02 11:17:38.218775",
+    "report_generated": false
+  },
+  {
+    "question": "In swapParameters.amount(), if signextend fails for amount = type(int128).min, could the swap execute with incorrect amount, draining the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f1e48bd3-1055-4dbe-b83d-dafa38b0335b",
+    "timestamp": "2025-12-02 11:18:11.803442",
+    "report_generated": false
+  },
+  {
+    "question": "If poolTicks() returns liquidityDelta = type(int128).min, could arithmetic operations on this value overflow due to lack of valid negation (abs(type(int128).min) > type(int128).max)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_33e02e3c-266b-4763-abea-b4db0a58cc93",
+    "timestamp": "2025-12-02 11:18:46.135949",
+    "report_generated": false
+  },
+  {
+    "question": "In position.fees(), if fullMulDivN rounds down and the result is cast to uint128, could cumulative rounding errors cause significant fee loss for positions with many fee updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_16417e13-0389-4bb1-9ec2-15a44282608d",
+    "timestamp": "2025-12-02 11:19:21.699555",
+    "report_generated": false
+  },
+  {
+    "question": "In feesPerLiquidity calculations, if amounts are very small relative to liquidity, could division in feesPerLiquidityFromAmounts() round down to 0, causing LPs to lose fees over many updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e8e3e0b4-e187-4088-9bee-a1116c5e4d81",
+    "timestamp": "2025-12-02 11:19:57.200039",
+    "report_generated": false
+  },
+  {
+    "question": "If CoreLib.savedBalances() reads balances that were partially settled in a nested lock, could the read return inconsistent values that violate flash accounting invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94e5843a-8831-4ba2-a90c-7823f4e93747",
+    "timestamp": "2025-12-02 11:20:34.185490",
+    "report_generated": false
   }
 ]
