@@ -9148,5 +9148,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6bb4c07e-ce96-461e-bc05-6da4db2d7a65",
     "timestamp": "2025-12-02 03:54:54.517514",
     "report_generated": false
+  },
+  {
+    "question": "The `TWAMMStorageLayout.poolTimeInfosSlot()` function adds `TIME_INFOS_OFFSET` to `poolId + time`. Could extremely large `time` values cause this addition to overflow uint256 and wrap around to low storage slots, potentially colliding with Core contract storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a182ef6f-7741-4d52-b293-186d805dfec5",
+    "timestamp": "2025-12-02 03:56:07.469911",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 78), `TWAMMStorageLayout.poolTimeInfosSlot(poolId, allValidTimes[i])` calculates storage slots. Could the formula in TWAMMStorageLayout cause slot collisions if `poolId` and `time` combine to produce overlapping offsets with other TWAMM storage regions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_607fd328-938a-428a-b37c-5e00d8c71f94",
+    "timestamp": "2025-12-02 03:56:21.051270",
+    "report_generated": false
+  },
+  {
+    "question": "In `executeVirtualOrdersAndGetPoolState()`, if the TWAMM extension's `lockAndExecuteVirtualOrders()` function has a bug that doesn't properly revert failed virtual order execution, could partially executed orders corrupt pool state in a way that's reflected in the returned state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4e3e55a5-24af-4019-9fff-b231b3050e58",
+    "timestamp": "2025-12-02 03:56:34.508534",
+    "report_generated": false
+  },
+  {
+    "question": "In `executeVirtualOrdersAndGetPoolState()`, could calling this function at strategic times (e.g., right before or after key timestamps) allow MEV searchers to manipulate virtual order execution to their advantage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b225ab8a-51d7-455f-89c0-0366950c7663",
+    "timestamp": "2025-12-02 03:56:48.607901",
+    "report_generated": false
+  },
+  {
+    "question": "In `executeVirtualOrdersAndGetPoolState()`, the function doesn't validate `poolKey`. Could an attacker pass an invalid or malicious pool key that causes `lockAndExecuteVirtualOrders()` to corrupt state or drain funds from unrelated pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c0dcaaac-dcd2-4f88-ac41-3cf54c1f2bca",
+    "timestamp": "2025-12-02 03:57:03.515708",
+    "report_generated": false
+  },
+  {
+    "question": "In `executeVirtualOrdersAndGetPoolState()`, if `lockAndExecuteVirtualOrders()` reverts due to pool being frozen or extension failure, could this make it impossible to retrieve pool state through this function, affecting monitoring systems?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ec11417e-c0c8-497f-a810-f96e9b2a28dc",
+    "timestamp": "2025-12-02 03:57:19.578318",
+    "report_generated": false
+  },
+  {
+    "question": "In `executeVirtualOrdersAndGetPoolState()`, after executing virtual orders, `getPoolState()` is called immediately. Could the state read be inconsistent if virtual order execution triggers callbacks or extension hooks that further modify state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e2aa1920-6394-410b-a948-77c2a32c956f",
+    "timestamp": "2025-12-02 03:57:38.122961",
+    "report_generated": false
+  },
+  {
+    "question": "In `executeVirtualOrdersAndGetPoolState()` (line 119), `lockAndExecuteVirtualOrders()` modifies TWAMM state. Could reentrancy through this function call allow an attacker to execute virtual orders multiple times in a single transaction, violating flash accounting invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4ab565c0-2870-4f59-a42d-24b8ad8724be",
+    "timestamp": "2025-12-02 03:57:58.085194",
+    "report_generated": false
+  },
+  {
+    "question": "In `executeVirtualOrdersAndGetPoolState()` (line 118-121), the function is marked `public` and calls `TWAMM_EXTENSION.lockAndExecuteVirtualOrders()`. Could an attacker call this function repeatedly to execute virtual orders at will, potentially manipulating pool prices or causing DoS by consuming gas?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6ed99811-2aac-462d-a2dd-b6adcef603e1",
+    "timestamp": "2025-12-02 03:58:20.380292",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()`, the function assumes `TWAMM_EXTENSION` is a valid, non-malicious contract. Could a scenario where TWAMM extension is upgraded or replaced cause this lens contract to read from a malicious implementation that returns crafted data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_beda33c6-0d4f-4712-b620-3299c17342c4",
+    "timestamp": "2025-12-02 03:58:43.339156",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 88-100), the loop iterates through `allValidTimes.length` to extract time info. Could an extremely large number of valid times cause this loop to exceed block gas limits, making the function unusable for certain pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_24cbbe67-cb8c-40b4-a338-74c95fd0d7c0",
+    "timestamp": "2025-12-02 03:59:08.207712",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()`, if the TWAMM extension's `sload()` function has a different implementation than expected, could it return malformed data that passes the `assert(success)` check but contains corrupted values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0ec16341-c4c0-47fb-b150-63ce7d684919",
+    "timestamp": "2025-12-02 03:59:33.150183",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 82), `abi.encodePacked()` is used with selector and storage slots. Could the packed encoding of storage slots cause ambiguity or incorrect decoding in the TWAMM extension's `sload()` implementation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a48930f3-071e-4eb2-b3cf-a38348bbb93b",
+    "timestamp": "2025-12-02 03:59:59.778343",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 75-79), `timeInfoSlots` array is created with length `allValidTimes.length`. If `getAllValidFutureTimes()` returns an array with manipulated length (via assembly), could this cause the storage slot batch read to access incorrect storage locations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_10552be3-c058-4917-886a-da7723e7ecff",
+    "timestamp": "2025-12-02 04:00:27.844139",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()`, the function reads `saleRateToken0` and `saleRateToken1` from TWAMM pool state. Could a malicious pool with manipulated sale rates cause overflow when these values are used in subsequent calculations by external contracts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f9c0caa-b250-4e11-88a5-4e9e5c778281",
+    "timestamp": "2025-12-02 04:00:58.255014",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 106-114), the returned `PoolState` struct includes `lastVirtualOrderExecutionTime` calculated at line 70. Could incorrect time calculation cause dependent protocols to make wrong assumptions about order execution timing, leading to arbitrage or MEV opportunities?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8b64a132-216d-4537-b203-42898901b7f9",
+    "timestamp": "2025-12-02 04:01:29.556422",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 102-104), assembly directly modifies the `saleRateDeltas` array length. If `countNonZero` is calculated incorrectly, could this create a length mismatch that causes subsequent array accesses to revert or read uninitialized memory?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9c5bea71-fa6b-40ca-9543-c7c02c52c508",
+    "timestamp": "2025-12-02 04:02:02.110860",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 96-99), non-zero `numOrders` determines which time info is included in `saleRateDeltas`. Could an attacker manipulate order creation to cause all times to have non-zero orders, making `countNonZero` equal to `allValidTimes.length` and consuming excessive gas or memory?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8ae90236-a081-4f95-b686-f6016f6bf802",
+    "timestamp": "2025-12-02 04:02:34.303168",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 94), `timeInfo.parse()` extracts packed data including signed integers `saleRateDeltaToken0` and `saleRateDeltaToken1`. Could sign extension bugs in the parsing logic cause negative values to be interpreted as large positive values, corrupting the returned state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6a41297e-9649-4d44-9224-934713dd12eb",
+    "timestamp": "2025-12-02 04:03:09.030824",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 90-92), assembly is used to extract `TimeInfo` from the result bytes. Could misalignment of the memory offset calculation `add(result, mul(add(i, 1), 32))` cause reading from incorrect memory locations and returning corrupted sale rate data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_24d5cbbf-09ab-4f69-9f07-25d1095c8fb4",
+    "timestamp": "2025-12-02 04:03:42.382123",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 83), the function uses `assert(success)` instead of proper error handling. Could a failed staticcall due to gas exhaustion or TWAMM contract issues cause the transaction to consume all gas and potentially grief users or integrated protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_def0e768-f967-4600-a6a3-324210830293",
+    "timestamp": "2025-12-02 04:04:14.178481",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 81-82), a `staticcall` is made to `TWAMM_EXTENSION.sload()` with dynamically calculated storage slots. Could an attacker craft a `poolKey` that causes the storage slot calculation to read from sensitive storage locations in the TWAMM contract, leaking private data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1da89ad5-7dc4-45e4-ac62-210fcc9415e4",
+    "timestamp": "2025-12-02 04:04:47.251583",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 77-79), storage slots are calculated for all valid future times using `TWAMMStorageLayout.poolTimeInfosSlot()`. Could an attacker manipulate the pool state to cause `allValidTimes` to contain extremely large values that result in storage slot collisions with other protocol data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d73bef21-84d2-4c79-b69f-2dba72ffef50",
+    "timestamp": "2025-12-02 04:05:20.179043",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 66-68), pool state is fetched from both Core and TWAMM extension separately. Could there be a race condition where the TWAMM state is updated between these two calls, leading to inconsistent state data being returned?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3149a596-2232-4867-93da-0597b917797d",
+    "timestamp": "2025-12-02 04:05:52.837054",
+    "report_generated": false
+  },
+  {
+    "question": "In `getPoolState()` (line 70), `lastTimeReal` is calculated as `uint64(block.timestamp - (uint32(block.timestamp) - lastVirtualOrderExecutionTime))`. Could the double casting and subtraction cause unexpected wrapping behavior when `lastVirtualOrderExecutionTime` is very large or `block.timestamp` wraps around uint32 boundaries?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f055822d-5d9a-455b-8cfc-f2e8df9fdb2e",
+    "timestamp": "2025-12-02 04:06:26.916193",
+    "report_generated": false
   }
 ]
