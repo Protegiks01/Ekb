@@ -8248,5 +8248,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1077c349-f98e-4662-8389-4db33a41f4b5",
     "timestamp": "2025-12-02 02:27:45.583961",
     "report_generated": false
+  },
+  {
+    "question": "Since `burn()` allows the NFT to be re-minted with the same ID (line 130 comment), if a user burns an NFT, and a frontrunner immediately mints it (if they know the original salt), could the frontrunner claim ownership of the newly minted NFT before the original owner can re-mint, effectively stealing the NFT ID and any associated positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e10f2fc6-2606-4542-b3ee-0bcfc73e408f",
+    "timestamp": "2025-12-02 02:29:21.950562",
+    "report_generated": false
+  },
+  {
+    "question": "The `authorizedForNft` modifier (lines 81-86) checks `_isApprovedOrOwner(msg.sender, id)` before allowing burn. However, if an approval was granted conditionally (e.g., by a smart contract wallet with certain restrictions), and those conditions are no longer met, could the burn still succeed because ERC721 approval is unconditional, violating the wallet's security assumptions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5cc258c6-8885-489b-833c-a5480912d3b4",
+    "timestamp": "2025-12-02 02:29:35.343623",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.withdraw() (line 128), the function requires `authorizedForNft(id)`. If a user's NFT is burned by an approved operator immediately before they try to withdraw, the withdrawal will fail, and their liquidity is locked unless they re-mint the exact same NFT (requiring knowledge of the original salt). Could this be used for griefing attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_591adcb2-8012-4d84-8efc-568c800b4ca8",
+    "timestamp": "2025-12-02 02:29:49.171634",
+    "report_generated": false
+  },
+  {
+    "question": "The `burn()` function (line 133) doesn't check if the NFT is involved in any active operations (e.g., if a withdraw is in progress in another transaction in the same block). Could this cause race conditions where a burn succeeds but ongoing operations expect the NFT to exist, leading to reverts or state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_64f73dd5-8faf-4466-a7ff-08e1e684708d",
+    "timestamp": "2025-12-02 02:30:03.392849",
+    "report_generated": false
+  },
+  {
+    "question": "If child contracts cache NFT ownership data for gas optimization, and `burn()` is called, the cache becomes stale. Could an attacker exploit this by burning an NFT, causing cached data to incorrectly show them as authorized for operations they should no longer be able to perform?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b5460240-94d6-4504-bc12-3bf6b42488df",
+    "timestamp": "2025-12-02 02:30:18.371220",
+    "report_generated": false
+  },
+  {
+    "question": "The comment at line 129 states 'Can be used to refund some gas after the NFT is no longer needed.' If users burn NFTs to save gas without realizing they lose access to positions, could this become a common user error that results in locked funds, effectively violating the protocol's promise that all positions are withdrawable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c657b3ad-7a38-41bd-8a68-9252092432c0",
+    "timestamp": "2025-12-02 02:30:34.600612",
+    "report_generated": false
+  },
+  {
+    "question": "In `burn()` (line 134), if the ID being burned is 0 or another special value, and child contracts use 0 to represent 'no position', could burning ID 0 cause unexpected behavior where systems think positions have been deleted when they haven't been?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0910eb27-5a98-421e-8dea-336b992d2c6d",
+    "timestamp": "2025-12-02 02:30:53.004778",
+    "report_generated": false
+  },
+  {
+    "question": "The `burn()` function (line 133) is external, meaning it can be called by other contracts. If a malicious contract is granted approval and then burns NFTs in a batch operation, could this cause mass griefing where many users simultaneously lose access to their positions, violating the Withdrawal Availability invariant at scale?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_845e9f86-8aa5-4914-8ca9-ca8b5a5b3157",
+    "timestamp": "2025-12-02 02:31:12.357040",
+    "report_generated": false
+  },
+  {
+    "question": "The `authorizedForNft` modifier (lines 81-86) checks `_isApprovedOrOwner(msg.sender, id)` which allows both the owner and approved addresses to perform operations. In BasePositions.withdraw() (line 128), if a user approves a router to collect fees on their behalf, that router could instead withdraw all liquidity. Could this lead to unauthorized fund withdrawal if users don't understand the scope of approval?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e7adab99-9a82-4bb5-b3e1-0da26278fb1f",
+    "timestamp": "2025-12-02 02:31:33.372346",
+    "report_generated": false
+  },
+  {
+    "question": "In the `authorizedForNft` modifier (line 82), the check is done via `_isApprovedOrOwner()` from Solady's ERC721. If there's a reentrancy opportunity where approval state changes mid-transaction (e.g., during an onERC721Received callback), could an attacker gain temporary authorization and perform unauthorized operations before the approval is revoked?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6e739e07-3476-4780-ab51-80157f0f9c57",
+    "timestamp": "2025-12-02 02:31:55.950188",
+    "report_generated": false
+  },
+  {
+    "question": "The error name `NotUnauthorizedForToken` (line 19) appears to be a double negative (should be `NotAuthorizedForToken`). While this doesn't affect security directly, could the confusing naming cause developers to misinterpret error conditions when building integrations, potentially leading to security vulnerabilities in dependent systems?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5fbbff6f-dd13-45a8-a562-ffc98cf3c6c4",
+    "timestamp": "2025-12-02 02:32:18.892481",
+    "report_generated": false
+  },
+  {
+    "question": "The `authorizedForNft` modifier (line 81-86) only checks authorization at the start of the function. If a function with this modifier performs multiple operations, and the NFT is transferred mid-execution (e.g., via a callback), could the original caller continue to operate on the NFT even though they're no longer authorized?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc4d85b1-da03-4be8-8252-4d7102abf70b",
+    "timestamp": "2025-12-02 02:32:44.294693",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.deposit() (line 79), the `authorizedForNft(id)` check is performed, but the actual minting happens to msg.sender in the lock callback. If msg.sender differs from the NFT owner (e.g., if the owner approved msg.sender), could there be confusion about who receives the liquidity vs who owns the NFT?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b70b117e-3c84-49db-97d1-a3ec4db9149a",
+    "timestamp": "2025-12-02 02:33:10.928000",
+    "report_generated": false
+  },
+  {
+    "question": "The `authorizedForNft` modifier (line 81) is applied to public functions like `deposit()`, `withdraw()`, and `burn()`. If a child contract introduces a function that modifies positions but forgets to add this modifier, could unprivileged users gain unauthorized access to position operations, violating the Position Ownership invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f20f3f54-d3a8-453f-82d2-ec89f0461cd7",
+    "timestamp": "2025-12-02 02:33:37.149966",
+    "report_generated": false
+  },
+  {
+    "question": "In Solady's ERC721, approval can be granted via `approve()` or `setApprovalForAll()`. The `authorizedForNft` modifier treats both equally. If a user grants setApprovalForAll() to a router for one position, that router can now modify ALL positions. Could this be exploited if users don't realize the scope of blanket approval?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4fb5f0f2-90cf-483b-85ae-81d1ed739486",
+    "timestamp": "2025-12-02 02:34:05.210020",
+    "report_generated": false
+  },
+  {
+    "question": "The `authorizedForNft` modifier (line 81) checks `_isApprovedOrOwner(msg.sender, id)`, but if the NFT doesn't exist (was burned or never minted), does `_isApprovedOrOwner` return false or revert? If it returns false, the custom error is thrown. Could an attacker use non-existent IDs to trigger unexpected error handling in external systems?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_486612a8-3d68-4838-9388-51295aec1f46",
+    "timestamp": "2025-12-02 02:34:33.687526",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions, if two users co-own a multi-sig wallet that owns an NFT, and one user approves themselves individually, they can now unilaterally withdraw from positions. Could this violate the multi-sig's security assumptions and allow one party to rug the other, effectively stealing funds from the joint position?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8b7e43ef-f33e-4a42-a4db-ea9e338cd575",
+    "timestamp": "2025-12-02 02:35:02.955687",
+    "report_generated": false
+  },
+  {
+    "question": "The `authorizedForNft` modifier (line 81) is evaluated once at function entry. If the function makes external calls that could change authorization state (e.g., transferring the NFT to another address that then revokes approval), could the authorization check become stale, allowing operations by no-longer-authorized callers?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4b6c5b80-bc60-462a-804a-6033ac20dd9a",
+    "timestamp": "2025-12-02 02:35:33.085289",
+    "report_generated": false
+  },
+  {
+    "question": "In Orders.sol, the `authorizedForNft` modifier is used on functions like `increaseSellAmount()` (line 56) and `collectProceeds()` (line 110). If a user approves a TWAMM trading bot to manage their orders, could that bot steal all order proceeds by calling collectProceeds() before the user can claim them?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8116ea79-426e-42a5-8bee-85bee243ce90",
+    "timestamp": "2025-12-02 02:36:04.340814",
+    "report_generated": false
+  },
+  {
+    "question": "The `_isApprovedOrOwner()` function from ERC721 checks if msg.sender is the owner, has single-token approval, or has operator approval. If there's a timing attack where an attacker watches for approval transactions and front-runs with an operation before the approval is set, could they grief the user by making the approved operation fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4f2721eb-acda-43be-a34e-d11d4b7e6334",
+    "timestamp": "2025-12-02 02:36:34.723681",
+    "report_generated": false
+  },
+  {
+    "question": "If BasePositions or Orders implements additional access control beyond `authorizedForNft`, could there be a scenario where a user passes the NFT authorization check but fails a subsequent check, causing partial state changes that violate invariants? For example, if withdrawal protocol fees are collected before the final recipient check fails?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d221c7df-fcfd-4f7e-b2d8-dffe0329d881",
+    "timestamp": "2025-12-02 02:37:06.182561",
+    "report_generated": false
+  },
+  {
+    "question": "The `authorizedForNft` modifier (line 81) doesn't differentiate between owners and approved operators. If protocol logic assumes only owners can perform certain operations (e.g., BasePositions.withdrawProtocolFees is onlyOwner at line 189, but position operations use authorizedForNft), could there be privilege confusion attacks?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7f8ed8af-2e56-4334-9b3a-89d2b4a0fd61",
+    "timestamp": "2025-12-02 02:37:37.636487",
+    "report_generated": false
+  },
+  {
+    "question": "In BasePositions.deposit() (line 79), if the NFT owner approves a router, the router can call deposit() with any msg.sender. However, the function pulls tokens from msg.sender, not the NFT owner. Could an attacker trick a router into depositing their tokens to the victim's position, then claim it was accidental and demand refund, causing protocol admin headaches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f7f32d5f-d827-4804-9050-dc8105b1b11d",
+    "timestamp": "2025-12-02 02:38:06.785015",
+    "report_generated": false
+  },
+  {
+    "question": "The `authorizedForNft` modifier allows approved operators, but BaseNonfungibleToken doesn't track why approval was granted. If a user approves a marketplace to transfer their NFT (standard use case), that marketplace can also call deposit(), withdraw(), burn(), etc. Could this unexpected scope of approval be exploited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d6058146-3ba3-4d3b-a769-1de1f9b504e8",
+    "timestamp": "2025-12-02 02:38:37.223245",
+    "report_generated": false
+  },
+  {
+    "question": "In the `authorizedForNft` modifier (line 82), if `_isApprovedOrOwner()` has a bug in Solady's implementation (e.g., off-by-one errors, or incorrect handling of operator approval), could attackers exploit this to bypass authorization and modify any position, causing massive fund theft?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31f450b9-b7f2-4cc7-92c9-1d06e270a628",
+    "timestamp": "2025-12-02 02:39:08.866560",
+    "report_generated": false
   }
 ]
