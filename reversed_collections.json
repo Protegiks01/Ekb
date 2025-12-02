@@ -13048,5 +13048,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0810684d-7b38-4d60-8cfe-7459862874c4",
     "timestamp": "2025-12-02 09:24:40.457700",
     "report_generated": false
+  },
+  {
+    "question": "The assembly sstore(token, state) operation (line 169 in RevenueBuybacks.sol) writes state to storage slot calculated from token address. Could two different token addresses with carefully crafted values hash to the same storage slot (keccak256 collision), allowing one token's configuration to overwrite another's?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d4046569-eeca-4349-bedd-698f4f118752",
+    "timestamp": "2025-12-02 09:25:52.362437",
+    "report_generated": false
+  },
+  {
+    "question": "When roll() updates state after creating a new order (lines 119-126), it sets lastEndTime to uint32(endTime). Could endTime exceeding uint32 max (e.g., if block.timestamp is large) cause truncation, and would subsequent roll() calls compare truncated lastEndTime against full block.timestamp, breaking order extension logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_909ee9c8-db65-412f-a04b-c3bfe08ada90",
+    "timestamp": "2025-12-02 09:26:05.447631",
+    "report_generated": false
+  },
+  {
+    "question": "The minOrderDuration check (line 97 in RevenueBuybacks.sol) requires state.isConfigured(), which only checks minOrderDuration != 0. Could an owner set minOrderDuration to 1 but targetOrderDuration to 0, and would this cause roll() to create orders with 0 duration, violating TWAMM invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ae8dd08c-dfbb-4b62-92b5-b81bf9a2d5b9",
+    "timestamp": "2025-12-02 09:26:18.708946",
+    "report_generated": false
+  },
+  {
+    "question": "In createBuybacksState(), the _lastFee parameter is shifted left by 192 bits without masking (line 94 in buybacksState.sol). Could passing a _lastFee value larger than uint64 max cause upper bits to wrap around and corrupt lower fields like lastOrderDuration or lastEndTime?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c650b16d-aaeb-40ce-884d-aa6204b4ed80",
+    "timestamp": "2025-12-02 09:26:32.775762",
+    "report_generated": false
+  },
+  {
+    "question": "The targetOrderDuration extraction (lines 17-21 in buybacksState.sol) uses and(state, 0xFFFFFFFF). Could a BuybacksState value with all bits set to 1 cause this extraction to return 0xFFFFFFFF, and would passing this to nextValidTime() (line 117 in RevenueBuybacks.sol) cause overflow when added to block.timestamp?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_88fecb7d-ddae-4c4e-880d-bd24d3e74ab7",
+    "timestamp": "2025-12-02 09:26:47.931095",
+    "report_generated": false
+  },
+  {
+    "question": "When RevenueBuybacks.roll() stores updated state via assembly sstore(token, state) (line 129), could a malicious ERC20 token implement the token address to point to a contract that uses delegatecall, causing the sstore to modify storage in an unexpected contract context?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e0bbab12-1c03-48e3-9c16-4af8140d7964",
+    "timestamp": "2025-12-02 09:27:05.082960",
+    "report_generated": false
+  },
+  {
+    "question": "In the parse() function (lines 57-76 in buybacksState.sol), multiple assembly operations extract different fields. Could compiler optimization or memory safety issues cause values to overlap in memory, allowing one field's extraction to corrupt another field's value in the return tuple?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cdf2a07a-b434-4748-ae61-5400e1f2151d",
+    "timestamp": "2025-12-02 09:27:24.756595",
+    "report_generated": false
+  },
+  {
+    "question": "The lastOrderDuration field (lines 41-45 in buybacksState.sol) is limited to uint32. Could an order with duration exceeding uint32 max at creation time (via nextValidTime returning large values) cause truncation during state update (line 124 in RevenueBuybacks.sol), and would this break the timeRemaining >= lastOrderDuration check (line 111)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e70aa8ad-b116-4d86-8310-6f80a6c8c743",
+    "timestamp": "2025-12-02 09:27:44.287204",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.roll(), the state is read once at the beginning (lines 93-95) but may be read again during the fee comparison (line 110). Could a storage collision attack where token address maps to a mutable storage slot cause the fee value to change between these reads, bypassing the fee change detection and incorrectly extending orders across fee tier changes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_005f2341-e004-4a70-aed6-6f81d212c89d",
+    "timestamp": "2025-12-02 09:28:04.863598",
+    "report_generated": false
+  },
+  {
+    "question": "The assembly operation in createBuybacksState() uses shl(32, and(_minOrderDuration, 0xFFFFFFFF)) (line 89 in buybacksState.sol). Could passing _minOrderDuration with upper bits set cause these bits to be lost in the mask but reappear through bit manipulation errors, corrupting the stored state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cb922a2b-907e-4012-8af2-91a823fadf66",
+    "timestamp": "2025-12-02 09:28:26.942435",
+    "report_generated": false
+  },
+  {
+    "question": "When RevenueBuybacks.configure() updates state (lines 160-167), it preserves lastEndTime, lastOrderDuration, and lastFee from the old state. Could a race condition where roll() executes between two configure() calls cause the preserved values to become inconsistent with the new fee/duration parameters, leading to incorrect order extension decisions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dcdc3f7a-497a-4ad5-8521-bb495eeeaaa6",
+    "timestamp": "2025-12-02 09:28:49.070159",
+    "report_generated": false
+  },
+  {
+    "question": "The fee() function in buybacksState.sol (lines 29-33) extracts fee via shr(64, state). Could passing a BuybacksState with malicious bit patterns cause the extracted fee to exceed valid fee tier ranges, and if so, would this cause orders to revert in TWAMM or create orders on non-existent pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7fb89cec-6161-4d8f-ba0b-9b729a4b782a",
+    "timestamp": "2025-12-02 09:29:13.705890",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.roll() (line 94), assembly sload reads token state directly from storage. Could reentrancy during the ORDERS.increaseSellAmount call (line 134) allow a malicious token to call back into roll() with the same token address before sstore (line 129) updates the state, causing duplicate order creation with the same endTime?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_91e7c2aa-ebb8-410b-a836-6c6b6f02c5cc",
+    "timestamp": "2025-12-02 09:29:40.777630",
+    "report_generated": false
+  },
+  {
+    "question": "The isConfigured() check (lines 53-55 in buybacksState.sol) returns true only if minOrderDuration != 0. Could an attacker exploit this by calling roll() immediately after the owner sets minOrderDuration to 0 in configure(), causing the TokenNotConfigured revert to be bypassed and orders to be created with invalid parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_48b97631-3653-4bd5-a546-697dad919e57",
+    "timestamp": "2025-12-02 09:30:08.929404",
+    "report_generated": false
+  },
+  {
+    "question": "In createBuybacksState() (lines 78-97 in buybacksState.sol), multiple or() operations combine packed values. Could the order of operations cause bit collision where _lastFee (shl(192, _lastFee)) overwrites bits from _fee (shl(64, and(_fee, 0xFFFFFFFFFFFFFFFF))), corrupting the stored fee value and creating orders on wrong pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aa3b21e2-07d5-444f-8f7d-6a866c3b3bc5",
+    "timestamp": "2025-12-02 09:30:37.943056",
+    "report_generated": false
+  },
+  {
+    "question": "The lastEndTime field in BuybacksState (lines 35-38 in buybacksState.sol) is extracted via shr(128, state) and masked with 0xFFFFFFFF. Could improper handling of this value when block.timestamp exceeds uint32 max cause integer overflow in the timeRemaining calculation (line 105 in RevenueBuybacks.sol), leading to incorrect order extension logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6619639c-b95c-447c-87a5-9fdd69211ebc",
+    "timestamp": "2025-12-02 09:31:07.089645",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.configure() (lines 157-159), state is loaded via assembly sload(token) and then modified. If a token address coincidentally equals a storage slot containing critical contract state, could this allow unauthorized modification of that state through configure(), bypassing access controls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_762a48ab-0e97-41ba-bdc5-9b0f594bbdca",
+    "timestamp": "2025-12-02 09:31:36.098710",
+    "report_generated": false
+  },
+  {
+    "question": "The BuybacksState type uses bit packing across 256 bits with assembly operations in createBuybacksState() (lines 86-97 in buybacksState.sol). Could incorrect masking (e.g., missing 0xFFFFFFFF mask) allow upper bits from previous values to leak into targetOrderDuration, causing orders to be created with durations exceeding uint32 max and breaking time validation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_373b463e-3741-492d-bf92-2b73657e152d",
+    "timestamp": "2025-12-02 09:32:06.325202",
+    "report_generated": false
+  },
+  {
+    "question": "In RevenueBuybacks.roll() (lines 93-95), the BuybacksState is loaded directly via assembly sload(token). Could a malicious actor trigger storage collision by passing a crafted token address that maps to a storage slot used by another contract variable, corrupting the state and causing incorrect order creation parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f4f6006-e483-4a8d-9819-8e4fa3ad6cbd",
+    "timestamp": "2025-12-02 09:32:36.569658",
+    "report_generated": false
+  },
+  {
+    "question": "In `positionId.sol` line 11-15, the `salt()` function extracts salt as `shl(64, shr(64, positionId))`. This clears the lower 64 bits (ticks). If Core stores additional data in those bits, could extracting salt lose information, making positions unidentifiable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d74a6a37-df4a-43f7-ac9e-46b82a0dbf60",
+    "timestamp": "2025-12-02 09:33:07.678515",
+    "report_generated": false
+  },
+  {
+    "question": "In `CoreLib.sol` line 49-53, two sequential storage reads are done via `sload`. Between these reads, if an external call (e.g., to a malicious token) allows reentrancy, could the storage values change, causing the function to return inconsistent FeesPerLiquidity values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9965e43e-7c69-4260-8a35-9e00622e6c63",
+    "timestamp": "2025-12-02 09:33:40.089751",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 295-296, `CORE.updateSavedBalances` is called with `bytes32(0)` salt. If Core contract's storage layout changes or is corrupted, could this write to incorrect storage slots, corrupting other contract state or user balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_133eb8e5-fb11-49bb-8640-a8fca33165a9",
+    "timestamp": "2025-12-02 09:34:11.913467",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 319-322, withdrawal protocol fees are computed on withdrawn amounts. If a position is withdrawn in multiple small transactions, could accumulated rounding in `computeFee` cause total protocol fees to differ from a single large withdrawal, leading to protocol revenue leakage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a37bd35e-ed4b-41d4-9164-912be97ce077",
+    "timestamp": "2025-12-02 09:34:43.331121",
+    "report_generated": false
+  },
+  {
+    "question": "In `BasePositions.sol` line 293-300, swap protocol fees are subtracted from collected fees. If a user's position has been inactive (no fees accrued) but the protocol fee percentage is non-zero, could the subtraction at line 298-299 underflow, even though there are no fees to collect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f2181e9e-79bf-4da1-a233-b99f472a2bab",
+    "timestamp": "2025-12-02 09:35:15.008957",
+    "report_generated": false
+  },
+  {
+    "question": "In `Positions.sol` line 64-66, withdrawal protocol fee is only charged if both `fee != 0` and `WITHDRAWAL_PROTOCOL_FEE_DENOMINATOR != 0`. Could a pool with fee=0 allow fee-free liquidity provision/withdrawal, bypassing protocol revenue entirely for certain pools?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e963a222-a5ac-4c93-9b24-0cb2c3aa2685",
+    "timestamp": "2025-12-02 09:35:44.466955",
+    "report_generated": false
   }
 ]
