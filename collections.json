@@ -6748,5 +6748,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1500d733-fb4c-43b4-89fb-165e4a84ed40",
     "timestamp": "2025-12-02 00:34:03.995718",
     "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, since MEVCapture forces swaps through forward() by reverting in beforeSwap(), could an attacker craft calldata that bypasses the forwarding requirement?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e07dae9-486a-4410-b390-06c390b1ad47",
+    "timestamp": "2025-12-02 00:35:16.700452",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, when priority fee calculation uses block.basefee, could a miner manipulate basefee to corrupt MEV fee charges?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_462eb478-a1a1-4dcd-963f-303e28200041",
+    "timestamp": "2025-12-02 00:35:29.729683",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, if the forwarded swap data encodes a swap with zero amount, could this bypass MEV fee accumulation but still modify pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_af36c953-9599-4b81-86d6-953e59133912",
+    "timestamp": "2025-12-02 00:35:43.943317",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, when the extension calls CORE.swap() as temporary locker, could the swap modify debt in a way that violates flash accounting balance?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e366d968-d34f-4ad1-9ab1-be3bdd861d1f",
+    "timestamp": "2025-12-02 00:35:57.996021",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, if forwarded data contains nested abi.encode() of swap parameters, could decoding fail and leave the extension in inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b08cadba-1042-479e-b1ce-1ff22e0c3133",
+    "timestamp": "2025-12-02 00:36:12.745079",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, when MEVCapture accumulates fees via accumulatePoolFees(), could this be called recursively during forwarding to double-count fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00fc9472-647c-4b15-95cc-341c0a0a6675",
+    "timestamp": "2025-12-02 00:36:30.147403",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, if the original locker address in Locker parameter doesn't match the actual swapper, could fee attribution be incorrect?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc41f586-6055-4c1c-ae2f-b22cafe892ee",
+    "timestamp": "2025-12-02 00:36:47.966878",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, when the extension updates MEVCapturePoolState, could a forwarding race condition cause state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_da09aca6-870d-4381-a989-a07739fc0b8d",
+    "timestamp": "2025-12-02 00:37:09.212099",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, if forwarded data includes a slippage limit that can't be met, could the revert propagate correctly through BaseForwardee.forwarded_2374103877()?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2661ddcf-87d4-4e5e-b6d0-e5fd2f802bf6",
+    "timestamp": "2025-12-02 00:37:29.912332",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, when handling ETH value in forwarded swaps, could msg.value be lost or misattributed due to forwarding indirection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0f814eaf-ce00-4c7e-8f5c-18b7baac222d",
+    "timestamp": "2025-12-02 00:37:53.112202",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, if the extension calls FlashAccountant.withdraw() for pool tokens, could this violate solvency invariants?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4649448a-5559-4520-a390-ab77e9831924",
+    "timestamp": "2025-12-02 00:38:17.064372",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, when return data from CORE.swap() is encoded and returned through BaseForwardee assembly, could encoding mismatch cause decoding failures in MEVCaptureRouter?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0be96af8-91fc-4a25-acd7-88ad91efba52",
+    "timestamp": "2025-12-02 00:38:42.555497",
+    "report_generated": false
+  },
+  {
+    "question": "In MEVCapture.handleForwardData, if forwarded swap triggers beforeUpdatePosition callbacks, could recursive forwarding occur through position updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3ae959b9-9d2c-4b6b-84d5-c1a5da9f9c2d",
+    "timestamp": "2025-12-02 00:39:08.245451",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData implementation (lines 430-550 of TWAMM.sol), when TWAMM processes order operations via forwarding, could order state updates leave non-zero debt that violates flash accounting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c220e70a-ef8e-4b4c-a37f-1e9afe9abf44",
+    "timestamp": "2025-12-02 00:39:34.450427",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, when handling order placement, if the forwarded data encodes negative liquidity or invalid tick ranges, could this corrupt TWAMMStorageLayout slots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7bf9cc56-3c9e-44eb-8604-06c94ec7943a",
+    "timestamp": "2025-12-02 00:40:02.645045",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, if the original Locker parameter is used to authorize order ownership, could a forged Locker allow unauthorized order cancellation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_79e5c2c5-8eb8-4dd1-bfde-e5ac41bf5fdc",
+    "timestamp": "2025-12-02 00:40:31.838746",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, when TWAMM calls CORE.updateSavedBalances() as temporary locker, could this modify balances without proper debt tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1d098460-38cf-4798-b66c-ffc650114a2c",
+    "timestamp": "2025-12-02 00:41:02.076493",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, if forwarded data triggers virtual order execution during expired order withdrawal, could time-weighted calculations be manipulated?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c3672db4-0a92-4065-ae34-1d8f1ab18275",
+    "timestamp": "2025-12-02 00:41:33.357229",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, when processing order updates, if the extension calls FlashAccountant.withdraw() for filled orders, could withdrawal amounts exceed actual order proceeds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_19414428-2808-41f3-a6db-10a1bcdb0df6",
+    "timestamp": "2025-12-02 00:42:07.080030",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, if forwarded order operations interact with pools that have stale TWAMM state, could sale rate deltas be calculated incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fb6cf72e-b7ec-44f2-a18b-00c69f9b2dde",
+    "timestamp": "2025-12-02 00:42:40.289362",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, when the extension updates order time bitmaps, could forwarding race conditions cause bitmap corruption across multiple orders?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e1c9810d-72f4-487f-8f48-96d6e92a291b",
+    "timestamp": "2025-12-02 00:43:14.477762",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, if the original locker address doesn't own the order being modified, could authorization bypass occur through forwarding?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1a1dcb35-72c8-47ea-bcc1-cef40de50703",
+    "timestamp": "2025-12-02 00:43:50.182365",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, when handling order expiry, if block.timestamp crosses multiple time boundaries during forwarding, could this cause multiple virtual executions and debt overflow?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0c9a0d80-baa5-4bae-8895-fbcb0d035a89",
+    "timestamp": "2025-12-02 00:44:25.594427",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, if forwarded data includes order config with endTime < startTime, could this cause underflow in time calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d57ed8af-05b3-4fbd-9c93-84b0a09b1881",
+    "timestamp": "2025-12-02 00:45:00.249228",
+    "report_generated": false
+  },
+  {
+    "question": "In TWAMM.handleForwardData, when TWAMM calls beforeSwap/beforeCollectFees during order execution, could recursive extension calls via forwarding freeze the pool?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c859ef20-ea05-49d6-b491-f969696ef9fb",
+    "timestamp": "2025-12-02 00:45:35.766353",
+    "report_generated": false
   }
 ]
