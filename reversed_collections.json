@@ -7648,5 +7648,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bc6ee5e7-c396-45a7-a689-a09e8636d0cb",
     "timestamp": "2025-12-02 01:59:45.215152",
     "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.forward() (line 242-252), memory layout stores the forward() selector at 'result', then 'to' at 'result+4', then copies 'data' starting at 'result+36'. If 'data.length' is extremely large, could mcopy at line 252 run out of gas or exceed memory limits?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afb38644-01f0-4235-ad01-2fbac5cfd848",
+    "timestamp": "2025-12-02 02:01:28.386440",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.forward() (line 236-267), the function calls accountant.forward(to) with additional calldata appended at line 252. If 'data' length causes total calldata to exceed block gas limit, could this make certain lock contexts unforwardable?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_31fcdc48-3c99-46a3-b098-48c337d4061a",
+    "timestamp": "2025-12-02 02:01:41.781200",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 208), 'free' is loaded from 0x40. If a previous assembly block corrupted 0x40, could 'free' point to an arbitrary memory location, causing the withdrawal calldata to be written over critical data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3de2654c-38f2-41e8-bc82-eeece724b55b",
+    "timestamp": "2025-12-02 02:01:55.736296",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 199-228), the function doesn't check if recipient is address(0). Could the accountant's withdraw() send tokens to the zero address if recipient is mistakenly set to 0, causing permanent fund loss?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac6d6c6b-45b6-4cfc-8a2b-c42a310dc990",
+    "timestamp": "2025-12-02 02:02:09.970966",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 216 and 221), amount0 and amount1 are shifted with shl(128, amount). If either amount is stored in memory with non-zero upper 128 bits, could the shift cause overflow and send incorrect amounts?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a9addc75-c737-4300-a4c1-4b5ecab6ba83",
+    "timestamp": "2025-12-02 02:02:24.960005",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 223), the call forwards all gas(). If the accountant's withdraw() performs external calls to transfer token0 and token1, could cumulative gas consumption cause the transaction to fail mid-way through token1 withdrawal?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f885bebf-0905-4bd9-8dcd-2474fb432627",
+    "timestamp": "2025-12-02 02:02:41.343474",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 219-221), token1 data starts at offset 60 from 'free'. If the first withdrawal (token0) causes the accountant to perform a reentrancy callback that modifies memory at 'free + 60' to 'free + 115', could token1 withdrawal data be corrupted?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac52be57-6db5-432b-a729-22790a81369f",
+    "timestamp": "2025-12-02 02:02:59.560620",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 199-228), if token0 and token1 are the same token but recipient differs, could the accountant's internal debt tracking become confused about which recipient to credit the debt to?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_307c72c7-467e-4c71-a3e6-1a58ed1807e0",
+    "timestamp": "2025-12-02 02:03:19.345135",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 210-211), the withdraw() selector 0x3ccfd60b is hardcoded. If this selector collides with another function in the accountant due to signature changes, could withdrawTwo() accidentally call the wrong function?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca510847-e3fe-4515-b1f3-4d422a77fd15",
+    "timestamp": "2025-12-02 02:03:42.912231",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 199-228), if amount0 is 0 but amount1 is non-zero, does the accountant's withdraw() correctly handle the first zero-amount entry, or could it skip it and misinterpret token1 data as token0 parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff45a2bd-9bd9-4704-8a30-2dc80e4bc667",
+    "timestamp": "2025-12-02 02:04:07.333142",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 224-225), on revert, returndatacopy writes to 'free'. If returndatasize() is extremely large, could this write beyond allocated memory and corrupt other contract state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_95edae8c-525d-4d02-bd97-f092bcb8f970",
+    "timestamp": "2025-12-02 02:04:34.013742",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 213-221), the packed calldata places token0 data at offsets 4-59 and token1 data at offsets 60-115. If there's any misalignment in how the accountant unpacks this data, could amounts or recipients be swapped between the two withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f6d75262-715a-4ae7-abb2-df73fcf4aa4b",
+    "timestamp": "2025-12-02 02:05:01.642055",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 208-209), the free memory pointer is loaded. If previous operations left 'free' pointing to an address where token0/token1 withdrawal data will be written, could this overwrite important data structures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a32500f8-f2e2-4201-bbc4-3192f2b94a1d",
+    "timestamp": "2025-12-02 02:05:30.154097",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 223), the call sends 116 bytes (4-byte selector + 56 bytes per withdrawal * 2). If the accountant has a maximum calldata size limit, could this cause the call to fail or process only partial withdrawals?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c7859f9e-f512-4e19-8d01-bf15f57694ed",
+    "timestamp": "2025-12-02 02:06:00.068203",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 214-216 and 219-221), token, recipient, and amount are shifted with shl(96, token), shl(96, recipient), shl(128, amount). If any of these values have dirty upper bits, could the accountant send tokens to wrong addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6c2f0dbd-15e7-4101-b7eb-02c327ce2f0e",
+    "timestamp": "2025-12-02 02:06:29.610075",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 204-205), amount0 and amount1 are uint128. If a position has accumulated fees exceeding uint128, could users be unable to withdraw their full balance through withdrawTwo(), requiring them to call withdraw() twice?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d2bed6df-2735-421f-8acb-bdc33f909ab1",
+    "timestamp": "2025-12-02 02:07:00.912950",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.withdrawTwo() (line 199-228), two withdrawal entries are packed into calldata at lines 213-221. If the accountant's withdraw() implementation processes entries sequentially and reverts on the second entry, could token0 be withdrawn but token1 fail, leaving debt unbalanced?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6bb54997-ac73-43b6-8376-2d71a93160ce",
+    "timestamp": "2025-12-02 02:07:31.559251",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom() (line 184), completePayments() is called with 68 bytes. If the accountant processes tokens sequentially and the second token's balance check fails, could it partially credit only token0, leaving token1 transferred but not credited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ac8f972f-ca02-45a6-b130-19576dfe141c",
+    "timestamp": "2025-12-02 02:08:02.800975",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom() (line 118-189), if token0 and token1 are the same address, could calling payTwoFrom() with identical tokens cause double-payment credit or incorrect debt reduction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3cea4073-1e6b-41a2-985d-4ffdf59d731c",
+    "timestamp": "2025-12-02 02:08:33.429470",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom() (line 131-133), both token0 and token1 are stored using mstore() at 0x20 and 0x40. If these memory locations aren't properly cleaned between operations, could stale token addresses leak into subsequent calls?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2510e3c-1033-4835-9357-60adfc260962",
+    "timestamp": "2025-12-02 02:09:06.341260",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom() (line 149-153 and 167-171), the success check logic is duplicated. If there's a subtle difference in how token0 vs token1 failures are handled, could this create an exploit path for asymmetric attack?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ca1c5d01-a2f8-4f8d-8ddf-18d3f14af0e9",
+    "timestamp": "2025-12-02 02:09:37.226030",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom() (line 148-154), if token0's transferFrom consumes nearly all gas, could token1's transferFrom at line 166 run out of gas, causing only partial payment while completePayments() expects both?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_251fba4d-b36d-4f8f-a420-92d3f1cc99df",
+    "timestamp": "2025-12-02 02:10:08.574922",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom() (line 155-156 and 173-174), memory locations 0x60 and 0x40 are zeroed and restored. If these operations occur in wrong order, could the free memory pointer be corrupted mid-execution, causing subsequent operations to overwrite critical data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a1f7ecd-15a1-45f8-85bf-dae09f023a18",
+    "timestamp": "2025-12-02 02:10:41.254476",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom() (line 146 and 164), 'from' is shifted with shl(96, from) twice. If 'from' is different between the two calls (due to reentrancy or memory corruption), could tokens be pulled from different addresses unexpectedly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_773d6d69-67f8-4540-83c0-1889c3646733",
+    "timestamp": "2025-12-02 02:11:13.823520",
+    "report_generated": false
+  },
+  {
+    "question": "In FlashAccountantLib.payTwoFrom() (line 136), startPayments() is called with 68 bytes. If the accountant has a maximum token limit per payment batch, could passing exactly 2 tokens hit edge cases in balance recording?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_637d254d-60c0-4fe4-9c56-52b65a732246",
+    "timestamp": "2025-12-02 02:11:48.190788",
+    "report_generated": false
   }
 ]
