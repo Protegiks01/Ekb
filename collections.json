@@ -12148,5 +12148,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f3eea9d-6184-429f-97a8-f5383b8640c3",
     "timestamp": "2025-12-02 07:24:09.322462",
     "report_generated": false
+  },
+  {
+    "question": "The Oracle uses `onlyCore` modifier to restrict hook calls to Core.sol. If Core.sol has a reentrancy vulnerability allowing an attacker to call hooks directly during a callback, could the attacker call `beforeSwap()` or `beforeUpdatePosition()` with arbitrary PoolKey parameters to corrupt oracle state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9e5e902f-e5fb-4ddd-8237-f20f5474bbeb",
+    "timestamp": "2025-12-02 07:25:16.833521",
+    "report_generated": false
+  },
+  {
+    "question": "In `maybeInsertSnapshot()` (line 113), `PoolState state = CORE.poolState(poolId)` performs an external call to Core. If Core.sol is upgradeable or has a reentrancy vulnerability, could this state read be manipulated mid-execution to return incorrect tick or liquidity values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e5aec130-3110-4f7a-a438-03d5a000eb4b",
+    "timestamp": "2025-12-02 07:25:30.238088",
+    "report_generated": false
+  },
+  {
+    "question": "The `beforeSwap()` hook is called before swap execution. If a swap reverts after the hook but after incrementing the snapshot index, could the oracle be left with an incomplete snapshot at that index, corrupting future binary searches?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a15c1308-f866-4e85-b835-9b51d8cc44d8",
+    "timestamp": "2025-12-02 07:25:44.639584",
+    "report_generated": false
+  },
+  {
+    "question": "The call points are configured via `oracleCallPoints()` (lines 25-36) to use `beforeInitializePool`, `beforeUpdatePosition`, and `beforeSwap` but NOT their 'after' counterparts. Could this cause the oracle to miss critical state changes that occur during the operation (e.g., tick changes mid-swap), making the snapshot data inconsistent with final pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28736f7b-109b-474f-9070-787081027269",
+    "timestamp": "2025-12-02 07:25:59.087412",
+    "report_generated": false
+  },
+  {
+    "question": "In `searchRangeForPrevious()` (lines 265-277), the binary search uses `(left + right + 1) >> 1` for mid calculation. The `+ 1` prevents infinite loops when left == right. However, if `right = logicalMaxExclusive - 1` and `left = logicalMaxExclusive - 1`, does the loop terminate correctly, or could it access `logicalMaxExclusive` which is out of bounds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a24e966b-1a7d-4895-b876-9cfac76def0d",
+    "timestamp": "2025-12-02 07:26:14.287440",
+    "report_generated": false
+  },
+  {
+    "question": "The binary search in `searchRangeForPrevious()` (line 272) compares `current - midSnapshot.timestamp() >= targetDiff`. If `midSnapshot.timestamp()` is corrupted to be very large (e.g., due to storage collision), could the comparison underflow and cause the search to always move left, eventually reverting with `NoPreviousSnapshotExists` even when valid snapshots exist?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_63c164d4-824b-4114-9b66-c91331be8a49",
+    "timestamp": "2025-12-02 07:26:30.621668",
+    "report_generated": false
+  },
+  {
+    "question": "In `searchRangeForPrevious()` (lines 279-286), after the binary search, the code checks `if (current - snapshot.timestamp() < targetDiff)` and reverts. If the snapshot at `left` has the exact timestamp as `time` (targetDiff == 0 after subtraction), would this check incorrectly revert?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d89414b-fa5d-45b6-86ba-1c44ac3f618a",
+    "timestamp": "2025-12-02 07:26:48.782198",
+    "report_generated": false
+  },
+  {
+    "question": "The binary search assumes snapshots are monotonically increasing in timestamp within the logical index range. If circular array wrapping causes an old snapshot with lower timestamp to appear after newer snapshots, could the binary search return a snapshot from the wrong 'era', producing incorrect TWAP data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_55427601-0b69-42bb-b2bf-e7cd856ea83c",
+    "timestamp": "2025-12-02 07:27:08.750099",
+    "report_generated": false
+  },
+  {
+    "question": "In `getExtrapolatedSnapshotsForSortedTimestamps()` (line 412), `searchRangeForPrevious()` is called with range `[indexFirst, indexLast + 1)`. If indexLast is the last logical index (count - 1), does `indexLast + 1` equal count, and is this handled correctly, or could it cause out-of-bounds access in `logicalIndexToStorageIndex()`?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9d748784-0e85-4352-ab5b-ad44c3f62ef3",
+    "timestamp": "2025-12-02 07:27:29.913517",
+    "report_generated": false
+  },
+  {
+    "question": "The function `findPreviousSnapshot()` (line 303) searches the full range `[0, count)`. For large capacity arrays, if count is small but capacity is huge, could this search be inefficient? More critically, if snapshot data exists at high indices beyond count due to expandCapacity(), could the search miss valid snapshots?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c2dcfff7-239c-42be-afc2-464638358f9d",
+    "timestamp": "2025-12-02 07:27:53.917424",
+    "report_generated": false
+  },
+  {
+    "question": "In `searchRangeForPrevious()` (line 256), if `logicalMin >= logicalMaxExclusive`, it reverts with `NoPreviousSnapshotExists`. Could an attacker cause this condition by manipulating count or capacity, forcing reverts for legitimate TWAP queries and DoSing dependent protocols?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e0a36ad-ca60-4f39-a82f-469a012e96b5",
+    "timestamp": "2025-12-02 07:28:18.274151",
+    "report_generated": false
+  },
+  {
+    "question": "The binary search convergence at line 277 (`while (left < right)`) could loop indefinitely if `left` never equals `right` due to arithmetic errors. Are there any edge cases with specific values of index, count, and timestamp differences that could cause this?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_89076f53-59e7-4c87-9500-258eb7bdb419",
+    "timestamp": "2025-12-02 07:28:43.824262",
+    "report_generated": false
+  },
+  {
+    "question": "In `searchRangeForPrevious()` (line 270), the snapshot is loaded at `storageIndex = logicalIndexToStorageIndex(c.index(), c.count(), mid)`. If c.index() or c.count() changed due to concurrent `maybeInsertSnapshot()` call after loading Counts but before this line, could storageIndex be calculated incorrectly?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7c7991a8-dbe8-4ebd-bd64-94cd1672df09",
+    "timestamp": "2025-12-02 07:29:10.163058",
+    "report_generated": false
+  },
+  {
+    "question": "The function `searchRangeForPrevious()` assumes all snapshots in the array have timestamps <= current timestamp. If a snapshot is written with a future timestamp (due to timestamp manipulation or wraparound), could the binary search converge to it incorrectly, and could `extrapolateSnapshotInternal()` then produce negative timePassed values?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f5dea57d-e428-42d0-8207-358fd0fcab00",
+    "timestamp": "2025-12-02 07:29:39.611790",
+    "report_generated": false
+  },
+  {
+    "question": "In `extrapolateSnapshotInternal()` (lines 326-327), if `logicalIndex == c.count() - 1` (most recent snapshot), the code uses current pool state for extrapolation. However, if count was just incremented in `maybeInsertSnapshot()` and a new snapshot was written, could logicalIndex refer to a stale snapshot while the condition still evaluates to true?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6d3f63c9-5425-42af-8b8d-d81eed5981d0",
+    "timestamp": "2025-12-02 07:30:11.395613",
+    "report_generated": false
+  },
+  {
+    "question": "The extrapolation from current state (lines 328-337) reads `CORE.poolState(poolId)` to get current tick and liquidity. If this external call reverts (e.g., pool doesn't exist), the entire extrapolation fails. Could an attacker cause DoS by making TWAP queries for tokens with no initialized pools, forcing dependent protocols to fail?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5c20b0ff-aab3-4e94-85b6-43e24cdbe64d",
+    "timestamp": "2025-12-02 07:30:40.732587",
+    "report_generated": false
+  },
+  {
+    "question": "In `extrapolateSnapshotInternal()` (line 332), `tickCumulative += int64(state.tick()) * int64(uint64(timePassed))`. This multiplication could overflow int64 if state.tick() is at MAX_TICK (887272) and timePassed is large. MAX_TICK * (2^32-1) exceeds int64.max. Could this overflow corrupt tick cumulative without reverting?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1286c6d3-6789-4958-9d41-809185cd45b5",
+    "timestamp": "2025-12-02 07:31:08.298932",
+    "report_generated": false
+  },
+  {
+    "question": "When extrapolating between two snapshots (lines 339-359), the code calculates `next.tickCumulative() - snapshot.tickCumulative()`. If tickCumulative overflowed and wrapped between these two snapshots, could the subtraction produce a very large negative or positive value, corrupting the interpolation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d7b3cfe7-a872-4863-b7cf-35360d4d986b",
+    "timestamp": "2025-12-02 07:31:37.917447",
+    "report_generated": false
+  },
+  {
+    "question": "In `extrapolateSnapshotInternal()` (line 350), the interpolation uses `rawSDiv(int256(uint256(timePassed)) * (next.tickCumulative() - snapshot.tickCumulative()), int256(uint256(timestampDifference)))`. Could the multiplication overflow int256, and does rawSDiv handle this correctly, or could it produce incorrect results?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_94c9b117-194d-45d9-991f-1dfa5205c499",
+    "timestamp": "2025-12-02 07:32:08.952139",
+    "report_generated": false
+  },
+  {
+    "question": "The denominator `timestampDifference = next.timestamp() - snapshot.timestamp()` (line 346) is uint32. For very close snapshots, this could be 1 second. In the division at line 357, `(uint256(timePassed) * (next.secondsPerLiquidityCumulative() - snapshot.secondsPerLiquidityCumulative())) / timestampDifference`, could small timestampDifference amplify rounding errors, enabling manipulation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ea77834b-967d-4f83-990a-82921b833604",
+    "timestamp": "2025-12-02 07:32:40.055019",
+    "report_generated": false
+  },
+  {
+    "question": "In `extrapolateSnapshotInternal()`, when using the next snapshot for interpolation (lines 340-344), the code assumes `logicalIndex + 1 < count`. However, if count changed due to concurrent snapshot insertion, could `logicalIndex + 1` be out of range, causing `logicalIndexToStorageIndex()` to calculate an incorrect storage index?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7121b894-7bb0-4de6-986f-8c21c54299b4",
+    "timestamp": "2025-12-02 07:33:11.119132",
+    "report_generated": false
+  },
+  {
+    "question": "The function `extrapolateSnapshotInternal()` returns uint160 for `secondsPerLiquidityCumulative`. If the extrapolated value exceeds uint160.max, does it silently truncate, or does it revert? If it truncates, could an attacker exploit timestamp overflow scenarios to wrap the cumulative value?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_f0077b9d-f57d-4354-a503-211a10ae65ab",
+    "timestamp": "2025-12-02 07:33:42.794599",
+    "report_generated": false
+  },
+  {
+    "question": "In `extrapolateSnapshot()` (lines 365-379), the function calls `searchRangeForPrevious()` then `extrapolateSnapshotInternal()`. If between these two calls, a new snapshot is inserted via concurrent transaction, could the extrapolation use stale data, producing incorrect TWAP values that don't match on-chain reality?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_67b9f63e-e617-40e8-8e08-0fdb2a0ebc99",
+    "timestamp": "2025-12-02 07:34:15.596825",
+    "report_generated": false
+  },
+  {
+    "question": "The extrapolation logic assumes linear interpolation for both tickCumulative and secondsPerLiquidityCumulative. For pools with concentrated liquidity where tick jumps significantly between observations, could this linear assumption introduce enough error for attackers to exploit via sandwich attacks around snapshot insertions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_fc8e68ba-c85c-4cda-a799-0476d6d7b838",
+    "timestamp": "2025-12-02 07:34:48.299252",
+    "report_generated": false
+  },
+  {
+    "question": "In `getExtrapolatedSnapshotsForSortedTimestamps()` (lines 402-418), the loop iterates over user-provided timestamps. If a malicious user provides an array with 2^256-1 elements, could this cause unbounded gas consumption and DoS the query function?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9f52f4f8-ee51-45e9-9be9-981984729c3d",
+    "timestamp": "2025-12-02 07:35:14.889423",
+    "report_generated": false
   }
 ]
