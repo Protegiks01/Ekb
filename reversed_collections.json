@@ -11098,5 +11098,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1412c889-d789-43cb-b198-b058f8e8150a",
     "timestamp": "2025-12-02 06:24:55.925690",
     "report_generated": false
+  },
+  {
+    "question": "At line 67 in getPositionFeesAndLiquidity(), fees are calculated using position.fees(feesPerLiquidityInside). If Core's feesPerLiquidity tracking has precision loss, could users systematically collect more or fewer fees than they're entitled to?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7e0570a8-7cce-46fa-a1ff-272aa3280a83",
+    "timestamp": "2025-12-02 06:26:10.029257",
+    "report_generated": false
+  },
+  {
+    "question": "The Position struct in position.sol at line 13 includes an extraData field. While BasePositions doesn't use this field, could a malicious extension or derived contract corrupt this field in a way that affects fee calculations in the fees() function at line 33?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5eabb976-9269-4dab-9d08-b25af4e6ec8a",
+    "timestamp": "2025-12-02 06:26:24.160411",
+    "report_generated": false
+  },
+  {
+    "question": "In withdraw() at line 304-308, updatePosition() is called with a negative liquidity delta. If the position's current liquidity is less than the requested withdrawal amount (due to a bug in position tracking), could this cause an underflow in Core, allowing withdrawal of more tokens than deposited?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8770186f-798b-472f-bf47-1d766d1182bb",
+    "timestamp": "2025-12-02 06:26:39.757401",
+    "report_generated": false
+  },
+  {
+    "question": "At line 52 in getPositionFeesAndLiquidity(), the view function reads the position from Core storage. If Core's updatePosition() at line 243 in handleLockData() updates state incorrectly, could the view function return stale or incorrect position data, misleading users about their holdings?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d12ef07f-a0d5-40b3-91ad-96389eb17333",
+    "timestamp": "2025-12-02 06:26:55.164509",
+    "report_generated": false
+  },
+  {
+    "question": "In handleLockData() deposit flow at line 243, updatePosition() is called with a positive liquidity delta. If the Core contract's position tracking has a bug where multiple deposits to the same position fail to accumulate liquidity correctly, could this lead to loss of deposited tokens?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a3a03ef6-f5ab-435c-9bfa-fd183827bcc4",
+    "timestamp": "2025-12-02 06:27:12.165060",
+    "report_generated": false
+  },
+  {
+    "question": "The BaseNonfungibleToken contract inherits from both Ownable and ERC721. Could confusion between the contract owner (who can setMetadata) and NFT token owners lead to a vulnerability where the contract owner accidentally gains powers over individual positions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9943ec5f-0ea2-475b-8d64-5cf5ae2e961c",
+    "timestamp": "2025-12-02 06:27:30.791108",
+    "report_generated": false
+  },
+  {
+    "question": "In mintAndDepositWithSalt() at line 181, the user-provided salt creates a deterministic NFT ID. Could a griefer front-run the transaction with the same salt, causing the mint to fail but allowing the griefer to mint that ID themselves and deposit into the intended position?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5ffe8980-322b-4acb-b3b2-84a446b3f930",
+    "timestamp": "2025-12-02 06:27:51.281530",
+    "report_generated": false
+  },
+  {
+    "question": "At line 167 in mintAndDeposit(), a new NFT is minted and immediately deposited into. Between the mint at line 167 and the deposit at line 168, could an attacker front-run to approve themselves for the newly minted NFT and then call withdraw() before the deposit completes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9528adc7-eb40-47f1-ad67-464f8c3f66b5",
+    "timestamp": "2025-12-02 06:28:13.072640",
+    "report_generated": false
+  },
+  {
+    "question": "The _isApprovedOrOwner() check in authorizedForNft relies on ERC721 ownership. If the ERC721 implementation has a vulnerability (e.g., in approval logic), could this bypass the position management authorization?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_06653240-d5b4-424f-8520-5228291ebf43",
+    "timestamp": "2025-12-02 06:28:35.761660",
+    "report_generated": false
+  },
+  {
+    "question": "BaseNonfungibleToken.burn() at line 133 allows burning tokens with the authorizedForNft modifier. If a position still has liquidity or unclaimed fees, could a malicious approved operator burn the NFT, making it impossible for the original owner to recover their funds?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_4288f0ef-be7b-47f9-932a-cfeb55ba9f81",
+    "timestamp": "2025-12-02 06:29:00.438823",
+    "report_generated": false
+  },
+  {
+    "question": "In withdraw() at line 120, the authorizedForNft modifier is checked, but the actual withdrawal happens in handleLockData at line 304-308. Could a reentrancy attack during the lock execution change NFT ownership, allowing the original caller to withdraw from a position they no longer own?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3a46c048-5d72-4542-b7f1-b0d92dacd680",
+    "timestamp": "2025-12-02 06:29:26.165581",
+    "report_generated": false
+  },
+  {
+    "question": "At line 113, collectFees() allows specifying a custom recipient. Combined with the authorizedForNft check, could an approved operator maliciously collect fees to themselves rather than the NFT owner, effectively stealing earned fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70c52581-f2a2-4b60-9c0f-f576634ead2c",
+    "timestamp": "2025-12-02 06:29:53.268867",
+    "report_generated": false
+  },
+  {
+    "question": "The collectFees() function at line 100 calls withdraw() at line 106 with recipient defaulting to msg.sender. If the NFT was transferred after the transaction was sent but before execution, could the fees be sent to the original sender rather than the current owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_947017a8-de69-421f-ab2a-23bb44b4b88d",
+    "timestamp": "2025-12-02 06:30:21.495991",
+    "report_generated": false
+  },
+  {
+    "question": "In deposit() at line 79, the authorizedForNft modifier is checked. However, between the authorization check and the actual lock execution at line 94, could the NFT ownership change (e.g., via a transfer in another transaction), allowing an unauthorized party to deposit on behalf of the new owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dd2ebb17-24bb-4dca-a894-40cd3e529da8",
+    "timestamp": "2025-12-02 06:30:51.896639",
+    "report_generated": false
+  },
+  {
+    "question": "The authorizedForNft modifier at line 81 in BaseNonfungibleToken checks _isApprovedOrOwner(msg.sender, id). If an NFT is approved for address A, then transferred to address B, but A's transaction is still in the mempool, could A's collectFees() or withdraw() call succeed, stealing from B?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_53cbe971-32c2-4506-8b30-2c2d0f0ef8a9",
+    "timestamp": "2025-12-02 06:31:22.493382",
+    "report_generated": false
+  },
+  {
+    "question": "At line 336 in withdrawProtocolFees(), withdrawTwo() is called. If the accountant doesn't have sufficient balance to cover the withdrawal (e.g., due to a bug in delta tracking), could this function revert, permanently locking protocol fees in the contract?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_afb8be60-19be-4d4e-b887-0b6f25b1a359",
+    "timestamp": "2025-12-02 06:31:54.426411",
+    "report_generated": false
+  },
+  {
+    "question": "The abstract _computeWithdrawalProtocolFees() at line 219 doesn't specify whether fees should be computed on gross or net amounts. If the implementation computes fees on amounts that include already-deducted swap fees, could this lead to double-charging of protocol fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_48ceead7-73b6-47ff-af29-de53212b6e2c",
+    "timestamp": "2025-12-02 06:32:26.580122",
+    "report_generated": false
+  },
+  {
+    "question": "In the withdraw flow at lines 289-300, protocol fees are computed and deducted from swap fees. However, if withFees=false, collectFees() is skipped but the position might still have accumulated fees. Could a user avoid protocol fees by withdrawing with withFees=false, then separately collecting fees later?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_65c54270-5ed2-4470-a168-ddb2d3828f27",
+    "timestamp": "2025-12-02 06:33:01.439798",
+    "report_generated": false
+  },
+  {
+    "question": "At line 294 in handleLockData(), updateSavedBalances is called with int128(swapProtocolFee0). The cast from uint128 to int128 could overflow if swapProtocolFee0 > type(int128).max. Could an attacker trigger this by accumulating massive fees before collection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2ed7219b-a31b-44c0-a4d8-ad33eb18c877",
+    "timestamp": "2025-12-02 06:33:34.416153",
+    "report_generated": false
+  },
+  {
+    "question": "In getProtocolFees() at line 195, savedBalances are retrieved using bytes32(0) as the salt. Could a malicious implementation of Positions.sol use a different salt value in updateSavedBalances calls at lines 294 and 319, causing the protocol fees to be hidden from the owner?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0bc8ec8a-4612-4c97-a9bc-b2559bf27cc9",
+    "timestamp": "2025-12-02 06:34:07.339153",
+    "report_generated": false
+  },
+  {
+    "question": "The withdrawProtocolFees() function at line 186 is onlyOwner and updates savedBalances at line 335. If the owner calls this function with amounts that exceed the savedBalances, and the subtraction at line 335 doesn't check for underflow, could savedBalances wrap to type(uint256).max?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_70eecc43-0fd8-4a3d-8a70-70fdd68e96de",
+    "timestamp": "2025-12-02 06:34:40.422567",
+    "report_generated": false
+  },
+  {
+    "question": "At lines 317-322, withdrawal protocol fees are deducted via updateSavedBalances but then subtracted from the withdrawn amounts. If _computeWithdrawalProtocolFees() returns 0 for both tokens when it should return positive values, could this allow users to avoid paying withdrawal fees entirely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ebeb76d3-57b0-4727-ba09-00b8ad1416ed",
+    "timestamp": "2025-12-02 06:35:14.677228",
+    "report_generated": false
+  },
+  {
+    "question": "In the withdraw flow, both _computeSwapProtocolFees() at line 290 and _computeWithdrawalProtocolFees() at line 314 are called. Could a clever attacker structure their withdrawal to minimize total protocol fees by timing when they call withdraw() with withFees=true vs false?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_eaac051e-d34f-4545-b4f6-0604cfcea3c7",
+    "timestamp": "2025-12-02 06:35:49.653913",
+    "report_generated": false
+  },
+  {
+    "question": "At line 290-291, _computeSwapProtocolFees() is called with the full amount0 and amount1 collected. If this function has a rounding error that consistently rounds up, could LPs lose more fees than intended over many transactions, violating fair fee distribution?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_9011d71c-5580-4cf5-9de6-485af28b94f3",
+    "timestamp": "2025-12-02 06:36:25.312928",
+    "report_generated": false
+  },
+  {
+    "question": "The _computeSwapProtocolFees() function at line 206 is abstract and must be implemented by derived contracts. If a malicious implementation returns protocol fees greater than the input amounts, could this cause the subtraction at lines 298-299 to underflow, minting fees for the LP?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_796f1cb5-d8ae-4471-989f-a12d67d97a15",
+    "timestamp": "2025-12-02 06:37:00.562756",
+    "report_generated": false
   }
 ]
