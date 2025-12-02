@@ -8548,5 +8548,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_656bf59f-1df5-4045-84d6-566277aa2057",
     "timestamp": "2025-12-02 03:08:31.236256",
     "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterCollectFees function (line 266-269) bubbles up reverts. If the extension reverts after amounts have been transferred to the locker but before delta accounting is settled, could this cause the flash accounting system to report incorrect balances?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1eefb3a0-5be3-48b4-a78a-3a2f33600d91",
+    "timestamp": "2025-12-02 03:09:55.566692",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeCollectFees (line 232-235), reverts are propagated. If the extension reverts while fees are being collected, could this prevent users from ever collecting their accrued fees, violating withdrawal availability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a47bad70-65c7-4f42-9bbf-d2aa018c5dc5",
+    "timestamp": "2025-12-02 03:10:10.147047",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterUpdatePosition function (line 202-205) reverts on extension failure. If the extension reverts after fees have been collected but before they're recorded in the position, could this allow double-claiming of fees?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_45514b9c-d168-45fd-b232-6d676869c9d6",
+    "timestamp": "2025-12-02 03:10:24.913692",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeUpdatePosition (line 166-169), the revert bubbles up any extension failure. If the extension reverts after Core has already modified tick liquidity but before position state is updated, could this corrupt the liquidity tracking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6f4d52d2-ce34-438d-b350-d6090e71f1c6",
+    "timestamp": "2025-12-02 03:10:39.162918",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterSwap function (line 134-137) reverts if the extension call fails. If this occurs after the swap has completed and tokens have been transferred, could the revert cause the flash accounting system to become unbalanced?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a84a50e-ed92-4752-a449-fba39e16f525",
+    "timestamp": "2025-12-02 03:10:54.275951",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeSwap (line 100-103), reverts are bubbled up. If the extension reverts during a swap after Core has already modified pool state, could this leave the pool in an inconsistent state that violates the solvency invariant?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_bcb5954d-15c6-46b7-a4b9-5315730c9b0f",
+    "timestamp": "2025-12-02 03:11:10.349735",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallAfterInitializePool function (line 73-76) bubbles up reverts. If the extension reverts with custom error data containing malicious instructions, could this be misinterpreted by off-chain systems monitoring the protocol?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_32e42445-864f-4b11-a7fb-83051e8540a8",
+    "timestamp": "2025-12-02 03:11:27.907606",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallBeforeInitializePool (line 41-44), if the extension call fails, the code uses `returndatacopy(freeMem, 0, returndatasize())` then `revert(freeMem, returndatasize())`. If returndatasize() is extremely large, could this cause out-of-memory errors that crash the transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_299abcc8-70e0-4e25-bf0b-1aeb8a391008",
+    "timestamp": "2025-12-02 03:11:47.975351",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterSwap (line 126), the selector is 0xa4e8f288. Could an extension implement multiple functions with selectors that differ only in later bytes, causing selector collisions that invoke the wrong hook?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_6baaeca0-33e6-42b7-96b9-b7ad02cee837",
+    "timestamp": "2025-12-02 03:12:09.005574",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeSwap function (line 94-95) encodes selector 0xca11dba7. If the actual IExtension interface has a different beforeSwap signature, could the hardcoded selector call an unintended function that doesn't validate swap parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8a5ffaeb-ea51-4e58-8dfe-0236b3f0c504",
+    "timestamp": "2025-12-02 03:12:31.840797",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterInitializePool (line 66), the selector is `shl(224, 0x948374ff)`. Could an attacker deploy an extension with a function matching this selector but different parameter types, causing type confusion and state corruption?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_715b4988-4081-4bc5-918b-fc380d6d7480",
+    "timestamp": "2025-12-02 03:12:55.981374",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeInitializePool function (line 36) uses `shl(224, 0x1fbbb462)` to encode the function selector. If the compiler generates a different selector due to function overloading or signature changes, could this call the wrong function in the extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b0a0a8bb-ee16-4105-839b-35fa985d56f8",
+    "timestamp": "2025-12-02 03:13:21.655962",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterCollectFees (line 266), the call uses gas() which forwards all remaining gas. If this is called near the end of a transaction with minimal gas remaining, could the out-of-gas revert be misinterpreted as an extension failure, breaking withdrawal availability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_512a1634-0da1-4fd2-92eb-26ca6144ab0e",
+    "timestamp": "2025-12-02 03:13:48.932846",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeCollectFees function (line 232) has `if iszero(call(...))` but doesn't validate the extension is actually a contract. Could calling a non-contract address (e.g., EOA or burned address) result in undefined behavior that breaks fee collection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_00fa4ee7-fd6a-4857-8288-0a7fbb1c433a",
+    "timestamp": "2025-12-02 03:14:18.941809",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterUpdatePosition (line 202), the call passes stateAfter at offset 228. If PoolState encoding changes from 32 bytes to a larger size, could this truncate critical state information, causing the extension to make decisions based on incomplete data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_1f216e24-8280-48f3-9ce1-6ec79ab52276",
+    "timestamp": "2025-12-02 03:14:49.506082",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeUpdatePosition function (line 166) includes `if iszero(call(...))` to detect failures. However, the call doesn't check the extension's return value for success/failure signals. Could an extension return false but not revert, causing silent failures?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8dbf564c-e71c-4d11-a70f-845729920941",
+    "timestamp": "2025-12-02 03:15:20.870697",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterSwap (line 134), the call size is 228 bytes. Could an attacker exploit the fact that this is not a multiple of 32 to cause memory alignment issues in the extension that lead to parameter misinterpretation?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d58e1cc5-57b6-4f2a-9919-9756807ac021",
+    "timestamp": "2025-12-02 03:15:54.052829",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeSwap function (line 100) uses `call(gas(), extension, 0, freeMem, 164, 0, 0)`. If the extension is a proxy contract that delegatecalls to an implementation, could the implementation access Core's storage slots through the delegatecall context?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_a8b85c14-5021-44fc-b7ef-8bdf4be4f0f8",
+    "timestamp": "2025-12-02 03:16:27.806503",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterInitializePool (line 73), the call uses size 196 bytes. If the actual calldata constructed is smaller due to struct packing, could the extra bytes contain uninitialized memory that leaks sensitive information to the extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_aa82d5da-908f-4880-8be2-0497b241ebac",
+    "timestamp": "2025-12-02 03:17:03.736583",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeInitializePool function (line 41) makes a call with `call(gas(), extension, 0, freeMem, 164, 0, 0)`. The returndata size is 0 (last parameter), meaning no returndata is expected. Could a malicious extension return data anyway, leaving dirty returndata that affects subsequent operations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_10df52cd-d6bc-4ce5-8fe0-49aec766d627",
+    "timestamp": "2025-12-02 03:17:38.308357",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterCollectFees (line 261-264), amount0 and amount1 are stored at specific offsets. If Core.sol passes these values with high bits set (e.g., from unchecked math), could the extension receive inflated fee amounts and attempt to claim more fees than available?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_96269558-a1d5-4da2-bc23-4067d7ae5b46",
+    "timestamp": "2025-12-02 03:18:10.567683",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeCollectFees function (line 229) copies poolKey with mcopy. If poolKey contains nested structs or dynamic arrays (even though it doesn't currently), could future protocol upgrades introduce memory safety issues with this fixed-size copy?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_cc44efb7-8347-4b66-a24f-88861b0e391e",
+    "timestamp": "2025-12-02 03:18:43.617155",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterUpdatePosition (line 196-200), five parameters are stored in memory before the call. If the free memory pointer was not properly incremented by a previous operation, could this overwrite return data from a previous call that the caller expects to read?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_8e6af2c6-e58e-4b92-a587-aad3d016e64a",
+    "timestamp": "2025-12-02 03:19:13.950660",
+    "report_generated": false
+  },
+  {
+    "question": "The maybeCallBeforeUpdatePosition function (line 162) uses `mcopy(add(freeMem, 36), poolKey, 96)`. If poolKey is allocated in calldata rather than memory, and mcopy behaves unexpectedly with calldata sources, could this copy invalid data?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2308db8b-9c4c-43e2-8796-ecdf8d9512d7",
+    "timestamp": "2025-12-02 03:19:46.680173",
+    "report_generated": false
+  },
+  {
+    "question": "In maybeCallAfterSwap (line 130-132), three separate mstore operations write locker, poolKey (via mcopy), and params. If the memory regions overlap due to incorrect offset calculation, could this corrupt the poolKey data sent to the extension?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2fdaea12-271e-4df8-896b-3ff1a00ec9ef",
+    "timestamp": "2025-12-02 03:20:20.293803",
+    "report_generated": false
   }
 ]
