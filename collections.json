@@ -8698,5 +8698,155 @@
     "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ce15c354-485f-4f49-afe3-1ba83e3a75a9",
     "timestamp": "2025-12-02 03:00:33.955819",
     "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, transient storage is not cleared between calls within the same transaction. Could an attacker call tload() after a lock completes to read residual transient storage values that should have been cleared, potentially extracting information about previous flash loans in the same transaction?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d59c4ccc-0484-4634-ae10-def0f9afb02c",
+    "timestamp": "2025-12-02 03:01:54.671474",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, the function exposes _PAYMENT_TOKEN_ADDRESS_OFFSET storage used in startPayments()/completePayments(). Could an attacker read these slots during payment processing to determine exact balance changes and exploit the `mul(mload(returnLocation), and(gt(returndatasize(), 0x1f), success))` logic?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_e090364c-3706-4ed9-b5c5-5055d67ae12a",
+    "timestamp": "2025-12-02 03:02:07.967086",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, reading transient storage during FlashAccountant.withdraw() execution could expose debt deltas mid-update. Could an attacker use this to detect when nzdCountChange is about to be applied and manipulate the withdraw() flow to avoid debt tracking updates?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_5a5ab50c-6d54-4026-bb78-daceb52378fa",
+    "timestamp": "2025-12-02 03:02:22.430831",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, the function can be called during FlashAccountant.forward() execution. Could an attacker read _CURRENT_LOCKER_SLOT while the locker is temporarily changed to the forwarded address, extract the original locker info, and use it to bypass forwarding restrictions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2d207f1e-a887-4ba4-a77d-1b56ca6fe5e1",
+    "timestamp": "2025-12-02 03:02:36.719858",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, transient storage slot calculations use `add(_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET, add(shl(160, id), token))`. Could an attacker craft a token address that causes this addition to overflow or collide with other transient storage offsets (_PAYMENT_TOKEN_ADDRESS_OFFSET, _NONZERO_DEBT_COUNT_OFFSET)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0e15ef7c-1e4e-47fb-8060-8ddb97eafcb9",
+    "timestamp": "2025-12-02 03:02:51.789178",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, CoreStorageLayout uses poolId as a base offset for pool-related storage. Could an attacker find two different PoolKeys that hash to poolIds that differ by exactly FPL_OFFSET (0xb09b0386...), causing one pool's state to collide with another pool's fees per liquidity storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c96b6639-a164-4319-a790-33fa03974d36",
+    "timestamp": "2025-12-02 03:03:07.558784",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, CoreStorageLayout.poolTicksSlot() calculates slots as `poolId + tick + TICKS_OFFSET`. Could an attacker find poolId and tick values where `poolId + tick + TICKS_OFFSET` equals another pool's poolStateSlot, causing tick info writes to corrupt pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_d3a7e2c6-b641-4f77-ac44-265238187d52",
+    "timestamp": "2025-12-02 03:03:25.358621",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot() uses FPL_OUTSIDE_OFFSET_VALUE0 and FPL_OUTSIDE_OFFSET_VALUE1. Could these offsets be chosen such that for extreme tick values (near MIN_TICK or MAX_TICK), the calculated slots collide with bitmap storage (BITMAPS_OFFSET)?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c3b55434-09a0-4c0b-8a84-a759b8079f21",
+    "timestamp": "2025-12-02 03:03:45.396036",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, CoreStorageLayout.tickBitmapsSlot() calculates `poolId + BITMAPS_OFFSET`. Could an attacker create a pool with a poolId such that `poolId + BITMAPS_OFFSET + wordPos` collides with critical storage like isExtensionRegisteredSlot() for commonly used extension addresses?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_ff13bfc9-d338-4363-a264-fd79e326f0e4",
+    "timestamp": "2025-12-02 03:04:07.376505",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, CoreStorageLayout.poolPositionsSlot() uses keccak256 for position storage but bases it on poolId. Could an attacker find position parameters (owner, positionId) where the resulting storage slot collides with Core's internal state or another position's storage?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_b188e671-868d-456e-b4ab-fa7330e252b7",
+    "timestamp": "2025-12-02 03:04:29.705826",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, CoreStorageLayout constants (FPL_OFFSET, TICKS_OFFSET, etc.) are generated via keccak. Could there be birthday-paradox collisions where for some poolId value, adding different offsets results in the same storage slot, allowing writes to one pool field to corrupt another?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_7b4f8b36-59ca-44f0-9f9b-198af21f061a",
+    "timestamp": "2025-12-02 03:04:53.567598",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, extension contracts (TWAMM, Oracle) inherit ExposedStorage and have their own storage layouts. Could there be collisions between CoreStorageLayout slots and extension storage layouts, allowing an attacker to corrupt extension state by manipulating core pool parameters?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_867af261-f38b-4710-b449-1264c5cab65c",
+    "timestamp": "2025-12-02 03:05:18.691584",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, CoreStorageLayout.savedBalancesSlot() uses keccak256(owner, token0, token1, salt). Could an attacker brute-force salt values to find a hash collision with critical pool state slots, allowing them to modify saved balances by manipulating pool state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_2f87831b-8d81-47f9-860b-a211380b831f",
+    "timestamp": "2025-12-02 03:05:44.548116",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, reading arbitrary storage slots could reveal storage layout assumptions. Could an attacker read slots between defined offsets (e.g., between TICKS_OFFSET and FPL_OUTSIDE_OFFSET_VALUE0) to find unused storage that could be exploited for side-channel attacks or storage hijacking?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_dbfbea43-c7b1-4e95-a9f4-33ae0b1a3b7f",
+    "timestamp": "2025-12-02 03:06:11.859001",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, the protocol uses slot 0 for mapping-based storage. Could an attacker read slot 0 and subsequent slots to extract information about the mapping keys used for isExtensionRegisteredSlot, potentially revealing which addresses are being tested as extensions?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_c4b8f32c-3f44-4136-8885-f11a62d32a3a",
+    "timestamp": "2025-12-02 03:06:42.288595",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 15-19, the function is marked external view and uses staticcall semantics. However, if called from a non-view context (e.g., via delegatecall in a multicall), could it read pool states mid-state transition where invariants are temporarily violated, exposing information about intermediate swap calculations?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_28e60521-2d03-40df-a895-3749e2954d4a",
+    "timestamp": "2025-12-02 03:07:15.440519",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, reading pool state during Core.swap() execution could expose intermediate sqrtRatio and tick values during tick crossing. Could an attacker use this to determine the exact execution path of a large swap and optimize their own transaction ordering to extract maximum MEV?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_51668fcc-4f01-436c-b9d1-b83b27547674",
+    "timestamp": "2025-12-02 03:07:48.425051",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, transient storage reads during Core.lock() execution could expose deltas that aren't yet settled. Could an attacker call tload() from within their locked_() callback to read their own debt state and conditionally decide whether to settle or revert based on profitability?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_30f5b9ad-7a89-449c-bd2e-999708ac5eb7",
+    "timestamp": "2025-12-02 03:08:22.713935",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, reading position storage (CoreStorageLayout.poolPositionsSlot) during position mint/burn operations could expose intermediate feeGrowthInside values. Could an attacker use this to determine exactly when to call collect() to maximize fees or front-run legitimate fee collection?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_0307f6d3-c42b-4f1d-9d30-61c3a2bdc05d",
+    "timestamp": "2025-12-02 03:08:58.237977",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, if called during extension callback execution (before/after swap/mint/burn), could it read pool state that the extension hasn't yet processed, allowing an attacker to bypass extension logic by operating on inconsistent state?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_02e67909-2cdc-49a4-ae7c-2982e0870fd7",
+    "timestamp": "2025-12-02 03:09:31.521619",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, reading _NONZERO_DEBT_COUNT_OFFSET during FlashAccountant._updatePairDebt() execution could expose the count before it's finalized. Could an attacker use this timing window to detect whether their transaction will pass the DebtsNotZeroed check and adjust their strategy?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_3f9eef12-9b41-43f9-82c8-d827318df7fb",
+    "timestamp": "2025-12-02 03:10:04.141228",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, reading tick info during a swap that's crossing ticks could expose liquidityNet before it's applied to pool liquidity. Could an attacker use this to predict the exact liquidity available after the tick cross and sandwich the swap more precisely?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_720aeabc-bc60-4ae7-83f1-c08524a6124c",
+    "timestamp": "2025-12-02 03:10:38.201434",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, the function can be called within token transfer hooks (e.g., if a token's transfer function calls back to Core). Could an attacker read pool states from within such hooks to make revert-or-continue decisions based on swap outcomes?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_39b26bc0-c4a9-45ab-8c12-349b3e5be4a4",
+    "timestamp": "2025-12-02 03:11:12.151774",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.tload() line 27, reading transient storage from a contract that's being called via Core.forward() could expose the forwarding state. Could an attacker detect when they're in a forwarded call, read the original locker information, and exploit the temporary locker address change?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_540d7189-0f11-4fa2-ac10-c85dbb8201a4",
+    "timestamp": "2025-12-02 03:11:41.835477",
+    "report_generated": false
+  },
+  {
+    "question": "In ExposedStorage.sload() line 17, reading oracle observation arrays (Oracle extension) during observation writes could expose partially updated observations. Could an attacker use this to detect observation boundary conditions and manipulate TWAP by timing swaps around partial observation states?",
+    "url": "https://deepwiki.com/search/-you-are-an-elite-web3-securit_670f9e2e-b6e8-4ce4-aa35-b9b8cc813d00",
+    "timestamp": "2025-12-02 03:12:12.400256",
+    "report_generated": false
   }
 ]
