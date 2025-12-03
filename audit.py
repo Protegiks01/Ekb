@@ -185,7 +185,9 @@ class GetReports:
             clipboard_content = pyperclip.paste()
 
             # Check if the content exists AND if it does NOT contain the "#NoVulnerability" string
-            if clipboard_content and "#NoVulnerability" not in clipboard_content and "#No" not in clipboard_content:
+            if clipboard_content and (
+                    "#NoVulnerability" not in clipboard_content and "#No" not in clipboard_content and "Invalid" not in clipboard_content
+                    and "NoVulnerability" not in clipboard_content):
                 filename = f"audits/audit_{self.get_next_report_number()}.md"
                 with open(filename, "w") as f:
                     f.write(clipboard_content)
