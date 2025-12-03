@@ -1,0 +1,1 @@
+I'll analyze the `computeSqrtSaleRatio()` function for potential edge cases at branch boundaries.

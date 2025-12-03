@@ -1,0 +1,1 @@
+Let me investigate whether there are subsequent validations after `nextSqrtRatioFromAmount1()` returns:
