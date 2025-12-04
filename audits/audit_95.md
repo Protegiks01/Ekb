@@ -1,310 +1,193 @@
+# Audit Report
+
 ## Title
-Permanent ETH Loss Due to NATIVE_TOKEN_ADDRESS Conflict - Withdrawals to address(0) Burn Funds Irreversibly
+Router Multihop Swap Allows Theft of Residual Native Tokens Due to Missing msg.value Validation
 
 ## Summary
-The protocol uses `address(0)` as `NATIVE_TOKEN_ADDRESS` to identify native ETH in pool operations. However, the withdrawal mechanism in `FlashAccountant.sol` performs no validation to prevent users from specifying `address(0)` as the recipient. When ETH is withdrawn to `address(0)`, the EVM call succeeds but permanently burns the funds, causing irreversible user fund loss.
+The Router's `multihopSwap` function transfers native ETH from its contract balance to settle debts without validating that `msg.value` matches the required amount. This architectural flaw allows attackers to steal residual ETH left by previous users who overpaid, resulting in direct theft of user funds through a single transaction exploit.
 
 ## Impact
 **Severity**: High
 
+Direct theft of user funds with no protocol-level protection. Any user who sends excess ETH for multihop swaps becomes a victim, and subsequent users can immediately extract that value by underpaying. The impact scales with Router usage - the more users overpay (intentionally for slippage protection, or due to front-end estimation), the more funds accumulate for theft. Unlike single swaps which have built-in refund mechanisms, multihop swaps have zero validation or refund logic, creating a critical security gap. [1](#0-0) 
+
 ## Finding Description
-**Location:** 
-- `src/base/FlashAccountant.sol` (lines 348-356, withdraw function)
-- `src/base/BasePositions.sol` (lines 120-133, withdraw function)
-- `src/Router.sol` (lines 280-289, swap function)
-- `src/Orders.sol` (lines 155, 168, withdraw calls) [1](#0-0) [2](#0-1) [3](#0-2) [4](#0-3) 
 
-**Intended Logic:** The protocol uses `address(0)` as a sentinel value to represent native ETH in pool operations, allowing uniform handling of ETH alongside ERC20 tokens. The withdrawal mechanism should safely transfer tokens to user-specified recipients.
+**Location:** `src/Router.sol`, function `handleLockData()`, lines 189-198 (swap execution) and lines 226-234 (settlement)
 
-**Actual Logic:** When a user calls withdrawal functions (withdraw, collectFees, swap) with `recipient = address(0)` for a pool containing native ETH (where `token0 = NATIVE_TOKEN_ADDRESS = address(0)`), the FlashAccountant performs:
-```
-switch token
-case 0 {
-    let success := call(gas(), recipient, amount, 0, 0, 0, 0)
-```
-This executes `call(gas(), 0, amount, 0, 0, 0, 0)`, which in EVM succeeds but sends ETH to the zero address where it is permanently burned and unrecoverable.
+**Intended Logic:** 
+When a user initiates a multihop swap with native tokens, the Router should validate that `msg.value` matches or exceeds the required ETH amount (`totalSpecified`), transfer exactly that amount to the FlashAccountant, and refund any excess to the user - consistent with how single swaps operate.
+
+**Actual Logic:**
+The Router transfers ETH from its accumulated contract balance (`address(this).balance`) without any validation that the ETH belongs to the current transaction's user or that `msg.value` covers the requirement. The settlement logic at line 230 uses `SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(totalSpecified)))` which draws from the Router's total balance, not the current user's payment. [2](#0-1) 
 
 **Exploitation Path:**
-1. User creates a liquidity position in a pool with `token0 = NATIVE_TOKEN_ADDRESS` (ETH paired with any ERC20)
-2. User accrues fees or wishes to withdraw liquidity
-3. User calls `positions.collectFees(id, poolKey, tickLower, tickUpper, address(0))` or `positions.withdraw(id, poolKey, tickLower, tickUpper, liquidity, address(0), true)`
-4. The call propagates through BasePositions → FlashAccountantLib.withdrawTwo → FlashAccountant.withdraw
-5. FlashAccountant executes `call(gas(), 0, ethAmount, 0, 0, 0, 0)`, successfully sending ETH to address(0)
-6. ETH is permanently burned; user loses funds irreversibly [5](#0-4) [6](#0-5) [7](#0-6) [8](#0-7) [9](#0-8) 
 
-**Security Property Broken:** This violates the **Solvency Invariant** - while the protocol's accounting correctly reduces debt and maintains internal consistency, the actual ETH is destroyed rather than transferred to a valid recipient, causing real economic loss to users.
+1. **Victim Setup**: User A calls `multihopSwap{value: 1.1 ETH}` for a route requiring `totalSpecified = 1 ETH`. Router receives 1.1 ETH. Settlement at line 230 transfers 1 ETH to ACCOUNTANT. Result: 0.1 ETH remains in Router contract.
+
+2. **Attacker Execution**: User B (attacker) calls `multihopSwap{value: 0.9 ETH}` for a route requiring `totalSpecified = 1 ETH`. Router now has 0.1 + 0.9 = 1 ETH total. Settlement at line 230 transfers 1 ETH to ACCOUNTANT using the combined balance. Result: User B paid only 0.9 ETH but received full 1 ETH swap execution.
+
+3. **Fund Loss**: User A lost 0.1 ETH permanently. User B gained 0.1 ETH of free swap value.
+
+**Security Guarantee Broken:**
+Violates flash accounting invariant that debts must be settled by the current locker with their own funds. Also breaks user fund isolation - the protocol fails to maintain proper accounting of which ETH belongs to which user.
+
+**Root Cause - Asymmetric Settlement Logic:**
+Lines 229-230 show native token settlement transfers from Router balance, while line 232 shows ERC20 settlement uses `ACCOUNTANT.payFrom(swapper, ...)` which correctly pulls from the user. This asymmetry creates the vulnerability. [3](#0-2) 
+
+**Missing Implementation - Comparison with Single Swap:**
+The single swap path (lines 105-146) correctly implements native token handling with refund logic at lines 134-142. The developers clearly understood that excess ETH must be refunded. However, this protection was NOT implemented for the multihop path (lines 151-251), creating an exploitable gap. [4](#0-3) 
 
 ## Impact Explanation
-- **Affected Assets**: Native ETH in any pool where `token0 = NATIVE_TOKEN_ADDRESS`
-- **Damage Severity**: Complete and permanent loss of withdrawn ETH amount. Unlike ERC20 tokens where address(0) transfers may fail or simply not credit balances, ETH transfers to address(0) via `call()` succeed and burn the funds irreversibly. Users lose 100% of withdrawn/collected amounts.
-- **User Impact**: Any user withdrawing liquidity or collecting fees from ETH pools who accidentally or intentionally specifies `address(0)` as recipient will suffer permanent fund loss. This could affect liquidity providers across all ETH-paired pools.
+
+**Affected Assets**: All native ETH sent to Router for multihop/multi-multihop swaps
+
+**Damage Severity**:
+- Users lose 100% of excess ETH they send beyond `totalSpecified`
+- Attackers can extract all accumulated residual ETH with zero capital risk
+- No per-transaction limit - theft scales with number of overpaying users
+- Permanent loss - no recovery mechanism unless victim manually calls `refundNativeToken()` before attacker
+
+**User Impact**: Any user sending ETH for multihop swaps is at risk. Common scenarios creating residual:
+- Sending round amounts (1 ETH instead of 0.987 ETH)
+- Slippage protection buffers
+- Front-end estimation errors
+- Price impact causing actual swap to consume less than estimated
+
+**Trigger Conditions**: Single transaction from any address. No special pool state, liquidity requirements, or timing constraints.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any user (including honest users making mistakes). No special permissions required.
-- **Preconditions**: 
-  - Pool with `token0 = NATIVE_TOKEN_ADDRESS` must exist (common scenario)
-  - User must have a position or execute a swap
-  - User specifies `address(0)` as recipient parameter
-- **Execution Complexity**: Single transaction calling standard withdrawal/swap functions with recipient parameter set to address(0)
-- **Frequency**: Can occur on every withdrawal/collection where user specifies address(0) as recipient
+
+**Attacker Profile**: Any user with ability to call Router functions. No special privileges, capital requirements, or technical sophistication needed.
+
+**Preconditions**:
+1. Residual ETH exists in Router (easily created by any overpaying user)
+2. Attacker observes Router balance on-chain or monitors mempool
+3. No other preconditions required
+
+**Execution Complexity**: Single transaction calling `multihopSwap()` or `multiMultihopSwap()` with `msg.value < totalSpecified`. Attacker simply underpays by the amount of residual available.
+
+**Economic Cost**: Only gas fees (~$20-50 depending on route complexity). No capital lockup, no failed transaction risk if residual balance checked first.
+
+**Frequency**: Continuously exploitable. Attacker can:
+- Monitor Router balance continuously 
+- Front-run refund attempts
+- Extract value immediately after each overpayment
+
+**Overall Likelihood**: HIGH - Trivial execution, no barriers, continuous monitoring possible, economically profitable even for small amounts.
 
 ## Recommendation
 
-Add explicit validation to prevent withdrawals to address(0):
+Implement msg.value validation and refund logic in the multihop settlement path, mirroring the protection that exists for single swaps:
 
 ```solidity
-// In src/base/FlashAccountant.sol, withdraw function, line ~331:
+// In src/Router.sol, function handleLockData(), around lines 228-234:
 
-// CURRENT (vulnerable):
-for { let i := 4 } lt(i, calldatasize()) { i := add(i, 56) } {
-    let token := shr(96, calldataload(i))
-    let recipient := shr(96, calldataload(add(i, 20)))
-    let amount := shr(128, calldataload(add(i, 40)))
-    
-    if amount {
-        // ... rest of code
-        switch token
-        case 0 {
-            let success := call(gas(), recipient, amount, 0, 0, 0, 0)
-            // ...
+if (totalSpecified > 0) {
+    if (specifiedToken == NATIVE_TOKEN_ADDRESS) {
+        uint256 required = uint128(uint256(totalSpecified));
+        
+        // Validate sufficient payment
+        if (msg.value < required) {
+            revert InsufficientNativeTokenPayment(required, msg.value);
         }
-    }
-}
-
-// FIXED:
-for { let i := 4 } lt(i, calldatasize()) { i := add(i, 56) } {
-    let token := shr(96, calldataload(i))
-    let recipient := shr(96, calldataload(add(i, 20)))
-    let amount := shr(128, calldataload(add(i, 40)))
-    
-    // Validate recipient is not address(0) to prevent fund burning
-    if iszero(recipient) {
-        // cast sig "InvalidRecipient()"
-        mstore(0x00, 0xd1c6f9e7)
-        revert(0x1c, 4)
-    }
-    
-    if amount {
-        // ... rest of code unchanged
+        
+        // Transfer required amount
+        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), required);
+        
+        // Refund excess to user
+        unchecked {
+            if (msg.value > required) {
+                ACCOUNTANT.withdraw(NATIVE_TOKEN_ADDRESS, swapper, uint128(msg.value - required));
+            }
+        }
+    } else {
+        ACCOUNTANT.payFrom(swapper, specifiedToken, uint128(uint256(totalSpecified)));
     }
 }
 ```
 
-**Alternative Mitigation:** Add validation in user-facing contracts (BasePositions, Router, Orders) before calling withdraw functions, though the core protection should be in FlashAccountant for defense-in-depth.
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_ETHBurnToAddressZero.t.sol
-// Run with: forge test --match-test test_ETHBurnToAddressZero -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Positions.sol";
-import "../src/Router.sol";
-import "./TestToken.sol";
-import {NATIVE_TOKEN_ADDRESS} from "../src/math/constants.sol";
-import {PoolKey} from "../src/types/poolKey.sol";
-import {createFullRangePoolConfig} from "../src/types/poolConfig.sol";
-import {MIN_TICK, MAX_TICK} from "../src/math/constants.sol";
-
-contract Exploit_ETHBurnToAddressZero is Test {
-    Core core;
-    Positions positions;
-    Router router;
-    TestToken token1;
-    
-    address user = makeAddr("user");
-    
-    function setUp() public {
-        core = new Core();
-        positions = new Positions(core, address(this), 0, 1);
-        router = new Router(core);
-        token1 = new TestToken(address(this));
-        
-        // Fund user with ETH and tokens
-        vm.deal(user, 100 ether);
-        token1.mint(user, 1000e18);
-        
-        vm.startPrank(user);
-        token1.approve(address(positions), type(uint256).max);
-        vm.stopPrank();
-    }
-    
-    function test_ETHBurnToAddressZero() public {
-        vm.startPrank(user);
-        
-        // SETUP: Create ETH/Token1 pool
-        PoolKey memory poolKey = PoolKey({
-            token0: NATIVE_TOKEN_ADDRESS, // ETH
-            token1: address(token1),
-            config: createFullRangePoolConfig({_fee: 3000, _extension: address(0)})
-        });
-        
-        // Initialize pool
-        positions.maybeInitializePool(poolKey, 0);
-        
-        // Record initial balances
-        uint256 initialUserETH = user.balance;
-        uint256 initialZeroAddressETH = address(0).balance;
-        
-        // Deposit liquidity with ETH
-        (uint256 positionId,,,) = positions.mintAndDeposit{value: 1 ether}({
-            poolKey: poolKey,
-            tickLower: MIN_TICK,
-            tickUpper: MAX_TICK,
-            maxAmount0: 1 ether,
-            maxAmount1: 1000e18,
-            minLiquidity: 0
-        });
-        
-        // Generate some swap fees
-        vm.stopPrank();
-        vm.deal(address(this), 10 ether);
-        router.swap{value: 0.1 ether}({
-            poolKey: poolKey,
-            isToken1: false,
-            amount: 0.1 ether,
-            sqrtRatioLimit: 0,
-            skipAhead: 0,
-            calculatedAmountThreshold: type(int256).min
-        });
-        
-        vm.startPrank(user);
-        
-        // EXPLOIT: Collect fees to address(0) - this burns ETH permanently
-        (uint128 collectedETH, uint128 collectedToken1) = positions.collectFees({
-            id: positionId,
-            poolKey: poolKey,
-            tickLower: MIN_TICK,
-            tickUpper: MAX_TICK,
-            recipient: address(0) // Sending to address(0)!
-        });
-        
-        vm.stopPrank();
-        
-        // VERIFY: ETH was permanently burned
-        assertTrue(collectedETH > 0, "Should have collected some ETH fees");
-        
-        // The user did NOT receive the ETH
-        assertEq(user.balance, initialUserETH - 1 ether, "User ETH unchanged (fees lost)");
-        
-        // address(0) balance may appear unchanged (ETH is burned in EVM)
-        // The key point is the ETH is GONE - not in user wallet, not recoverable
-        console.log("ETH fees collected (permanently lost):", collectedETH);
-        console.log("User final balance:", user.balance);
-        console.log("ETH was burned - permanently lost!");
-    }
-}
-```
+**Alternative**: Track `msg.value` at the start of `handleLockData()` and validate it matches native token requirements before any settlement occurs.
 
 ## Notes
 
-This vulnerability arises from the dual use of `address(0)` as both:
-1. A **token identifier** for native ETH (`NATIVE_TOKEN_ADDRESS`)
-2. A potential **recipient address** in withdrawal operations
+**Why refundNativeToken() Doesn't Protect:**
+The `refundNativeToken()` function exists in the inherited `PayableMulticallable` contract, but it:
+1. Must be manually called by users (not automatic)
+2. Can be called by ANY user to drain entire balance to themselves
+3. Creates a race condition between victim recovery and attacker exploitation
+4. Confirms the developers knew ETH could accumulate, but provided inadequate protection [5](#0-4) 
 
-While ERC20 transfers to `address(0)` typically fail or simply don't credit balances (saving gas as seen in TokenWrapper.sol), **ETH transfers via `call()` to address(0) succeed** in EVM but permanently burn the funds. The protocol's accounting correctly reduces debt and maintains consistency, but the actual ETH is destroyed, violating user expectations and causing real economic loss.
+**Architecture Context:**
+The entry point for multihop swaps is `multihopSwap()` (lines 380-388), marked `payable`. It calls `lock()` which invokes the FlashAccountant. The ACCOUNTANT callback to `locked_6416899205()` in BaseLocker eventually reaches `handleLockData()` where the vulnerable settlement occurs. Throughout this call chain, `msg.value` is never validated or tracked. [6](#0-5) 
 
-The TokenWrapper contract intentionally allows transfers to `address(0)` as a burn mechanism for wrapped tokens, but this pattern is unsafe when applied to native ETH withdrawals where the funds are irreversibly lost rather than simply uncredited.
+**Design Inconsistency:**
+The single swap implementation correctly handles native token with value tracking and refunds (lines 106-110 calculate required value, lines 134-142 implement refund logic). The multihop implementation passes `value: 0` to internal swaps (line 189) and defers all settlement to the end, but FORGOT to implement the corresponding msg.value validation and refund at settlement time. This is a clear implementation gap, not an intentional design choice.
 
 ### Citations
 
-**File:** src/math/constants.sol (L24-26)
+**File:** src/Router.sol (L134-146)
 ```text
-// Address used to represent the native token (ETH) within the protocol
-// Using address(0) allows the protocol to handle native ETH alongside ERC20 tokens
-address constant NATIVE_TOKEN_ADDRESS = address(0);
-```
+                        if (poolKey.token0 == NATIVE_TOKEN_ADDRESS) {
+                            int256 valueDifference = int256(value) - int256(balanceUpdate.delta0());
 
-**File:** src/base/FlashAccountant.sol (L348-356)
-```text
-                    switch token
-                    case 0 {
-                        let success := call(gas(), recipient, amount, 0, 0, 0, 0)
-                        if iszero(success) {
-                            // cast sig "ETHTransferFailed()"
-                            mstore(0x00, 0xb12d13eb)
-                            revert(0x1c, 4)
+                            // refund the overpaid ETH to the swapper
+                            if (valueDifference > 0) {
+                                ACCOUNTANT.withdraw(NATIVE_TOKEN_ADDRESS, swapper, uint128(uint256(valueDifference)));
+                            } else if (valueDifference < 0) {
+                                SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)));
+                            }
+                        } else {
+                            ACCOUNTANT.payFrom(swapper, poolKey.token0, uint128(balanceUpdate.delta0()));
                         }
                     }
 ```
 
-**File:** src/base/BasePositions.sol (L120-133)
+**File:** src/Router.sol (L189-198)
 ```text
-    function withdraw(
-        uint256 id,
-        PoolKey memory poolKey,
-        int32 tickLower,
-        int32 tickUpper,
-        uint128 liquidity,
-        address recipient,
-        bool withFees
-    ) public payable authorizedForNft(id) returns (uint128 amount0, uint128 amount1) {
-        (amount0, amount1) = abi.decode(
-            lock(abi.encode(CALL_TYPE_WITHDRAW, id, poolKey, tickLower, tickUpper, liquidity, recipient, withFees)),
-            (uint128, uint128)
+                        (PoolBalanceUpdate update,) = _swap(
+                            0,
+                            node.poolKey,
+                            createSwapParameters({
+                                _amount: tokenAmount.amount,
+                                _isToken1: isToken1,
+                                _sqrtRatioLimit: node.sqrtRatioLimit,
+                                _skipAhead: node.skipAhead
+                            })
+                        );
+```
+
+**File:** src/Router.sol (L226-234)
+```text
+                if (totalSpecified < 0) {
+                    ACCOUNTANT.withdraw(specifiedToken, swapper, uint128(uint256(-totalSpecified)));
+                } else if (totalSpecified > 0) {
+                    if (specifiedToken == NATIVE_TOKEN_ADDRESS) {
+                        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(totalSpecified)));
+                    } else {
+                        ACCOUNTANT.payFrom(swapper, specifiedToken, uint128(uint256(totalSpecified)));
+                    }
+                }
+```
+
+**File:** src/Router.sol (L380-388)
+```text
+    function multihopSwap(Swap memory s, int256 calculatedAmountThreshold)
+        external
+        payable
+        returns (PoolBalanceUpdate[] memory result)
+    {
+        result = abi.decode(
+            lock(abi.encode(CALL_TYPE_MULTIHOP_SWAP, msg.sender, s, calculatedAmountThreshold)), (PoolBalanceUpdate[])
         );
     }
 ```
 
-**File:** src/base/BasePositions.sol (L328-328)
+**File:** src/base/PayableMulticallable.sol (L25-29)
 ```text
-            ACCOUNTANT.withdrawTwo(poolKey.token0, poolKey.token1, recipient, amount0, amount1);
-```
-
-**File:** src/libraries/FlashAccountantLib.sol (L199-228)
-```text
-    function withdrawTwo(
-        IFlashAccountant accountant,
-        address token0,
-        address token1,
-        address recipient,
-        uint128 amount0,
-        uint128 amount1
-    ) internal {
-        assembly ("memory-safe") {
-            let free := mload(0x40)
-
-            // cast sig "withdraw()"
-            mstore(free, shl(224, 0x3ccfd60b))
-
-            // Pack first withdrawal: token0 (20 bytes) + recipient (20 bytes) + amount0 (16 bytes)
-            mstore(add(free, 4), shl(96, token0))
-            mstore(add(free, 24), shl(96, recipient))
-            mstore(add(free, 44), shl(128, amount0))
-
-            // Pack second withdrawal: token1 (20 bytes) + recipient (20 bytes) + amount1 (16 bytes)
-            mstore(add(free, 60), shl(96, token1))
-            mstore(add(free, 80), shl(96, recipient))
-            mstore(add(free, 100), shl(128, amount1))
-
-            if iszero(call(gas(), accountant, 0, free, 116, 0, 0)) {
-                returndatacopy(free, 0, returndatasize())
-                revert(free, returndatasize())
-            }
+    function refundNativeToken() external payable {
+        if (address(this).balance != 0) {
+            SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
         }
     }
-```
-
-**File:** src/Router.sol (L123-123)
-```text
-                        ACCOUNTANT.withdraw(poolKey.token0, recipient, uint128(-balanceUpdate.delta0()));
-```
-
-**File:** src/Router.sol (L130-130)
-```text
-                        ACCOUNTANT.withdraw(poolKey.token1, recipient, uint128(-balanceUpdate.delta1()));
-```
-
-**File:** src/Orders.sol (L155-155)
-```text
-                        ACCOUNTANT.withdraw(sellToken, recipientOrPayer, uint128(uint256(-amount)));
-```
-
-**File:** src/Orders.sol (L168-168)
-```text
-                ACCOUNTANT.withdraw(orderKey.buyToken(), recipient, proceeds);
 ```

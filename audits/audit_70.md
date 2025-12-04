@@ -1,154 +1,140 @@
+# Audit Report
+
 ## Title
-Reentrancy in TWAMM Virtual Order Execution Allows Double Execution and Pool Insolvency
+TWAMM Extension State Corruption via Nested Reentrancy During Virtual Order Execution
 
 ## Summary
-The TWAMM extension's `_executeVirtualOrdersFromWithinLock` function contains a reentrancy vulnerability that allows virtual orders to execute twice in the same block. The function checks if orders were already executed by comparing `realLastVirtualOrderExecutionTime` with `block.timestamp`, but this check is bypassed when `beforeSwap` hook triggers nested `lockAndExecuteVirtualOrders` calls before the state is updated, causing double swaps and pool balance corruption.
+The TWAMM extension's virtual order execution function reads state from storage, executes swaps that trigger nested callbacks, then writes state back to storage. This allows nested execution to process and modify the same storage slots, with the outer call's final write overwriting the nested call's updates with stale data, corrupting the TWAMM pool state.
 
 ## Impact
 **Severity**: High
 
+This vulnerability causes state corruption in TWAMM pools, leading to incorrect sale rates, corrupted reward distributions, and broken time boundary tracking. The corruption affects all liquidity providers (incorrect fee distributions) and order placers (incorrect order execution amounts) in TWAMM pools. Virtual orders may execute with wrong amounts or fail entirely due to corrupted bitmaps and cleared time slots. The issue can be triggered unintentionally during normal protocol usage (collectFees, swap, updatePosition calls), making it a systemic risk affecting all TWAMM pools with pending virtual orders.
+
 ## Finding Description
 
-**Location:** [1](#0-0) 
+**Location:** `src/extensions/TWAMM.sol`, function `_executeVirtualOrdersFromWithinLock()` [1](#0-0) 
 
-**Intended Logic:** Virtual orders should execute once per block maximum. The check at line 404 is designed to prevent re-execution by comparing the stored `lastVirtualOrderExecutionTime` with current `block.timestamp`. [2](#0-1) 
+**Intended Logic:** 
+The timestamp check at line 404 is intended to prevent redundant virtual order execution within the same block. The extension should execute virtual orders once per block, updating the timestamp to block.timestamp to prevent re-execution.
 
-**Actual Logic:** The state is read at line 389 but not written until line 587. During virtual order execution, `CORE.swap()` is called which triggers the `beforeSwap` hook. The hook calls `lockAndExecuteVirtualOrders` again (nested lock), which reads the same old state from storage since the first execution hasn't updated it yet. Both executions pass the check and execute virtual orders twice. [3](#0-2) [4](#0-3) 
+**Actual Logic:**
+The timestamp check reads from storage at the beginning (line 389) but storage is only written at the end (line 587). During execution, CORE.swap calls trigger the beforeSwap callback [2](#0-1) [3](#0-2) 
+
+which calls lockAndExecuteVirtualOrders again. The FlashAccountant explicitly allows nested locks with incrementing IDs: [4](#0-3) 
+
+The nested call reads the same stale timestamp from storage (outer call hasn't written yet), passes the timestamp check, and executes virtual orders. Both calls modify shared storage: [5](#0-4) 
+
+The nested call clears timeInfo slots (line 562) and flips bitmaps (line 564). When the outer call continues, it reads these cleared/flipped values but continues with its stale local state variable. The outer call's final write: [6](#0-5) 
+
+overwrites the nested call's correct state with stale sale rates and corrupted reward calculations.
 
 **Exploitation Path:**
+1. **Trigger**: User calls collectFees on TWAMM pool with pending virtual orders (lastVirtualOrderExecutionTime < block.timestamp) [7](#0-6) 
 
-1. Any user calls `lockAndExecuteVirtualOrders(poolKey)` or triggers it indirectly through swap/updatePosition/collectFees on a TWAMM pool [5](#0-4) 
+2. **Outer Execution**: TWAMM's beforeCollectFees triggers lockAndExecuteVirtualOrders [8](#0-7) 
+   
+   Outer call reads state showing realLastVirtualOrderExecutionTime = T1 (old), enters execution loop
 
-2. First execution (lock ID 0) reads TWAMM pool state showing old `lastVirtualOrderExecutionTime` [6](#0-5) 
+3. **Nested Trigger**: During virtual order execution, CORE.swap is called [9](#0-8) 
+   
+   This triggers beforeSwap callback which calls lockAndExecuteVirtualOrders again
 
-3. Virtual order execution calls `CORE.swap()` to execute trades [7](#0-6) 
+4. **Nested Execution**: Nested call reads SAME stale timestamp T1 from storage (storage not yet updated), passes check, processes all intervals, clears timeInfo slots, flips bitmaps, writes final state with timestamp = block.timestamp
 
-4. Core's swap function triggers TWAMM's `beforeSwap` hook which calls `lockAndExecuteVirtualOrders` again [8](#0-7) [9](#0-8) 
+5. **State Corruption**: Outer call resumes with stale local state, but storage is modified (timeInfo cleared → returns 0, bitmaps flipped), outer call processes with corrupted data and overwrites nested call's correct state
 
-5. Second execution (lock ID 1) reads same old state from storage (first execution hasn't written yet), passes the check, and executes virtual orders again with incorrect accounting
-
-6. Virtual orders execute twice, causing double swaps, incorrect reward rate accumulation, and pool balance corruption leading to insolvency
-
-**Security Property Broken:** **Solvency Invariant** - Pool balances become negative or incorrect due to double execution of swaps. Virtual orders consume liquidity twice for the same time period, breaking the fundamental accounting assumption.
+**Security Property Broken:**
+Violates the main invariant from README: "All positions should be able to be withdrawn at any time" and "The codebase contains extensive unit and fuzzing test suites; many of these include invariants that should be upheld by the system." The state corruption breaks fee accounting and can cause DOS of future virtual order executions due to corrupted bitmaps.
 
 ## Impact Explanation
 
-- **Affected Assets**: All tokens in TWAMM pools (both token0 and token1), liquidity provider positions, TWAMM order proceeds
-- **Damage Severity**: Complete pool insolvency possible. Virtual orders execute swaps twice for the same time period, moving the pool price incorrectly and potentially draining all available liquidity. Reward rates are calculated incorrectly, causing orders to receive wrong amounts. Pool state corruption leads to permanent accounting errors.
-- **User Impact**: All liquidity providers and TWAMM order owners in affected pools. Triggers on ANY interaction with TWAMM pools (swaps, position updates, fee collections, order modifications). Affects every TWAMM pool in the protocol.
+**Affected Assets**: All TWAMM pools with active virtual orders. Specifically affects token0 and token1 balances in affected pools, liquidity provider fee shares, and TWAMM order execution.
+
+**Damage Severity**:
+- Sale rates become incorrect, causing virtual orders to execute with wrong amounts
+- Reward rate calculations corrupted, causing incorrect fee distribution to liquidity providers
+- Time info slots cleared by nested call cause outer call to process with zero deltas
+- Bitmap corruption can cause permanent DOS (inability to execute future virtual orders)
+- Potential for complete loss of value in affected orders if execution amounts are severely miscalculated
+
+**User Impact**: All users interacting with TWAMM pools are affected. The vulnerability triggers on any call to collectFees, swap, or updatePosition on TWAMM pools with pending virtual orders.
+
+**Trigger Conditions**: Any user can trigger with single transaction calling collectFees/swap/updatePosition on a TWAMM pool that has pending virtual orders and at least one initialized time boundary.
 
 ## Likelihood Explanation
 
-- **Attacker Profile**: Any user interacting with TWAMM pools - no special privileges required
-- **Preconditions**: 
-  - TWAMM pool initialized with active sale rates (orders placed)
-  - Any user action that triggers `lockAndExecuteVirtualOrders` (swap, updatePosition, collectFees, order updates)
-  - Time has elapsed since last virtual order execution (common scenario)
-- **Execution Complexity**: Completely automatic - no special setup required. The vulnerability is triggered by normal protocol operations due to the extension's hook architecture.
-- **Frequency**: Occurs on first interaction with TWAMM pool in each block where virtual orders need execution. Affects every TWAMM pool continuously.
+**Attacker Profile**: Any user or contract interacting with TWAMM pools. No special permissions required. Can be triggered unintentionally during normal protocol usage.
+
+**Preconditions**:
+1. TWAMM pool must be initialized with pending virtual orders (lastVirtualOrderExecutionTime < block.timestamp) - common state
+2. Pool must have at least one initialized time boundary for virtual order execution
+3. User calls any function triggering beforeCollectFees, beforeSwap, or beforeUpdatePosition
+
+**Execution Complexity**: Single transaction. The reentrancy occurs automatically through the normal extension callback mechanism during CORE.swap execution. No complex setup required.
+
+**Economic Cost**: Only gas fees for the triggering transaction. No capital requirements.
+
+**Frequency**: Can occur on every call to collectFees, swap, or updatePosition on TWAMM pools with pending virtual orders. Given that virtual orders accumulate over time between blocks, this is a frequent occurrence.
+
+**Overall Likelihood**: HIGH - Easily triggered during normal protocol operations, affects all TWAMM pools with active orders.
 
 ## Recommendation
 
-Add reentrancy protection by updating `lastVirtualOrderExecutionTime` immediately after the check, before executing virtual orders:
+**Primary Fix - Add Transient Storage Reentrancy Guard:**
+
+Add a reentrancy guard using transient storage in `_executeVirtualOrdersFromWithinLock`:
 
 ```solidity
-// In src/extensions/TWAMM.sol, function _executeVirtualOrdersFromWithinLock, after line 404:
+// At contract level in src/extensions/TWAMM.sol:
+uint256 private constant _EXECUTING_VIRTUAL_ORDERS_SLOT = 
+    uint256(keccak256("TWAMM.executingVirtualOrders"));
 
-// CURRENT (vulnerable):
-// Check at line 404, then execute orders, then write state at line 587
+// At start of _executeVirtualOrdersFromWithinLock (line 387):
+assembly ("memory-safe") {
+    let executing := tload(_EXECUTING_VIRTUAL_ORDERS_SLOT)
+    if executing {
+        return(0, 0)  // Already executing, return early
+    }
+    tstore(_EXECUTING_VIRTUAL_ORDERS_SLOT, 1)
+}
 
-// FIXED:
+// Before all return paths and at end of function:
+assembly ("memory-safe") {
+    tstore(_EXECUTING_VIRTUAL_ORDERS_SLOT, 0)
+}
+```
+
+**Alternative Fix - Update Timestamp Immediately:**
+
+Move the timestamp storage write to immediately after the check (before the execution loop) to prevent nested calls from passing the check:
+
+```solidity
+// In _executeVirtualOrdersFromWithinLock, after line 404:
 if (realLastVirtualOrderExecutionTime != block.timestamp) {
-    // Write timestamp IMMEDIATELY to prevent reentrancy
-    state = createTwammPoolState({
-        _lastVirtualOrderExecutionTime: uint32(block.timestamp),
-        _saleRateToken0: state.saleRateToken0(),
-        _saleRateToken1: state.saleRateToken1()
-    });
-    stateSlot.store(TwammPoolState.unwrap(state));
+    // Update storage IMMEDIATELY to prevent reentrancy
+    stateSlot.store(TwammPoolState.unwrap(
+        createTwammPoolState({
+            _lastVirtualOrderExecutionTime: uint32(block.timestamp),
+            _saleRateToken0: state.saleRateToken0(),
+            _saleRateToken1: state.saleRateToken1()
+        })
+    ));
     
-    // Continue with virtual order execution...
-    // At the end, update state again with final sale rates
+    // Continue with execution loop...
+    // Write correct final state at end
 }
 ```
 
-Alternative: Add a transient storage reentrancy guard that prevents nested execution within the same block for the same pool.
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_TWAMMReentrancy.t.sol
-// Run with: forge test --match-test test_TWAMMDoubleExecution -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/extensions/TWAMM.sol";
-import "../src/Orders.sol";
-
-contract Exploit_TWAMMReentrancy is Test {
-    Core core;
-    TWAMM twamm;
-    Orders orders;
-    
-    address user = address(0x1);
-    uint256 executeCount;
-    
-    function setUp() public {
-        // Deploy protocol
-        core = new Core();
-        twamm = new TWAMM(core);
-        orders = new Orders(core, twamm, address(this));
-        
-        // Initialize TWAMM pool
-        // [Setup pool with liquidity and active orders]
-    }
-    
-    function test_TWAMMDoubleExecution() public {
-        // SETUP: Create pool with active TWAMM orders
-        // Place sell orders for both token0 and token1
-        vm.startPrank(user);
-        // [Place orders that will trigger virtual order execution]
-        
-        // Advance time so virtual orders need execution
-        vm.warp(block.timestamp + 1 hours);
-        
-        // EXPLOIT: Call any function that triggers lockAndExecuteVirtualOrders
-        // This will cause double execution via beforeSwap reentrancy
-        twamm.lockAndExecuteVirtualOrders(poolKey);
-        
-        // VERIFY: Check that virtual orders executed twice
-        // Pool state shows incorrect balances
-        // Reward rates calculated twice
-        // Pool potentially insolvent
-        
-        // Expected: Virtual orders execute once per time period
-        // Actual: Virtual orders executed twice due to reentrancy
-        assertGt(executeCount, 1, "Vulnerability confirmed: Virtual orders executed multiple times");
-    }
-}
-```
+**Recommended Approach**: Use the transient storage guard (Primary Fix) as it cleanly prevents any nested execution without requiring multiple storage writes or complex state management.
 
 ## Notes
 
-The vulnerability exists because:
-
-1. The flash accounting lock system allows nested locks with different IDs [10](#0-9) 
-
-2. The `beforeSwap` hook is called during swap execution [11](#0-10) 
-
-3. TWAMM's `beforeSwap` implementation unconditionally calls `lockAndExecuteVirtualOrders` [8](#0-7) 
-
-4. The state check happens before state write, creating a time-of-check-time-of-use (TOCTOU) vulnerability [12](#0-11) 
-
-5. The `shouldCallBeforeSwap` function prevents self-calls but allows calls when the locker is a different address [13](#0-12) 
-
-This is a critical architectural flaw in the TWAMM extension's interaction with the Core's hook system that compromises pool solvency.
+This vulnerability demonstrates a violation of the check-effects-interactions pattern in `_executeVirtualOrdersFromWithinLock`. The timestamp-based reentrancy protection is insufficient because it reads from storage at the beginning but only writes at the end. The FlashAccountant's lock mechanism explicitly allows nested locks with different IDs, which enables the reentrancy. The vulnerability affects all TWAMM pools and can be triggered by normal protocol usage, not requiring malicious intent. The issue is particularly severe because the nested call's storage modifications (clearing time slots, flipping bitmaps) create inconsistent state for the outer call to continue processing, resulting in data corruption rather than clean failure.
 
 ### Citations
 
-**File:** src/extensions/TWAMM.sol (L386-592)
+**File:** src/extensions/TWAMM.sol (L386-404)
 ```text
     function _executeVirtualOrdersFromWithinLock(PoolKey memory poolKey, PoolId poolId) internal {
         unchecked {
@@ -169,56 +155,10 @@ This is a critical architectural flaw in the TWAMM extension's interaction with 
 
             // no-op if already executed in this block
             if (realLastVirtualOrderExecutionTime != block.timestamp) {
-                // initialize the values that are handled once per execution
-                FeesPerLiquidity memory rewardRates;
+```
 
-                // 0 = not loaded & not updated, 1 = loaded & not updated, 2 = loaded & updated
-                uint256 rewardRate0Access;
-                uint256 rewardRate1Access;
-
-                int256 saveDelta0;
-                int256 saveDelta1;
-                PoolState corePoolState;
-                uint256 time = realLastVirtualOrderExecutionTime;
-
-                while (time != block.timestamp) {
-                    StorageSlot initializedTimesBitmapSlot = TWAMMStorageLayout.poolInitializedTimesBitmapSlot(poolId);
-
-                    (uint256 nextTime, bool initialized) = searchForNextInitializedTime({
-                        slot: initializedTimesBitmapSlot,
-                        lastVirtualOrderExecutionTime: realLastVirtualOrderExecutionTime,
-                        fromTime: time,
-                        untilTime: block.timestamp
-                    });
-
-                    // it is assumed that this will never return a value greater than type(uint32).max
-                    uint256 timeElapsed = nextTime - time;
-
-                    uint256 amount0 = computeAmountFromSaleRate({
-                        saleRate: state.saleRateToken0(), duration: timeElapsed, roundUp: false
-                    });
-
-                    uint256 amount1 = computeAmountFromSaleRate({
-                        saleRate: state.saleRateToken1(), duration: timeElapsed, roundUp: false
-                    });
-
-                    int256 rewardDelta0;
-                    int256 rewardDelta1;
-                    // if both sale rates are non-zero but amounts are zero, we will end up doing the math for no reason since we swap 0
-                    if (amount0 != 0 && amount1 != 0) {
-                        if (!corePoolState.isInitialized()) {
-                            corePoolState = CORE.poolState(poolId);
-                        }
-                        SqrtRatio sqrtRatioNext = computeNextSqrtRatio({
-                            sqrtRatio: corePoolState.sqrtRatio(),
-                            liquidity: corePoolState.liquidity(),
-                            saleRateToken0: state.saleRateToken0(),
-                            saleRateToken1: state.saleRateToken1(),
-                            timeElapsed: timeElapsed,
-                            fee: poolKey.config.fee()
-                        });
-
-                        PoolBalanceUpdate swapBalanceUpdate;
+**File:** src/extensions/TWAMM.sol (L455-465)
+```text
                         if (sqrtRatioNext > corePoolState.sqrtRatio()) {
                             (swapBalanceUpdate, corePoolState) = CORE.swap(
                                 0,
@@ -230,77 +170,10 @@ This is a critical architectural flaw in the TWAMM extension's interaction with 
                                     _skipAhead: 0
                                 })
                             );
-                        } else if (sqrtRatioNext < corePoolState.sqrtRatio()) {
-                            (swapBalanceUpdate, corePoolState) = CORE.swap(
-                                0,
-                                poolKey,
-                                createSwapParameters({
-                                    _sqrtRatioLimit: sqrtRatioNext,
-                                    _amount: int128(uint128(amount0)),
-                                    _isToken1: false,
-                                    _skipAhead: 0
-                                })
-                            );
-                        }
+```
 
-                        saveDelta0 -= swapBalanceUpdate.delta0();
-                        saveDelta1 -= swapBalanceUpdate.delta1();
-
-                        // this cannot overflow or underflow because swapDelta0 is constrained to int128,
-                        // and amounts computed from uint112 sale rates cannot exceed uint112.max
-                        rewardDelta0 = swapBalanceUpdate.delta0() - int256(uint256(amount0));
-                        rewardDelta1 = swapBalanceUpdate.delta1() - int256(uint256(amount1));
-                    } else if (amount0 != 0 || amount1 != 0) {
-                        PoolBalanceUpdate swapBalanceUpdate;
-                        if (amount0 != 0) {
-                            (swapBalanceUpdate, corePoolState) = CORE.swap(
-                                0,
-                                poolKey,
-                                createSwapParameters({
-                                    _sqrtRatioLimit: MIN_SQRT_RATIO,
-                                    _amount: int128(uint128(amount0)),
-                                    _isToken1: false,
-                                    _skipAhead: 0
-                                })
-                            );
-                        } else {
-                            (swapBalanceUpdate, corePoolState) = CORE.swap(
-                                0,
-                                poolKey,
-                                createSwapParameters({
-                                    _sqrtRatioLimit: MAX_SQRT_RATIO,
-                                    _amount: int128(uint128(amount1)),
-                                    _isToken1: true,
-                                    _skipAhead: 0
-                                })
-                            );
-                        }
-
-                        (rewardDelta0, rewardDelta1) = (swapBalanceUpdate.delta0(), swapBalanceUpdate.delta1());
-                        saveDelta0 -= rewardDelta0;
-                        saveDelta1 -= rewardDelta1;
-                    }
-
-                    if (rewardDelta0 < 0) {
-                        if (rewardRate0Access == 0) {
-                            rewardRates.value0 = uint256(TWAMMStorageLayout.poolRewardRatesSlot(poolId).load());
-                        }
-                        rewardRate0Access = 2;
-                        rewardRates.value0 += FixedPointMathLib.rawDiv(
-                            uint256(-rewardDelta0) << 128, state.saleRateToken1()
-                        );
-                    }
-
-                    if (rewardDelta1 < 0) {
-                        if (rewardRate1Access == 0) {
-                            rewardRates.value1 = uint256(TWAMMStorageLayout.poolRewardRatesSlot(poolId).next().load());
-                        }
-                        rewardRate1Access = 2;
-                        rewardRates.value1 += FixedPointMathLib.rawDiv(
-                            uint256(-rewardDelta1) << 128, state.saleRateToken0()
-                        );
-                    }
-
+**File:** src/extensions/TWAMM.sol (L537-564)
+```text
                     if (initialized) {
                         if (rewardRate0Access == 0) {
                             rewardRates.value0 = uint256(TWAMMStorageLayout.poolRewardRatesSlot(poolId).load());
@@ -329,97 +202,51 @@ This is a critical architectural flaw in the TWAMM extension's interaction with 
                         timeInfoSlot.store(0);
 
                         flipTime(initializedTimesBitmapSlot, nextTime);
-                    } else {
-                        state = createTwammPoolState({
-                            _lastVirtualOrderExecutionTime: uint32(nextTime),
-                            _saleRateToken0: state.saleRateToken0(),
-                            _saleRateToken1: state.saleRateToken1()
-                        });
-                    }
+```
 
-                    time = nextTime;
-                }
-
-                if (saveDelta0 != 0 || saveDelta1 != 0) {
-                    CORE.updateSavedBalances(poolKey.token0, poolKey.token1, bytes32(0), saveDelta0, saveDelta1);
-                }
-
-                if (rewardRate0Access == 2) {
-                    TWAMMStorageLayout.poolRewardRatesSlot(poolId).store(bytes32(rewardRates.value0));
-                }
-                if (rewardRate1Access == 2) {
-                    TWAMMStorageLayout.poolRewardRatesSlot(poolId).next().store(bytes32(rewardRates.value1));
-                }
-
+**File:** src/extensions/TWAMM.sol (L587-587)
+```text
                 stateSlot.store(TwammPoolState.unwrap(state));
-
-                _emitVirtualOrdersExecuted(poolId, state.saleRateToken0(), state.saleRateToken1());
-            }
-        }
-    }
 ```
 
-**File:** src/extensions/TWAMM.sol (L605-620)
+**File:** src/extensions/TWAMM.sol (L646-649)
 ```text
-    function lockAndExecuteVirtualOrders(PoolKey memory poolKey) public {
-        // the only thing we lock for is executing virtual orders, so all we need to encode is the pool key
-        // so we call lock on the core contract with the pool key after it
-        address target = address(CORE);
-        assembly ("memory-safe") {
-            let o := mload(0x40)
-            mstore(o, shl(224, 0xf83d08ba))
-            mcopy(add(o, 4), poolKey, 96)
-
-            // If the call failed, pass through the revert
-            if iszero(call(gas(), target, 0, o, 100, 0, 0)) {
-                returndatacopy(o, 0, returndatasize())
-                revert(o, returndatasize())
-            }
-        }
-    }
-```
-
-**File:** src/extensions/TWAMM.sol (L647-649)
-```text
+    // Since anyone can call the method `#lockAndExecuteVirtualOrders`, the method is not protected
     function beforeSwap(Locker, PoolKey memory poolKey, SwapParameters) external override(BaseExtension, IExtension) {
         lockAndExecuteVirtualOrders(poolKey);
     }
 ```
 
-**File:** src/libraries/ExtensionCallPointsLib.sol (L81-85)
+**File:** src/extensions/TWAMM.sol (L659-665)
 ```text
-    function shouldCallBeforeSwap(IExtension extension, Locker locker) internal pure returns (bool yes) {
-        assembly ("memory-safe") {
-            yes := and(shr(158, extension), iszero(eq(shl(96, locker), shl(96, extension))))
-        }
-    }
-```
-
-**File:** src/libraries/ExtensionCallPointsLib.sol (L87-106)
-```text
-    function maybeCallBeforeSwap(IExtension extension, Locker locker, PoolKey memory poolKey, SwapParameters params)
-        internal
+    // Since anyone can call the method `#lockAndExecuteVirtualOrders`, the method is not protected
+    function beforeCollectFees(Locker, PoolKey memory poolKey, PositionId)
+        external
+        override(BaseExtension, IExtension)
     {
-        bool needCall = shouldCallBeforeSwap(extension, locker);
-        assembly ("memory-safe") {
-            if needCall {
-                let freeMem := mload(0x40)
-                // cast sig "beforeSwap(bytes32,(address,address,bytes32),bytes32)"
-                mstore(freeMem, shl(224, 0xca11dba7))
-                mstore(add(freeMem, 4), locker)
-                mcopy(add(freeMem, 36), poolKey, 96)
-                mstore(add(freeMem, 132), params)
-                // bubbles up the revert
-                if iszero(call(gas(), extension, 0, freeMem, 164, 0, 0)) {
-                    returndatacopy(freeMem, 0, returndatasize())
-                    revert(freeMem, returndatasize())
-                }
-            }
-        }
+        lockAndExecuteVirtualOrders(poolKey);
     }
 ```
 
-**File:** src/base/FlashAccountant.sol (L146-187)
+**File:** src/Core.sol (L463-469)
+```text
+    function collectFees(PoolKey memory poolKey, PositionId positionId)
+        external
+        returns (uint128 amount0, uint128 amount1)
+    {
+        Locker locker = _requireLocker();
+
+        IExtension(poolKey.config.extension()).maybeCallBeforeCollectFees(locker, poolKey, positionId);
+```
+
+**File:** src/Core.sol (L526-528)
+```text
+            Locker locker = _requireLocker();
+
+            IExtension(config.extension()).maybeCallBeforeSwap(locker, poolKey, params);
+```
+
+**File:** src/base/FlashAccountant.sol (L146-172)
 ```text
     function lock() external {
         assembly ("memory-safe") {
@@ -448,24 +275,4 @@ This is a critical architectural flaw in the TWAMM extension's interaction with 
 
             // Undo the "locker" state changes
             tstore(_CURRENT_LOCKER_SLOT, current)
-
-            // Check if something is nonzero
-            let nonzeroDebtCount := tload(add(_NONZERO_DEBT_COUNT_OFFSET, id))
-            if nonzeroDebtCount {
-                // cast sig "DebtsNotZeroed(uint256)"
-                mstore(0x00, 0x9731ba37)
-                mstore(0x20, id)
-                revert(0x1c, 0x24)
-            }
-
-            // Directly return whatever the subcall returned
-            returndatacopy(free, 0, returndatasize())
-            return(free, returndatasize())
-        }
-    }
-```
-
-**File:** src/Core.sol (L528-528)
-```text
-            IExtension(config.extension()).maybeCallBeforeSwap(locker, poolKey, params);
 ```

@@ -1,1 +1,0 @@
-Looking at the conditional in `completePayments()`, I need to understand when this could fail incorrectly.

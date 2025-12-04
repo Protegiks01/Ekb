@@ -1,298 +1,246 @@
+# Audit Report
+
 ## Title
-MEVCapture Fee Overflow Causes Delta Sign Flip Leading to Massive Token Withdrawal in Unchecked Router
+Unprotected `refundNativeToken()` Function Allows Theft of ETH Sent to Non-Native Token Orders
 
 ## Summary
-The MEVCapture extension can compute additional fees that exceed the output amount when crossing many ticks, causing the balance update delta to flip from negative to positive. The Router's `handleLockData` function operates within an unchecked block where casting negative int128 to uint128 uses two's complement wrapping instead of reverting, enabling massive token withdrawals when delta signs are violated.
+The Orders contract inherits from PayableMulticallable, exposing a `refundNativeToken()` function with no access control that sends the entire contract's ETH balance to any caller. When users mistakenly send ETH while creating orders for non-native tokens (e.g., USDC/DAI pairs), the ETH accumulates in the Orders contract and becomes immediately claimable by any attacker or MEV bot through a single transaction.
 
 ## Impact
 **Severity**: High
 
+Direct theft of user funds. Any ETH mistakenly sent by users to non-native token order functions is permanently lost to the user and immediately stealable by any attacker. The vulnerability enables complete loss (100%) of the mistakenly sent ETH amount with zero recourse for victims. Common user mistakes (UI bugs, confusion about which orders require ETH, programmatic errors) result in immediate and irreversible theft.
+
 ## Finding Description
-**Location:** 
-- `src/Router.sol` lines 105-150 (handleLockData function)
-- `src/extensions/MEVCapture.sol` lines 237-249 (fee application logic)
+
+**Location:** Multiple files - `src/base/PayableMulticallable.sol`, `src/Orders.sol`, `src/base/BaseLocker.sol`
 
 **Intended Logic:** 
-The Router expects Core/extensions to return balance updates with proper sign convention: one delta positive (pool receives), one negative (pool sends). The Router uses the `increasing` flag to determine which delta to withdraw (negate and cast to uint128) versus pay (cast directly to uint128). [1](#0-0) 
+The `refundNativeToken()` function is intended to allow users to recover excess ETH they sent during multicall transactions for native token orders. The design pattern assumes users will call this function themselves within the same transaction (via multicall) to reclaim their own surplus ETH.
 
-**Actual Logic:** 
-The MEVCapture extension can apply additional fees that exceed the output amount, flipping a delta's sign from negative to positive. Inside the Router's unchecked block, casting negative values to uint128 wraps using two's complement (as confirmed by test_castingAssumption), producing values near type(uint128).max instead of reverting. [2](#0-1) [3](#0-2) 
+**Actual Logic:**
+The function sends the **entire contract balance** to **msg.sender** without any access control or tracking of who originally deposited the ETH. [1](#0-0)  When ETH is sent to non-native-token order functions, it accumulates in the Orders contract balance and becomes claimable by anyone, not just the original sender.
 
 **Exploitation Path:**
 
-1. **Setup**: Attacker identifies a pool with MEVCapture extension where crossing many ticks produces extreme fee multipliers [4](#0-3) 
+1. **Victim sends ETH to non-native token order**: User calls `mintAndIncreaseSellAmount()` [2](#0-1)  with `msg.value = 1 ETH` but the `orderKey` specifies a non-native token pair (e.g., USDC/DAI where neither token is address(0)).
 
-2. **Trigger Swap**: Attacker executes exact-in swap (token0 → token1) that crosses sufficient ticks such that `feeMultiplierX64` causes `additionalFee` to approach type(uint64).max [5](#0-4) 
+2. **ETH remains in Orders contract**: The internal `handleLockData()` function [3](#0-2)  checks if `sellToken == NATIVE_TOKEN_ADDRESS` at line 147. Since the sellToken is not address(0), the condition is false, and line 150 executes `ACCOUNTANT.payFrom(recipientOrPayer, sellToken, uint256(amount))`, which transfers the ERC20 token from the user but leaves the 1 ETH sitting in the Orders contract.
 
-3. **Fee Overflow**: MEVCapture computes `fee = computeFee(outputAmount, additionalFee)` which rounds up and can exceed `|delta1|`. When adding at line 249: `delta1 + fee` flips from negative to positive [6](#0-5) 
+3. **BaseLocker.lock() does not forward ETH**: The lock mechanism [4](#0-3)  explicitly uses assembly instruction `call(gas(), target, 0, result, add(len, 4), 0, 0)` at line 61 with `0` as the value parameter, meaning no ETH is forwarded to the ACCOUNTANT during the lock callback.
 
-4. **Sign Violation**: Core returns balanceUpdate with BOTH deltas positive (delta0 > 0, delta1 > 0) instead of expected (delta0 > 0, delta1 < 0)
+4. **Attacker steals the ETH**: Any attacker (or MEV bot) monitoring for transactions that leave ETH in the Orders contract can immediately call `refundNativeToken()`, receiving the victim's 1 ETH.
 
-5. **Unchecked Wrap**: Router at line 130 attempts `uint128(-balanceUpdate.delta1())` where delta1 is now positive. Inside unchecked block, `-positive` becomes negative, and uint128 cast wraps to ~type(uint128).max [7](#0-6) 
-
-6. **Massive Withdrawal**: Pool attempts to withdraw maximum uint128 (~3.4e38) tokens to attacker, draining pool if balance exists
-
-**Security Property Broken:** Violates Solvency invariant - pool balances must never go negative. Also violates the implicit assumption that balance update deltas maintain sign convention before token transfers.
+**Security Property Broken:**
+Direct theft of user funds - violates the fundamental property that users should not lose assets due to honest mistakes when the protocol has mechanisms that could prevent such loss. The Orders contract makes all functions payable to support native token orders but fails to protect accumulated ETH from unauthorized withdrawal.
 
 ## Impact Explanation
-- **Affected Assets**: All pools using MEVCapture extension are vulnerable. Both tokens in the pool can be drained.
-- **Damage Severity**: Complete pool drainage possible if pool holds sufficient tokens. Single transaction can extract up to type(uint128).max (~3.4e38) tokens worth potentially billions of dollars depending on token.
-- **User Impact**: All liquidity providers in affected pools lose their capital. Any user can trigger this by crafting a swap crossing many ticks.
+
+**Affected Assets**: Any ETH mistakenly sent by users to non-native-token order functions (mintAndIncreaseSellAmount, increaseSellAmount, decreaseSaleRate, collectProceeds).
+
+**Damage Severity**:
+- Victim loses 100% of the ETH amount sent in the mistaken transaction
+- Attacker gains 100% of the victim's ETH with zero cost beyond gas fees
+- Loss is permanent and irreversible - no mechanism for recovery
+
+**User Impact**: Any user who accidentally includes ETH value when creating, modifying, or collecting proceeds from orders for non-native token pairs. This scenario is common due to:
+- UI bugs that incorrectly set msg.value
+- User confusion about which orders require ETH (only address(0) as sellToken)
+- Programmatic interactions with incorrect msg.value parameters
+- Copy-paste errors in transaction parameters
+
+**Trigger Conditions**: Single mistaken transaction from victim, followed by single theft transaction from attacker. No special pool state, liquidity requirements, or timing windows needed.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any user with gas to execute swaps. No special privileges required.
-- **Preconditions**: 
-  - Pool must have MEVCapture extension configured
-  - Pool must have sufficient tick spacing and liquidity distribution to allow crossing many ticks
-  - Pool must hold tokens to withdraw (but even partial drain is catastrophic) [8](#0-7) 
-- **Execution Complexity**: Single transaction - craft swap parameters to cross maximum ticks, submit via Router
-- **Frequency**: Repeatable until pool is drained. Can target multiple pools in single multicall transaction
+
+**Attacker Profile**: Any unprivileged user or MEV bot monitoring mempool transactions. No special permissions, positions, or capital required.
+
+**Preconditions**:
+1. User sends ETH (msg.value > 0) to any payable Orders function while specifying a non-native token order (sellToken != address(0))
+2. Common scenarios: UI bugs, user confusion, scripting errors, programmatic interactions
+
+**Execution Complexity**: Single transaction calling `refundNativeToken()` on the Orders contract. Attacker can monitor mempool and back-run victim transactions, or periodically check Orders contract balance and front-run other potential claimants.
+
+**Economic Cost**: Only gas fees (~0.01 ETH on mainnet). No capital lockup or risk to attacker.
+
+**Frequency**: Can occur with every mistaken ETH transfer. Given the payable nature of all Orders functions and common user mistakes, this represents a persistent and repeatable threat vector.
+
+**Overall Likelihood**: MEDIUM-HIGH - While requires user mistake, such mistakes are common in DeFi, and exploitation is trivial once ETH accumulates.
 
 ## Recommendation
 
-**Primary Fix - Add sign validation before token operations:** [9](#0-8) 
+**Primary Fix - Option 1: Revert on non-native token orders with msg.value**
 
-Add validation that deltas conform to expected signs based on `increasing` flag:
-
-```solidity
-// After line 114, before line 121:
-// Validate delta signs match increasing direction
-if (increasing) {
-    require(balanceUpdate.delta0() <= 0, "Invalid delta0 sign");
-    require(balanceUpdate.delta1() >= 0, "Invalid delta1 sign");
-} else {
-    require(balanceUpdate.delta1() <= 0, "Invalid delta1 sign");
-    require(balanceUpdate.delta0() >= 0, "Invalid delta0 sign");
-}
-```
-
-**Secondary Fix - Cap MEVCapture fees to prevent sign flip:** [10](#0-9) 
-
-Ensure fee never exceeds absolute delta value:
+Add validation in `handleLockData()` to prevent ETH being sent with non-native token orders:
 
 ```solidity
-// In MEVCapture.sol, lines 244-249, replace with:
-} else if (balanceUpdate.delta1() < 0) {
-    uint128 outputAmount = uint128(uint256(-int256(balanceUpdate.delta1())));
-    int128 fee = SafeCastLib.toInt128(computeFee(outputAmount, additionalFee));
-    
-    // Cap fee to prevent sign flip
-    if (fee >= -balanceUpdate.delta1()) {
-        fee = balanceUpdate.delta1() + 1; // Leave delta at -1 minimum
+// In src/Orders.sol, handleLockData(), around line 146-151:
+if (saleRateDelta > 0) {
+    // NEW: Revert if ETH sent but token is not native
+    if (sellToken != NATIVE_TOKEN_ADDRESS && msg.value != 0) {
+        revert EthSentToNonNativeTokenOrder();
     }
     
-    saveDelta1 += fee;
-    balanceUpdate = createPoolBalanceUpdate(balanceUpdate.delta0(), balanceUpdate.delta1() + fee);
-}
-```
-
-**Tertiary Fix - Remove unchecked block or add explicit checks:**
-
-The unchecked block at line 105 provides gas savings but defeats Solidity 0.8's type safety. Consider:
-1. Remove unchecked block entirely (safest, minimal gas impact)
-2. Add explicit bounds checks before uint128 casts
-3. Use SafeCast library for all conversions
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_MEVCaptureDeltaFlip.t.sol
-// Run with: forge test --match-test test_MEVCaptureDeltaFlip -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Router.sol";
-import "../src/extensions/MEVCapture.sol";
-import "../src/types/poolKey.sol";
-import "../src/types/swapParameters.sol";
-
-contract Exploit_MEVCaptureDeltaFlip is Test {
-    Core core;
-    Router router;
-    MEVCapture mevCapture;
-    
-    address token0 = address(0x1111);
-    address token1 = address(0x2222);
-    address attacker = address(0xBEEF);
-    
-    function setUp() public {
-        // Deploy contracts
-        core = new Core();
-        router = new Router(core);
-        mevCapture = new MEVCapture(core);
-        
-        // Register MEVCapture extension
-        mevCapture.register(core);
-        
-        // Setup pool with MEVCapture extension and wide tick spacing
-        // to allow crossing many ticks in single swap
-        // [Pool initialization code with MEVCapture config]
-        
-        // Fund pool with tokens
-        // [Add liquidity across wide tick range]
-        
-        // Give attacker tokens for swap
-        deal(token0, attacker, 1000e18);
-    }
-    
-    function test_MEVCaptureDeltaFlip() public {
-        vm.startPrank(attacker);
-        
-        // SETUP: Check initial pool balance
-        uint256 poolToken1Before = IERC20(token1).balanceOf(address(core));
-        uint256 attackerToken1Before = IERC20(token1).balanceOf(attacker);
-        
-        // EXPLOIT: Execute swap crossing many ticks
-        // This causes MEVCapture to compute huge additionalFee
-        PoolKey memory poolKey = PoolKey({
-            token0: token0,
-            token1: token1,
-            config: /* config with MEVCapture extension */
-        });
-        
-        SwapParameters memory params = createSwapParameters({
-            _amount: int128(1000e18), // Exact in, swap 1000 token0
-            _isToken1: false, // Swapping token0 for token1
-            _sqrtRatioLimit: SqrtRatio.wrap(0), // No limit
-            _skipAhead: 0
-        });
-        
-        // This swap crosses many ticks, triggering huge fee multiplier
-        // MEVCapture adds fee > |delta1|, flipping sign to positive
-        // Router's unchecked uint128(-positive) wraps to type(uint128).max
-        router.swap(poolKey, params, type(int256).min);
-        
-        // VERIFY: Attacker received massive amount of token1
-        uint256 attackerToken1After = IERC20(token1).balanceOf(attacker);
-        uint256 stolen = attackerToken1After - attackerToken1Before;
-        
-        assertGt(stolen, 1e30, "Should extract massive amount due to uint128 wrap");
-        assertEq(
-            stolen,
-            type(uint128).max - 1, // Wrapped value minus small positive delta
-            "Vulnerability confirmed: uint128 wrapping in unchecked block"
-        );
-        
-        vm.stopPrank();
+    if (sellToken == NATIVE_TOKEN_ADDRESS) {
+        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(amount));
+    } else {
+        ACCOUNTANT.payFrom(recipientOrPayer, sellToken, uint256(amount));
     }
 }
 ```
+
+**Alternative Fix - Option 2: Remove refundNativeToken() from Orders contract**
+
+Since Orders handles native tokens explicitly by immediately transferring them to the ACCOUNTANT [5](#0-4) , there is no legitimate reason for ETH to accumulate in the Orders contract. Remove PayableMulticallable inheritance:
+
+```solidity
+// In src/Orders.sol line 24:
+// CURRENT:
+contract Orders is IOrders, UsesCore, PayableMulticallable, BaseLocker, BaseNonfungibleToken
+
+// FIXED:
+contract Orders is IOrders, UsesCore, BaseLocker, BaseNonfungibleToken
+// Implement multicall directly without the refund function
+```
+
+**Additional Mitigation - Option 3: Track ETH deposits per sender**
+
+If refunds are needed for legitimate multicall scenarios, implement proper accounting:
+
+```solidity
+// In PayableMulticallable.sol:
+mapping(address => uint256) private _ethBalances;
+
+function refundNativeToken() external payable {
+    uint256 refundable = _ethBalances[msg.sender];
+    if (refundable != 0) {
+        _ethBalances[msg.sender] = 0;
+        SafeTransferLib.safeTransferETH(msg.sender, refundable);
+    }
+}
+
+// Track deposits in receive() or modify multicall to track per-sender ETH
+```
+
+## Notes
+
+The vulnerability exists because:
+
+1. **All Orders functions are payable** [2](#0-1)  to support native token (ETH) orders where `sellToken == NATIVE_TOKEN_ADDRESS` (address(0)) [6](#0-5) .
+
+2. **Native token handling is conditional** - only when `sellToken == NATIVE_TOKEN_ADDRESS` does the code transfer ETH to the ACCOUNTANT [7](#0-6) . For non-native tokens, the ERC20 is handled via `ACCOUNTANT.payFrom()` but the ETH value is ignored and accumulates.
+
+3. **The refund mechanism has no access control** [1](#0-0)  - it was designed for users to recover their own excess ETH in multicall scenarios, but the implementation allows anyone to claim all accumulated ETH by calling it in a separate transaction.
+
+4. **BaseLocker.lock() explicitly sends 0 value** [8](#0-7)  when calling the ACCOUNTANT, ensuring ETH never reaches the FlashAccountant in non-native token scenarios.
+
+The ETH is not permanently locked, nor does it corrupt delta accounting - instead, it becomes immediately stealable by any attacker through the unprotected `refundNativeToken()` function. This represents a direct theft vector requiring immediate remediation.
 
 ### Citations
 
-**File:** src/Router.sol (L105-150)
+**File:** src/base/PayableMulticallable.sol (L25-29)
 ```text
-            unchecked {
-                uint256 value = FixedPointMathLib.ternary(
-                    !params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS,
-                    uint128(params.amount()),
-                    0
-                );
-
-                bool increasing = params.isPriceIncreasing();
-
-                (PoolBalanceUpdate balanceUpdate,) = _swap(value, poolKey, params);
-
-                int128 amountCalculated = params.isToken1() ? -balanceUpdate.delta0() : -balanceUpdate.delta1();
-                if (amountCalculated < calculatedAmountThreshold) {
-                    revert SlippageCheckFailed(calculatedAmountThreshold, amountCalculated);
-                }
-
-                if (increasing) {
-                    if (balanceUpdate.delta0() != 0) {
-                        ACCOUNTANT.withdraw(poolKey.token0, recipient, uint128(-balanceUpdate.delta0()));
-                    }
-                    if (balanceUpdate.delta1() != 0) {
-                        ACCOUNTANT.payFrom(swapper, poolKey.token1, uint128(balanceUpdate.delta1()));
-                    }
-                } else {
-                    if (balanceUpdate.delta1() != 0) {
-                        ACCOUNTANT.withdraw(poolKey.token1, recipient, uint128(-balanceUpdate.delta1()));
-                    }
-
-                    if (balanceUpdate.delta0() != 0) {
-                        if (poolKey.token0 == NATIVE_TOKEN_ADDRESS) {
-                            int256 valueDifference = int256(value) - int256(balanceUpdate.delta0());
-
-                            // refund the overpaid ETH to the swapper
-                            if (valueDifference > 0) {
-                                ACCOUNTANT.withdraw(NATIVE_TOKEN_ADDRESS, swapper, uint128(uint256(valueDifference)));
-                            } else if (valueDifference < 0) {
-                                SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)));
-                            }
-                        } else {
-                            ACCOUNTANT.payFrom(swapper, poolKey.token0, uint128(balanceUpdate.delta0()));
-                        }
-                    }
-                }
-
-                result = abi.encode(balanceUpdate);
-            }
-```
-
-**File:** src/extensions/MEVCapture.sol (L195-209)
-```text
-                if (fees0 != 0 || fees1 != 0) {
-                    CORE.accumulateAsFees(poolKey, fees0, fees1);
-                    // never overflows int256 container
-                    saveDelta0 -= int256(uint256(fees0));
-                    saveDelta1 -= int256(uint256(fees1));
-                }
-
-                tickLast = tick;
-                setPoolState({
-                    poolId: poolId,
-                    state: createMEVCapturePoolState({_lastUpdateTime: currentTime, _tickLast: tickLast})
-                });
-            }
-
-            (PoolBalanceUpdate balanceUpdate, PoolState stateAfter) = CORE.swap(0, poolKey, params);
-```
-
-**File:** src/extensions/MEVCapture.sol (L212-215)
-```text
-            uint256 feeMultiplierX64 =
-                (FixedPointMathLib.abs(stateAfter.tick() - tickLast) << 64) / poolKey.config.concentratedTickSpacing();
-            uint64 poolFee = poolKey.config.fee();
-            uint64 additionalFee = uint64(FixedPointMathLib.min(type(uint64).max, (feeMultiplierX64 * poolFee) >> 64));
-```
-
-**File:** src/extensions/MEVCapture.sol (L237-251)
-```text
-                } else {
-                    if (balanceUpdate.delta0() < 0) {
-                        uint128 outputAmount = uint128(uint256(-int256(balanceUpdate.delta0())));
-                        int128 fee = SafeCastLib.toInt128(computeFee(outputAmount, additionalFee));
-
-                        saveDelta0 += fee;
-                        balanceUpdate = createPoolBalanceUpdate(balanceUpdate.delta0() + fee, balanceUpdate.delta1());
-                    } else if (balanceUpdate.delta1() < 0) {
-                        uint128 outputAmount = uint128(uint256(-int256(balanceUpdate.delta1())));
-                        int128 fee = SafeCastLib.toInt128(computeFee(outputAmount, additionalFee));
-
-                        saveDelta1 += fee;
-                        balanceUpdate = createPoolBalanceUpdate(balanceUpdate.delta0(), balanceUpdate.delta1() + fee);
-                    }
-                }
-```
-
-**File:** test/Core.t.sol (L19-24)
-```text
-    function test_castingAssumption() public pure {
-        // we make this assumption on solidity behavior in the protocol fee collection
-        unchecked {
-            assertEq(uint128(-type(int128).min), uint128(uint256(-int256(type(int128).min))));
+    function refundNativeToken() external payable {
+        if (address(this).balance != 0) {
+            SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
         }
     }
 ```
 
-**File:** src/math/fee.sol (L6-10)
+**File:** src/Orders.sol (L43-49)
 ```text
-function computeFee(uint128 amount, uint64 fee) pure returns (uint128 result) {
-    assembly ("memory-safe") {
-        result := shr(64, add(mul(amount, fee), 0xffffffffffffffff))
+    function mintAndIncreaseSellAmount(OrderKey memory orderKey, uint112 amount, uint112 maxSaleRate)
+        public
+        payable
+        returns (uint256 id, uint112 saleRate)
+    {
+        id = mint();
+        saleRate = increaseSellAmount(id, orderKey, amount, maxSaleRate);
+```
+
+**File:** src/Orders.sol (L134-175)
+```text
+    function handleLockData(uint256, bytes memory data) internal override returns (bytes memory result) {
+        uint256 callType = abi.decode(data, (uint256));
+
+        if (callType == CALL_TYPE_CHANGE_SALE_RATE) {
+            (, address recipientOrPayer, uint256 id, OrderKey memory orderKey, int256 saleRateDelta) =
+                abi.decode(data, (uint256, address, uint256, OrderKey, int256));
+
+            int256 amount =
+                CORE.updateSaleRate(TWAMM_EXTENSION, bytes32(id), orderKey, SafeCastLib.toInt112(saleRateDelta));
+
+            if (amount != 0) {
+                address sellToken = orderKey.sellToken();
+                if (saleRateDelta > 0) {
+                    if (sellToken == NATIVE_TOKEN_ADDRESS) {
+                        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(amount));
+                    } else {
+                        ACCOUNTANT.payFrom(recipientOrPayer, sellToken, uint256(amount));
+                    }
+                } else {
+                    unchecked {
+                        // we know amount will never exceed the uint128 type because of limitations on sale rate (fixed point 80.32) and duration (uint32)
+                        ACCOUNTANT.withdraw(sellToken, recipientOrPayer, uint128(uint256(-amount)));
+                    }
+                }
+            }
+
+            result = abi.encode(amount);
+        } else if (callType == CALL_TYPE_COLLECT_PROCEEDS) {
+            (, uint256 id, OrderKey memory orderKey, address recipient) =
+                abi.decode(data, (uint256, uint256, OrderKey, address));
+
+            uint128 proceeds = CORE.collectProceeds(TWAMM_EXTENSION, bytes32(id), orderKey);
+
+            if (proceeds != 0) {
+                ACCOUNTANT.withdraw(orderKey.buyToken(), recipient, proceeds);
+            }
+
+            result = abi.encode(proceeds);
+        } else {
+            revert();
+        }
     }
-}
+```
+
+**File:** src/base/BaseLocker.sol (L44-73)
+```text
+    function lock(bytes memory data) internal returns (bytes memory result) {
+        address target = address(ACCOUNTANT);
+
+        assembly ("memory-safe") {
+            // We will store result where the free memory pointer is now, ...
+            result := mload(0x40)
+
+            // But first use it to store the calldata
+
+            // Selector of lock()
+            mstore(result, shl(224, 0xf83d08ba))
+
+            // We only copy the data, not the length, because the length is read from the calldata size
+            let len := mload(data)
+            mcopy(add(result, 4), add(data, 32), len)
+
+            // If the call failed, pass through the revert
+            if iszero(call(gas(), target, 0, result, add(len, 4), 0, 0)) {
+                returndatacopy(result, 0, returndatasize())
+                revert(result, returndatasize())
+            }
+
+            // Copy the entire return data into the space where the result is pointing
+            mstore(result, returndatasize())
+            returndatacopy(add(result, 32), 0, returndatasize())
+
+            // Update the free memory pointer to be after the end of the data, aligned to the next 32 byte word
+            mstore(0x40, and(add(add(result, add(32, returndatasize())), 31), not(31)))
+        }
+    }
+```
+
+**File:** src/math/constants.sol (L24-26)
+```text
+// Address used to represent the native token (ETH) within the protocol
+// Using address(0) allows the protocol to handle native ETH alongside ERC20 tokens
+address constant NATIVE_TOKEN_ADDRESS = address(0);
 ```

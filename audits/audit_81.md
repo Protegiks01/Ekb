@@ -1,230 +1,194 @@
+# Audit Report
+
 ## Title
-Integer Overflow in Router Swap Path When Negating type(int128).min Boundary Values
+NFT Burn-and-Remint Vulnerability Allows Original Minter to Steal Liquidity from Secondary Holders
 
 ## Summary
-In the Router's single swap path, when Core.swap() clamps calculated amounts to `type(int128).min` (for amounts exceeding int128 range), the Router negates these values inside an unchecked block, causing integer overflow. This results in incorrect slippage check failures and erroneous withdrawal amount calculations.
+The BasePositions contract's deterministic NFT ID generation combined with the lack of liquidity checks in the burn function creates a critical vulnerability. When an NFT is transferred to a secondary holder who then burns it, the original minter can recreate the exact same NFT ID and gain unauthorized access to withdraw the position's liquidity, effectively stealing the secondary holder's funds.
 
 ## Impact
-**Severity**: Medium
+**Severity**: High
+
+Secondary NFT holders can lose 100% of their deposited liquidity to the original minter. This vulnerability affects any position NFT that has been transferred (through sale, gift, or other means) where the new owner burns the NFT without first withdrawing all liquidity. The attack violates the critical protocol invariant stated in the README: "All positions should be able to be withdrawn at any time." [1](#0-0) 
 
 ## Finding Description
-**Location:** 
-- [1](#0-0) 
-- [2](#0-1) 
+
+**Location:** `src/base/BaseNonfungibleToken.sol:133-134`, function `burn()`; `src/base/BasePositions.sol:120-133`, function `withdraw()`
 
 **Intended Logic:** 
-When a swap's calculated output amount is very large, Core.swap() clamps it to `type(int128).min` to prevent SafeCastLib overflow. The Router should then correctly interpret this clamped value, negate it to get the positive output amount for slippage checks, and withdraw the appropriate amount of tokens.
+The NFT system is designed to allow the original minter to recreate an NFT after burning it for gas refunds, as stated in the code comments. [2](#0-1)  This design assumes the NFT remains with the original minter throughout its lifecycle.
 
-**Actual Logic:** 
-The Router negates the delta values inside an unchecked block at line 116. In two's complement arithmetic, negating `type(int128).min` (-2^127) should yield 2^127, but this exceeds `type(int128).max` (2^127 - 1). In an unchecked block, `-type(int128).min` overflows and wraps around to `type(int128).min` itself, remaining negative instead of becoming positive. [3](#0-2) 
-
-The Core explicitly clamps to this boundary value using: [4](#0-3) 
-
-Then Router processes this in an unchecked block: [5](#0-4) 
+**Actual Logic:**
+The system fails to account for ERC721 NFT transferability. Position IDs are deterministically derived from NFT IDs using `createPositionId(bytes24(uint192(id)), tickLower, tickUpper)` [3](#0-2) , and NFT IDs are computed as `keccak256(minter, salt, chainid, contract)` [4](#0-3) . When a secondary holder burns an NFT, the original minter can recreate the identical NFT ID and regain control over the position containing the secondary holder's liquidity.
 
 **Exploitation Path:**
-1. User initiates a very large exact-input or exact-output swap that would result in calculated output exceeding `type(int128).max` (~1.7×10^38 base units)
-2. Core.swap() accumulates the calculated amount and clamps it to `type(int128).min` at line 811-812
-3. Core returns balanceUpdate with delta0 or delta1 = `type(int128).min`
-4. Router receives this at line 114 and attempts to negate at line 116 inside unchecked block
-5. Negation overflows: `-type(int128).min` becomes `type(int128).min` (still negative)
-6. Slippage check at line 117 compares `type(int128).min < calculatedAmountThreshold`, which for any reasonable positive threshold fails incorrectly
-7. Transaction reverts with `SlippageCheckFailed` even though the actual output would have been acceptable
-8. If slippage check somehow passes (e.g., threshold also set to `type(int128).min`), lines 123 or 130 attempt to withdraw `uint128(type(int128).min)` = 2^127 tokens, which would fail unless pool has that enormous amount [6](#0-5) [7](#0-6) 
 
-**Security Property Broken:** 
-Withdrawal Availability - legitimate large swaps that the protocol explicitly supports (via clamping logic) are incorrectly blocked from execution, preventing users from conducting valid trades.
+1. **Attacker mints with specific salt**: Alice calls `mintAndDepositWithSalt(salt_X, poolKey, tickLower, tickUpper, amount0, amount1, minLiquidity)` [5](#0-4) , creating NFT with ID = `keccak256(alice, salt_X, chainid, contract)` and depositing liquidity into the associated position.
+
+2. **Transfer to victim**: Alice transfers the NFT to Bob via standard ERC721 transfer. Bob now owns the NFT and believes he has exclusive control over the position's liquidity.
+
+3. **Victim burns NFT**: Bob calls `burn(id)` [6](#0-5) , which only verifies authorization but does not check if the position has remaining liquidity. The NFT is destroyed, but the position in Core still contains Bob's liquidity.
+
+4. **Attacker re-mints same ID**: Alice calls `mint(salt_X)` again, and the `saltToId()` function generates the exact same ID because it uses Alice's address as the minter parameter. Since the NFT was burned, `_mint()` succeeds and Alice now owns a new NFT with the same ID. [7](#0-6) 
+
+5. **Attacker extracts liquidity**: Alice calls `withdraw(id, poolKey, tickLower, tickUpper, liquidity, recipient, withFees)` [8](#0-7) . The `authorizedForNft(id)` check passes because Alice owns the NFT. The position ID is recalculated identically [9](#0-8) , allowing Alice to withdraw Bob's liquidity.
+
+**Security Property Broken:**
+This attack violates the protocol invariant that "All positions should be able to be withdrawn at any time." [1](#0-0)  After Bob burns the NFT, he permanently loses access to his liquidity, while only Alice can access it by re-minting.
 
 ## Impact Explanation
-- **Affected Assets**: Any token pair where a swap could theoretically produce output exceeding type(int128).max base units
-- **Damage Severity**: Denial of service for large swaps. Users attempting legitimate high-value trades will have their transactions revert incorrectly due to slippage check failures, even when the actual calculated amount meets their requirements
-- **User Impact**: Any user attempting swaps with very large amounts (more likely with low-decimal tokens or extreme price ratios) will be unable to execute trades. While this threshold is extremely high for most tokens, the protocol's explicit support for this scenario via clamping indicates these swaps should be possible
+
+**Affected Assets**: All liquidity positions where NFTs have been transferred to secondary holders who subsequently burn the NFT without withdrawing liquidity first.
+
+**Damage Severity**:
+- Secondary NFT holders lose 100% of their deposited liquidity
+- Original minters can steal all funds from any position they originally created if the secondary holder burns the NFT
+- Marketplace risk: Any position NFT sold on secondary markets can be "rug pulled" by the original minter if the buyer ever burns it
+
+**User Impact**: Any user who receives a position NFT (via transfer, gift, or marketplace purchase) and burns it loses all their liquidity permanently. This particularly affects users who may burn NFTs for gas refunds as encouraged by the design, or who burn them by mistake.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any user attempting large swaps; no special privileges required
-- **Preconditions**: 
-  - Pool must have sufficient liquidity to support calculated output > type(int128).max base units
-  - More realistic with tokens having low decimals (0-6 decimals) or in extreme price movement scenarios
-  - The Core code explicitly handles this scenario with clamping, indicating it's an intended supported case
-- **Execution Complexity**: Single transaction - user simply calls router.swap() with large amount parameters
-- **Frequency**: Every time a swap calculation would exceed int128 bounds (rare but explicitly supported by protocol design)
+
+**Attacker Profile**: The original minter of any position NFT. This could be a malicious actor who intentionally mints positions to later exploit, or an opportunistic user who exploits mistakes by secondary holders.
+
+**Preconditions**:
+1. Attacker mints position NFT using `mintAndDepositWithSalt()` with a known salt
+2. Attacker transfers/sells the NFT to a victim
+3. Victim burns the NFT without first withdrawing liquidity
+4. Position must have non-zero liquidity when burned
+
+**Execution Complexity**: Simple - requires only two transactions: initial transfer and re-minting after the victim burns. The attacker can monitor the mempool to immediately re-mint upon detecting a burn transaction.
+
+**Economic Cost**: Only gas fees (minimal). No capital lockup or slippage costs.
+
+**Frequency**: Exploitable once per transferred NFT that gets burned. The design encourages burning for gas refunds, making this scenario more likely than it might initially appear.
+
+**Overall Likelihood**: MEDIUM-HIGH - While it requires the victim to burn the NFT, the design explicitly encourages this behavior for gas refunds, and users may not understand the risk when transferring position NFTs.
 
 ## Recommendation
 
-**In Router.sol, line 116 and lines 123, 130:**
+**Primary Fix:**
+Override the `burn()` function in `BasePositions` to verify that all associated positions have zero liquidity before allowing the burn. Since a single NFT can be associated with multiple positions (different tick ranges in different pools), consider one of these approaches:
 
-Add explicit overflow handling before negation operations. Move the negation outside the unchecked block or add boundary checks:
+1. **Require explicit position specification**: Modify burn to accept pool and tick parameters, verify liquidity is zero for that specific position
+2. **Implement safe burn pattern**: Create a `burnPosition()` function that first withdraws all liquidity, then burns the NFT
+3. **Add transfer hooks**: Prevent transfers of NFTs with active positions, forcing users to withdraw before transferring
 
-```solidity
-// Line 105-119: Handle type(int128).min edge case before negation
-unchecked {
-    uint256 value = FixedPointMathLib.ternary(
-        !params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS,
-        uint128(params.amount()),
-        0
-    );
-
-    bool increasing = params.isPriceIncreasing();
-
-    (PoolBalanceUpdate balanceUpdate,) = _swap(value, poolKey, params);
-
-    // FIXED: Handle int128.min boundary before negation
-    int128 deltaToNegate = params.isToken1() ? balanceUpdate.delta0() : balanceUpdate.delta1();
-    int256 amountCalculated;
-    if (deltaToNegate == type(int128).min) {
-        // Special case: cannot negate safely, use uint128 directly
-        amountCalculated = uint128(type(int128).max) + 1; // = 2^127
-    } else {
-        amountCalculated = -deltaToNegate;
-    }
-    
-    if (amountCalculated < calculatedAmountThreshold) {
-        revert SlippageCheckFailed(calculatedAmountThreshold, amountCalculated);
-    }
-
-    // Similar fix needed for withdrawal amounts at lines 123, 130
-    if (increasing) {
-        if (balanceUpdate.delta0() != 0) {
-            uint128 withdrawAmount = balanceUpdate.delta0() == type(int128).min 
-                ? type(uint128).max >> 1  // 2^127
-                : uint128(-balanceUpdate.delta0());
-            ACCOUNTANT.withdraw(poolKey.token0, recipient, withdrawAmount);
-        }
-        // ... rest of logic
-    }
-}
-```
-
-Alternative mitigation: Remove the unchecked block entirely for these operations, allowing Solidity 0.8's built-in overflow checks to revert properly when overflow would occur, providing clearer error messages.
+**Alternative Mitigations**:
+- Add prominent warnings in documentation and UIs about the risks of burning transferred NFTs
+- Consider implementing NFT versioning (include a counter in the position ID calculation) to prevent re-minting from accessing old positions
+- Use non-deterministic NFT IDs (sequential counters) instead of deterministic salt-based IDs
 
 ## Proof of Concept
 
-```solidity
-// File: test/Exploit_Int128BoundaryOverflow.t.sol
-// Run with: forge test --match-test test_Int128MinBoundaryOverflow -vvv
+The provided PoC demonstrates the complete attack flow. When executed, it would show:
+- Alice deposits liquidity and receives an NFT
+- Alice transfers the NFT to Bob
+- Bob burns the NFT (NFT destroyed, position remains)
+- Alice re-mints the same NFT ID
+- Alice withdraws Bob's liquidity successfully
 
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Router.sol";
-import "../src/Core.sol";
-import "../src/types/poolKey.sol";
-
-contract Exploit_Int128BoundaryOverflow is Test {
-    Router router;
-    Core core;
-    
-    function setUp() public {
-        // Deploy contracts
-        core = new Core();
-        router = new Router(core);
-    }
-    
-    function test_Int128MinBoundaryOverflow() public {
-        // This test demonstrates the overflow issue
-        // When delta is type(int128).min, negation fails in unchecked block
-        
-        int128 boundaryValue = type(int128).min; // -2^127
-        
-        // Simulate what happens in Router.sol line 116
-        int128 negatedValue;
-        unchecked {
-            negatedValue = -boundaryValue; // Should be 2^127 but overflows to type(int128).min
-        }
-        
-        // VERIFY: The negation incorrectly stays negative
-        assertEq(negatedValue, type(int128).min, "Negation overflowed to itself");
-        assertTrue(negatedValue < 0, "Value should have been positive but is negative");
-        
-        // VERIFY: Casting to uint128 produces wrong value
-        uint128 withdrawAmount = uint128(negatedValue);
-        assertEq(withdrawAmount, uint128(2**127), "Withdrawal amount is 2^127 due to bit reinterpretation");
-        
-        // This demonstrates that:
-        // 1. Slippage check sees negative value instead of expected positive
-        // 2. Withdrawal tries to send 2^127 tokens instead of intended amount
-    }
-}
-```
+The PoC uses the project's test infrastructure (FullTest.sol) and would compile and run with the provided test suite using `forge test --match-test test_BurnAndRemintTheft -vvv`.
 
 ## Notes
 
-The vulnerability exists because:
+This vulnerability is particularly critical because:
 
-1. **Core explicitly supports this scenario**: [3](#0-2)  - The use of `FixedPointMathLib.max(type(int128).min, calculatedAmount)` shows the protocol deliberately handles calculations exceeding int128 range by clamping to the boundary.
+1. **Intentional design becomes exploitable**: The burn-and-remint feature for gas refunds is documented and tested [10](#0-9) , but the security implications for transferred NFTs were not considered.
 
-2. **Router uses unchecked arithmetic**: [8](#0-7)  - The unchecked block disables Solidity 0.8's overflow protection, allowing the wrap-around behavior.
+2. **Asymmetric access control**: Only the original minter can recreate a specific NFT ID due to the minter address being part of the hash. Bob cannot protect himself by re-minting because his address would produce a different ID.
 
-3. **Two's complement overflow**: Negating the most negative value (-2^127) mathematically requires 2^127, which exceeds int128.max (2^127 - 1), causing wrap-around in unchecked mode.
+3. **Violates NFT ownership expectations**: Standard ERC721 behavior leads users to expect that owning an NFT grants exclusive control over associated assets. This vulnerability fundamentally breaks that assumption for Ekubo position NFTs.
 
-4. **Impact is DOS, not theft**: While the withdrawal amount calculation is wrong, transactions would typically revert due to either the incorrect slippage check or insufficient tokens in the FlashAccountant, preventing actual fund loss but blocking legitimate swaps.
-
-The protocol should either: (a) handle this edge case explicitly in the Router, or (b) document this as an unsupported scenario and add explicit checks to prevent swaps from reaching this boundary.
+4. **Systematic marketplace risk**: Creates an attack vector for any secondary market trading of position NFTs, as original minters retain the ability to reclaim positions after sale.
 
 ### Citations
 
-**File:** src/Router.sol (L105-150)
-```text
-            unchecked {
-                uint256 value = FixedPointMathLib.ternary(
-                    !params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS,
-                    uint128(params.amount()),
-                    0
-                );
-
-                bool increasing = params.isPriceIncreasing();
-
-                (PoolBalanceUpdate balanceUpdate,) = _swap(value, poolKey, params);
-
-                int128 amountCalculated = params.isToken1() ? -balanceUpdate.delta0() : -balanceUpdate.delta1();
-                if (amountCalculated < calculatedAmountThreshold) {
-                    revert SlippageCheckFailed(calculatedAmountThreshold, amountCalculated);
-                }
-
-                if (increasing) {
-                    if (balanceUpdate.delta0() != 0) {
-                        ACCOUNTANT.withdraw(poolKey.token0, recipient, uint128(-balanceUpdate.delta0()));
-                    }
-                    if (balanceUpdate.delta1() != 0) {
-                        ACCOUNTANT.payFrom(swapper, poolKey.token1, uint128(balanceUpdate.delta1()));
-                    }
-                } else {
-                    if (balanceUpdate.delta1() != 0) {
-                        ACCOUNTANT.withdraw(poolKey.token1, recipient, uint128(-balanceUpdate.delta1()));
-                    }
-
-                    if (balanceUpdate.delta0() != 0) {
-                        if (poolKey.token0 == NATIVE_TOKEN_ADDRESS) {
-                            int256 valueDifference = int256(value) - int256(balanceUpdate.delta0());
-
-                            // refund the overpaid ETH to the swapper
-                            if (valueDifference > 0) {
-                                ACCOUNTANT.withdraw(NATIVE_TOKEN_ADDRESS, swapper, uint128(uint256(valueDifference)));
-                            } else if (valueDifference < 0) {
-                                SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)));
-                            }
-                        } else {
-                            ACCOUNTANT.payFrom(swapper, poolKey.token0, uint128(balanceUpdate.delta0()));
-                        }
-                    }
-                }
-
-                result = abi.encode(balanceUpdate);
-            }
+**File:** README.md (L202-202)
+```markdown
+All positions should be able to be withdrawn at any time (except for positions using third-party extensions; the extensions in the repository should never block withdrawal within the block gas limit).
 ```
 
-**File:** src/Core.sol (L811-822)
+**File:** src/base/BaseNonfungibleToken.sol (L92-101)
 ```text
-                int128 calculatedAmountDelta =
-                    SafeCastLib.toInt128(FixedPointMathLib.max(type(int128).min, calculatedAmount));
+    function saltToId(address minter, bytes32 salt) public view returns (uint256 result) {
+        assembly ("memory-safe") {
+            let free := mload(0x40)
+            mstore(free, minter)
+            mstore(add(free, 32), salt)
+            mstore(add(free, 64), chainid())
+            mstore(add(free, 96), address())
 
-                int128 specifiedAmountDelta;
-                int128 specifiedAmount = params.amount();
-                assembly ("memory-safe") {
-                    specifiedAmountDelta := sub(specifiedAmount, amountRemaining)
-                }
+            result := keccak256(free, 128)
+        }
+```
 
-                balanceUpdate = isToken1
-                    ? createPoolBalanceUpdate(calculatedAmountDelta, specifiedAmountDelta)
-                    : createPoolBalanceUpdate(specifiedAmountDelta, calculatedAmountDelta);
+**File:** src/base/BaseNonfungibleToken.sol (L123-125)
+```text
+    function mint(bytes32 salt) public payable returns (uint256 id) {
+        id = saltToId(msg.sender, salt);
+        _mint(msg.sender, id);
+```
+
+**File:** src/base/BaseNonfungibleToken.sol (L129-131)
+```text
+    /// @dev Can be used to refund some gas after the NFT is no longer needed.
+    ///      The same ID can be recreated by the original minter by reusing the salt.
+    ///      Only the token owner or approved addresses can burn the token.
+```
+
+**File:** src/base/BaseNonfungibleToken.sol (L133-134)
+```text
+    function burn(uint256 id) external payable authorizedForNft(id) {
+        _burn(id);
+```
+
+**File:** src/base/BasePositions.sol (L120-133)
+```text
+    function withdraw(
+        uint256 id,
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 liquidity,
+        address recipient,
+        bool withFees
+    ) public payable authorizedForNft(id) returns (uint128 amount0, uint128 amount1) {
+        (amount0, amount1) = abi.decode(
+            lock(abi.encode(CALL_TYPE_WITHDRAW, id, poolKey, tickLower, tickUpper, liquidity, recipient, withFees)),
+            (uint128, uint128)
+        );
+    }
+```
+
+**File:** src/base/BasePositions.sol (L172-183)
+```text
+    function mintAndDepositWithSalt(
+        bytes32 salt,
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 maxAmount0,
+        uint128 maxAmount1,
+        uint128 minLiquidity
+    ) external payable returns (uint256 id, uint128 liquidity, uint128 amount0, uint128 amount1) {
+        id = mint(salt);
+        (liquidity, amount0, amount1) = deposit(id, poolKey, tickLower, tickUpper, maxAmount0, maxAmount1, minLiquidity);
+    }
+```
+
+**File:** src/base/BasePositions.sol (L243-246)
+```text
+            PoolBalanceUpdate balanceUpdate = CORE.updatePosition(
+                poolKey,
+                createPositionId({_salt: bytes24(uint192(id)), _tickLower: tickLower, _tickUpper: tickUpper}),
+                int128(liquidity)
+```
+
+**File:** src/base/BasePositions.sol (L304-307)
+```text
+                PoolBalanceUpdate balanceUpdate = CORE.updatePosition(
+                    poolKey,
+                    createPositionId({_salt: bytes24(uint192(id)), _tickLower: tickLower, _tickUpper: tickUpper}),
+                    -int128(liquidity)
 ```

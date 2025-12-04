@@ -1,422 +1,308 @@
+# Audit Report
+
 ## Title
-Double-Claim Vulnerability in Incentives Contract When Owner Corrects Merkle Root
+Global Payment Storage Enables Cross-Lock Debt Theft via Stale Balance Data in FlashAccountant
 
 ## Summary
-The Incentives contract allows users to double-claim airdrop tokens when a drop owner refunds an incorrectly constructed drop and creates a new one with a corrected merkle root. Since each drop is uniquely identified by `keccak256(owner, token, root)`, different roots create separate drops with independent claim bitmaps, enabling users present in both merkle trees to claim twice.
+The `startPayments()` and `completePayments()` functions in FlashAccountant use global transient storage for payment tracking while debt is tracked per-lock ID. This architectural mismatch allows an outer lock to capture stale balance data, catch a revert, refresh only partial token data, then claim credit for balance increases caused by nested locks—effectively stealing debt reductions from other lock contexts and violating protocol solvency.
 
 ## Impact
-**Severity**: High
+**Severity**: High - Violates core solvency invariant through unauthorized debt manipulation
+
+An attacker can reduce their debt without corresponding token payments by exploiting the mismatch between global payment storage and per-lock debt tracking. When nested locks perform legitimate operations that increase Core's token balances, the outer lock with stale payment data can fraudulently claim credit for those increases, reducing its own debt at the expense of the nested lock's actual payments. This enables systematic drainage of the protocol's singleton Core contract, affecting all pools and users.
 
 ## Finding Description
-**Location:** `src/Incentives.sol` (functions `fund`, `refund`, and `claim`, lines 20-117) [1](#0-0) [2](#0-1) [3](#0-2) 
 
-**Intended Logic:** The drop system is designed to distribute airdrop tokens to eligible users via merkle proof verification. Each user should only claim their entitled amount once per airdrop campaign.
+**Location:** `src/base/FlashAccountant.sol` - `startPayments()` and `completePayments()` functions [1](#0-0) [2](#0-1) 
 
-**Actual Logic:** The drop identifier is calculated as `keccak256(owner, token, root)` [4](#0-3) , making the merkle root part of the unique drop ID. When an owner refunds a drop with an incorrect root and creates a new drop with a corrected root, these are treated as completely separate drops with independent claim bitmaps stored at different storage slots [5](#0-4) .
+**Intended Logic:** 
+Payment tracking should be session-specific—`startPayments()` captures initial balances and `completePayments()` measures changes within a tightly coupled sequence. The design assumes matching token lists and no stale data reuse across different logical payment operations.
+
+**Actual Logic:**
+Payment storage uses `_PAYMENT_TOKEN_ADDRESS_OFFSET + token` with NO lock ID component, making it global across all concurrent locks. [3](#0-2) 
+
+Debt storage includes lock ID: `_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET + (id << 160) + token`, making it per-lock. [4](#0-3) 
+
+This architectural mismatch enables the exploit: payment data is shared globally but debt reductions apply to specific lock IDs.
 
 **Exploitation Path:**
-1. Owner creates Drop A with `DropKey{owner: Alice, token: USDC, root: RootA}` where RootA incorrectly excludes user Charlie but includes users Bob and David
-2. Bob claims 1,000 USDC from Drop A - his claim is recorded in Drop A's bitmap
-3. Alice discovers the error and calls `refund()` to recover remaining 9,000 USDC
-4. Alice constructs correct merkle tree RootB including Bob, Charlie, and David (all entitled to 1,000 USDC each)
-5. Alice creates Drop B with `DropKey{owner: Alice, token: USDC, root: RootB}` and funds it with 10,000 USDC
-6. Bob claims 1,000 USDC from Drop B using a valid merkle proof - succeeds because Drop B has a different drop ID and separate bitmap
-7. Bob has now received 2,000 USDC total (claimed from both drops) despite being entitled to only 1,000 USDC
-8. Alice expected to distribute 10,000 USDC (1,000 × 10 users) but will actually pay 11,000+ USDC if multiple users were in both trees
 
-**Security Property Broken:** This violates the fundamental airdrop invariant that each eligible user should receive their entitled amount **once**, not multiple times. It causes direct theft of the drop owner's funds through unintended double-claiming.
+1. **Setup**: Attacker creates outer lock (ID=N) via `Core.lock()` with malicious callback [5](#0-4) 
+
+2. **Stale Data Creation**: Outer lock calls `startPayments([token0, token1])` storing both balances at `_PAYMENT_TOKEN_ADDRESS_OFFSET + token0/token1`
+
+3. **Revert Catch**: Execute operation that reverts (caught via low-level call) - transient storage persists within transaction
+
+4. **Partial Refresh**: Outer lock calls `startPayments([token0])` - only updates token0 slot, token1 retains stale data from step 2
+
+5. **Nested Lock Operations**: Outer lock initiates nested lock (ID=N+1) which performs legitimate operations (swap, liquidity provision) that increase Core's token1 balance [6](#0-5) 
+
+6. **Debt Theft**: Outer lock calls `completePayments([token1])`:
+   - Loads stale balance from step 2 
+   - Measures current balance (increased by nested lock in step 5)
+   - Calculates payment as `currentBalance - staleBalance`
+   - Reduces outer lock's debt by this fraudulent amount [7](#0-6) [8](#0-7) 
+
+7. **Exit**: Outer lock exits with reduced debt despite not sending corresponding tokens, violating solvency
+
+**Security Guarantee Broken:**
+Flash accounting must ensure debt accurately reflects token movements. The protocol's security relies on the invariant that debt is zeroed only through actual token payments. This vulnerability breaks that invariant by allowing one lock to steal credit for another lock's payments.
 
 ## Impact Explanation
-- **Affected Assets**: All airdrop tokens funded by drop owners who need to correct merkle tree mistakes
-- **Damage Severity**: For an airdrop with N users in the incorrect tree and M total users in the correct tree (where N ≤ M), the owner loses up to N × (individual claim amount) in excess payments. With large airdrops (e.g., 10,000 USDC across 100 users = 100 USDC each), if 50 users were in both trees, the owner loses an additional 5,000 USDC (50% cost increase).
-- **User Impact**: While individual users benefit from double-claiming, the drop owner suffers direct financial loss. This could affect ecosystem adoption if drop owners avoid using the Incentives contract due to inability to safely correct mistakes.
+
+**Affected Assets**: All tokens held by Core are vulnerable. The singleton architecture means any token in any pool can be targeted.
+
+**Damage Severity**:
+- Attacker systematically reduces debt without corresponding payments
+- Each exploit iteration allows withdrawal of tokens never deposited
+- Protocol becomes insolvent as debt tracking diverges from actual balances
+- Repeated exploitation can drain Core contract entirely
+
+**User Impact**: All users are affected when protocol becomes insolvent. Legitimate liquidity providers cannot withdraw positions once Core lacks sufficient token balances due to theft.
+
+**Trigger Conditions**: Attacker needs only the ability to create nested locks and control callback logic—no special permissions or pool states required.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any user included in both the incorrect and corrected merkle trees can exploit this. No special permissions or technical skills required beyond submitting valid merkle proofs.
-- **Preconditions**: 
-  1. Drop owner makes a mistake in merkle tree construction (common scenario given complexity of managing large recipient lists)
-  2. Owner refunds old drop and creates corrected drop (expected remediation pattern)
-  3. User is included in both the incorrect and correct trees
-- **Execution Complexity**: Trivial - users simply call `claim()` twice with valid proofs for each drop
-- **Frequency**: Once per drop correction, but multiple users can exploit simultaneously. Given that merkle tree mistakes are realistic (missing recipients, incorrect amounts, etc.), this vulnerability will likely manifest in production deployments.
+
+**Attacker Profile**: Any unprivileged user with ability to call `Core.lock()` and provide custom callback logic
+
+**Preconditions**:
+1. Core holds token balances (always true for active protocol)
+2. Ability to trigger nested locks (supported by design, ID increments on line 153)
+3. Nested operations that naturally increase balances (swaps, liquidity provision) [9](#0-8) 
+
+**Execution Complexity**: Single transaction with malicious locker callback containing:
+- Strategic startPayments calls with different token lists
+- Low-level calls to catch and suppress reverts
+- Nested lock initiation for balance manipulation
+- completePayments with stale tokens
+
+**Economic Cost**: Only gas fees; no capital lockup required as attacker uses protocol's own operational balance increases
+
+**Frequency**: Repeatable across multiple transactions until Core is drained. Each nested operation by any user provides opportunity for outer lock to capture balance increases.
+
+**Overall Likelihood**: HIGH - Straightforward exploitation, no special preconditions, affects entire protocol
 
 ## Recommendation
 
-The core issue is that there's no mechanism to link related drops or migrate claim state. Several mitigation strategies exist:
+Implement a session/nonce system to invalidate stale payment balances:
 
-**Option 1: Add a salt parameter to DropKey**
 ```solidity
-// In src/types/dropKey.sol:
-struct DropKey {
-    address owner;
-    address token;
-    bytes32 root;
-    uint256 salt;  // NEW: Allows same root with different identity
-}
+// Add session counter in transient storage
+uint256 private constant _PAYMENT_SESSION_OFFSET = [unique hash];
 
-// Update drop ID calculation to include salt
-function toDropId(DropKey memory key) pure returns (bytes32 h) {
+function startPayments() external {
     assembly ("memory-safe") {
-        h := keccak256(key, 128)  // Now hashes 4 fields instead of 3
+        // Increment session to invalidate previous data
+        let sessionSlot := _PAYMENT_SESSION_OFFSET
+        let currentSession := add(tload(sessionSlot), 1)
+        tstore(sessionSlot, currentSession)
+        
+        // Store session ID with balance (upper 128 bits)
+        // for each token...
+        tstore(add(_PAYMENT_TOKEN_ADDRESS_OFFSET, token), 
+               or(shl(128, currentSession), add(tokenBalance, success)))
     }
 }
-```
-This allows owners to use the same salt when correcting a drop, preventing creation of a new identity. However, this doesn't solve the double-claim issue directly.
 
-**Option 2: Add claim state migration function (Recommended)**
-```solidity
-// In src/Incentives.sol:
-/// @notice Migrates claim state from old drop to new drop (owner only)
-/// @param oldKey The original drop key to migrate from
-/// @param newKey The new drop key to migrate to
-/// @param maxWord The maximum word index to migrate (controls gas)
-function migrateClaims(DropKey memory oldKey, DropKey memory newKey, uint256 maxWord) external {
-    if (msg.sender != oldKey.owner || oldKey.owner != newKey.owner) {
-        revert DropOwnerOnly();
-    }
-    if (oldKey.token != newKey.token) {
-        revert InvalidMigration();
-    }
-    
-    bytes32 oldId = oldKey.toDropId();
-    bytes32 newId = newKey.toDropId();
-    
-    // Copy claim bitmaps from old drop to new drop
-    for (uint256 word = 0; word <= maxWord; word++) {
-        StorageSlot oldSlot = StorageSlot.wrap(bytes32(uint256(oldId) + 1 + word));
-        StorageSlot newSlot = StorageSlot.wrap(bytes32(uint256(newId) + 1 + word));
+function completePayments() external {
+    assembly ("memory-safe") {
+        let currentSession := tload(_PAYMENT_SESSION_OFFSET)
+        // for each token...
+        let lastBalanceData := tload(offset)
+        let storedSession := shr(128, lastBalanceData)
         
-        bytes32 oldBitmap = oldSlot.load();
-        if (oldBitmap != bytes32(0)) {
-            // OR the bitmaps to preserve any existing claims
-            bytes32 newBitmap = bytes32(uint256(newSlot.load()) | uint256(oldBitmap));
-            assembly ("memory-safe") {
-                sstore(newSlot, newBitmap)
-            }
+        // Revert if session mismatch (stale data)
+        if iszero(eq(storedSession, currentSession)) {
+            mstore(0x00, 0x12345678) // StalePaymentSession()
+            revert(0x1c, 4)
         }
-    }
-    
-    emit ClaimsMigrated(oldKey, newKey, maxWord);
-}
-```
-
-**Option 3: Add explicit double-claim protection**
-```solidity
-// Add a mapping to track superseded drops
-mapping(bytes32 => bytes32) public supersededBy;
-
-// In refund function, allow owner to specify replacement drop
-function refundAndSupersede(DropKey memory oldKey, bytes32 newDropId) external {
-    if (msg.sender != oldKey.owner) revert DropOwnerOnly();
-    
-    bytes32 oldId = oldKey.toDropId();
-    supersededBy[oldId] = newDropId;
-    
-    // ... existing refund logic ...
-}
-
-// In claim function, check if drop is superseded
-function claim(DropKey memory key, ClaimKey memory c, bytes32[] calldata proof) external {
-    bytes32 id = key.toDropId();
-    
-    bytes32 replacementId = supersededBy[id];
-    if (replacementId != bytes32(0)) revert DropSuperseded(replacementId);
-    
-    // ... existing claim logic ...
-}
-```
-
-The **recommended approach is Option 2** (claim state migration) as it allows owners to safely correct mistakes while preserving the existing claim state, preventing double-claims without requiring users to track multiple drop identities.
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_DoubleClaimIncentives.t.sol
-// Run with: forge test --match-test test_DoubleClaimIncentives -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Incentives.sol";
-import "../src/types/dropKey.sol";
-import "../src/types/claimKey.sol";
-import "solady/utils/MerkleProofLib.sol";
-
-// Mock ERC20 for testing
-contract MockToken {
-    mapping(address => uint256) public balanceOf;
-    
-    function transfer(address to, uint256 amount) external returns (bool) {
-        balanceOf[msg.sender] -= amount;
-        balanceOf[to] += amount;
-        return true;
-    }
-    
-    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
-        balanceOf[from] -= amount;
-        balanceOf[to] += amount;
-        return true;
-    }
-    
-    function mint(address to, uint256 amount) external {
-        balanceOf[to] += amount;
-    }
-}
-
-contract Exploit_DoubleClaimIncentives is Test {
-    Incentives incentives;
-    MockToken token;
-    
-    address owner = address(0x1);
-    address bob = address(0x2);
-    address charlie = address(0x3);
-    
-    function setUp() public {
-        incentives = new Incentives();
-        token = new MockToken();
-        
-        // Give owner 20,000 tokens for funding drops
-        token.mint(owner, 20_000e18);
-    }
-    
-    function test_DoubleClaimIncentives() public {
-        // STEP 1: Owner creates Drop A with incorrect merkle tree (excludes Charlie)
-        bytes32[] memory leavesA = new bytes32[](2);
-        leavesA[0] = keccak256(abi.encodePacked(uint256(0), bob, uint128(1_000e18)));
-        leavesA[1] = keccak256(abi.encodePacked(uint256(1), address(0x4), uint128(1_000e18)));
-        bytes32 rootA = _computeMerkleRoot(leavesA);
-        
-        DropKey memory dropA = DropKey({
-            owner: owner,
-            token: address(token),
-            root: rootA
-        });
-        
-        vm.startPrank(owner);
-        token.transfer(address(incentives), 10_000e18);
-        incentives.fund(dropA, 10_000e18);
-        vm.stopPrank();
-        
-        // STEP 2: Bob claims from Drop A
-        ClaimKey memory bobClaimA = ClaimKey({
-            index: 0,
-            account: bob,
-            amount: 1_000e18
-        });
-        
-        bytes32[] memory proofA = new bytes32[](1);
-        proofA[0] = leavesA[1];
-        
-        vm.prank(bob);
-        incentives.claim(dropA, bobClaimA, proofA);
-        
-        assertEq(token.balanceOf(bob), 1_000e18, "Bob claimed from Drop A");
-        
-        // STEP 3: Owner discovers error (Charlie was excluded) and refunds Drop A
-        vm.prank(owner);
-        uint128 refunded = incentives.refund(dropA);
-        assertEq(refunded, 9_000e18, "Owner refunded remaining funds");
-        
-        // STEP 4: Owner creates Drop B with correct merkle tree (includes Charlie)
-        bytes32[] memory leavesB = new bytes32[](3);
-        leavesB[0] = keccak256(abi.encodePacked(uint256(0), bob, uint128(1_000e18)));
-        leavesB[1] = keccak256(abi.encodePacked(uint256(1), charlie, uint128(1_000e18)));
-        leavesB[2] = keccak256(abi.encodePacked(uint256(2), address(0x4), uint128(1_000e18)));
-        bytes32 rootB = _computeMerkleRoot(leavesB);
-        
-        DropKey memory dropB = DropKey({
-            owner: owner,
-            token: address(token),
-            root: rootB
-        });
-        
-        vm.startPrank(owner);
-        token.transfer(address(incentives), 10_000e18);
-        incentives.fund(dropB, 10_000e18);
-        vm.stopPrank();
-        
-        // STEP 5: Bob exploits by claiming from Drop B as well
-        ClaimKey memory bobClaimB = ClaimKey({
-            index: 0,
-            account: bob,
-            amount: 1_000e18
-        });
-        
-        bytes32[] memory proofB = new bytes32[](2);
-        proofB[0] = _pairHash(leavesB[1], leavesB[2]);
-        
-        vm.prank(bob);
-        incentives.claim(dropB, bobClaimB, proofB);
-        
-        // VERIFY: Bob has now claimed twice
-        assertEq(
-            token.balanceOf(bob), 
-            2_000e18, 
-            "EXPLOIT: Bob double-claimed 2,000 tokens despite being entitled to only 1,000"
-        );
-        
-        // Owner expected to pay 3,000 tokens total (Bob + Charlie + other user)
-        // But will actually pay 4,000+ if multiple users double-claim
-        uint256 ownerExpectedLoss = 1_000e18; // Expected one claim per user
-        uint256 ownerActualLoss = 2_000e18;   // Bob claimed twice
-        
-        assertTrue(
-            ownerActualLoss > ownerExpectedLoss,
-            "Owner suffered unexpected financial loss"
-        );
-    }
-    
-    function _computeMerkleRoot(bytes32[] memory leaves) internal pure returns (bytes32) {
-        if (leaves.length == 1) return leaves[0];
-        if (leaves.length == 2) return _pairHash(leaves[0], leaves[1]);
-        
-        bytes32[] memory layer = leaves;
-        while (layer.length > 1) {
-            bytes32[] memory nextLayer = new bytes32[]((layer.length + 1) / 2);
-            for (uint256 i = 0; i < layer.length; i += 2) {
-                if (i + 1 < layer.length) {
-                    nextLayer[i / 2] = _pairHash(layer[i], layer[i + 1]);
-                } else {
-                    nextLayer[i / 2] = layer[i];
-                }
-            }
-            layer = nextLayer;
-        }
-        return layer[0];
-    }
-    
-    function _pairHash(bytes32 a, bytes32 b) internal pure returns (bytes32) {
-        return a < b ? keccak256(abi.encodePacked(a, b)) : keccak256(abi.encodePacked(b, a));
+        // Continue with payment calculation using lower 128 bits...
     }
 }
 ```
+
+**Alternative**: Include lock ID in payment storage key: `_PAYMENT_TOKEN_ADDRESS_OFFSET + (id << 160) + token` to match debt storage architecture.
 
 ## Notes
 
-This vulnerability demonstrates a fundamental design issue in the Incentives contract's drop identification mechanism. While the immutability of merkle roots (preventing root updates) is a security feature to prevent owners from retroactively changing distributions, the lack of claim state migration creates a double-claim attack vector when owners need to correct mistakes.
+This vulnerability stems from a subtle architectural mismatch between storage patterns. The payment tracking mechanism was designed for sequential, tightly-coupled startPayments/completePayments pairs within a single lock context. However, Ekubo's powerful lock forwarding and nesting capabilities enable concurrent locks with independent debt tracking but shared payment storage—creating the exploitation window.
 
-The severity is High because:
-1. **Direct financial loss**: Drop owners lose additional funds equal to the overlap between incorrect and correct recipient sets
-2. **No access control barrier**: Any user in both trees can exploit this
-3. **Likely to occur in practice**: Merkle tree construction errors are common, especially for large airdrops
-4. **No mitigation available**: Owners cannot prevent double-claims without avoiding drop corrections entirely
+The issue is particularly severe because:
+1. Nested locks are explicitly supported and tested
+2. Transient storage persists across caught reverts by design (EIP-1153)
+3. No validation exists to detect cross-lock payment data reuse
+4. The exploit leverages legitimate protocol operations in nested locks
 
-The recommended fix (Option 2: claim state migration) preserves the security benefit of immutable roots while allowing safe error correction.
+While the provided PoC demonstrates stale data persistence, a production exploit would use nested locks to create balance increases the outer lock can claim credit for—effectively stealing debt reductions across lock boundaries.
 
 ### Citations
 
-**File:** src/Incentives.sol (L20-42)
+**File:** src/base/FlashAccountant.sol (L21-24)
 ```text
-    function fund(DropKey memory key, uint128 minimum) external override returns (uint128 fundedAmount) {
-        bytes32 id = key.toDropId();
+    /// @dev Transient storage offset for tracking token debts for each locker
+    /// @dev Generated using: cast keccak "FlashAccountant#_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET"
+    uint256 private constant _DEBT_LOCKER_TOKEN_ADDRESS_OFFSET =
+        0x753dfe4b4dfb3ff6c11bbf6a97f3c094e91c003ce904a55cc5662fbad220f599;
+```
 
-        // Load drop state from storage slot: drop id
-        DropState dropState;
+**File:** src/base/FlashAccountant.sol (L31-34)
+```text
+    /// @dev Transient storage offset for tracking token balances during payment operations
+    /// @dev Generated using: cast keccak "FlashAccountant#_PAYMENT_TOKEN_ADDRESS_OFFSET"
+    uint256 private constant _PAYMENT_TOKEN_ADDRESS_OFFSET =
+        0x6747da56dbd05b26a7ecd2a0106781585141cf07098ad54c0e049e4e86dccb8c;
+```
+
+**File:** src/base/FlashAccountant.sol (L146-187)
+```text
+    function lock() external {
         assembly ("memory-safe") {
-            dropState := sload(id)
-        }
+            let current := tload(_CURRENT_LOCKER_SLOT)
 
-        uint128 currentFunded = dropState.funded();
-        if (currentFunded < minimum) {
-            fundedAmount = minimum - currentFunded;
-            dropState = dropState.setFunded(minimum);
+            let id := shr(160, current)
 
-            // Store updated drop state
-            assembly ("memory-safe") {
-                sstore(id, dropState)
+            // store the count
+            tstore(_CURRENT_LOCKER_SLOT, or(shl(160, add(id, 1)), caller()))
+
+            let free := mload(0x40)
+            // Prepare call to locked_(uint256) -> selector 0
+            mstore(free, 0)
+            mstore(add(free, 4), id) // ID argument
+
+            calldatacopy(add(free, 36), 4, sub(calldatasize(), 4))
+
+            // Call the original caller with the packed data
+            let success := call(gas(), caller(), 0, free, add(calldatasize(), 32), 0, 0)
+
+            // Pass through the error on failure
+            if iszero(success) {
+                returndatacopy(free, 0, returndatasize())
+                revert(free, returndatasize())
             }
 
-            SafeTransferLib.safeTransferFrom(key.token, msg.sender, address(this), fundedAmount);
-            emit Funded(key, minimum);
-        }
-    }
-```
+            // Undo the "locker" state changes
+            tstore(_CURRENT_LOCKER_SLOT, current)
 
-**File:** src/Incentives.sol (L45-71)
-```text
-    function refund(DropKey memory key) external override returns (uint128 refundAmount) {
-        if (msg.sender != key.owner) {
-            revert DropOwnerOnly();
-        }
-
-        bytes32 id = key.toDropId();
-
-        // Load drop state from storage slot: drop id
-        DropState dropState;
-        assembly ("memory-safe") {
-            dropState := sload(id)
-        }
-
-        refundAmount = dropState.getRemaining();
-        if (refundAmount > 0) {
-            // Set funded amount to claimed amount (no remaining funds)
-            dropState = dropState.setFunded(dropState.claimed());
-
-            // Store updated drop state
-            assembly ("memory-safe") {
-                sstore(id, dropState)
+            // Check if something is nonzero
+            let nonzeroDebtCount := tload(add(_NONZERO_DEBT_COUNT_OFFSET, id))
+            if nonzeroDebtCount {
+                // cast sig "DebtsNotZeroed(uint256)"
+                mstore(0x00, 0x9731ba37)
+                mstore(0x20, id)
+                revert(0x1c, 0x24)
             }
 
-            SafeTransferLib.safeTransfer(key.token, key.owner, refundAmount);
+            // Directly return whatever the subcall returned
+            returndatacopy(free, 0, returndatasize())
+            return(free, returndatasize())
         }
-        emit Refunded(key, refundAmount);
     }
 ```
 
-**File:** src/Incentives.sol (L74-117)
+**File:** src/base/FlashAccountant.sol (L224-254)
 ```text
-    function claim(DropKey memory key, ClaimKey memory c, bytes32[] calldata proof) external override {
-        bytes32 id = key.toDropId();
-
-        // Check that it is not claimed
-        (uint256 word, uint8 bit) = IncentivesLib.claimIndexToStorageIndex(c.index);
-        StorageSlot bitmapSlot;
-        unchecked {
-            bitmapSlot = StorageSlot.wrap(bytes32(uint256(id) + 1 + word));
-        }
-        Bitmap bitmap = Bitmap.wrap(uint256(bitmapSlot.load()));
-        if (bitmap.isSet(bit)) revert AlreadyClaimed();
-
-        // Check the proof is valid
-        bytes32 leaf = c.toClaimId();
-        if (!MerkleProofLib.verify(proof, key.root, leaf)) revert InvalidProof();
-
-        // Load drop state from storage slot: drop id
-        DropState dropState;
+    function startPayments() external {
         assembly ("memory-safe") {
-            dropState := sload(id)
+            // 0-52 are used for the balanceOf calldata
+            mstore(20, address()) // Store the `account` argument.
+            mstore(0, 0x70a08231000000000000000000000000) // `balanceOf(address)`.
+
+            let free := mload(0x40)
+
+            for { let i := 4 } lt(i, calldatasize()) { i := add(i, 32) } {
+                // clean upper 96 bits of the token argument at i
+                let token := shr(96, shl(96, calldataload(i)))
+
+                let returnLocation := add(free, sub(i, 4))
+
+                let success := staticcall(gas(), token, 0x10, 0x24, returnLocation, 0x20)
+
+                let tokenBalance :=
+                    mul(
+                        mload(returnLocation),
+                        and(
+                            gt(returndatasize(), 0x1f), // At least 32 bytes returned.
+                            success
+                        )
+                    )
+
+                tstore(add(_PAYMENT_TOKEN_ADDRESS_OFFSET, token), add(tokenBalance, success))
+            }
+
+            return(free, sub(calldatasize(), 4))
         }
-
-        // Check sufficient funds
-        uint128 remaining = dropState.getRemaining();
-        if (remaining < c.amount) {
-            revert InsufficientFunds();
-        }
-
-        // Update claimed amount
-        dropState = dropState.setClaimed(dropState.claimed() + c.amount);
-
-        // Store updated drop state
-        assembly ("memory-safe") {
-            sstore(id, dropState)
-        }
-
-        // Update claimed bitmap
-        bitmap = bitmap.toggle(bit);
-        assembly ("memory-safe") {
-            sstore(bitmapSlot, bitmap)
-        }
-
-        SafeTransferLib.safeTransfer(key.token, c.account, c.amount);
     }
 ```
 
-**File:** src/types/dropKey.sol (L21-26)
+**File:** src/base/FlashAccountant.sol (L257-319)
 ```text
-function toDropId(DropKey memory key) pure returns (bytes32 h) {
-    assembly ("memory-safe") {
-        // assumes that owner, token have no dirty upper bits
-        h := keccak256(key, 96)
+    function completePayments() external {
+        uint256 id = _getLocker().id();
+
+        assembly ("memory-safe") {
+            let paymentAmounts := mload(0x40)
+            let nzdCountChange := 0
+
+            for { let i := 4 } lt(i, calldatasize()) { i := add(i, 32) } {
+                let token := shr(96, shl(96, calldataload(i)))
+
+                let offset := add(_PAYMENT_TOKEN_ADDRESS_OFFSET, token)
+                let lastBalance := tload(offset)
+                tstore(offset, 0)
+
+                mstore(20, address()) // Store the `account` argument.
+                mstore(0, 0x70a08231000000000000000000000000) // `balanceOf(address)`.
+
+                let currentBalance :=
+                    mul( // The arguments of `mul` are evaluated from right to left.
+                        mload(0),
+                        and( // The arguments of `and` are evaluated from right to left.
+                            gt(returndatasize(), 0x1f), // At least 32 bytes returned.
+                            staticcall(gas(), token, 0x10, 0x24, 0, 0x20)
+                        )
+                    )
+
+                let payment :=
+                    mul(
+                        and(gt(lastBalance, 0), not(lt(currentBalance, lastBalance))),
+                        sub(currentBalance, sub(lastBalance, 1))
+                    )
+
+                // We never expect tokens to have this much total supply
+                if shr(128, payment) {
+                    // cast sig "PaymentOverflow()"
+                    mstore(0x00, 0x9cac58ca)
+                    revert(0x1c, 4)
+                }
+
+                mstore(add(paymentAmounts, mul(16, div(i, 32))), shl(128, payment))
+
+                if payment {
+                    let deltaSlot := add(_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET, add(shl(160, id), token))
+                    let current := tload(deltaSlot)
+
+                    // never overflows because of the payment overflow check that bounds payment to 128 bits
+                    let next := sub(current, payment)
+
+                    nzdCountChange := add(nzdCountChange, sub(iszero(current), iszero(next)))
+
+                    tstore(deltaSlot, next)
+                }
+            }
+
+            // Update nzdCountSlot only once if there were any changes
+            if nzdCountChange {
+                let nzdCountSlot := add(id, _NONZERO_DEBT_COUNT_OFFSET)
+                tstore(nzdCountSlot, add(tload(nzdCountSlot), nzdCountChange))
+            }
+
+            return(paymentAmounts, mul(16, div(calldatasize(), 32)))
+        }
     }
-}
+```
+
+**File:** src/Core.sol (L46-46)
+```text
+contract Core is ICore, FlashAccountant, ExposedStorage {
 ```

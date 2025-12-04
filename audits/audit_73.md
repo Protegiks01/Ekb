@@ -1,239 +1,271 @@
+After performing rigorous validation through all phases of the Ekubo Protocol Validation Framework, I have determined this claim is **VALID**.
+
+# Audit Report
+
 ## Title
-Invalid BUY_TOKEN Configuration Permanently Locks Protocol Fees in TWAMM Orders
+TWAMM Virtual Order Execution Causes Users to Exceed maxAmount Limits in BasePositions.deposit()
 
 ## Summary
-The `RevenueBuybacks` constructor does not validate that `BUY_TOKEN` is a valid ERC20 contract. If `BUY_TOKEN` is set to an address without contract code (excluding `address(0)` which is handled specially for native ETH), the `roll()` function will successfully create TWAMM orders, but the `collect()` function will permanently revert when attempting to withdraw proceeds, permanently locking all protocol fees used to create those orders. [1](#0-0) 
+The `BasePositions.deposit()` function contains a Time-Of-Check-Time-Of-Use (TOCTOU) vulnerability where the pool price is read twice during execution. Between these reads, the TWAMM extension's `beforeUpdatePosition` hook executes virtual orders that change the price. This causes users to be charged token amounts exceeding their explicitly set `maxAmount0` and `maxAmount1` parameters, violating the fundamental safety guarantee these parameters provide.
 
 ## Impact
-**Severity**: High
+**Severity**: High - Direct financial loss to users, violation of core safety guarantee
+
+Users depositing liquidity into TWAMM pools can be forced to deposit significantly more tokens than their specified maximum limits. When liquidity is calculated at price P1 but executed at price P2 (after TWAMM virtual order execution), the same liquidity amount can require substantially different token ratios. If the price movement pushes a position out of its range, the required amounts can exceed the user's maxAmount parameters by multiples (e.g., 2x-3x or more depending on price movement). This affects all TWAMM pools with pending virtual orders and breaks user trust in the maxAmount safety mechanism.
 
 ## Finding Description
 
-**Location:** `src/RevenueBuybacks.sol` - constructor (lines 39-44), `_createOrderKey()` (lines 175-188), `roll()` (lines 90-139), `collect()` (lines 76-78)
+**Location:** `src/base/BasePositions.sol`, function `deposit()` and `handleLockData()`
 
-**Intended Logic:** The RevenueBuybacks system should create TWAMM orders to automatically purchase a buyback token using collected protocol revenue, with the ability to collect and withdraw the purchased tokens.
+**Intended Logic:** 
+The `maxAmount0` and `maxAmount1` parameters serve as hard upper bounds on token amounts a user authorizes for deposit. The function calculates liquidity at the current price to ensure amounts stay within these limits. [1](#0-0) 
 
-**Actual Logic:** The constructor accepts any address as `_buyToken` without validation. When `BUY_TOKEN` is not a valid ERC20 contract (and not `address(0)` which is special-cased), orders are successfully created and executed, but proceeds can never be collected because the `FlashAccountant.withdraw()` function reverts when attempting to transfer the invalid token. [2](#0-1) 
+**Actual Logic:**
+The vulnerability occurs through this execution sequence:
+
+1. **First price read** at line 80 calculates liquidity based on price P1 [2](#0-1) 
+
+2. **TWAMM hook execution** occurs in `Core.updatePosition()` before the second price read [3](#0-2) 
+
+3. **TWAMM executes swaps** that change the pool price from P1 to P2 [4](#0-3) [5](#0-4) 
+
+4. **Second price read** and amount calculation happen at the NEW price P2, but liquidity L was calculated for price P1
+
+5. **No validation** occurs before charging the user the potentially excessive amounts [6](#0-5) 
 
 **Exploitation Path:**
+1. **Setup**: TWAMM pool exists with pending virtual orders that will move price significantly
+2. **Trigger**: User calls `deposit()` with `maxAmount0 = X`, `maxAmount1 = Y` at current price P1
+3. **Price Fetch 1**: Line 80 fetches price P1; lines 82-83 calculate liquidity L for amounts ≤ X, Y at P1
+4. **Lock Entry**: Line 93 enters lock, triggering `handleLockData` → `Core.updatePosition()`
+5. **Hook Execution**: Lines 367-368 call `TWAMM.beforeUpdatePosition()` which executes virtual orders via `CORE.swap()`
+6. **Price Change**: Pool price moves from P1 to P2 due to TWAMM swaps
+7. **Price Fetch 2**: Line 371 reads NEW price P2; lines 378-379 calculate amounts for liquidity L at price P2
+8. **Excess Charge**: Lines 249-254 charge user amounts that can exceed X or Y without validation
 
-1. **Deployment**: RevenueBuybacks is deployed with `BUY_TOKEN` set to an address without contract code (e.g., an EOA, a non-existent address, or a non-ERC20 contract). The constructor accepts this without validation. [1](#0-0) 
+**Security Property Broken:**
+The maxAmount parameters are designed to protect users from depositing more than intended. This protection is completely bypassed when TWAMM execution changes the price between calculation and execution.
 
-2. **Configuration & Pool Initialization**: The owner configures a revenue token and the corresponding pool (BUY_TOKEN, revenue_token) is initialized with the TWAMM extension.
-
-3. **Order Creation**: When `PositionsOwner.withdrawAndRoll()` or anyone calls `RevenueBuybacks.roll(revenue_token)`, the function successfully creates TWAMM orders using the invalid BUY_TOKEN as the buy token. The order creation succeeds because it only involves internal accounting and transferring the sell token (revenue token) via `Orders.increaseSellAmount()`. [3](#0-2) 
-
-4. **Virtual Order Execution**: TWAMM executes virtual orders over time, performing internal swaps that convert revenue tokens to the invalid BUY_TOKEN. These swaps succeed because they only update internal accounting via `CORE.updateSavedBalances()`. [4](#0-3) 
-
-5. **Collection Failure**: When anyone attempts to collect proceeds via `RevenueBuybacks.collect()`, it calls `Orders.collectProceeds()`, which eventually calls `ACCOUNTANT.withdraw(orderKey.buyToken(), recipient, proceeds)` where `buyToken` is the invalid BUY_TOKEN address. [5](#0-4) 
-
-6. **Permanent Lock**: The `FlashAccountant.withdraw()` function attempts to call `transfer()` on the invalid token address. The validation logic detects that `extcodesize(token) == 0` and reverts with `TransferFailed()`, permanently locking the proceeds in the TWAMM system. [6](#0-5) 
-
-**Security Property Broken:** This violates the **Withdrawal Availability** invariant - protocol fees that have been converted to TWAMM order proceeds can never be withdrawn, resulting in permanent loss of funds. Additionally, it violates the **Extension Isolation** principle as the misconfigured RevenueBuybacks locks funds in the TWAMM extension.
+**Mathematical Proof:**
+For a position with range [PL, PU] and initial price P1 (in range):
+- Liquidity L = maxAmount1 / (√P1 - √PL)
+- If price moves to P2 > PU (above range), required amount1 = L × (√PU - √PL)
+- Substituting: amount1 = maxAmount1 × (√PU - √PL) / (√P1 - √PL)
+- Since √PU > √P1, this ratio is always > 1, proving amounts can exceed maxAmount
 
 ## Impact Explanation
 
-- **Affected Assets**: All protocol fees (token0 and token1 from various pools) that are withdrawn to the RevenueBuybacks contract and converted into TWAMM orders. These fees represent revenue that should accrue to the protocol/governance.
+**Affected Assets**: All user funds (token0 and token1) deposited into TWAMM pools
 
-- **Damage Severity**: 100% permanent loss of all protocol fees used to create buyback orders after the misconfiguration. The proceeds accumulate in the TWAMM system but can never be withdrawn because every `collectProceeds()` call reverts. The owner's `take()` function in RevenueBuybacks cannot recover these funds because they are held in the Orders/TWAMM contracts, not in RevenueBuybacks itself. [7](#0-6) 
+**Damage Severity**:
+- Users can deposit 2x-3x or more beyond their maxAmount limits depending on price movement magnitude
+- Example: User sets maxAmount0=1000, maxAmount1=1000 but deposits 0 token0 and 2400 token1 after TWAMM execution moves price significantly
+- No way for users to protect themselves as TWAMM execution is automatic and unpredictable
+- Breaks fundamental trust in the protocol's safety mechanisms
 
-- **User Impact**: While this primarily affects protocol revenue (not user funds directly), if the protocol design routes a portion of trading fees to buybacks, this represents value that should benefit token holders. The impact scales with the volume of fees collected over time before the misconfiguration is detected.
+**User Impact**: Any user depositing into TWAMM pools (in-scope extension). Given TWAMM's design to continuously execute orders, this is a systemic issue affecting all TWAMM pool interactions.
+
+**Trigger Conditions**: Occurs naturally whenever anyone deposits into a TWAMM pool with unexecuted virtual orders.
 
 ## Likelihood Explanation
 
-- **Attacker Profile**: This is a deployment/configuration error rather than an active attack. However, it could also be triggered by a malicious actor who deploys the system or gains control of the deployment process. No privileged access is required after deployment - anyone can call `roll()` and trigger order creation.
+**Attacker Profile**: Any user can trigger this, intentionally or unintentionally. No special permissions required.
 
-- **Preconditions**: 
-  1. RevenueBuybacks deployed with an invalid `BUY_TOKEN` address
-  2. Revenue tokens configured via `configure()` 
-  3. Required pools initialized with TWAMM extension
-  4. Protocol fees accumulating and being withdrawn
+**Preconditions**:
+1. TWAMM pool with pending virtual orders (very common - this is TWAMM's purpose)
+2. Virtual orders cause price movement when executed (typical behavior)
+3. User deposits with position range affected by price movement (common scenario)
 
-- **Execution Complexity**: Once the misconfigured system is deployed, the vulnerability triggers automatically through normal protocol operation. Each call to `withdrawAndRoll()` or `roll()` creates orders that lock more fees.
+**Execution Complexity**: Single transaction calling `deposit()`. The vulnerability triggers automatically due to TWAMM's design.
 
-- **Frequency**: This is a one-time deployment issue, but the damage accumulates continuously as more orders are created and executed. The longer the misconfiguration remains undetected, the more fees are permanently locked.
+**Economic Cost**: Only standard gas fees. No capital requirements beyond the deposit itself.
+
+**Frequency**: Continuously exploitable on all TWAMM pools with active orders. TWAMM orders execute automatically on any pool interaction.
+
+**Overall Likelihood**: HIGH - Trivial to trigger, affects all TWAMM users, continuous exposure.
 
 ## Recommendation
 
-Add validation in the RevenueBuybacks constructor to ensure `BUY_TOKEN` is either `address(0)` (native token) or a valid ERC20 contract:
+**Primary Fix: Validate actual amounts against maxAmount limits**
+
+In `src/base/BasePositions.sol`, function `handleLockData`, add validation after line 250:
 
 ```solidity
-// In src/RevenueBuybacks.sol, constructor, after line 42:
+uint128 amount0 = uint128(balanceUpdate.delta0());
+uint128 amount1 = uint128(balanceUpdate.delta1());
 
-constructor(address owner, IOrders _orders, address _buyToken) {
-    _initializeOwner(owner);
-    ORDERS = _orders;
-    
-    // ADDED: Validate BUY_TOKEN is either native token or has contract code
-    if (_buyToken != address(0)) {
-        uint256 codeSize;
-        assembly {
-            codeSize := extcodesize(_buyToken)
-        }
-        if (codeSize == 0) revert InvalidBuyToken();
-    }
-    
-    BUY_TOKEN = _buyToken;
-    NFT_ID = ORDERS.mint();
+// Decode maxAmount parameters from calldata
+(, , , , , , uint128 maxAmount0, uint128 maxAmount1) = 
+    abi.decode(data, (uint256, address, uint256, PoolKey, int32, int32, uint128, uint128));
+
+// Validate amounts don't exceed user-specified maximums
+if (amount0 > maxAmount0 || amount1 > maxAmount1) {
+    revert DepositExceedsMaxAmount(amount0, amount1, maxAmount0, maxAmount1);
 }
+
+ACCOUNTANT.payTwoFrom(caller, poolKey.token0, poolKey.token1, amount0, amount1);
 ```
 
-Add the error definition:
+Add error definition:
 ```solidity
-// In src/interfaces/IRevenueBuybacks.sol:
-error InvalidBuyToken();
+error DepositExceedsMaxAmount(uint128 amount0, uint128 amount1, uint128 maxAmount0, uint128 maxAmount1);
 ```
 
-**Alternative mitigations:**
-1. Add a view function `validateBuyToken()` that can be called during deployment to verify the token before finalizing the configuration
-2. Implement a migration mechanism in RevenueBuybacks that allows changing BUY_TOKEN (though this would be complex due to existing orders)
-3. Add documentation and deployment scripts that enforce validation checks
+**Alternative Fix: Fetch price atomically within lock**
 
-## Proof of Concept
+Move the price fetch and liquidity calculation into `handleLockData` where it executes atomically with the position update, eliminating the TOCTOU window entirely.
 
-```solidity
-// File: test/Exploit_InvalidBuyToken.t.sol
-// Run with: forge test --match-test test_InvalidBuyToken_LocksProtocolFees -vvv
+## Notes
 
-pragma solidity ^0.8.31;
+**Key Technical Details:**
 
-import "forge-std/Test.sol";
-import "../src/RevenueBuybacks.sol";
-import "../src/Orders.sol";
-import "../src/Core.sol";
-import "../src/extensions/TWAMM.sol";
+1. **TOCTOU Window**: The vulnerability exists in the temporal gap between BasePositions.sol:80 (first price read) and Core.sol:371 (second price read), with TWAMM hook execution occurring between them.
 
-contract Exploit_InvalidBuyToken is Test {
-    Core core;
-    TWAMM twamm;
-    Orders orders;
-    RevenueBuybacks buybacks;
-    
-    address revenueToken;
-    address invalidBuyToken; // EOA without contract code
-    
-    function setUp() public {
-        // Deploy core contracts
-        core = new Core();
-        twamm = new TWAMM(core);
-        core.registerExtension(address(twamm));
-        orders = new Orders(core, twamm, address(this));
-        
-        // Deploy a real ERC20 for revenue token
-        revenueToken = address(new MockERC20("Revenue", "REV", 18));
-        
-        // Use an EOA as invalid buy token (no contract code)
-        invalidBuyToken = address(0x1234);
-        
-        // Deploy RevenueBuybacks with INVALID buy token
-        buybacks = new RevenueBuybacks(
-            address(this),
-            orders,
-            invalidBuyToken // <-- This is the vulnerability
-        );
-    }
-    
-    function test_InvalidBuyToken_LocksProtocolFees() public {
-        // SETUP: Configure revenue token and initialize pool
-        uint64 fee = 1000;
-        buybacks.configure(revenueToken, 3600, 1800, fee);
-        buybacks.approveMax(revenueToken);
-        
-        // Initialize pool with TWAMM extension
-        PoolKey memory poolKey;
-        if (invalidBuyToken < revenueToken) {
-            poolKey.token0 = invalidBuyToken;
-            poolKey.token1 = revenueToken;
-        } else {
-            poolKey.token0 = revenueToken;
-            poolKey.token1 = invalidBuyToken;
-        }
-        poolKey.config = createPoolConfig(address(twamm), fee, 1);
-        core.initializePool(poolKey, 0);
-        
-        // Fund buybacks contract with revenue tokens
-        MockERC20(revenueToken).mint(address(buybacks), 1000e18);
-        
-        // EXPLOIT: Create order - this succeeds
-        (uint64 endTime, uint112 saleRate) = buybacks.roll(revenueToken);
-        assertTrue(saleRate > 0, "Order was created successfully");
-        
-        // Advance time and execute virtual orders
-        vm.warp(block.timestamp + 1800);
-        orders.executeVirtualOrdersAndGetCurrentOrderInfo(
-            buybacks.NFT_ID(),
-            OrderKey({
-                token0: poolKey.token0,
-                token1: poolKey.token1,
-                config: createOrderConfig(fee, poolKey.token0 != revenueToken, 0, endTime)
-            })
-        );
-        
-        // VERIFY: Collection permanently fails
-        vm.expectRevert(); // Will revert with TransferFailed()
-        buybacks.collect(revenueToken, fee, endTime);
-        
-        // Funds are permanently locked - owner cannot recover them
-        vm.expectRevert(); // Cannot take funds from Orders/TWAMM contracts
-        buybacks.take(invalidBuyToken, 1);
-    }
-}
-```
+2. **No Validation Layer**: Complete code trace confirms zero validation exists checking `amount0 ≤ maxAmount0` or `amount1 ≤ maxAmount1` before charging users.
 
-**Notes:**
-1. The validation at line 363 in FlashAccountant.sol checks `extcodesize(token)` and reverts if the token address has no code (excluding the special case for `address(0)` which is handled at line 349). [8](#0-7) 
+3. **In-Scope Extension**: TWAMM is explicitly listed in scope.txt line 22. This behavior is not a "misconfiguration" but TWAMM's intended design to execute virtual orders on any pool interaction.
 
-2. The protocol explicitly supports `address(0)` as `NATIVE_TOKEN_ADDRESS` for ETH, so that specific case is intentionally allowed. [9](#0-8) 
+4. **Not a Known Issue**: The README mentions TWAMM order execution price variance (lines 52-62), which concerns TWAMM order holders receiving bad prices. This is a completely different issue about deposit() users exceeding their maxAmount limits.
 
-3. There are no admin functions in TWAMM or Orders contracts to rescue locked funds - the only way to withdraw proceeds is through the standard `collectProceeds()` flow which requires a successful token transfer.
+5. **Not Standard CLMM Behavior**: Uniswap v3 and other CLMMs don't have extension hooks that can modify price between calculation and execution. This is unique to Ekubo's extension architecture.
+
+6. **Mathematical Certainty**: This is not a probabilistic vulnerability. The mathematical proof demonstrates amounts WILL exceed limits when specific (common) conditions occur.
 
 ### Citations
 
-**File:** src/RevenueBuybacks.sol (L39-44)
+**File:** src/math/liquidity.sol (L82-119)
 ```text
-    constructor(address owner, IOrders _orders, address _buyToken) {
-        _initializeOwner(owner);
-        ORDERS = _orders;
-        BUY_TOKEN = _buyToken;
-        NFT_ID = ORDERS.mint();
+/// @notice Calculates the maximum liquidity that can be provided given amounts of both tokens
+/// @dev Determines the limiting factor between token0 and token1 based on current price and position bounds
+/// @param _sqrtRatio Current sqrt price ratio
+/// @param sqrtRatioA One bound of the position (will be sorted with sqrtRatioB)
+/// @param sqrtRatioB Other bound of the position (will be sorted with sqrtRatioA)
+/// @param amount0 Available amount of token0
+/// @param amount1 Available amount of token1
+/// @return The maximum liquidity that can be provided with the given token amounts
+function maxLiquidity(
+    SqrtRatio _sqrtRatio,
+    SqrtRatio sqrtRatioA,
+    SqrtRatio sqrtRatioB,
+    uint128 amount0,
+    uint128 amount1
+) pure returns (uint128) {
+    uint256 sqrtRatio = _sqrtRatio.toFixed();
+    (uint256 sqrtRatioLower, uint256 sqrtRatioUpper) = sortAndConvertToFixedSqrtRatios(sqrtRatioA, sqrtRatioB);
+
+    if (sqrtRatio <= sqrtRatioLower) {
+        return uint128(
+            FixedPointMathLib.min(type(uint128).max, maxLiquidityForToken0(sqrtRatioLower, sqrtRatioUpper, amount0))
+        );
+    } else if (sqrtRatio < sqrtRatioUpper) {
+        return uint128(
+            FixedPointMathLib.min(
+                type(uint128).max,
+                FixedPointMathLib.min(
+                    maxLiquidityForToken0(sqrtRatio, sqrtRatioUpper, amount0),
+                    maxLiquidityForToken1(sqrtRatioLower, sqrtRatio, amount1)
+                )
+            )
+        );
+    } else {
+        return uint128(
+            FixedPointMathLib.min(type(uint128).max, maxLiquidityForToken1(sqrtRatioLower, sqrtRatioUpper, amount1))
+        );
+    }
+}
+```
+
+**File:** src/base/BasePositions.sol (L70-97)
+```text
+    /// @inheritdoc IPositions
+    function deposit(
+        uint256 id,
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 maxAmount0,
+        uint128 maxAmount1,
+        uint128 minLiquidity
+    ) public payable authorizedForNft(id) returns (uint128 liquidity, uint128 amount0, uint128 amount1) {
+        SqrtRatio sqrtRatio = CORE.poolState(poolKey.toPoolId()).sqrtRatio();
+
+        liquidity =
+            maxLiquidity(sqrtRatio, tickToSqrtRatio(tickLower), tickToSqrtRatio(tickUpper), maxAmount0, maxAmount1);
+
+        if (liquidity < minLiquidity) {
+            revert DepositFailedDueToSlippage(liquidity, minLiquidity);
+        }
+
+        if (liquidity > uint128(type(int128).max)) {
+            revert DepositOverflow();
+        }
+
+        (amount0, amount1) = abi.decode(
+            lock(abi.encode(CALL_TYPE_DEPOSIT, msg.sender, id, poolKey, tickLower, tickUpper, liquidity)),
+            (uint128, uint128)
+        );
     }
 ```
 
-**File:** src/RevenueBuybacks.sol (L57-60)
+**File:** src/base/BasePositions.sol (L243-264)
 ```text
-    function take(address token, uint256 amount) external onlyOwner {
-        // Transfer to msg.sender since only the owner can call this function
-        SafeTransferLib.safeTransfer(token, msg.sender, amount);
-    }
+            PoolBalanceUpdate balanceUpdate = CORE.updatePosition(
+                poolKey,
+                createPositionId({_salt: bytes24(uint192(id)), _tickLower: tickLower, _tickUpper: tickUpper}),
+                int128(liquidity)
+            );
+
+            uint128 amount0 = uint128(balanceUpdate.delta0());
+            uint128 amount1 = uint128(balanceUpdate.delta1());
+
+            // Use multi-token payment for ERC20-only pools, fall back to individual payments for native token pools
+            if (poolKey.token0 != NATIVE_TOKEN_ADDRESS) {
+                ACCOUNTANT.payTwoFrom(caller, poolKey.token0, poolKey.token1, amount0, amount1);
+            } else {
+                if (amount0 != 0) {
+                    SafeTransferLib.safeTransferETH(address(ACCOUNTANT), amount0);
+                }
+                if (amount1 != 0) {
+                    ACCOUNTANT.payFrom(caller, poolKey.token1, amount1);
+                }
+            }
+
+            result = abi.encode(amount0, amount1);
 ```
 
-**File:** src/RevenueBuybacks.sol (L134-137)
+**File:** src/Core.sol (L358-385)
 ```text
-                saleRate = ORDERS.increaseSellAmount{value: isEth ? amountToSpend : 0}(
-                    NFT_ID, _createOrderKey(token, state.fee(), 0, endTime), uint128(amountToSpend), type(uint112).max
-                );
+    function updatePosition(PoolKey memory poolKey, PositionId positionId, int128 liquidityDelta)
+        external
+        payable
+        returns (PoolBalanceUpdate balanceUpdate)
+    {
+        positionId.validate(poolKey.config);
+
+        Locker locker = _requireLocker();
+
+        IExtension(poolKey.config.extension())
+            .maybeCallBeforeUpdatePosition(locker, poolKey, positionId, liquidityDelta);
+
+        PoolId poolId = poolKey.toPoolId();
+        PoolState state = readPoolState(poolId);
+        if (!state.isInitialized()) revert PoolNotInitialized();
+
+        if (liquidityDelta != 0) {
+            (SqrtRatio sqrtRatioLower, SqrtRatio sqrtRatioUpper) =
+                (tickToSqrtRatio(positionId.tickLower()), tickToSqrtRatio(positionId.tickUpper()));
+
+            (int128 delta0, int128 delta1) =
+                liquidityDeltaToAmountDelta(state.sqrtRatio(), liquidityDelta, sqrtRatioLower, sqrtRatioUpper);
+
+            StorageSlot positionSlot = CoreStorageLayout.poolPositionsSlot(poolId, locker.addr(), positionId);
+            Position storage position;
+            assembly ("memory-safe") {
+                position.slot := positionSlot
             }
 ```
 
-**File:** src/RevenueBuybacks.sol (L175-188)
-```text
-    function _createOrderKey(address token, uint64 fee, uint64 startTime, uint64 endTime)
-        internal
-        view
-        returns (OrderKey memory key)
-    {
-        bool isToken1 = token > BUY_TOKEN;
-        address buyToken = BUY_TOKEN;
-        assembly ("memory-safe") {
-            mstore(add(key, mul(isToken1, 32)), token)
-            mstore(add(key, mul(iszero(isToken1), 32)), buyToken)
-        }
-
-        key.config = createOrderConfig({_fee: fee, _isToken1: isToken1, _startTime: startTime, _endTime: endTime});
-    }
-```
-
-**File:** src/extensions/TWAMM.sol (L386-399)
+**File:** src/extensions/TWAMM.sol (L386-490)
 ```text
     function _executeVirtualOrdersFromWithinLock(PoolKey memory poolKey, PoolId poolId) internal {
         unchecked {
@@ -249,43 +281,106 @@ contract Exploit_InvalidBuyToken is Test {
                     revert PoolNotInitialized();
                 }
             }
-```
 
-**File:** src/Orders.sol (L167-169)
-```text
-            if (proceeds != 0) {
-                ACCOUNTANT.withdraw(orderKey.buyToken(), recipient, proceeds);
-            }
-```
+            uint256 realLastVirtualOrderExecutionTime = state.realLastVirtualOrderExecutionTime();
 
-**File:** src/base/FlashAccountant.sol (L348-368)
-```text
-                    switch token
-                    case 0 {
-                        let success := call(gas(), recipient, amount, 0, 0, 0, 0)
-                        if iszero(success) {
-                            // cast sig "ETHTransferFailed()"
-                            mstore(0x00, 0xb12d13eb)
-                            revert(0x1c, 4)
+            // no-op if already executed in this block
+            if (realLastVirtualOrderExecutionTime != block.timestamp) {
+                // initialize the values that are handled once per execution
+                FeesPerLiquidity memory rewardRates;
+
+                // 0 = not loaded & not updated, 1 = loaded & not updated, 2 = loaded & updated
+                uint256 rewardRate0Access;
+                uint256 rewardRate1Access;
+
+                int256 saveDelta0;
+                int256 saveDelta1;
+                PoolState corePoolState;
+                uint256 time = realLastVirtualOrderExecutionTime;
+
+                while (time != block.timestamp) {
+                    StorageSlot initializedTimesBitmapSlot = TWAMMStorageLayout.poolInitializedTimesBitmapSlot(poolId);
+
+                    (uint256 nextTime, bool initialized) = searchForNextInitializedTime({
+                        slot: initializedTimesBitmapSlot,
+                        lastVirtualOrderExecutionTime: realLastVirtualOrderExecutionTime,
+                        fromTime: time,
+                        untilTime: block.timestamp
+                    });
+
+                    // it is assumed that this will never return a value greater than type(uint32).max
+                    uint256 timeElapsed = nextTime - time;
+
+                    uint256 amount0 = computeAmountFromSaleRate({
+                        saleRate: state.saleRateToken0(), duration: timeElapsed, roundUp: false
+                    });
+
+                    uint256 amount1 = computeAmountFromSaleRate({
+                        saleRate: state.saleRateToken1(), duration: timeElapsed, roundUp: false
+                    });
+
+                    int256 rewardDelta0;
+                    int256 rewardDelta1;
+                    // if both sale rates are non-zero but amounts are zero, we will end up doing the math for no reason since we swap 0
+                    if (amount0 != 0 && amount1 != 0) {
+                        if (!corePoolState.isInitialized()) {
+                            corePoolState = CORE.poolState(poolId);
                         }
-                    }
-                    default {
-                        mstore(0x14, recipient)
-                        mstore(0x34, amount)
-                        mstore(0x00, 0xa9059cbb000000000000000000000000)
-                        let success := call(gas(), token, 0, 0x10, 0x44, 0x00, 0x20)
-                        if iszero(and(eq(mload(0x00), 1), success)) {
-                            if iszero(lt(or(iszero(extcodesize(token)), returndatasize()), success)) {
-                                mstore(0x00, 0x90b8ec18) // `TransferFailed()`.
-                                revert(0x1c, 0x04)
-                            }
+                        SqrtRatio sqrtRatioNext = computeNextSqrtRatio({
+                            sqrtRatio: corePoolState.sqrtRatio(),
+                            liquidity: corePoolState.liquidity(),
+                            saleRateToken0: state.saleRateToken0(),
+                            saleRateToken1: state.saleRateToken1(),
+                            timeElapsed: timeElapsed,
+                            fee: poolKey.config.fee()
+                        });
+
+                        PoolBalanceUpdate swapBalanceUpdate;
+                        if (sqrtRatioNext > corePoolState.sqrtRatio()) {
+                            (swapBalanceUpdate, corePoolState) = CORE.swap(
+                                0,
+                                poolKey,
+                                createSwapParameters({
+                                    _sqrtRatioLimit: sqrtRatioNext,
+                                    _amount: int128(uint128(amount1)),
+                                    _isToken1: true,
+                                    _skipAhead: 0
+                                })
+                            );
+                        } else if (sqrtRatioNext < corePoolState.sqrtRatio()) {
+                            (swapBalanceUpdate, corePoolState) = CORE.swap(
+                                0,
+                                poolKey,
+                                createSwapParameters({
+                                    _sqrtRatioLimit: sqrtRatioNext,
+                                    _amount: int128(uint128(amount0)),
+                                    _isToken1: false,
+                                    _skipAhead: 0
+                                })
+                            );
                         }
-                    }
+
+                        saveDelta0 -= swapBalanceUpdate.delta0();
+                        saveDelta1 -= swapBalanceUpdate.delta1();
+
+                        // this cannot overflow or underflow because swapDelta0 is constrained to int128,
+                        // and amounts computed from uint112 sale rates cannot exceed uint112.max
+                        rewardDelta0 = swapBalanceUpdate.delta0() - int256(uint256(amount0));
+                        rewardDelta1 = swapBalanceUpdate.delta1() - int256(uint256(amount1));
+                    } else if (amount0 != 0 || amount1 != 0) {
+                        PoolBalanceUpdate swapBalanceUpdate;
+                        if (amount0 != 0) {
+                            (swapBalanceUpdate, corePoolState) = CORE.swap(
+                                0,
 ```
 
-**File:** src/math/constants.sol (L24-26)
+**File:** src/extensions/TWAMM.sol (L651-657)
 ```text
-// Address used to represent the native token (ETH) within the protocol
-// Using address(0) allows the protocol to handle native ETH alongside ERC20 tokens
-address constant NATIVE_TOKEN_ADDRESS = address(0);
+    // Since anyone can call the method `#lockAndExecuteVirtualOrders`, the method is not protected
+    function beforeUpdatePosition(Locker, PoolKey memory poolKey, PositionId, int128)
+        external
+        override(BaseExtension, IExtension)
+    {
+        lockAndExecuteVirtualOrders(poolKey);
+    }
 ```

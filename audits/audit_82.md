@@ -1,171 +1,174 @@
+# Audit Report
+
 ## Title
-Integer Overflow in Router Swap Path When Negating type(int128).min Boundary Values
+Insufficient msg.value Validation in BasePositions Allows Theft of Contract ETH Balance
 
 ## Summary
-In the Router's single swap path, when Core.swap() clamps calculated amounts to `type(int128).min` (for amounts exceeding int128 range), the Router negates these values inside an unchecked block, causing integer overflow. This results in incorrect slippage check failures and erroneous withdrawal amount calculations.
+The `BasePositions.deposit()` function for pools with native token (ETH) as `token0` does not validate that `msg.value >= amount0`. When ETH is sent with the deposit call, it remains in the BasePositions contract while the contract uses its existing balance to pay the FlashAccountant. This allows attackers to drain accumulated ETH from the contract by depositing with insufficient or zero payment.
 
 ## Impact
-**Severity**: Medium
+**Severity**: High
+
+Direct theft of user funds. Attackers can steal all ETH accumulated in the BasePositions contract (from users who overpaid and haven't called `refundNativeToken()`). The attack requires only a single transaction with no special permissions, can be repeated until the contract is drained, and causes permanent loss of user funds.
 
 ## Finding Description
-**Location:** 
-- [1](#0-0) 
-- [2](#0-1) 
 
-**Intended Logic:** 
-When a swap's calculated output amount is very large, Core.swap() clamps it to `type(int128).min` to prevent SafeCastLib overflow. The Router should then correctly interpret this clamped value, negate it to get the positive output amount for slippage checks, and withdraw the appropriate amount of tokens.
+**Location:** `src/base/BasePositions.sol`, function `handleLockData()`, lines 253-262
 
-**Actual Logic:** 
-The Router negates the delta values inside an unchecked block at line 116. In two's complement arithmetic, negating `type(int128).min` (-2^127) should yield 2^127, but this exceeds `type(int128).max` (2^127 - 1). In an unchecked block, `-type(int128).min` overflows and wraps around to `type(int128).min` itself, remaining negative instead of becoming positive. [3](#0-2) 
+**Intended Logic:**
+When a user deposits liquidity to a pool where `token0` is `NATIVE_TOKEN_ADDRESS`, the user should send sufficient `msg.value` to cover the required ETH amount (`amount0`). The contract should validate this and revert if insufficient ETH is provided.
 
-The Core explicitly clamps to this boundary value using: [4](#0-3) 
-
-Then Router processes this in an unchecked block: [5](#0-4) 
+**Actual Logic:**
+The contract sends ETH from its own balance to ACCOUNTANT without verifying that `msg.value >= amount0`. The vulnerability occurs through this execution path:
 
 **Exploitation Path:**
-1. User initiates a very large exact-input or exact-output swap that would result in calculated output exceeding `type(int128).max` (~1.7×10^38 base units)
-2. Core.swap() accumulates the calculated amount and clamps it to `type(int128).min` at line 811-812
-3. Core returns balanceUpdate with delta0 or delta1 = `type(int128).min`
-4. Router receives this at line 114 and attempts to negate at line 116 inside unchecked block
-5. Negation overflows: `-type(int128).min` becomes `type(int128).min` (still negative)
-6. Slippage check at line 117 compares `type(int128).min < calculatedAmountThreshold`, which for any reasonable positive threshold fails incorrectly
-7. Transaction reverts with `SlippageCheckFailed` even though the actual output would have been acceptable
-8. If slippage check somehow passes (e.g., threshold also set to `type(int128).min`), lines 123 or 130 attempt to withdraw `uint128(type(int128).min)` = 2^127 tokens, which would fail unless pool has that enormous amount [6](#0-5) [7](#0-6) 
 
-**Security Property Broken:** 
-Withdrawal Availability - legitimate large swaps that the protocol explicitly supports (via clamping logic) are incorrectly blocked from execution, preventing users from conducting valid trades.
+1. **Setup**: BasePositions contract accumulates ETH balance (e.g., 1 ETH from users who overpaid and haven't called `refundNativeToken()`) [7](#0-6) 
+
+2. **Trigger**: Attacker calls `deposit()` with `msg.value = 0` for a pool where `poolKey.token0 == NATIVE_TOKEN_ADDRESS` [1](#0-0) 
+
+3. **msg.value remains in BasePositions**: The `lock()` function calls `ACCOUNTANT.lock()` with `value=0` (third parameter in assembly call), so the attacker's `msg.value` stays in BasePositions and is never forwarded [2](#0-1) 
+
+4. **Core creates full debt**: `handleLockData()` calls `CORE.updatePosition()` as a regular external call without forwarding value [3](#0-2) 
+   
+   Since `msg.value == 0` in this context, Core creates full debt for `NATIVE_TOKEN_ADDRESS` without any reduction [4](#0-3) 
+
+5. **Contract uses its own balance**: Line 257 executes `SafeTransferLib.safeTransferETH(address(ACCOUNTANT), amount0)` which sends ETH from the BasePositions contract's balance, **not from the user's msg.value** [9](#0-8) 
+
+6. **Debt settlement succeeds**: The ACCOUNTANT's receive() function credits the payment and zeros the debt [6](#0-5) 
+
+7. **Result**: Attacker receives a position worth 0.5 ETH while paying nothing, stealing 0.5 ETH from the contract's accumulated balance
+
+**Security Property Broken:**
+Violates user fund security - ETH sitting in the contract awaiting refund is stolen by attackers who receive positions without proper payment.
 
 ## Impact Explanation
-- **Affected Assets**: Any token pair where a swap could theoretically produce output exceeding type(int128).max base units
-- **Damage Severity**: Denial of service for large swaps. Users attempting legitimate high-value trades will have their transactions revert incorrectly due to slippage check failures, even when the actual calculated amount meets their requirements
-- **User Impact**: Any user attempting swaps with very large amounts (more likely with low-decimal tokens or extreme price ratios) will be unable to execute trades. While this threshold is extremely high for most tokens, the protocol's explicit support for this scenario via clamping indicates these swaps should be possible
+
+**Affected Assets**: All ETH balance accumulated in the BasePositions contract, including overpayments from legitimate users awaiting `refundNativeToken()` calls
+
+**Damage Severity**:
+- Attacker can drain the entire ETH balance of the contract by repeatedly calling `deposit()` with `msg.value = 0`
+- Each attack steals up to the calculated `amount0` per transaction
+- Permanent loss of user funds (ETH that should be available for refund)
+
+**User Impact**: All users who have pending ETH refunds in the contract lose their funds. Anyone who overpaid and planned to call `refundNativeToken()` will find the contract balance has been drained.
+
+**Trigger Conditions**: Single unprivileged transaction, no special state required beyond contract having non-zero ETH balance
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any user attempting large swaps; no special privileges required
-- **Preconditions**: 
-  - Pool must have sufficient liquidity to support calculated output > type(int128).max base units
-  - More realistic with tokens having low decimals (0-6 decimals) or in extreme price movement scenarios
-  - The Core code explicitly handles this scenario with clamping, indicating it's an intended supported case
-- **Execution Complexity**: Single transaction - user simply calls router.swap() with large amount parameters
-- **Frequency**: Every time a swap calculation would exceed int128 bounds (rare but explicitly supported by protocol design)
+
+**Attacker Profile**: Any unprivileged user - no special permissions or tokens required
+
+**Preconditions**:
+1. BasePositions contract must have non-zero ETH balance (expected behavior given the `refundNativeToken()` function exists for handling overpayments)
+2. Pool must be initialized with `token0 == NATIVE_TOKEN_ADDRESS` (common for ETH pools)
+
+**Execution Complexity**: Single transaction attack - simply call `deposit()` with `msg.value = 0`
+
+**Economic Cost**: Only gas fees, no capital lockup required
+
+**Frequency**: Can be exploited repeatedly until contract is drained (once per transaction, limited only by gas and available contract balance)
+
+**Overall Likelihood**: HIGH - Trivial to execute, affects common ETH pools, contract is expected to hold user ETH
 
 ## Recommendation
 
-**In Router.sol, line 116 and lines 123, 130:**
+**Primary Fix - Validate msg.value:**
 
-Add explicit overflow handling before negation operations. Move the negation outside the unchecked block or add boundary checks:
+Add validation in `src/base/BasePositions.sol`, function `handleLockData()`, around line 253-262 to check that `msg.value >= amount0` when `poolKey.token0 == NATIVE_TOKEN_ADDRESS`. Also implement automatic refund of excess ETH to prevent users from losing overpayments.
 
-```solidity
-// Line 105-119: Handle type(int128).min edge case before negation
-unchecked {
-    uint256 value = FixedPointMathLib.ternary(
-        !params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS,
-        uint128(params.amount()),
-        0
-    );
+**Alternative Fix:**
 
-    bool increasing = params.isPriceIncreasing();
+Modify the call to `CORE.updatePosition()` to explicitly forward `msg.value`, similar to how Router handles swaps: [8](#0-7) 
 
-    (PoolBalanceUpdate balanceUpdate,) = _swap(value, poolKey, params);
-
-    // FIXED: Handle int128.min boundary before negation
-    int128 deltaToNegate = params.isToken1() ? balanceUpdate.delta0() : balanceUpdate.delta1();
-    int256 amountCalculated;
-    if (deltaToNegate == type(int128).min) {
-        // Special case: cannot negate safely, use uint128 directly
-        amountCalculated = uint128(type(int128).max) + 1; // = 2^127
-    } else {
-        amountCalculated = -deltaToNegate;
-    }
-    
-    if (amountCalculated < calculatedAmountThreshold) {
-        revert SlippageCheckFailed(calculatedAmountThreshold, amountCalculated);
-    }
-
-    // Similar fix needed for withdrawal amounts at lines 123, 130
-    if (increasing) {
-        if (balanceUpdate.delta0() != 0) {
-            uint128 withdrawAmount = balanceUpdate.delta0() == type(int128).min 
-                ? type(uint128).max >> 1  // 2^127
-                : uint128(-balanceUpdate.delta0());
-            ACCOUNTANT.withdraw(poolKey.token0, recipient, withdrawAmount);
-        }
-        // ... rest of logic
-    }
-}
-```
-
-Alternative mitigation: Remove the unchecked block entirely for these operations, allowing Solidity 0.8's built-in overflow checks to revert properly when overflow would occur, providing clearer error messages.
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_Int128BoundaryOverflow.t.sol
-// Run with: forge test --match-test test_Int128MinBoundaryOverflow -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Router.sol";
-import "../src/Core.sol";
-import "../src/types/poolKey.sol";
-
-contract Exploit_Int128BoundaryOverflow is Test {
-    Router router;
-    Core core;
-    
-    function setUp() public {
-        // Deploy contracts
-        core = new Core();
-        router = new Router(core);
-    }
-    
-    function test_Int128MinBoundaryOverflow() public {
-        // This test demonstrates the overflow issue
-        // When delta is type(int128).min, negation fails in unchecked block
-        
-        int128 boundaryValue = type(int128).min; // -2^127
-        
-        // Simulate what happens in Router.sol line 116
-        int128 negatedValue;
-        unchecked {
-            negatedValue = -boundaryValue; // Should be 2^127 but overflows to type(int128).min
-        }
-        
-        // VERIFY: The negation incorrectly stays negative
-        assertEq(negatedValue, type(int128).min, "Negation overflowed to itself");
-        assertTrue(negatedValue < 0, "Value should have been positive but is negative");
-        
-        // VERIFY: Casting to uint128 produces wrong value
-        uint128 withdrawAmount = uint128(negatedValue);
-        assertEq(withdrawAmount, uint128(2**127), "Withdrawal amount is 2^127 due to bit reinterpretation");
-        
-        // This demonstrates that:
-        // 1. Slippage check sees negative value instead of expected positive
-        // 2. Withdrawal tries to send 2^127 tokens instead of intended amount
-    }
-}
-```
+This would integrate with Core's native payment handling logic and reduce debt automatically.
 
 ## Notes
 
-The vulnerability exists because:
+This vulnerability specifically affects the deposit flow when `token0 == NATIVE_TOKEN_ADDRESS`. The Router contract handles this correctly by explicitly calculating and forwarding the required value, but BasePositions uses a different pattern that lacks validation.
 
-1. **Core explicitly supports this scenario**: [3](#0-2)  - The use of `FixedPointMathLib.max(type(int128).min, calculatedAmount)` shows the protocol deliberately handles calculations exceeding int128 range by clamping to the boundary.
-
-2. **Router uses unchecked arithmetic**: [8](#0-7)  - The unchecked block disables Solidity 0.8's overflow protection, allowing the wrap-around behavior.
-
-3. **Two's complement overflow**: Negating the most negative value (-2^127) mathematically requires 2^127, which exceeds int128.max (2^127 - 1), causing wrap-around in unchecked mode.
-
-4. **Impact is DOS, not theft**: While the withdrawal amount calculation is wrong, transactions would typically revert due to either the incorrect slippage check or insufficient tokens in the FlashAccountant, preventing actual fund loss but blocking legitimate swaps.
-
-The protocol should either: (a) handle this edge case explicitly in the Router, or (b) document this as an unsupported scenario and add explicit checks to prevent swaps from reaching this boundary.
+The presence of the `refundNativeToken()` function confirms that the contract is designed to accumulate ETH from overpayments, making this attack highly practical and realistic. The architectural decision to keep `msg.value` in the BasePositions contract rather than forwarding it to Core, combined with the lack of validation, creates this critical vulnerability.
 
 ### Citations
 
-**File:** src/Router.sol (L105-150)
+**File:** src/base/BasePositions.sol (L71-79)
 ```text
-            unchecked {
+    function deposit(
+        uint256 id,
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 maxAmount0,
+        uint128 maxAmount1,
+        uint128 minLiquidity
+    ) public payable authorizedForNft(id) returns (uint128 liquidity, uint128 amount0, uint128 amount1) {
+```
+
+**File:** src/base/BasePositions.sol (L243-247)
+```text
+            PoolBalanceUpdate balanceUpdate = CORE.updatePosition(
+                poolKey,
+                createPositionId({_salt: bytes24(uint192(id)), _tickLower: tickLower, _tickUpper: tickUpper}),
+                int128(liquidity)
+            );
+```
+
+**File:** src/base/BasePositions.sol (L253-262)
+```text
+            if (poolKey.token0 != NATIVE_TOKEN_ADDRESS) {
+                ACCOUNTANT.payTwoFrom(caller, poolKey.token0, poolKey.token1, amount0, amount1);
+            } else {
+                if (amount0 != 0) {
+                    SafeTransferLib.safeTransferETH(address(ACCOUNTANT), amount0);
+                }
+                if (amount1 != 0) {
+                    ACCOUNTANT.payFrom(caller, poolKey.token1, amount1);
+                }
+            }
+```
+
+**File:** src/base/BaseLocker.sol (L61-61)
+```text
+            if iszero(call(gas(), target, 0, result, add(len, 4), 0, 0)) {
+```
+
+**File:** src/Core.sol (L336-344)
+```text
+        if (msg.value == 0) {
+            // No native token payment included in the call, so use optimized pair update
+            _updatePairDebt(id, token0, token1, debtChange0, debtChange1);
+        } else {
+            if (token0 == NATIVE_TOKEN_ADDRESS) {
+                unchecked {
+                    // token0 is native, so we can still use pair update with adjusted debtChange0
+                    // Subtraction is safe because debtChange0 and msg.value are both bounded by int128/uint128
+                    _updatePairDebt(id, token0, token1, debtChange0 - int256(msg.value), debtChange1);
+```
+
+**File:** src/base/FlashAccountant.sol (L384-392)
+```text
+    receive() external payable {
+        uint256 id = _getLocker().id();
+
+        // Note because we use msg.value here, this contract can never be multicallable, i.e. it should never expose the ability
+        //      to delegatecall itself more than once in a single call
+        unchecked {
+            // We assume msg.value will never exceed type(uint128).max, so this should never cause an overflow/underflow of debt
+            _accountDebt(id, NATIVE_TOKEN_ADDRESS, -int256(msg.value));
+        }
+```
+
+**File:** src/base/PayableMulticallable.sol (L25-29)
+```text
+    function refundNativeToken() external payable {
+        if (address(this).balance != 0) {
+            SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
+        }
+    }
+```
+
+**File:** src/Router.sol (L106-114)
+```text
                 uint256 value = FixedPointMathLib.ternary(
                     !params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS,
                     uint128(params.amount()),
@@ -175,56 +178,4 @@ The protocol should either: (a) handle this edge case explicitly in the Router, 
                 bool increasing = params.isPriceIncreasing();
 
                 (PoolBalanceUpdate balanceUpdate,) = _swap(value, poolKey, params);
-
-                int128 amountCalculated = params.isToken1() ? -balanceUpdate.delta0() : -balanceUpdate.delta1();
-                if (amountCalculated < calculatedAmountThreshold) {
-                    revert SlippageCheckFailed(calculatedAmountThreshold, amountCalculated);
-                }
-
-                if (increasing) {
-                    if (balanceUpdate.delta0() != 0) {
-                        ACCOUNTANT.withdraw(poolKey.token0, recipient, uint128(-balanceUpdate.delta0()));
-                    }
-                    if (balanceUpdate.delta1() != 0) {
-                        ACCOUNTANT.payFrom(swapper, poolKey.token1, uint128(balanceUpdate.delta1()));
-                    }
-                } else {
-                    if (balanceUpdate.delta1() != 0) {
-                        ACCOUNTANT.withdraw(poolKey.token1, recipient, uint128(-balanceUpdate.delta1()));
-                    }
-
-                    if (balanceUpdate.delta0() != 0) {
-                        if (poolKey.token0 == NATIVE_TOKEN_ADDRESS) {
-                            int256 valueDifference = int256(value) - int256(balanceUpdate.delta0());
-
-                            // refund the overpaid ETH to the swapper
-                            if (valueDifference > 0) {
-                                ACCOUNTANT.withdraw(NATIVE_TOKEN_ADDRESS, swapper, uint128(uint256(valueDifference)));
-                            } else if (valueDifference < 0) {
-                                SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)));
-                            }
-                        } else {
-                            ACCOUNTANT.payFrom(swapper, poolKey.token0, uint128(balanceUpdate.delta0()));
-                        }
-                    }
-                }
-
-                result = abi.encode(balanceUpdate);
-            }
-```
-
-**File:** src/Core.sol (L811-822)
-```text
-                int128 calculatedAmountDelta =
-                    SafeCastLib.toInt128(FixedPointMathLib.max(type(int128).min, calculatedAmount));
-
-                int128 specifiedAmountDelta;
-                int128 specifiedAmount = params.amount();
-                assembly ("memory-safe") {
-                    specifiedAmountDelta := sub(specifiedAmount, amountRemaining)
-                }
-
-                balanceUpdate = isToken1
-                    ? createPoolBalanceUpdate(calculatedAmountDelta, specifiedAmountDelta)
-                    : createPoolBalanceUpdate(specifiedAmountDelta, calculatedAmountDelta);
 ```

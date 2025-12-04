@@ -1,396 +1,231 @@
+# Audit Report
+
 ## Title
-Integer Overflow in accumulateAsFees Causes Tick Fee Accounting Corruption via Underflow During Swap
+TWAMM Phantom Reward Creation Enabling Protocol Insolvency When Pool Liquidity Equals Zero
 
 ## Summary
-A malicious extension can manipulate global fees per liquidity through `accumulateAsFees` to cause integer overflow in an unchecked block, then trigger a swap that crosses ticks. When the swap updates tick fees per liquidity outside via subtraction (`global - stored`), the operation underflows in an unchecked context, storing a corrupted huge value that breaks fee accounting for all positions using that tick.
+When a TWAMM pool reaches zero liquidity, virtual order execution incorrectly credits phantom rewards to order holders despite no actual token swaps occurring. The `computeNextSqrtRatio()` function immediately returns the equilibrium price when `liquidity == 0`, and Core.swap returns `balanceUpdate = (0, 0)`, but TWAMM's reward accounting logic treats this as if tokens were swapped, enabling theft of tokens that were never deposited into the pool.
 
 ## Impact
 **Severity**: High
 
+This vulnerability directly violates the protocol's core solvency invariant: "The sum of all swap deltas, position update deltas, and position fee collection should never at any time result in a pool with a balance less than zero of either token0 or token1." [1](#0-0) 
+
+When exploited, attackers can drain entire TWAMM pool reserves by withdrawing phantom rewards that were credited during zero-liquidity virtual order execution. If a TWAMM pool with active virtual orders executes during a zero-liquidity state, the reward accounting inflates as if the full swap amounts were processed, but no tokens actually enter the pool. Later withdrawals based on these phantom rewards cause pool token balances to go negative, allowing theft of protocol and LP funds.
+
 ## Finding Description
-**Location:** `src/Core.sol` - `accumulateAsFees()` function and `swap_6269342730()` function (lines 228-276 for accumulation, lines 783-799 for tick crossing)
 
-**Intended Logic:** 
-- `accumulateAsFees` should safely add fees to the global fees per liquidity accumulator, distributing fees proportionally to all liquidity providers [1](#0-0) 
+**Location:** 
+- `src/math/twamm.sol:107-111`, function `computeNextSqrtRatio()`
+- `src/extensions/TWAMM.sol:441-578`, function `_executeVirtualOrdersFromWithinLock()`
+- `src/Core.sol:623-625`, within swap execution loop
 
-- During swap tick crossing, the tick's fees per liquidity outside should be updated by computing `global - stored` to flip the perspective of what's "inside" vs "outside" the tick boundary [2](#0-1) 
+**Intended Logic:**
 
-**Actual Logic:** 
-- `accumulateAsFees` performs the addition `uint256(slot0.load()) + FixedPointMathLib.rawDiv(amount0 << 128, liquidity)` inside an unchecked block, allowing overflow to wrap around [3](#0-2) 
+Virtual orders in TWAMM pools execute gradually over time by computing equilibrium prices and performing swaps through Core. The reward rates should reflect actual tokens received from swaps. When liquidity is zero, the price settlement logic was intended to handle instantaneous price movement to the equilibrium ratio without resistance. [2](#0-1) 
 
-- The entire `swap_6269342730()` function executes in an unchecked block starting at line 507, so when tick crossing performs `globalFeesPerLiquidityOther - uint256(tickFplFirstSlot.load())`, underflow wraps to a huge value instead of reverting [4](#0-3) 
+**Actual Logic:**
+
+When pool liquidity equals zero during virtual order execution:
+
+1. **Price Computation:** `computeNextSqrtRatio()` immediately returns `toSqrtRatio(sqrtSaleRatio, roundUp)` when `liquidity == 0`, bypassing gradual price movement calculation. [2](#0-1) 
+
+2. **Swap Execution:** Core.swap executes with `stepLiquidity == 0`, causing the price to jump to the limit without any balance changes. [3](#0-2) 
+
+3. **Zero Balance Update:** The swap returns `balanceUpdate = (0, 0)` because `calculatedAmount` remains 0 and `specifiedAmountDelta = specifiedAmount - amountRemaining = 0` when no calculation block executes.
+
+4. **Phantom Reward Crediting:** TWAMM computes `rewardDelta0 = swapBalanceUpdate.delta0() - amount0 = 0 - amount0` and `rewardDelta1 = swapBalanceUpdate.delta1() - amount1 = 0 - amount1`. [4](#0-3) 
+
+5. **Reward Rate Inflation:** Since both rewardDeltas are negative (assuming non-zero amounts computed from sale rates), the reward rates are increased. [5](#0-4) 
+
+6. **No Balance Adjustment:** `saveDelta0` and `saveDelta1` remain 0 since the swap returned (0, 0), so `updateSavedBalances()` is never called during execution. [6](#0-5) 
+
+7. **Theft via Withdrawal:** When order holders later withdraw proceeds, `purchasedAmount` is computed from the inflated reward rates, and `updateSavedBalances()` is called with negative deltas, draining tokens from the pool that were never deposited. [7](#0-6) 
 
 **Exploitation Path:**
-1. **Extension deploys malicious beforeSwap hook**: Extension implements the beforeSwap call point to intercept swaps [5](#0-4) 
 
-2. **Extension acquires nested lock**: In beforeSwap, extension calls `lock()` to acquire its own lock context (similar to TWAMM's pattern) [6](#0-5) 
+1. **Setup:** TWAMM pool is initialized with active virtual orders on both sides (non-zero `saleRateToken0` and `saleRateToken1`). All LPs withdraw their positions, causing pool `liquidity == 0`.
 
-3. **Extension calls accumulateAsFees with calculated overflow amount**: Extension passes `amount0` or `amount1` such that `(amount << 128) / liquidity` causes `global + overflow_value` to wrap around to a value smaller than existing tick.fpl_outside values. The extension must only be the pool's extension (validated on line 230) [7](#0-6) 
+2. **Trigger:** Virtual order execution is triggered via any hook (swap, position update, or direct call to `lockAndExecuteVirtualOrders()`). Amounts are computed from sale rates and time elapsed. [8](#0-7) 
 
-4. **Extension settles debt**: Extension pays the debt for accumulated fees (tracked on line 273) [8](#0-7) 
+3. **Price Jump Without Swap:** Since both amounts are non-zero, `computeNextSqrtRatio()` is called with `liquidity == 0`, and the subsequent swap executes but transfers zero tokens. [9](#0-8) 
 
-5. **Swap crosses tick**: When the swap proceeds and crosses an initialized tick where `stored_fee > overflowed_global`, the subtraction wraps around in the unchecked block, storing a corrupted value near uint256.max [9](#0-8) 
+4. **Phantom Reward Crediting:** Despite `swapBalanceUpdate = (0, 0)`, reward rates are increased based on the full computed amounts as if tokens were swapped and distributed.
 
-6. **All positions using that tick have corrupted fee accounting**: When positions calculate fees using `_getPoolFeesPerLiquidityInside`, the corrupted tick values cause completely wrong fee calculations in the unchecked assembly [10](#0-9) 
+5. **Theft via Withdrawal:** Order holders call withdrawal functions, receiving `purchasedAmount` based on phantom rewards. These tokens are withdrawn from the pool via negative deltas in `updateSavedBalances()`, draining funds that were never deposited.
 
-**Security Property Broken:** 
-- **Fee Accounting Invariant**: "Position fee collection must be accurate and never allow double-claiming" - corrupted tick values cause incorrect fee calculations
-- **Solvency Invariant**: If corrupted values allow users to claim more fees than exist in the pool, pool balances could go negative
+**Security Property Broken:**
+
+Violates the solvency invariant that pool balances must never go negative. [1](#0-0) 
 
 ## Impact Explanation
-- **Affected Assets**: All liquidity provider positions that use the corrupted tick as their tickLower or tickUpper boundary
-- **Damage Severity**: 
-  - Positions calculate fees using the formula `(feesPerLiquidityInside - feesPerLiquidityInsideLast) * liquidity`, where feesPerLiquidityInside depends on tick.fpl_outside values [11](#0-10) 
-  - With corrupted tick values near uint256.max, the subtraction operations in fee calculation wrap around unpredictably
-  - Users may claim vastly inflated fees (draining the pool) or be unable to claim any fees (permanent loss)
-- **User Impact**: All LPs with positions crossing the corrupted tick lose accurate fee tracking. In a pool with significant liquidity, hundreds of positions could be affected simultaneously.
+
+**Affected Assets:** All tokens in TWAMM pools where liquidity can reach zero. Since the protocol guarantees that "all positions should be able to be withdrawn at any time," [10](#0-9)  any TWAMM pool can reach zero liquidity.
+
+**Damage Severity:**
+- Attackers can drain pool token reserves equal to the accumulated virtual order amounts during zero-liquidity periods
+- If a TWAMM pool with $1M in active virtual orders operates at zero liquidity for a time period, phantom rewards approaching $1M can be credited
+- Pool token balances go negative, violating core solvency invariant
+- All LPs and users with balances in affected pools lose funds
+
+**User Impact:** Protocol becomes insolvent as pool balances turn negative. All liquidity providers in the affected pool lose their deposits. The issue affects any TWAMM pool, not just those with non-standard tokens.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Requires deploying and registering a malicious extension, then creating a pool that uses it. This requires the extension to pass `maybeCallBeforeInitializePool` and `maybeCallAfterInitializePool` hooks without reverting. [12](#0-11) 
 
-- **Preconditions**: 
-  - Pool must have accumulated sufficient fees that tick.fpl_outside values are non-trivial
-  - Pool must have small enough liquidity that `(type(uint128).max << 128) / liquidity` can cause meaningful overflow
-  - Attacker must have enough tokens to settle the debt from accumulateAsFees
-  
-- **Execution Complexity**: Single transaction containing lock → beforeSwap hook → accumulateAsFees → swap that crosses target tick
+**Attacker Profile:** Any user with the ability to place TWAMM orders and withdraw liquidity (no special privileges required).
 
-- **Frequency**: Can be executed once per tick per pool. After corruption, the tick remains corrupted permanently unless liquidity is removed and the tick is de-initialized.
+**Preconditions:**
+1. TWAMM pool initialized with extension
+2. Active virtual orders on both sides (non-zero sale rates)
+3. Pool liquidity == 0 (achievable by all LPs withdrawing)
+4. Time elapsed since last virtual order execution > 0
+
+**Execution Complexity:** 
+- Attacker places opposing TWAMM orders
+- Withdraws all liquidity (or waits for natural liquidity withdrawal)
+- Triggers virtual order execution via any hook (single transaction)
+- Withdraws phantom rewards in subsequent transaction
+
+**Economic Cost:** Only gas fees. No significant capital lockup required beyond initial order placement.
+
+**Frequency:** Exploitable once per time period where liquidity remains zero. Can be repeated across multiple execution intervals if liquidity stays at zero.
+
+**Overall Likelihood:** HIGH - The scenario is easily achievable through normal protocol operations. The withdrawal guarantee ensures liquidity can always reach zero.
 
 ## Recommendation
 
-**Primary Fix**: Add overflow check in `accumulateAsFees`: [3](#0-2) 
+**Primary Fix:**
+
+Modify `_executeVirtualOrdersFromWithinLock()` to skip virtual order execution when pool liquidity is zero. Orders should pause when no liquidity exists and resume execution when liquidity returns.
 
 ```solidity
-// In src/Core.sol, function accumulateAsFees, lines 253-269:
+// In src/extensions/TWAMM.sol, function _executeVirtualOrdersFromWithinLock, after line 441:
 
-// CURRENT (vulnerable):
-unchecked {
-    if (liquidity != 0) {
-        StorageSlot slot0 = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-        
-        if (amount0 != 0) {
-            slot0.store(
-                bytes32(uint256(slot0.load()) + FixedPointMathLib.rawDiv(amount0 << 128, liquidity))
-            );
-        }
-        if (amount1 != 0) {
-            StorageSlot slot1 = slot0.next();
-            slot1.store(
-                bytes32(uint256(slot1.load()) + FixedPointMathLib.rawDiv(amount1 << 128, liquidity))
-            );
-        }
+if (amount0 != 0 && amount1 != 0) {
+    if (!corePoolState.isInitialized()) {
+        corePoolState = CORE.poolState(poolId);
     }
-}
-
-// FIXED:
-// Remove unchecked block to enable overflow protection
-if (liquidity != 0) {
-    StorageSlot slot0 = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
     
-    if (amount0 != 0) {
-        uint256 currentFpl0 = uint256(slot0.load());
-        uint256 feeIncrement0 = FixedPointMathLib.rawDiv(amount0 << 128, liquidity);
-        // Will revert on overflow due to Solidity 0.8 default checks
-        slot0.store(bytes32(currentFpl0 + feeIncrement0));
+    // Skip virtual order execution if pool has no liquidity
+    if (corePoolState.liquidity() == 0) {
+        // Update lastVirtualOrderExecutionTime but don't execute orders
+        // Orders will resume when liquidity returns
+        continue; // Skip to next time period
     }
-    if (amount1 != 0) {
-        StorageSlot slot1 = slot0.next();
-        uint256 currentFpl1 = uint256(slot1.load());
-        uint256 feeIncrement1 = FixedPointMathLib.rawDiv(amount1 << 128, liquidity);
-        // Will revert on overflow due to Solidity 0.8 default checks
-        slot1.store(bytes32(currentFpl1 + feeIncrement1));
-    }
+    
+    SqrtRatio sqrtRatioNext = computeNextSqrtRatio({...});
+    // ... rest of swap execution
 }
 ```
 
-**Alternative Mitigation**: Add maximum fee accumulation limits to prevent overflow scenarios, or add explicit overflow checks before the addition.
+**Alternative Mitigation:**
 
-## Proof of Concept
+Modify `computeNextSqrtRatio()` to revert when `liquidity == 0`, preventing the problematic code path:
 
 ```solidity
-// File: test/Exploit_TickFeeCorruption.t.sol
-// Run with: forge test --match-test test_TickFeeCorruption -vvv
+// In src/math/twamm.sol, function computeNextSqrtRatio, line 107:
 
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/base/FlashAccountant.sol";
-
-contract MaliciousExtension {
-    Core public core;
-    
-    constructor(Core _core) {
-        core = _core;
-    }
-    
-    // Implement IExtension interface methods
-    function beforeSwap(Locker locker, PoolKey memory poolKey, SwapParameters params) external {
-        // Acquire nested lock
-        core.lock(abi.encode(poolKey));
-    }
-    
-    function locked_6416899205() external returns (bytes memory) {
-        PoolKey memory poolKey = abi.decode(msg.data[4:], (PoolKey));
-        
-        // Call accumulateAsFees with amount that causes overflow
-        uint128 maliciousAmount = type(uint128).max;
-        core.accumulateAsFees(poolKey, maliciousAmount, 0);
-        
-        // Settle debt (would need actual tokens in real attack)
-        // core.settle(...);
-        
-        return "";
-    }
+if (liquidity == 0) {
+    revert InsufficientLiquidityForVirtualOrders();
 }
-
-contract Exploit_TickFeeCorruption is Test {
-    Core core;
-    MaliciousExtension extension;
-    
-    function setUp() public {
-        // Deploy Core
-        core = new Core();
-        
-        // Deploy malicious extension
-        extension = new MaliciousExtension(core);
-        
-        // Register extension (would need proper setup in real scenario)
-        // core.registerExtension(address(extension));
-    }
-    
-    function test_TickFeeCorruption() public {
-        // SETUP: Create pool with malicious extension
-        // Initialize pool with small liquidity
-        // Add positions that cross specific ticks
-        
-        // EXPLOIT: User swaps through the malicious pool
-        // 1. Extension's beforeSwap is called
-        // 2. Extension calls accumulateAsFees with huge amount
-        // 3. Global fees overflow to small value
-        // 4. Swap crosses tick
-        // 5. Tick update underflows, storing corrupted value
-        
-        // VERIFY: Check that tick.fpl_outside is corrupted
-        // Check that position fee calculations are broken
-        // Demonstrate either:
-        //   - User can claim inflated fees (pool insolvency)
-        //   - User cannot claim legitimate fees (fund loss)
-    }
+if (c == 0) {
+    sqrtRatioNext = toSqrtRatio(sqrtSaleRatio, roundUp);
 }
 ```
 
 ## Notes
 
-The vulnerability exists because:
-1. The `unchecked` block in `accumulateAsFees` allows silent overflow when adding fees to global accumulator
-2. The entire `swap_6269342730()` function is wrapped in `unchecked`, so tick crossing subtraction underflows silently
-3. Extensions can execute arbitrary logic in `beforeSwap` hooks, including acquiring nested locks and calling `accumulateAsFees`
-4. The debt settlement requirement doesn't prevent the attack - it only requires the attacker to pay for the fees, but the corruption happens before debt is checked at lock release
+This vulnerability represents a critical accounting mismatch between TWAMM's reward system and Core's swap execution. The `liquidity == 0` case in `computeNextSqrtRatio()` correctly models instantaneous price settlement from a mathematical perspective, but the implementation fails to account for Core.swap's behavior of returning zero balance updates when no liquidity exists. The TWAMM extension's reward logic assumes all computed swap amounts result in proportional token transfers, creating an exploitable discrepancy when this assumption breaks down at zero liquidity.
 
-This breaks the critical Fee Accounting invariant and potentially the Solvency invariant if corrupted values allow over-claiming fees.
+The issue is NOT covered by the known issue about "poor execution price with low liquidity" because this is about phantom reward creation (accounting fraud) rather than price quality degradation. The solvency violation occurs through accumulated phantom rewards that enable withdrawal of tokens never deposited, which is fundamentally different from receiving suboptimal prices on actual swaps.
 
 ### Citations
 
-**File:** src/Core.sol (L71-100)
-```text
-    /// @inheritdoc ICore
-    function initializePool(PoolKey memory poolKey, int32 tick) external returns (SqrtRatio sqrtRatio) {
-        poolKey.validate();
-
-        address extension = poolKey.config.extension();
-        if (extension != address(0)) {
-            StorageSlot isExtensionRegisteredSlot = CoreStorageLayout.isExtensionRegisteredSlot(extension);
-
-            if (isExtensionRegisteredSlot.load() == bytes32(0)) {
-                revert ExtensionNotRegistered();
-            }
-
-            IExtension(extension).maybeCallBeforeInitializePool(msg.sender, poolKey, tick);
-        }
-
-        PoolId poolId = poolKey.toPoolId();
-        PoolState state = readPoolState(poolId);
-        if (state.isInitialized()) revert PoolAlreadyInitialized();
-
-        sqrtRatio = tickToSqrtRatio(tick);
-        writePoolState(poolId, createPoolState({_sqrtRatio: sqrtRatio, _tick: tick, _liquidity: 0}));
-
-        // initialize these slots so the first swap or deposit on the pool is the same cost as any other swap
-        StorageSlot fplSlot0 = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-        fplSlot0.store(bytes32(uint256(1)));
-        fplSlot0.next().store(bytes32(uint256(1)));
-
-        emit PoolInitialized(poolId, poolKey, tick, sqrtRatio);
-
-        IExtension(extension).maybeCallAfterInitializePool(msg.sender, poolKey, tick, sqrtRatio);
+**File:** README.md (L200-200)
+```markdown
+The sum of all swap deltas, position update deltas, and position fee collection should never at any time result in a pool with a balance less than zero of either token0 or token1.
 ```
 
-**File:** src/Core.sol (L197-215)
-```text
-        unchecked {
-            if (tick < tickLower) {
-                feesPerLiquidityInside.value0 = lower0 - upper0;
-                feesPerLiquidityInside.value1 = lower1 - upper1;
-            } else if (tick < tickUpper) {
-                uint256 global0;
-                uint256 global1;
-                {
-                    (bytes32 g0, bytes32 g1) = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).loadTwo();
-                    (global0, global1) = (uint256(g0), uint256(g1));
-                }
-
-                feesPerLiquidityInside.value0 = global0 - upper0 - lower0;
-                feesPerLiquidityInside.value1 = global1 - upper1 - lower1;
-            } else {
-                feesPerLiquidityInside.value0 = upper0 - lower0;
-                feesPerLiquidityInside.value1 = upper1 - lower1;
-            }
-        }
+**File:** README.md (L202-202)
+```markdown
+All positions should be able to be withdrawn at any time (except for positions using third-party extensions; the extensions in the repository should never block withdrawal within the block gas limit).
 ```
 
-**File:** src/Core.sol (L228-276)
+**File:** src/math/twamm.sol (L107-111)
 ```text
-    function accumulateAsFees(PoolKey memory poolKey, uint128 _amount0, uint128 _amount1) external payable {
-        (uint256 id, address lockerAddr) = _requireLocker().parse();
-        require(lockerAddr == poolKey.config.extension());
+        if (c == 0 || liquidity == 0) {
+            // if liquidity is 0, we just settle the ratio of sale rates since the liquidity provides no friction to the price movement
+            // if c is 0, that means the difference b/t sale ratio and sqrt ratio is too small to be detected
+            // so we just assume it settles at the sale ratio
+            sqrtRatioNext = toSqrtRatio(sqrtSaleRatio, roundUp);
+```
 
-        PoolId poolId = poolKey.toPoolId();
+**File:** src/Core.sol (L623-625)
+```text
+                    if (stepLiquidity == 0) {
+                        // if the pool is empty, the swap will always move all the way to the limit price
+                        sqrtRatioNext = limitedNextSqrtRatio;
+```
 
-        uint256 amount0;
-        uint256 amount1;
-        assembly ("memory-safe") {
-            amount0 := _amount0
-            amount1 := _amount1
-        }
-
-        // Note we do not check pool is initialized. If the extension calls this for a pool that does not exist,
-        //  the fees are simply burned since liquidity is 0.
-
-        if (amount0 != 0 || amount1 != 0) {
-            uint256 liquidity;
-            {
-                uint128 _liquidity = readPoolState(poolId).liquidity();
-                assembly ("memory-safe") {
-                    liquidity := _liquidity
-                }
-            }
-
-            unchecked {
-                if (liquidity != 0) {
-                    StorageSlot slot0 = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-
-                    if (amount0 != 0) {
-                        slot0.store(
-                            bytes32(uint256(slot0.load()) + FixedPointMathLib.rawDiv(amount0 << 128, liquidity))
+**File:** src/extensions/TWAMM.sol (L365-375)
+```text
+                if (purchasedAmount != 0) {
+                    if (orderKey.config.isToken1()) {
+                        CORE.updateSavedBalances(
+                            poolKey.token0, poolKey.token1, bytes32(0), -int256(purchasedAmount), 0
                         );
-                    }
-                    if (amount1 != 0) {
-                        StorageSlot slot1 = slot0.next();
-                        slot1.store(
-                            bytes32(uint256(slot1.load()) + FixedPointMathLib.rawDiv(amount1 << 128, liquidity))
+                    } else {
+                        CORE.updateSavedBalances(
+                            poolKey.token0, poolKey.token1, bytes32(0), 0, -int256(purchasedAmount)
                         );
                     }
                 }
-            }
-        }
-
-        // whether the fees are actually accounted to any position, the caller owes the debt
-        _updatePairDebtWithNative(id, poolKey.token0, poolKey.token1, int256(amount0), int256(amount1));
-
-        emit FeesAccumulated(poolId, _amount0, _amount1);
-    }
 ```
 
-**File:** src/Core.sol (L505-520)
+**File:** src/extensions/TWAMM.sol (L430-436)
 ```text
-    /// @inheritdoc ICore
-    function swap_6269342730() external payable {
-        unchecked {
-            PoolKey memory poolKey;
-            address token0;
-            address token1;
-            PoolConfig config;
+                    uint256 amount0 = computeAmountFromSaleRate({
+                        saleRate: state.saleRateToken0(), duration: timeElapsed, roundUp: false
+                    });
 
-            SwapParameters params;
-
-            assembly ("memory-safe") {
-                token0 := calldataload(4)
-                token1 := calldataload(36)
-                config := calldataload(68)
-                params := calldataload(100)
-                calldatacopy(poolKey, 4, 96)
+                    uint256 amount1 = computeAmountFromSaleRate({
+                        saleRate: state.saleRateToken1(), duration: timeElapsed, roundUp: false
+                    });
 ```
 
-**File:** src/Core.sol (L526-528)
+**File:** src/extensions/TWAMM.sol (L445-452)
 ```text
-            Locker locker = _requireLocker();
-
-            IExtension(config.extension()).maybeCallBeforeSwap(locker, poolKey, params);
+                        SqrtRatio sqrtRatioNext = computeNextSqrtRatio({
+                            sqrtRatio: corePoolState.sqrtRatio(),
+                            liquidity: corePoolState.liquidity(),
+                            saleRateToken0: state.saleRateToken0(),
+                            saleRateToken1: state.saleRateToken1(),
+                            timeElapsed: timeElapsed,
+                            fee: poolKey.config.fee()
+                        });
 ```
 
-**File:** src/Core.sol (L783-799)
+**File:** src/extensions/TWAMM.sol (L484-485)
 ```text
-
-                            // if increasing, it means the pool is receiving token1 so the input fees per liquidity is token1
-                            if (increasing) {
-                                tickFplFirstSlot.store(
-                                    bytes32(globalFeesPerLiquidityOther - uint256(tickFplFirstSlot.load()))
-                                );
-                                tickFplSecondSlot.store(
-                                    bytes32(inputTokenFeesPerLiquidity - uint256(tickFplSecondSlot.load()))
-                                );
-                            } else {
-                                tickFplFirstSlot.store(
-                                    bytes32(inputTokenFeesPerLiquidity - uint256(tickFplFirstSlot.load()))
-                                );
-                                tickFplSecondSlot.store(
-                                    bytes32(globalFeesPerLiquidityOther - uint256(tickFplSecondSlot.load()))
-                                );
-                            }
+                        rewardDelta0 = swapBalanceUpdate.delta0() - int256(uint256(amount0));
+                        rewardDelta1 = swapBalanceUpdate.delta1() - int256(uint256(amount1));
 ```
 
-**File:** src/extensions/TWAMM.sol (L604-620)
+**File:** src/extensions/TWAMM.sol (L517-524)
 ```text
-    /// @inheritdoc ITWAMM
-    function lockAndExecuteVirtualOrders(PoolKey memory poolKey) public {
-        // the only thing we lock for is executing virtual orders, so all we need to encode is the pool key
-        // so we call lock on the core contract with the pool key after it
-        address target = address(CORE);
-        assembly ("memory-safe") {
-            let o := mload(0x40)
-            mstore(o, shl(224, 0xf83d08ba))
-            mcopy(add(o, 4), poolKey, 96)
-
-            // If the call failed, pass through the revert
-            if iszero(call(gas(), target, 0, o, 100, 0, 0)) {
-                returndatacopy(o, 0, returndatasize())
-                revert(o, returndatasize())
-            }
-        }
-    }
+                    if (rewardDelta0 < 0) {
+                        if (rewardRate0Access == 0) {
+                            rewardRates.value0 = uint256(TWAMMStorageLayout.poolRewardRatesSlot(poolId).load());
+                        }
+                        rewardRate0Access = 2;
+                        rewardRates.value0 += FixedPointMathLib.rawDiv(
+                            uint256(-rewardDelta0) << 128, state.saleRateToken1()
+                        );
 ```
 
-**File:** src/types/position.sol (L33-51)
+**File:** src/extensions/TWAMM.sol (L576-578)
 ```text
-function fees(Position memory position, FeesPerLiquidity memory feesPerLiquidityInside)
-    pure
-    returns (uint128, uint128)
-{
-    uint128 liquidity;
-    uint256 difference0;
-    uint256 difference1;
-    assembly ("memory-safe") {
-        liquidity := mload(add(position, 0x20))
-        // feesPerLiquidityInsideLast is now at offset 0x40 due to extraData field
-        let positionFpl := mload(add(position, 0x40))
-        difference0 := sub(mload(feesPerLiquidityInside), mload(positionFpl))
-        difference1 := sub(mload(add(feesPerLiquidityInside, 0x20)), mload(add(positionFpl, 0x20)))
-    }
-
-    return (
-        uint128(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128)),
-        uint128(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128))
-    );
+                if (saveDelta0 != 0 || saveDelta1 != 0) {
+                    CORE.updateSavedBalances(poolKey.token0, poolKey.token1, bytes32(0), saveDelta0, saveDelta1);
+                }
 ```

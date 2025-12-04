@@ -1,171 +1,136 @@
+# Audit Report
+
 ## Title
-Excess ETH Theft in Exact Output Swaps Due to Missing Access Control on refundNativeToken()
+Native Token Payment Logic Asymmetry in Router Enables ETH Theft
 
 ## Summary
-In `Router.handleLockData`, when executing exact output swaps with ETH (where `params.isExactOut()` is true), the `value` variable is incorrectly set to 0 even when users send ETH via `msg.value`. This causes only the exact amount needed for the swap to be forwarded to the FlashAccountant, leaving excess ETH in the Router contract. The `refundNativeToken()` function in `PayableMulticallable` lacks access control, allowing any attacker to steal this excess ETH by calling the function immediately after a user's swap transaction.
+The Router contract's `handleLockData` function contains a critical asymmetry in native ETH payment logic. When users perform exact-output swaps to buy token1 with native ETH (token0), the Router incorrectly sets `value=0` and pays from its accumulated balance instead of the user's `msg.value`, enabling attackers to drain accumulated ETH by executing identical swaps with zero payment.
 
 ## Impact
 **Severity**: High
 
+Users performing exact-output swaps with native ETH lose any excess ETH sent beyond the exact amount required, as it accumulates in the Router contract. Attackers can then drain this accumulated ETH by executing identical swaps with `msg.value=0`, causing the Router to use its balance to pay for the attacker's swap, resulting in free tokens for the attacker and permanent loss for victims.
+
 ## Finding Description
-**Location:** 
-- `src/Router.sol` - `handleLockData()` function (lines 106-146)
-- `src/base/PayableMulticallable.sol` - `refundNativeToken()` function (lines 25-29)
+
+**Location:** `src/Router.sol:106-147`, function `handleLockData()` [1](#0-0) 
 
 **Intended Logic:** 
-For exact output swaps with ETH, the Router should either: (1) only accept the exact amount of ETH needed and revert if excess is sent, or (2) automatically refund excess ETH to the user within the same transaction. The `refundNativeToken()` function is intended to allow users to recover their own excess ETH.
+The Router should consistently handle native token payments by either: (1) forwarding user's `msg.value` to Core and settling via `valueDifference` refund logic, or (2) validating that `msg.value` covers the required payment before using Router's balance.
 
-**Actual Logic:** 
-The Router calculates the `value` parameter at line 106-110 using a ternary condition that requires `!params.isExactOut()`. When `isExactOut()` is true (negative amount for exact output swaps), `value` is set to 0 regardless of `msg.value`. This causes the settlement logic at lines 135-142 to only send the exact ETH amount needed to the FlashAccountant, leaving any excess `msg.value` in the Router contract. The `refundNativeToken()` function has no access control and sends the contract's entire ETH balance to `msg.sender`, enabling theft. [1](#0-0) [2](#0-1) [3](#0-2) 
+**Actual Logic:**
+The `value` variable calculation only accounts for ONE scenario: exact-input swaps of token0 when token0 is native ETH. It fails to account for exact-output swaps where token1 is purchased with native ETH (token0). [2](#0-1) 
+
+When `isToken1=true` and `isExactOut=true` with `token0=NATIVE_TOKEN_ADDRESS`:
+- `increasing = params.isPriceIncreasing()` evaluates to `true XOR true = false`
+- The `increasing=false` branch executes at lines 128-147 [3](#0-2) 
+
+In this branch, when `delta0 > 0` (pool requires ETH payment):
+- `valueDifference = int256(0) - int256(delta0) = -delta0` (negative)
+- Line 141 executes: `SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)))`
+- This transfers ETH from **Router's balance**, not from the user's `msg.value`
+- User's `msg.value` remains stuck in Router contract
 
 **Exploitation Path:**
-1. **User initiates exact output swap**: Alice calls `Router.swap()` with `msg.value = 1 ETH`, `poolKey.token0 = NATIVE_TOKEN_ADDRESS`, `isToken1 = false`, and `amount = -500000` (negative amount indicates exact output).
+1. **Victim Setup**: User calls `Router.swap{value: 10 ether}(poolKey, params, threshold)` where `params` has `isToken1=true`, `amount=-1 ether` (exact output), and `poolKey.token0=NATIVE_TOKEN_ADDRESS`
+2. **Partial Use**: Swap calculates `delta0 = 1.05 ether` needed. Router transfers 1.05 ETH from its balance to Accountant (line 141). User's 10 ETH remains in Router.
+3. **Accumulation**: Excess 8.95 ETH sits in Router contract
+4. **Attacker Exploitation**: Attacker calls `Router.swap{value: 0}(poolKey, params, threshold)` with identical parameters
+5. **Theft**: Router uses the accumulated 8.95 ETH to pay for attacker's swap, giving attacker tokens without payment
+6. **Result**: Victim loses 8.95 ETH permanently, attacker gains tokens for free
 
-2. **Value miscalculation**: In `handleLockData`, the ternary at lines 106-110 evaluates to 0 because `!params.isExactOut()` is false, despite Alice sending 1 ETH.
-
-3. **Partial ETH forwarding**: The swap executes and determines 0.4 ETH is needed. The settlement logic at lines 135-142 calculates `valueDifference = 0 - 0.4e18 = -0.4e18` (negative), so only 0.4 ETH is sent to FlashAccountant. The remaining 0.6 ETH stays in Router.
-
-4. **Theft via refundNativeToken**: Bob (attacker) monitors the mempool, sees Alice's transaction, and immediately calls `refundNativeToken()`. Since there's no access control, Bob receives 0.6 ETH that belonged to Alice.
-
-**Security Property Broken:** 
-Violates the **Withdrawal Availability** invariant: "All positions MUST be withdrawable at any time." In this case, users' excess ETH cannot be safely withdrawn because an attacker can frontrun the legitimate owner.
+**Security Property Broken:**
+User fund isolation - one user's `msg.value` should never be usable to pay for another user's transactions. The Router acts as an unintended escrow that allows first-come-first-served access to accumulated native token balances.
 
 ## Impact Explanation
-- **Affected Assets**: Native ETH sent by users during exact output swaps where `token0 = NATIVE_TOKEN_ADDRESS`
-- **Damage Severity**: Users lose 100% of excess ETH sent beyond what's needed for the swap. For example, if a user sends 1 ETH but the swap only needs 0.4 ETH, the attacker steals 0.6 ETH (60% loss).
-- **User Impact**: Any user performing exact output swaps with ETH is vulnerable. This is a common operation in DEX usage. Users who send conservative amounts of ETH to ensure swap success are most affected.
+
+**Affected Assets**: All native ETH sent by users performing exact-output swaps with `isToken1=true` and `token0=NATIVE_TOKEN_ADDRESS`
+
+**Damage Severity**:
+- Users lose 100% of excess ETH sent beyond the calculated delta amount
+- No automatic refund mechanism - requires separate `refundNativeToken()` call creating race condition
+- Attackers can drain entire accumulated Router balance through repeated zero-value swaps
+- Unlimited loss potential - scales with Router balance accumulation
+
+**User Impact**: Any user performing this specific swap pattern with excess ETH loses funds. The existence of `refundNativeToken()` as a separate function suggests the design acknowledges ETH accumulation but provides insufficient protection. [4](#0-3) 
+
+**Trigger Conditions**: Single transaction by unprivileged attacker
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any external account or contract can exploit this. MEV bots are ideally positioned to execute this attack by monitoring the mempool.
-- **Preconditions**: 
-  - Pool must be initialized with `token0 = NATIVE_TOKEN_ADDRESS`
-  - User must perform exact output swap (negative amount) with `msg.value > required_amount`
-  - Sufficient liquidity in the pool for the swap to succeed
-- **Execution Complexity**: Extremely simple - single transaction calling `refundNativeToken()` immediately after victim's swap. Can be automated via MEV bot.
-- **Frequency**: Exploitable on every exact output swap with excess ETH. Can be repeated continuously as long as users perform such swaps.
+
+**Attacker Profile**: Any unprivileged user or contract. No special permissions, initial capital, or privileged position required beyond gas fees.
+
+**Preconditions**:
+1. Router must have accumulated ETH balance from previous victims (trivially observable via block explorer)
+2. Pool with native token0 must exist and be initialized (common for major tokens)
+3. Sufficient liquidity for swap execution (normal operating condition)
+
+**Execution Complexity**: Single transaction calling `Router.swap{value: 0}()` with correct parameters. No multi-block coordination, no front-running required, no complex state manipulation needed.
+
+**Economic Cost**: Only gas fees (~$5-20 depending on network). No capital lockup or slippage costs.
+
+**Frequency**: Continuously exploitable. Each time Router accumulates ETH from victims, attacker can drain it. Multiple attackers can compete to drain accumulated funds.
+
+**Overall Likelihood**: HIGH - Trivial execution, clear economic incentive, no barriers to entry
 
 ## Recommendation
 
-**Option 1: Add access control to refundNativeToken()**
+**Primary Fix:**
+Add comprehensive value calculation that accounts for ALL scenarios where native token0 needs to be paid:
+
 ```solidity
-// In src/base/PayableMulticallable.sol, lines 25-29:
+// In src/Router.sol, handleLockData function, around line 106:
 
-// CURRENT (vulnerable):
-function refundNativeToken() external payable {
-    if (address(this).balance != 0) {
-        SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
-    }
-}
+// Calculate if ETH needs to be sent upfront to Core
+bool needsEthForToken0 = poolKey.token0 == NATIVE_TOKEN_ADDRESS && (
+    (!params.isToken1() && !params.isExactOut()) ||  // Exact input of ETH
+    (params.isToken1() && params.isExactOut())       // Exact output of token1, paying with ETH
+);
 
-// FIXED:
-function refundNativeToken(address recipient) external payable {
-    if (address(this).balance != 0) {
-        // Only allow refund to addresses that have actively used the contract
-        // This requires tracking who sent ETH, or making this internal-only
-        SafeTransferLib.safeTransferETH(recipient, address(this).balance);
-    }
+uint256 value = needsEthForToken0 ? address(this).balance : 0;
+```
+
+Then ensure refund logic properly handles excess sent to Core in both branches.
+
+**Alternative Fix (more conservative):**
+Revert on unsupported pattern until proper handling is implemented:
+
+```solidity
+// Add before swap execution:
+if (poolKey.token0 == NATIVE_TOKEN_ADDRESS && params.isToken1() && params.isExactOut()) {
+    revert UnsupportedNativeTokenSwapDirection();
 }
 ```
 
-**Option 2: Auto-refund in handleLockData (RECOMMENDED)**
-```solidity
-// In src/Router.sol, after line 146 in handleLockData:
-
-// Add automatic refund for exact output swaps with ETH
-if (params.isExactOut() && !params.isToken1() && poolKey.token0 == NATIVE_TOKEN_ADDRESS) {
-    // Calculate actual ETH used
-    uint256 ethUsed = balanceUpdate.delta0() > 0 ? uint128(balanceUpdate.delta0()) : 0;
-    
-    // Refund any excess ETH to the swapper
-    if (address(this).balance > 0) {
-        SafeTransferLib.safeTransferETH(swapper, address(this).balance);
-    }
-}
-```
-
-**Option 3: Prevent excess ETH for exact output swaps**
-```solidity
-// In src/Router.sol, before line 106 in handleLockData:
-
-// For exact output swaps with ETH, msg.value should be 0
-if (params.isExactOut() && !params.isToken1() && poolKey.token0 == NATIVE_TOKEN_ADDRESS) {
-    require(msg.value == 0, "ExactOut swaps with ETH should use token approval, not msg.value");
-}
-```
+**Additional Mitigations**:
+- Add `msg.value` validation to ensure users aren't unknowingly contributing to shared Router balance
+- Consider tracking per-lock `msg.value` to prevent cross-contamination
+- Document expected behavior for native token swaps clearly
 
 ## Proof of Concept
-```solidity
-// File: test/Exploit_ExcessETHTheft.t.sol
-// Run with: forge test --match-test test_ExcessETHTheft -vvv
 
-pragma solidity ^0.8.31;
+The provided PoC logic is conceptually correct but requires proper pool initialization and token setup. The core vulnerability flow is:
 
-import "forge-std/Test.sol";
-import "../src/Router.sol";
-import "../src/Core.sol";
-import "./FullTest.sol";
+1. Deploy Router and Core
+2. Create pool with `token0=NATIVE_TOKEN_ADDRESS`, `token1=MockERC20`
+3. Add liquidity to pool
+4. Victim calls `Router.swap{value: 10 ether}(poolKey, {isToken1:true, amount:-1 ether, ...}, threshold)`
+5. Verify Router balance increased by ~9 ether (excess not used)
+6. Attacker calls `Router.swap{value: 0}(poolKey, {isToken1:true, amount:-1 ether, ...}, threshold)`
+7. Verify attacker received token1 output without paying ETH
+8. Verify Router balance decreased by ~1 ether (used victim's funds)
 
-contract Exploit_ExcessETHTheft is FullTest {
-    address alice = address(0xA11CE);
-    address bob = address(0xB0B);
-    
-    function setUp() public {
-        // Initialize protocol state with ETH pool
-    }
-    
-    function test_ExcessETHTheft() public {
-        // SETUP: Create ETH pool and add liquidity
-        PoolKey memory poolKey = createETHPool(0, 1 << 63, 100);
-        createPosition(poolKey, -100, 100, 1000 ether, 1000 ether);
-        
-        // Give Alice some ETH
-        vm.deal(alice, 10 ether);
-        
-        // EXPLOIT: Alice performs exact output swap with excess ETH
-        vm.startPrank(alice);
-        uint256 aliceBalanceBefore = alice.balance;
-        
-        // Alice wants exactly 0.5 token1 out, sends 1 ETH (more than needed)
-        router.swap{value: 1 ether}(
-            poolKey,
-            false, // isToken1 = false (swapping token0/ETH)
-            -0.5 ether, // negative = exact output
-            SqrtRatio.wrap(0),
-            0,
-            type(int256).min
-        );
-        
-        uint256 aliceBalanceAfter = alice.balance;
-        uint256 aliceETHSpent = aliceBalanceBefore - aliceBalanceAfter;
-        vm.stopPrank();
-        
-        // Check Router has excess ETH
-        uint256 routerBalance = address(router).balance;
-        assertGt(routerBalance, 0, "Router should have excess ETH");
-        
-        // ATTACK: Bob steals the excess ETH
-        vm.prank(bob);
-        uint256 bobBalanceBefore = bob.balance;
-        router.refundNativeToken();
-        uint256 bobBalanceAfter = bob.balance;
-        
-        // VERIFY: Bob successfully stole Alice's excess ETH
-        uint256 stolen = bobBalanceAfter - bobBalanceBefore;
-        assertEq(stolen, routerBalance, "Bob stole all excess ETH");
-        assertGt(stolen, 0, "Vulnerability confirmed: Bob stole Alice's ETH");
-        assertEq(address(router).balance, 0, "Router balance drained");
-    }
-}
-```
+**Expected Result**: Attacker gains tokens, victim loses 9 ETH, Router balance reduced
 
 ## Notes
-This vulnerability is particularly dangerous because:
-1. **Silent fund loss**: Users won't realize their excess ETH is being stolen
-2. **MEV extractable**: Bots can systematically monitor and exploit every vulnerable transaction
-3. **No reversion**: The swap succeeds normally, making the theft harder to detect
-4. **Common pattern**: Exact output swaps are frequently used in production DEXs
 
-The root cause is the mismatch between how the Router calculates `value` (set to 0 for exact output) and how users naturally send ETH via `msg.value` for safety margins. Combined with the unprotected `refundNativeToken()`, this creates a direct theft vector.
+The vulnerability stems from incomplete handling of the four possible native token swap scenarios:
+1. ✅ Exact input token0 (native) → token1: Correctly sends `value` to Core
+2. ✅ Exact output token0 (native) → token1: Correctly handles via ERC20 `payFrom`
+3. ✅ Exact input token1 → token0 (native): Correctly withdraws from Accountant
+4. ❌ **Exact output token1 ← token0 (native)**: Incorrectly uses Router balance instead of msg.value
+
+The asymmetry between increasing/decreasing branches and the reliance on `SafeTransferLib.safeTransferETH` from Router's undifferentiated balance creates the exploit vector. The existence of `refundNativeToken()` acknowledges accumulation but doesn't prevent theft.
 
 ### Citations
 
@@ -176,6 +141,11 @@ The root cause is the mismatch between how the Router calculates `value` (set to
                     uint128(params.amount()),
                     0
                 );
+```
+
+**File:** src/Router.sol (L112-112)
+```text
+                bool increasing = params.isPriceIncreasing();
 ```
 
 **File:** src/Router.sol (L133-146)

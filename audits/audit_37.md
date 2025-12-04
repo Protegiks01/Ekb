@@ -1,89 +1,125 @@
 # NoVulnerability found for this question.
 
-After thorough investigation of the MEVCaptureRouter._swap function and the complete debt accounting flow, I found no exploitable vulnerability related to the "late ETH payment" concern.
+## Validation Summary
 
-## Analysis Summary
+After rigorous analysis of the Oracle extension's timestamp handling, I confirm the defensive claim is **technically correct**. The Ekubo Protocol is intentionally designed to handle uint32 timestamp wraparound after year 2106 through mathematically sound modular arithmetic.
 
-**The questioned code path:** [1](#0-0) 
+## Validation Results
 
-**Key findings:**
+### ✅ Claim 1: Consistent uint32 Usage - VERIFIED
+All timestamps are stored as uint32 throughout the system:
+- [1](#0-0) 
+- [2](#0-1) 
 
-1. **Trust Model Violation**: The security question assumes a "malicious MEV_CAPTURE extension," but the protocol's trust model explicitly states that in-scope extensions (including MEVCapture) should NOT be assumed malicious, and third-party extension misbehavior is out of scope.
+### ✅ Claim 2: Wraparound-Safe Comparison Algorithm - VERIFIED
+The `searchRangeForPrevious()` function uses difference-based comparisons that work correctly with modular arithmetic:
+- [3](#0-2) 
 
-2. **Correct Debt Accounting**: The "late" ETH payment at line 40 is intentional and properly handled through a two-phase settlement:
-   - **Phase 1**: MEVCaptureRouter sends the user's specified ETH amount after forward returns [2](#0-1) 
-   
-   - **Phase 2**: Router.handleLockData() sends additional ETH to cover MEV fees based on the actual balanceUpdate [3](#0-2) 
+The algorithm compares `current - snapshot.timestamp() >= targetDiff` where `targetDiff = current - uint32(time)`. This approach converts absolute timestamp comparisons into relative difference comparisons, which are mathematically equivalent and naturally handle uint32 wraparound.
 
-3. **Protected Against Manipulation**: 
-   - Extension hooks are skipped when the locker equals the extension address, preventing recursive callbacks [4](#0-3) 
-   
-   - The flash accounting system tracks debt by lock ID and enforces zero-debt invariant before lock completion [5](#0-4) 
+**Mathematical Proof by Example:**
+- Post-wrap scenario: current = 100, time = 50, snapshot = 4,294,967,250 (pre-wrap)
+- targetDiff = 100 - 50 = 50
+- current - snapshot = 100 - 4,294,967,250 = 146 (in uint32 modular arithmetic)
+- Is 146 >= 50? YES → Correctly identifies snapshot is before target time ✓
 
-4. **MEV Fees Correctly Handled**: MEVCapture increases debt through updateSavedBalances when adding fees, and this debt is properly settled by the Router's payment logic [6](#0-5) 
+### ✅ Claim 3: Explicit Design Assumption - VERIFIED
+The design is explicitly documented with the assumption that all snapshots are within 2^32 - 1 seconds of current time:
+- [4](#0-3) 
 
-**Notes:**
-- The forward mechanism temporarily changes the locker address but maintains the same lock ID, ensuring debt continuity
-- For multihop swaps, the protocol uses both `totalSpecified` and `totalCalculated` to properly account for MEV fees
-- Any debt mismatch would cause the transaction to revert with `DebtsNotZeroed`, preventing exploitation
-- The architecture correctly separates user-specified amounts from calculated amounts including fees
+This assumption (~136 years) remains valid for active pools where snapshots are continuously written on swaps and liquidity updates.
 
-The late ETH transfer is a design choice to support the forward pattern and does not create a vulnerability. The debt accounting system correctly handles all scenarios.
+### ✅ Claim 4: Time Difference Calculations - VERIFIED
+All time arithmetic uses uint32, ensuring wraparound-safe calculations:
+- [5](#0-4) 
+- [6](#0-5) 
+- [7](#0-6) 
+
+### ✅ Claim 5: Initialization Consistency - VERIFIED
+Initialization properly uses uint32 truncation matching the storage format:
+- [8](#0-7) 
+
+## Final Assessment
+
+This is **intentional, documented, and mathematically sound design**, not a vulnerability. The protocol will continue functioning correctly after 2106 as long as pools remain active (snapshots written at least once every ~136 years), which is a reasonable assumption for any operational DEX.
+
+The use of difference-based comparisons in modular arithmetic is a correct and elegant solution to timestamp wraparound, similar to TCP sequence number handling in networking protocols.
 
 ### Citations
 
-**File:** src/MEVCaptureRouter.sol (L35-41)
+**File:** src/types/counts.sol (L26-30)
 ```text
-            (balanceUpdate, stateAfter) = abi.decode(
-                CORE.forward(MEV_CAPTURE, abi.encode(poolKey, params.withDefaultSqrtRatioLimit())),
-                (PoolBalanceUpdate, PoolState)
-            );
-            if (value != 0) {
-                SafeTransferLib.safeTransferETH(address(CORE), value);
-            }
-```
-
-**File:** src/Router.sol (L134-146)
-```text
-                        if (poolKey.token0 == NATIVE_TOKEN_ADDRESS) {
-                            int256 valueDifference = int256(value) - int256(balanceUpdate.delta0());
-
-                            // refund the overpaid ETH to the swapper
-                            if (valueDifference > 0) {
-                                ACCOUNTANT.withdraw(NATIVE_TOKEN_ADDRESS, swapper, uint128(uint256(valueDifference)));
-                            } else if (valueDifference < 0) {
-                                SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)));
-                            }
-                        } else {
-                            ACCOUNTANT.payFrom(swapper, poolKey.token0, uint128(balanceUpdate.delta0()));
-                        }
-                    }
-```
-
-**File:** src/libraries/ExtensionCallPointsLib.sol (L81-85)
-```text
-    function shouldCallBeforeSwap(IExtension extension, Locker locker) internal pure returns (bool yes) {
-        assembly ("memory-safe") {
-            yes := and(shr(158, extension), iszero(eq(shl(96, locker), shl(96, extension))))
-        }
+function lastTimestamp(Counts counts) pure returns (uint32 t) {
+    assembly ("memory-safe") {
+        t := shr(224, shl(128, counts))
     }
+}
 ```
 
-**File:** src/base/FlashAccountant.sol (L174-181)
+**File:** src/types/snapshot.sol (L8-12)
 ```text
-            // Check if something is nonzero
-            let nonzeroDebtCount := tload(add(_NONZERO_DEBT_COUNT_OFFSET, id))
-            if nonzeroDebtCount {
-                // cast sig "DebtsNotZeroed(uint256)"
-                mstore(0x00, 0x9731ba37)
-                mstore(0x20, id)
-                revert(0x1c, 0x24)
-            }
+function timestamp(Snapshot snapshot) pure returns (uint32 t) {
+    assembly ("memory-safe") {
+        t := and(snapshot, 0xFFFFFFFF)
+    }
+}
 ```
 
-**File:** src/extensions/MEVCapture.sol (L254-256)
+**File:** src/extensions/Oracle.sol (L102-103)
 ```text
-            if (saveDelta0 != 0 || saveDelta1 != 0) {
-                CORE.updateSavedBalances(poolKey.token0, poolKey.token1, PoolId.unwrap(poolId), saveDelta0, saveDelta1);
-            }
+            uint32 timePassed = uint32(block.timestamp) - c.lastTimestamp();
+            if (timePassed == 0) return;
+```
+
+**File:** src/extensions/Oracle.sol (L163-174)
+```text
+        uint32 lastTimestamp = uint32(block.timestamp);
+
+        Counts c;
+        assembly ("memory-safe") {
+            c := sload(token)
+        }
+
+        c = createCounts({
+            _index: 0,
+            _count: 1,
+            _capacity: uint32(FixedPointMathLib.max(1, c.capacity())),
+            _lastTimestamp: lastTimestamp
+```
+
+**File:** src/extensions/Oracle.sol (L237-241)
+```text
+    /// @notice Searches for the latest snapshot with timestamp <= time within a logical range
+    /// @dev Searches the logical range [min, maxExclusive) for the latest snapshot with timestamp <= time.
+    ///      See logicalIndexToStorageIndex for an explanation of logical indices.
+    ///      We make the assumption that all snapshots for the token were written within (2**32 - 1) seconds of the current block timestamp
+    /// @param c The counts containing metadata about the snapshots array
+```
+
+**File:** src/extensions/Oracle.sol (L260-272)
+```text
+            uint32 current = uint32(block.timestamp);
+            uint32 targetDiff = current - uint32(time);
+
+            uint256 left = logicalMin;
+            uint256 right = logicalMaxExclusive - 1;
+            while (left < right) {
+                uint256 mid = (left + right + 1) >> 1;
+                uint256 storageIndex = logicalIndexToStorageIndex(c.index(), c.count(), mid);
+                Snapshot midSnapshot;
+                assembly ("memory-safe") {
+                    midSnapshot := sload(or(shl(32, token), storageIndex))
+                }
+                if (current - midSnapshot.timestamp() >= targetDiff) {
+```
+
+**File:** src/extensions/Oracle.sol (L325-326)
+```text
+            uint32 timePassed = uint32(atTime) - snapshot.timestamp();
+            if (timePassed != 0) {
+```
+
+**File:** src/extensions/Oracle.sol (L346-346)
+```text
+                    uint32 timestampDifference = next.timestamp() - snapshot.timestamp();
 ```

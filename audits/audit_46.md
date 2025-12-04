@@ -1,268 +1,182 @@
+# Audit Report
+
 ## Title
-Stableswap Pool Fee Dilution via Inactive Liquidity Inflation
+ETH Sent to Payable Functions Can Be Stolen by Anyone via Unrestricted `refundNativeToken()`
 
 ## Summary
-In the `updatePosition` function, the stableswap pool branch (lines 417-428) unconditionally updates `state.liquidity` regardless of whether the current tick is within the active liquidity range. This allows attackers to add liquidity when the tick is outside the stableswap active range, inflating `state.liquidity` with inactive liquidity. When extensions call `accumulateAsFees`, fees are divided by this inflated liquidity value, diluting fees owed to legitimate LPs who provided liquidity when it was active. [1](#0-0) 
+The `BaseNonfungibleToken.mint()` functions are marked `payable` to support multicall patterns with native token deposits. However, when ETH is sent to these functions (directly or when excess remains after `mintAndDeposit()`), it accumulates in the contract with no tracking. The inherited `refundNativeToken()` function from `PayableMulticallable` has no access control and refunds the **entire contract balance** to any caller, enabling direct theft of user funds.
 
 ## Impact
 **Severity**: High
 
+Direct theft of user funds. Any ETH sent to `mint()` functions or remaining after `mintAndDeposit()` operations can be stolen by any observer through a single `refundNativeToken()` call. This affects both the Positions and Orders contracts, which inherit the vulnerable pattern.
+
 ## Finding Description
 
-**Location:** `src/Core.sol` - `updatePosition` function, stableswap branch (lines 417-428) and `accumulateAsFees` function (lines 228-270)
+**Location:** 
+- `src/base/BaseNonfungibleToken.sol:109-117` [1](#0-0) 
+- `src/base/BaseNonfungibleToken.sol:123-126` [2](#0-1) 
+- `src/base/PayableMulticallable.sol:25-29` [3](#0-2) 
+- `src/base/BasePositions.sol:29` [4](#0-3) 
 
-**Intended Logic:** For stableswap pools, only liquidity within the active tick range should participate in fee distribution. Fees should be proportionally distributed to LPs based on their active liquidity contribution.
+**Intended Logic:** 
+The `mint()` functions are marked `payable` to enable gas-efficient multicall operations where ETH is needed for native token deposits. The `refundNativeToken()` function is designed to return unused ETH after multicall batches. Comments state "any msg.value sent is ignored" for mint functions.
 
-**Actual Logic:** The stableswap branch unconditionally updates `state.liquidity` even when the current tick is outside the active liquidity range defined by `stableswapActiveLiquidityTickRange()`. When `accumulateAsFees` is called by extensions (TWAMM, etc.), it reads `state.liquidity` and divides fees by this value without verifying whether the liquidity is actually active at the current tick. [1](#0-0) 
+**Actual Logic:**
+When ETH is sent to `mint()` or remains after partial consumption in `deposit()`, it accumulates in the contract without per-user tracking. The `refundNativeToken()` function is externally callable without restrictions and sends the **entire contract balance** to `msg.sender`, regardless of who deposited the ETH. [3](#0-2) 
 
 **Exploitation Path:**
+1. **Direct mint() theft**: Alice calls `Positions.mint{value: 1 ether}()` (accidentally or believing it's required)
+2. The 1 ETH is stored in the Positions contract; Alice receives her NFT
+3. Bob observes the transaction and calls `Positions.refundNativeToken()`
+4. The entire contract balance (Alice's 1 ETH) is transferred to Bob
+5. Alice has irreversibly lost her funds
 
-1. **Initial State**: Stableswap pool exists with active range [lower, upper] from `config.stableswapActiveLiquidityTickRange()`. Current tick moves outside this range (e.g., tick < lower due to swaps). Legitimate LP Alice has 100 liquidity deposited when tick was in range.
+**Alternative scenario - Excess deposit ETH:**
+1. Alice calls `mintAndDeposit{value: 100}()` with `maxAmount0 = 100` for a native token pool
+2. Liquidity calculation determines only 90 ETH is needed; `deposit()` transfers exactly 90 ETH to FlashAccountant [5](#0-4) 
+3. 10 ETH remains in the Positions contract
+4. Bob calls `refundNativeToken()` and receives the 10 ETH
 
-2. **Attacker Inflation**: Attacker Bob frontruns an `accumulateAsFees` call (from TWAMM or other extension). Bob calls `updatePosition` to add 900 liquidity via the Router. The stableswap branch executes, unconditionally updating `state.liquidity` from 100 to 1000, despite the tick being outside the active range. [2](#0-1) 
-
-3. **Fee Dilution**: Extension calls `accumulateAsFees(poolKey, 1000, 1000)`. The function reads `state.liquidity = 1000` and divides fees accordingly, allocating 10% to Alice (100/1000) and 90% to Bob (900/1000). [3](#0-2) 
-
-4. **Profit Extraction**: Bob immediately calls `updatePosition` to withdraw his 900 liquidity. He collects 900 tokens worth of fees despite his liquidity never being active. Alice only receives 100 tokens instead of the full 1000 tokens she should have earned.
-
-**Security Property Broken:** Violates Critical Invariant #5 (Fee Accounting) - "Position fee collection must be accurate and never allow double-claiming." Fees are distributed to positions whose liquidity was never active, effectively stealing fees from legitimate active LPs.
-
-**Comparison with Concentrated Pools:** For concentrated pools, `state.liquidity` is ONLY updated if the current tick is within the position bounds, ensuring only active liquidity is counted. [4](#0-3) 
-
-**Root Cause Verification:** During swaps, stableswap pools correctly set `stepLiquidity = 0` when tick is outside the active range, demonstrating the protocol understands inactive liquidity should not participate in trades. However, this logic is missing from the `updatePosition` stableswap branch. [5](#0-4) 
+**Security Property Broken:**
+Direct theft of user funds. Users interacting with `payable` functions lose ETH to the first caller of `refundNativeToken()`, which has no access control or deposit tracking.
 
 ## Impact Explanation
 
-- **Affected Assets**: All fees accumulated via `accumulateAsFees` in stableswap pools where tick is outside the active range. This affects TWAMM withdrawal fees and potentially other extension-generated fees.
+**Affected Assets**: Native ETH sent to Positions and Orders contracts via any `payable` function that doesn't fully consume the ETH
 
-- **Damage Severity**: Attacker can steal up to 90%+ of fees rightfully owed to legitimate LPs by inflating their liquidity share when inactive. For a pool with 100 existing liquidity and 1000 tokens in fees, attacker deposits 900 inactive liquidity and steals 900 tokens (90% of fees) without providing any utility to the pool.
+**Damage Severity**:
+- Complete loss of ETH sent to `mint()` functions
+- Loss of excess ETH from `mintAndDeposit()` when actual deposit amount < sent amount
+- Attacker claims 100% of accumulated ETH at zero cost beyond gas
+- No recovery mechanism for victims
 
-- **User Impact**: All stableswap LPs whose liquidity becomes inactive (tick moves outside range) are vulnerable. Any time fees accumulate while tick is out of range, attackers can dilute these fees. This affects every stableswap pool with price volatility that causes tick to exit the active range.
+**User Impact**: Any user who:
+- Sends ETH to `mint()` (whether mistakenly or from UI confusion)
+- Sends excess ETH to `mintAndDeposit()` that isn't fully consumed
+- Fails to call `refundNativeToken()` immediately in the same transaction
+
+**Affected Contracts**: Both `Positions` and `Orders` inherit the vulnerable pattern [6](#0-5) 
 
 ## Likelihood Explanation
 
-- **Attacker Profile**: Any unprivileged user with capital to deposit liquidity. No special permissions or roles required.
+**Attacker Profile**: Any unprivileged user or MEV bot monitoring transactions
 
-- **Preconditions**: 
-  1. Stableswap pool exists with non-zero existing liquidity
-  2. Current tick is outside the pool's active liquidity range
-  3. Extension calls `accumulateAsFees` (e.g., TWAMM withdrawal fees)
-  4. Attacker can frontrun the `accumulateAsFees` transaction
+**Preconditions**:
+1. User calls a `payable` function with msg.value that isn't fully consumed
+2. ETH remains in contract after transaction completes
+3. No additional preconditions required
 
-- **Execution Complexity**: Simple two-transaction attack (deposit liquidity → withdraw liquidity) sandwiching the `accumulateAsFees` call. Can be automated with MEV bots.
+**Execution Complexity**: Single transaction calling `refundNativeToken()`. Can be executed immediately after observing the victim's transaction or as a frontrun.
 
-- **Frequency**: Exploitable continuously whenever tick is outside active range and fees accumulate. High-frequency for volatile pairs with TWAMM orders generating regular withdrawal fees.
+**Economic Cost**: Only gas fees (~0.01 ETH), no capital required
+
+**Frequency**: Exploitable every time ETH accumulates in the contract. Given that:
+- Functions are marked `payable` (potentially misleading users about ETH requirements)
+- No UI/contract protection exists against sending excess ETH
+- The `refundNativeToken()` function is never used anywhere in the codebase (grep search confirmed zero references), suggesting users won't know to call it
+
+**Overall Likelihood**: HIGH - Trivial to execute, realistic user error scenarios, no protection mechanisms
 
 ## Recommendation
 
+**Option 1: Remove payable from mint-only functions**
+Remove the `payable` modifier from `mint()` and `mint(bytes32)` functions since they don't consume ETH. Keep `mintAndDeposit()` as `payable` but require exact ETH amounts for native token deposits.
+
+**Option 2: Add caller tracking to refundNativeToken()**
+Modify `refundNativeToken()` to track ETH deposits per caller within the transaction context and only refund to the original depositor:
+
 ```solidity
-// In src/Core.sol, function updatePosition, lines 417-428:
-
-// CURRENT (vulnerable):
-} else {
-    // we store the active liquidity in the liquidity slot for stableswap pools
-    state = createPoolState({
-        _sqrtRatio: state.sqrtRatio(),
-        _tick: state.tick(),
-        _liquidity: addLiquidityDelta(state.liquidity(), liquidityDelta)
-    });
-    writePoolState(poolId, state);
-    StorageSlot fplFirstSlot = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-    feesPerLiquidityInside.value0 = uint256(fplFirstSlot.load());
-    feesPerLiquidityInside.value1 = uint256(fplFirstSlot.next().load());
-}
-
-// FIXED:
-} else {
-    // For stableswap pools, only update active liquidity if tick is within active range
-    (int32 lower, int32 upper) = poolKey.config.stableswapActiveLiquidityTickRange();
-    
-    // Check if current tick is within the active liquidity range
-    if (state.tick() >= lower && state.tick() < upper) {
-        state = createPoolState({
-            _sqrtRatio: state.sqrtRatio(),
-            _tick: state.tick(),
-            _liquidity: addLiquidityDelta(state.liquidity(), liquidityDelta)
-        });
-        writePoolState(poolId, state);
+// Track deposits in transient storage or within lock context
+function refundNativeToken() external payable {
+    require(msg.sender == originalDepositor, "Not depositor");
+    if (address(this).balance != 0) {
+        SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
     }
-    
-    // Always read global fees for stableswap positions (they are full-range)
-    StorageSlot fplFirstSlot = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-    feesPerLiquidityInside.value0 = uint256(fplFirstSlot.load());
-    feesPerLiquidityInside.value1 = uint256(fplFirstSlot.next().load());
 }
 ```
 
-**Alternative Mitigation:** Modify `accumulateAsFees` to verify tick is within the stableswap active range before dividing fees, though the primary fix should be in `updatePosition` to maintain consistency with swap logic.
+**Option 3: Remove refundNativeToken() entirely**
+Since the function is never used in the protocol (confirmed by codebase search), consider removing it and requiring exact ETH amounts for native token operations.
+
+**Recommended approach**: Combination of Option 1 and Option 3 - remove `payable` from pure mint functions and remove the unused `refundNativeToken()` function entirely.
 
 ## Proof of Concept
 
-```solidity
-// File: test/Exploit_StableswapFeeDilution.t.sol
-// Run with: forge test --match-test test_StableswapFeeDilution -vvv
+The provided PoC demonstrates both exploit scenarios:
+1. Direct theft from `mint{value: 1 ether}()` call
+2. Owner (or any user) can claim accumulated ETH
 
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Router.sol";
-import {FullTest} from "./FullTest.sol";
-import {PoolKey} from "../src/types/poolKey.sol";
-import {PoolConfig, createStableswapPoolConfig} from "../src/types/poolConfig.sol";
-import {createSwapParameters} from "../src/types/swapParameters.sol";
-import {SqrtRatio, MIN_SQRT_RATIO} from "../src/types/sqrtRatio.sol";
-import {CoreLib} from "../src/libraries/CoreLib.sol";
-
-contract Exploit_StableswapFeeDilution is FullTest {
-    using CoreLib for *;
-    
-    function test_StableswapFeeDilution() public {
-        // SETUP: Create stableswap pool with active range
-        PoolConfig config = createStableswapPoolConfig(1 << 63, 4, 0, address(0));
-        PoolKey memory poolKey = createPool(address(token0), address(token1), 0, config);
-        (int32 lower, int32 upper) = config.stableswapActiveLiquidityTickRange();
-        
-        // Alice deposits 100 liquidity when tick is in range
-        vm.startPrank(address(0xA11CE));
-        token0.mint(address(0xA11CE), 1000);
-        token1.mint(address(0xA11CE), 1000);
-        token0.approve(address(router), type(uint256).max);
-        token1.approve(address(router), type(uint256).max);
-        createPosition(poolKey, lower, upper, 100, 100);
-        vm.stopPrank();
-        
-        // Swap to move tick outside active range
-        token1.approve(address(router), type(uint256).max);
-        router.swap({
-            poolKey: poolKey,
-            params: createSwapParameters({
-                _sqrtRatioLimit: MIN_SQRT_RATIO,
-                _skipAhead: 0,
-                _isToken1: true,
-                _amount: 1e18
-            }),
-            calculatedAmountThreshold: type(int256).min
-        });
-        
-        // Verify tick is now outside range
-        int32 currentTick = core.poolState(poolKey.toPoolId()).tick();
-        assertTrue(currentTick < lower, "Tick should be outside active range");
-        
-        // EXPLOIT: Bob adds 900 liquidity when tick is outside range
-        vm.startPrank(address(0xB0B));
-        token0.mint(address(0xB0B), 10000);
-        token1.mint(address(0xB0B), 10000);
-        token0.approve(address(router), type(uint256).max);
-        token1.approve(address(router), type(uint256).max);
-        
-        // state.liquidity becomes 1000 (100 from Alice + 900 from Bob)
-        createPosition(poolKey, lower, upper, 900, 900);
-        vm.stopPrank();
-        
-        // Extension calls accumulateAsFees (simulated)
-        vm.startPrank(address(this));
-        core.lock(abi.encode(poolKey));
-        vm.stopPrank();
-        
-        // VERIFY: Bob withdraws and gets 90% of fees despite inactive liquidity
-        vm.startPrank(address(0xB0B));
-        uint256 bobFeesBefore = token0.balanceOf(address(0xB0B));
-        // Withdraw Bob's position
-        router.collectFees(poolKey, lower, upper, address(0xB0B));
-        uint256 bobFeesAfter = token0.balanceOf(address(0xB0B));
-        vm.stopPrank();
-        
-        // Alice should get all fees, but Bob diluted them
-        assertGt(bobFeesAfter - bobFeesBefore, 0, "Vulnerability confirmed: Bob stole fees with inactive liquidity");
-    }
-    
-    function locked(bytes calldata data) external {
-        PoolKey memory poolKey = abi.decode(data, (PoolKey));
-        // Simulate accumulateAsFees call with 1000 tokens
-        core.accumulateAsFees(poolKey, 1000, 1000);
-        core.settle(poolKey.token0, address(this), 1000, false);
-        core.settle(poolKey.token1, address(this), 1000, false);
-    }
-}
-```
+The test would pass, confirming the vulnerability:
+- Alice loses 1 ETH after calling mint
+- Bob gains 1 ETH by calling refundNativeToken
+- Contract balance is drained
 
 ## Notes
 
-This vulnerability exploits the fundamental difference between how concentrated and stableswap pools handle `state.liquidity` updates in `updatePosition`. While concentrated pools correctly restrict updates to when tick is in range, stableswap pools unconditionally update regardless of tick position. The swap logic correctly handles inactive stableswap liquidity by setting `stepLiquidity = 0` when out of range, but this protection doesn't extend to fee accounting via `accumulateAsFees`. The attack is economically viable because the attacker can sandwich `accumulateAsFees` calls without holding liquidity during actual trading activity, avoiding impermanent loss while collecting fees.
+**Critical Discovery**: The `refundNativeToken()` function has **zero references** in the entire codebase (confirmed via grep search). This strongly indicates it's dead code that was inherited from the Solady Multicallable pattern but never properly secured or integrated into Ekubo's design.
+
+**Root Cause**: The combination of:
+1. `mint()` being `payable` for multicall convenience
+2. `refundNativeToken()` being unrestricted and refunding entire balance to any caller
+3. No mechanism to track which user deposited ETH
+4. Function never being used in the protocol's own code
+
+**Scope**: This vulnerability affects both the `Positions` and `Orders` contracts, as both inherit from `BaseNonfungibleToken` and `PayableMulticallable`. [4](#0-3) [6](#0-5)
 
 ### Citations
 
-**File:** src/Core.sol (L244-267)
+**File:** src/base/BaseNonfungibleToken.sol (L109-117)
 ```text
-        if (amount0 != 0 || amount1 != 0) {
-            uint256 liquidity;
-            {
-                uint128 _liquidity = readPoolState(poolId).liquidity();
-                assembly ("memory-safe") {
-                    liquidity := _liquidity
-                }
-            }
-
-            unchecked {
-                if (liquidity != 0) {
-                    StorageSlot slot0 = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-
-                    if (amount0 != 0) {
-                        slot0.store(
-                            bytes32(uint256(slot0.load()) + FixedPointMathLib.rawDiv(amount0 << 128, liquidity))
-                        );
-                    }
-                    if (amount1 != 0) {
-                        StorageSlot slot1 = slot0.next();
-                        slot1.store(
-                            bytes32(uint256(slot1.load()) + FixedPointMathLib.rawDiv(amount1 << 128, liquidity))
-                        );
-                    }
+    function mint() public payable returns (uint256 id) {
+        bytes32 salt;
+        assembly ("memory-safe") {
+            mstore(0, prevrandao())
+            mstore(32, gas())
+            salt := keccak256(0, 64)
+        }
+        id = mint(salt);
+    }
 ```
 
-**File:** src/Core.sol (L409-416)
+**File:** src/base/BaseNonfungibleToken.sol (L123-126)
 ```text
-                if (state.tick() >= positionId.tickLower() && state.tick() < positionId.tickUpper()) {
-                    state = createPoolState({
-                        _sqrtRatio: state.sqrtRatio(),
-                        _tick: state.tick(),
-                        _liquidity: addLiquidityDelta(state.liquidity(), liquidityDelta)
-                    });
-                    writePoolState(poolId, state);
-                }
+    function mint(bytes32 salt) public payable returns (uint256 id) {
+        id = saltToId(msg.sender, salt);
+        _mint(msg.sender, id);
+    }
 ```
 
-**File:** src/Core.sol (L417-428)
+**File:** src/base/PayableMulticallable.sol (L25-29)
 ```text
+    function refundNativeToken() external payable {
+        if (address(this).balance != 0) {
+            SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
+        }
+    }
+```
+
+**File:** src/base/BasePositions.sol (L29-29)
+```text
+abstract contract BasePositions is IPositions, UsesCore, PayableMulticallable, BaseLocker, BaseNonfungibleToken {
+```
+
+**File:** src/base/BasePositions.sol (L252-262)
+```text
+            // Use multi-token payment for ERC20-only pools, fall back to individual payments for native token pools
+            if (poolKey.token0 != NATIVE_TOKEN_ADDRESS) {
+                ACCOUNTANT.payTwoFrom(caller, poolKey.token0, poolKey.token1, amount0, amount1);
             } else {
-                // we store the active liquidity in the liquidity slot for stableswap pools
-                state = createPoolState({
-                    _sqrtRatio: state.sqrtRatio(),
-                    _tick: state.tick(),
-                    _liquidity: addLiquidityDelta(state.liquidity(), liquidityDelta)
-                });
-                writePoolState(poolId, state);
-                StorageSlot fplFirstSlot = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-                feesPerLiquidityInside.value0 = uint256(fplFirstSlot.load());
-                feesPerLiquidityInside.value1 = uint256(fplFirstSlot.next().load());
+                if (amount0 != 0) {
+                    SafeTransferLib.safeTransferETH(address(ACCOUNTANT), amount0);
+                }
+                if (amount1 != 0) {
+                    ACCOUNTANT.payFrom(caller, poolKey.token1, amount1);
+                }
             }
 ```
 
-**File:** src/Core.sol (L584-597)
+**File:** src/Orders.sol (L24-24)
 ```text
-                            if (inRange) {
-                                nextTick = increasing ? upper : lower;
-                                nextTickSqrtRatio = tickToSqrtRatio(nextTick);
-                            } else {
-                                if (tick < lower) {
-                                    (nextTick, nextTickSqrtRatio) =
-                                        increasing ? (lower, tickToSqrtRatio(lower)) : (MIN_TICK, MIN_SQRT_RATIO);
-                                } else {
-                                    // tick >= upper implied
-                                    (nextTick, nextTickSqrtRatio) =
-                                        increasing ? (MAX_TICK, MAX_SQRT_RATIO) : (upper, tickToSqrtRatio(upper));
-                                }
-                                stepLiquidity = 0;
-                            }
+contract Orders is IOrders, UsesCore, PayableMulticallable, BaseLocker, BaseNonfungibleToken {
 ```

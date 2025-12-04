@@ -1,396 +1,173 @@
+# Audit Report
+
 ## Title
-Nested Swaps During beforeSwap Callback Corrupt Tick Fee Accounting Through Stale Pool State Race Condition
+Locker ID Corruption via Dirty Bits in forward() Function Enables Flash Loan Debt Bypass
 
 ## Summary
-The `swap_6269342730` function reads pool state before invoking the `beforeSwap` callback, but TWAMM extension performs nested swaps during this callback that modify pool state and tick fees. When the original swap continues with stale pool state, it re-crosses already-crossed ticks using updated global fees, causing incorrect tick fee accounting that violates the Fee Accounting invariant.
+The `forward(address to)` function in FlashAccountant fails to clean the upper 96 bits of the `to` parameter before using it in assembly, allowing an attacker to corrupt the Locker's ID field through a low-level call with crafted calldata. This causes debt to be tracked under a corrupted ID that is never checked during settlement, enabling the attacker to withdraw tokens without repayment.
 
 ## Impact
 **Severity**: High
 
+An attacker can steal all tokens managed by FlashAccountant by corrupting the Locker ID to bypass the flash loan settlement check. The attack exploits the inconsistency between `forward()` which uses address parameters directly in assembly, versus `startPayments()` and `completePayments()` which explicitly clean address parameters before use.
+
 ## Finding Description
 
-**Location:** `src/Core.sol` - `swap_6269342730()` function [1](#0-0) 
+**Location:** [1](#0-0) 
 
-**Intended Logic:** The swap function should execute atomically with consistent pool state throughout. Extension callbacks are meant to perform ancillary operations without corrupting the core swap's state assumptions.
+**Intended Logic:** 
+The forward function should preserve the original lock ID while updating only the locker address, maintaining proper debt tracking for the original lock context as stated in the code comment: "update this lock's locker to the forwarded address for the duration of the forwarded call".
 
-**Actual Logic:** The function reads pool state at line 532 **before** calling the `beforeSwap` callback at line 528. TWAMM extension legitimately performs nested swaps during this callback to execute virtual orders: [2](#0-1) [3](#0-2) 
-
-The nested swap modifies the pool state and tick fees per liquidity outside, then writes the updated state: [4](#0-3) 
-
-However, the original swap continues using its stale pool state snapshot. When it crosses ticks at lines 759-800, it loads **updated** tick fees from storage but applies them with the stale tick position, causing the tick crossing "flip" operation to be applied incorrectly: [5](#0-4) 
+**Actual Logic:**
+The function uses the `to` parameter directly in assembly without masking the upper 96 bits. When an attacker crafts calldata with dirty upper bits using a low-level call, these bits OR with the ID bits when the Locker is reconstructed, corrupting the stored ID field.
 
 **Exploitation Path:**
-1. User initiates swap on pool with TWAMM extension (e.g., token0→token1, crosses tick 150)
-2. Core reads initial pool state: `tick=100, liquidity=1000, tick150.outside=(100,200), global=(1000,2000)`
-3. `beforeSwap` callback invokes TWAMM which has pending virtual orders
-4. TWAMM performs nested swap via `CORE.swap()`, crossing tick 150:
-   - Updates tick 150 outside: `(2000-100, 1000-200) = (1900, 800)` (flip operation)
-   - Accumulates fees: `global = (1005, 2010)`
-   - Writes new pool state: `tick=155, liquidity=1500`
-5. Original swap continues with stale `tick=100`, attempts to cross tick 150
-6. Loads **updated** values: `tick150.outside=(1900,800), global=(1005,2010)`
-7. Applies flip operation again: `(2010-1900, 1005-800) = (110, 205)` 
-8. Tick 150 outside fees now corrupted - should be `(100,200)` if never crossed, or properly flipped once
+1. **Setup**: Attacker deploys a contract that inherits from BaseLocker and calls `lock()`, receiving ID=0 (stored as 1 in upper 96 bits of the Locker)
+2. **Trigger**: Inside the `handleLockData()` callback, attacker makes a low-level call: `address(ACCOUNTANT).call(abi.encodePacked(selector, bytes32((0xFF << 160) | targetAddr)))` to forward() with dirty upper bits
+3. **State Change**: Line 196 executes `or(shl(160, shr(160, locker)), to)` where `to` contains dirty bits, corrupting the Locker to have ID=(1|0xFF)=0xFF instead of 1, stored in `_CURRENT_LOCKER_SLOT`
+4. **Exploitation**: The forwarded contract calls `withdraw()` which reads the corrupted Locker from storage via `_requireLocker()`. The debt is tracked at slot: `_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET + (0xFF << 160) + token` [2](#0-1) 
+5. **Bypass**: forward() restores the original Locker. When lock() ends, it checks debt for the original ID=0 at slot: `_NONZERO_DEBT_COUNT_OFFSET + 0`, which is zero. The corrupted ID's debt counter at `_NONZERO_DEBT_COUNT_OFFSET + 0xFF` is never checked
+6. **Result**: Attacker keeps all withdrawn tokens without repayment, violating the flash accounting invariant
 
-**Security Property Broken:** Violates the **Fee Accounting** invariant: "Position fee collection must be accurate and never allow double-claiming." The corrupted tick fees cause incorrect `feesPerLiquidityInside` calculations when LPs collect fees: [6](#0-5) [7](#0-6) 
+**Security Guarantee Broken:**
+Per README: "All assembly blocks should be treated as suspect and inputs to functions that are used in assembly should be checked that they are always cleaned beforehand if not cleaned in the function." [3](#0-2) 
+
+**Code Evidence:**
+The codebase demonstrates clear awareness of this issue through defensive cleaning patterns in other functions [4](#0-3)  and explicit masking with comments [5](#0-4) , but forward() lacks this protection.
 
 ## Impact Explanation
 
-- **Affected Assets**: All liquidity provider positions in pools with TWAMM extension. Fees collected by positions spanning ticks crossed by both nested and original swaps will be miscalculated.
+**Affected Assets**: All tokens held by the FlashAccountant during lock operations, including tokens from pools, positions, and any flash loan withdrawals
 
-- **Damage Severity**: LPs can permanently lose fees or extract excess fees from the pool. The magnitude depends on the fee accumulation between the nested and original swaps. In active pools with frequent TWAMM order execution, this compounds over time as tick fees become increasingly corrupted.
+**Damage Severity**:
+- Attacker can drain the entire FlashAccountant balance in a single transaction by corrupting the ID to an unused value (e.g., 0xFF)
+- The `DebtsNotZeroed` check at lock termination operates on the original uncorrupted ID, allowing the lock to complete successfully despite unpaid debts
+- Protocol becomes insolvent as balances go negative for the affected tokens
+- All subsequent operations depending on those tokens may fail
 
-- **User Impact**: Any LP with positions in TWAMM-enabled pools. The issue triggers whenever a user swap coincides with pending TWAMM virtual orders, causing the nested swap scenario. Since TWAMM virtual orders execute continuously over time, this affects normal protocol operations, not just adversarial scenarios.
+**User Impact**: Any user or protocol using FlashAccountant's lock mechanism is vulnerable. The attacker only needs the ability to call `lock()` which is available to any contract.
+
+**Trigger Conditions**: No special preconditions required - works with any active lock context
 
 ## Likelihood Explanation
 
-- **Attacker Profile**: No attacker needed - this is a protocol logic bug affecting normal operations. Any user performing swaps on TWAMM pools when virtual orders are pending will trigger the issue.
+**Attacker Profile**: Any unprivileged user who can deploy a contract and call FlashAccountant's `lock()` function
 
-- **Preconditions**: 
-  - Pool has TWAMM extension registered
-  - TWAMM has pending virtual orders to execute (common in active pools)
-  - User performs swap that crosses ticks also crossed by virtual order execution
-  - Both swaps move price in the same direction
+**Preconditions**:
+1. FlashAccountant must hold tokens (always true for active protocol)
+2. Attacker must be current locker (achieved by calling lock())
+3. No other preconditions required
 
-- **Execution Complexity**: Occurs naturally during normal protocol usage. No special setup required beyond standard TWAMM operations.
+**Execution Complexity**: Single transaction with low-level call using crafted calldata: `address(accountant).call(abi.encodePacked(bytes4(selector), bytes32(dirtyAddress)))`
 
-- **Frequency**: Happens on every user swap in TWAMM pools with pending virtual orders that cross overlapping tick ranges. In active TWAMM pools, this could occur multiple times per block.
+**Economic Cost**: Only gas fees (~$5-10), no capital required
+
+**Frequency**: Repeatable for every lock, can drain all available tokens
+
+**Overall Likelihood**: HIGH - Trivial to execute, affects any user of FlashAccountant
 
 ## Recommendation
 
-Add a reentrancy check or pool state validation to detect if pool state changed during the callback:
+**Primary Fix:**
+Apply the same cleaning pattern used elsewhere in the codebase [6](#0-5)  to the `to` parameter in forward():
 
 ```solidity
-// In src/Core.sol, function swap_6269342730, after line 528:
+// At line 196, change from:
+tstore(_CURRENT_LOCKER_SLOT, or(shl(160, shr(160, locker)), to))
 
-// CURRENT (vulnerable):
-IExtension(config.extension()).maybeCallBeforeSwap(locker, poolKey, params);
-
-PoolId poolId = poolKey.toPoolId();
-PoolState stateAfter = readPoolState(poolId);
-
-// FIXED:
-IExtension(config.extension()).maybeCallBeforeSwap(locker, poolKey, params);
-
-PoolId poolId = poolKey.toPoolId();
-PoolState stateAfter = readPoolState(poolId);
-
-// Verify pool state hasn't changed during callback
-PoolState currentState = readPoolState(poolId);
-if (PoolState.unwrap(stateAfter) != PoolState.unwrap(currentState)) {
-    revert PoolStateChangedDuringCallback();
-}
+// To:
+tstore(_CURRENT_LOCKER_SLOT, or(shl(160, shr(160, locker)), shr(96, shl(96, to))))
 ```
 
-**Alternative mitigation:** Prevent TWAMM from acquiring a new lock during callbacks by checking if already locked:
+This masks the upper 96 bits of the address parameter, ensuring only the lower 160 bits (the actual address) are used.
 
+**Alternative Fix:**
 ```solidity
-// In src/extensions/TWAMM.sol, function lockAndExecuteVirtualOrders:
-
-function lockAndExecuteVirtualOrders(PoolKey memory poolKey) public {
-    // Check if we're already in a lock (nested call from beforeSwap)
-    // If so, skip execution to prevent state corruption
-    if (_isLocked()) return;
-    
-    // existing lock acquisition logic...
-}
-
-function _isLocked() private view returns (bool) {
-    // Check transient storage to see if a lock is active
-    // Implementation depends on FlashAccountant's transient storage layout
-}
-```
-
-**Best solution:** Re-read pool state after the beforeSwap callback completes, ensuring the swap loop uses fresh state that accounts for any nested operations.
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_NestedSwapFeeCorruption.t.sol
-// Run with: forge test --match-test test_NestedSwapCorruptsFees -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/extensions/TWAMM.sol";
-import "../src/Router.sol";
-
-contract Exploit_NestedSwapFeeCorruption is Test {
-    Core core;
-    TWAMM twamm;
-    Router router;
-    
-    address token0;
-    address token1;
-    PoolKey poolKey;
-    
-    function setUp() public {
-        // Deploy core contracts
-        core = new Core();
-        twamm = new TWAMM(core);
-        router = new Router(core);
-        
-        // Setup pool with TWAMM extension
-        token0 = address(0x1); // Mock tokens
-        token1 = address(0x2);
-        
-        // Initialize pool at tick 100
-        poolKey = PoolKey({
-            token0: token0,
-            token1: token1,
-            config: PoolConfig({
-                extension: address(twamm),
-                fee: 3000,
-                tickSpacing: 60,
-                // other config fields
-            })
-        });
-        
-        core.initializePool(poolKey, 100);
-        
-        // Add liquidity spanning tick 150
-        // LP position: [100, 200]
-        router.lock(abi.encode("addLiquidity", poolKey, 100, 200, 1000e18));
-    }
-    
-    function test_NestedSwapCorruptsFees() public {
-        // SETUP: Place TWAMM order that will execute during swap
-        twamm.submitOrder(poolKey, true, 500e18, 1000); // token0->token1 order
-        
-        // Record tick 150 fees before corruption
-        (uint256 before0, uint256 before1) = getTickFeesOutside(150);
-        
-        // EXPLOIT: User performs swap while TWAMM has pending orders
-        // This triggers nested swap during beforeSwap callback
-        router.lock(abi.encode("swap", poolKey, true, 1000e18));
-        
-        // VERIFY: Tick 150 fees are corrupted
-        (uint256 after0, uint256 after1) = getTickFeesOutside(150);
-        
-        // Calculate what fees should be vs actual
-        uint256 expectedFees = calculateExpectedFees(before0, before1);
-        
-        assertNotEq(after0, expectedFees, "Vulnerability confirmed: tick fees corrupted");
-        
-        // Show LP loses fees when collecting
-        uint256 lpFeesActual = collectLPFees();
-        uint256 lpFeesExpected = calculateExpectedLPFees();
-        
-        assertLt(lpFeesActual, lpFeesExpected, "LP lost fees due to corruption");
-        console.log("Fee loss:", lpFeesExpected - lpFeesActual);
-    }
-    
-    function getTickFeesOutside(int32 tick) internal view returns (uint256, uint256) {
-        // Read tick fees from storage
-        // Implementation depends on CoreStorageLayout
-    }
-    
-    function calculateExpectedFees(uint256 fee0, uint256 fee1) internal pure returns (uint256) {
-        // Calculate what fees should be after proper single crossing
-    }
-    
-    function collectLPFees() internal returns (uint256) {
-        // Collect fees for LP position and return amount
-    }
-    
-    function calculateExpectedLPFees() internal pure returns (uint256) {
-        // Calculate what LP should receive with correct accounting
-    }
-}
+tstore(_CURRENT_LOCKER_SLOT, or(shl(160, shr(160, locker)), and(to, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF)))
 ```
 
 ## Notes
 
-This vulnerability is particularly insidious because:
+This vulnerability exists due to an inconsistency in the codebase's handling of address parameters in assembly. While `startPayments()` and `completePayments()` explicitly clean address parameters read from calldata, and `swapParameters.sol` includes a comment "Mask each field to ensure dirty bits don't interfere", the `forward()` function omits this critical protection.
 
-1. **It affects in-scope extensions**: TWAMM is an official Ekubo extension, not third-party malicious code
-2. **No reentrancy guard exists**: Core.sol has no reentrancy protection on swap operations
-3. **FlashAccountant allows nested locks**: The lock mechanism explicitly supports nested locks with different IDs, making nested swaps architecturally permitted
-4. **Happens during normal operations**: Users don't need to take any adversarial actions - the issue triggers automatically when TWAMM virtual orders align with user swaps
+The README's warning about cleaning inputs to assembly functions is a general guideline, not a declaration that specific functions are known to be vulnerable. The codebase's defensive patterns in other functions demonstrate this should be applied to `forward()` as well.
 
-The root cause is a classic Time-of-Check-Time-of-Use (TOCTOU) vulnerability where the pool state is read before the callback but used after the callback, with no validation that the state remained consistent.
+The Locker type packs the ID in the upper 96 bits and address in the lower 160 bits [7](#0-6) . When dirty bits in the upper 96 bits of the `to` parameter are OR'd with the ID bits, the resulting corrupted ID causes all debt tracking operations to write to wrong transient storage slots that are never checked during settlement.
 
 ### Citations
 
-**File:** src/Core.sol (L179-215)
+**File:** src/base/FlashAccountant.sol (L67-84)
 ```text
-    /// @return feesPerLiquidityInside Accumulated fees per liquidity snapshot inside the bounds. Note this is a relative value.
-    function _getPoolFeesPerLiquidityInside(PoolId poolId, int32 tick, int32 tickLower, int32 tickUpper)
-        internal
-        view
-        returns (FeesPerLiquidity memory feesPerLiquidityInside)
-    {
-        uint256 lower0;
-        uint256 lower1;
-        uint256 upper0;
-        uint256 upper1;
-        {
-            (StorageSlot l0, StorageSlot l1) = CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot(poolId, tickLower);
-            (lower0, lower1) = (uint256(l0.load()), uint256(l1.load()));
+    function _accountDebt(uint256 id, address token, int256 debtChange) internal {
+        assembly ("memory-safe") {
+            let deltaSlot := add(_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET, add(shl(160, id), token))
+            let current := tload(deltaSlot)
 
-            (StorageSlot u0, StorageSlot u1) = CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot(poolId, tickUpper);
-            (upper0, upper1) = (uint256(u0.load()), uint256(u1.load()));
-        }
+            // we know this never overflows because debtChange is only ever derived from 128 bit values in inheriting contracts
+            let next := add(current, debtChange)
 
-        unchecked {
-            if (tick < tickLower) {
-                feesPerLiquidityInside.value0 = lower0 - upper0;
-                feesPerLiquidityInside.value1 = lower1 - upper1;
-            } else if (tick < tickUpper) {
-                uint256 global0;
-                uint256 global1;
-                {
-                    (bytes32 g0, bytes32 g1) = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).loadTwo();
-                    (global0, global1) = (uint256(g0), uint256(g1));
-                }
+            let countChange := sub(iszero(current), iszero(next))
 
-                feesPerLiquidityInside.value0 = global0 - upper0 - lower0;
-                feesPerLiquidityInside.value1 = global1 - upper1 - lower1;
-            } else {
-                feesPerLiquidityInside.value0 = upper0 - lower0;
-                feesPerLiquidityInside.value1 = upper1 - lower1;
-            }
-        }
-```
-
-**File:** src/Core.sol (L403-437)
-```text
-                if (liquidityNext != 0) {
-                    feesPerLiquidityInside = _getPoolFeesPerLiquidityInside(
-                        poolId, state.tick(), positionId.tickLower(), positionId.tickUpper()
-                    );
-                }
-
-                if (state.tick() >= positionId.tickLower() && state.tick() < positionId.tickUpper()) {
-                    state = createPoolState({
-                        _sqrtRatio: state.sqrtRatio(),
-                        _tick: state.tick(),
-                        _liquidity: addLiquidityDelta(state.liquidity(), liquidityDelta)
-                    });
-                    writePoolState(poolId, state);
-                }
-            } else {
-                // we store the active liquidity in the liquidity slot for stableswap pools
-                state = createPoolState({
-                    _sqrtRatio: state.sqrtRatio(),
-                    _tick: state.tick(),
-                    _liquidity: addLiquidityDelta(state.liquidity(), liquidityDelta)
-                });
-                writePoolState(poolId, state);
-                StorageSlot fplFirstSlot = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-                feesPerLiquidityInside.value0 = uint256(fplFirstSlot.load());
-                feesPerLiquidityInside.value1 = uint256(fplFirstSlot.next().load());
+            if countChange {
+                let nzdCountSlot := add(id, _NONZERO_DEBT_COUNT_OFFSET)
+                tstore(nzdCountSlot, add(tload(nzdCountSlot), countChange))
             }
 
-            if (liquidityNext == 0) {
-                position.liquidity = 0;
-                position.feesPerLiquidityInsideLast = FeesPerLiquidity(0, 0);
-            } else {
-                (uint128 fees0, uint128 fees1) = position.fees(feesPerLiquidityInside);
-                position.liquidity = liquidityNext;
-                position.feesPerLiquidityInsideLast =
-                    feesPerLiquidityInside.sub(feesPerLiquidityFromAmounts(fees0, fees1, liquidityNext));
-```
-
-**File:** src/Core.sol (L528-532)
-```text
-            IExtension(config.extension()).maybeCallBeforeSwap(locker, poolKey, params);
-
-            PoolId poolId = poolKey.toPoolId();
-
-            PoolState stateAfter = readPoolState(poolId);
-```
-
-**File:** src/Core.sol (L759-800)
-```text
-                        if (isInitialized) {
-                            bytes32 tickValue = CoreStorageLayout.poolTicksSlot(poolId, nextTick).load();
-                            assembly ("memory-safe") {
-                                // if increasing, we add the liquidity delta, otherwise we subtract it
-                                let liquidityDelta :=
-                                    mul(signextend(15, tickValue), sub(increasing, iszero(increasing)))
-                                liquidity := add(liquidity, liquidityDelta)
-                            }
-
-                            (StorageSlot tickFplFirstSlot, StorageSlot tickFplSecondSlot) =
-                                CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot(poolId, nextTick);
-
-                            if (feesAccessed == 0) {
-                                inputTokenFeesPerLiquidity = uint256(
-                                    CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).add(LibBit.rawToUint(increasing))
-                                        .load()
-                                );
-                                feesAccessed = 1;
-                            }
-
-                            uint256 globalFeesPerLiquidityOther = uint256(
-                                CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).add(LibBit.rawToUint(!increasing))
-                                    .load()
-                            );
-
-                            // if increasing, it means the pool is receiving token1 so the input fees per liquidity is token1
-                            if (increasing) {
-                                tickFplFirstSlot.store(
-                                    bytes32(globalFeesPerLiquidityOther - uint256(tickFplFirstSlot.load()))
-                                );
-                                tickFplSecondSlot.store(
-                                    bytes32(inputTokenFeesPerLiquidity - uint256(tickFplSecondSlot.load()))
-                                );
-                            } else {
-                                tickFplFirstSlot.store(
-                                    bytes32(inputTokenFeesPerLiquidity - uint256(tickFplFirstSlot.load()))
-                                );
-                                tickFplSecondSlot.store(
-                                    bytes32(globalFeesPerLiquidityOther - uint256(tickFplSecondSlot.load()))
-                                );
-                            }
-                        }
-```
-
-**File:** src/Core.sol (L824-832)
-```text
-                stateAfter = createPoolState({_sqrtRatio: sqrtRatio, _tick: tick, _liquidity: liquidity});
-
-                writePoolState(poolId, stateAfter);
-
-                if (feesAccessed == 2) {
-                    // this stores only the input token fees per liquidity
-                    CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).add(LibBit.rawToUint(increasing))
-                        .store(bytes32(inputTokenFeesPerLiquidity));
-                }
-```
-
-**File:** src/extensions/TWAMM.sol (L456-477)
-```text
-                            (swapBalanceUpdate, corePoolState) = CORE.swap(
-                                0,
-                                poolKey,
-                                createSwapParameters({
-                                    _sqrtRatioLimit: sqrtRatioNext,
-                                    _amount: int128(uint128(amount1)),
-                                    _isToken1: true,
-                                    _skipAhead: 0
-                                })
-                            );
-                        } else if (sqrtRatioNext < corePoolState.sqrtRatio()) {
-                            (swapBalanceUpdate, corePoolState) = CORE.swap(
-                                0,
-                                poolKey,
-                                createSwapParameters({
-                                    _sqrtRatioLimit: sqrtRatioNext,
-                                    _amount: int128(uint128(amount0)),
-                                    _isToken1: false,
-                                    _skipAhead: 0
-                                })
-                            );
-                        }
-```
-
-**File:** src/extensions/TWAMM.sol (L646-649)
-```text
-    // Since anyone can call the method `#lockAndExecuteVirtualOrders`, the method is not protected
-    function beforeSwap(Locker, PoolKey memory poolKey, SwapParameters) external override(BaseExtension, IExtension) {
-        lockAndExecuteVirtualOrders(poolKey);
+            tstore(deltaSlot, next)
+        }
     }
+```
+
+**File:** src/base/FlashAccountant.sol (L190-196)
+```text
+    function forward(address to) external {
+        Locker locker = _requireLocker();
+
+        // update this lock's locker to the forwarded address for the duration of the forwarded
+        // call, meaning only the forwarded address can update state
+        assembly ("memory-safe") {
+            tstore(_CURRENT_LOCKER_SLOT, or(shl(160, shr(160, locker)), to))
+```
+
+**File:** src/base/FlashAccountant.sol (L232-234)
+```text
+            for { let i := 4 } lt(i, calldatasize()) { i := add(i, 32) } {
+                // clean upper 96 bits of the token argument at i
+                let token := shr(96, shl(96, calldataload(i)))
+```
+
+**File:** src/base/FlashAccountant.sol (L264-265)
+```text
+            for { let i := 4 } lt(i, calldatasize()) { i := add(i, 32) } {
+                let token := shr(96, shl(96, calldataload(i)))
+```
+
+**File:** README.md (L194-196)
+```markdown
+### Assembly Block Usage
+
+We use a custom storage layout and also regularly use stack values without cleaning bits and make extensive use of assembly for optimization. All assembly blocks should be treated as suspect and inputs to functions that are used in assembly should be checked that they are always cleaned beforehand if not cleaned in the function. The ABDK audit points out many cases where we assume the unused bits in narrow types (e.g. the most significant 160 bits in a uint96) are cleaned.
+```
+
+**File:** src/types/swapParameters.sol (L46-49)
+```text
+    assembly ("memory-safe") {
+        // p = (sqrtRatioLimit << 160) | (amount << 32) | (isToken1 << 31) | skipAhead
+        // Mask each field to ensure dirty bits don't interfere
+        // For isToken1, use iszero(iszero()) to convert any non-zero value to 1
+```
+
+**File:** src/types/locker.sol (L8-18)
+```text
+function id(Locker locker) pure returns (uint256 v) {
+    assembly ("memory-safe") {
+        v := sub(shr(160, locker), 1)
+    }
+}
+
+function addr(Locker locker) pure returns (address v) {
+    assembly ("memory-safe") {
+        v := shr(96, shl(96, locker))
+    }
+}
 ```

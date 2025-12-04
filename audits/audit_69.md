@@ -1,229 +1,116 @@
+# Audit Report
+
 ## Title
-External Token Transfers Misattributed to Locker Enabling Debt Manipulation and Fund Theft
+Payment Tracking State Collision Causes Debt Misattribution in Nested Lock Contexts
 
 ## Summary
-The `completePayments()` function in `FlashAccountant.sol` calculates payment amounts by measuring token balance differences without verifying the source of funds. This allows tokens received from ANY external source during the `startPayments()` to `completePayments()` window to be incorrectly credited to the current locker's debt, enabling attackers to reduce or eliminate debt using externally-sourced tokens, potentially leading to protocol insolvency.
+The `FlashAccountant` contract stores payment tracking state in transient storage indexed only by token address, without including the locker ID. This creates a critical mismatch with debt tracking (which IS indexed by locker ID), allowing nested lock contexts to interfere with each other's payment accounting and causing legitimate transactions to revert.
 
 ## Impact
-**Severity**: High
+**Severity**: Medium
+
+Transactions that properly transfer tokens will incorrectly revert with `DebtsNotZeroed` errors due to payment tracking state being consumed by nested lock contexts. This breaks the flash accounting integrity and can be weaponized for denial-of-service attacks against users and extensions that utilize the `forward()` mechanism.
 
 ## Finding Description
 
-**Location:** `src/base/FlashAccountant.sol`, function `completePayments()`, lines 257-319 [1](#0-0) 
+**Location:** `src/base/FlashAccountant.sol`, functions `startPayments()` (lines 224-254) and `completePayments()` (lines 257-319)
 
-**Intended Logic:** The flash accounting system is designed to track debt for each locker by recording token balances before transfers (`startPayments`) and calculating the payment amount after transfers complete (`completePayments`). The payment should only credit tokens that were intentionally transferred by the locker to settle their debt.
+**Intended Logic:** 
+Payment tracking should isolate state per lock context (by locker ID), ensuring each locker's debts are accurately tracked when tokens are transferred to the accountant, consistent with how debt tracking itself operates.
 
-**Actual Logic:** The `completePayments()` function calculates payment as `currentBalance - (lastBalance - 1)` where `lastBalance` is stored by `startPayments()`. Critically, this calculation counts ALL tokens received by the contract between these two calls, regardless of their source. There is no verification that the tokens came from the intended payer. [2](#0-1) 
-
-The payment calculation on lines 283-287 uses only balance differences without source verification. Additionally, both functions lack access control - `startPayments()` has no restrictions, and `completePayments()` only requires an active lock via `_getLocker()` but doesn't verify the caller: [3](#0-2) 
+**Actual Logic:**
+Payment tracking uses global transient storage indexed ONLY by token address at `_PAYMENT_TOKEN_ADDRESS_OFFSET + token`, while debt tracking uses per-locker-ID storage at `_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET + (id << 160) + token`. This architectural mismatch allows nested locks to read and clear payment tracking state from parent locks. [1](#0-0) [2](#0-1) [3](#0-2) 
 
 **Exploitation Path:**
-1. **Attacker locks the FlashAccountant** - Attacker calls `lock()` to become the current locker
-2. **Attacker borrows tokens** - Attacker performs operations (swaps, liquidity operations) that create positive debt (e.g., 1000 USDC owed to the protocol)
-3. **Record initial balance** - Attacker (or anyone) calls `startPayments([USDC])` which stores current balance + 1 in transient storage
-4. **External transfer** - From a different address/contract the attacker controls, or exploiting accidental transfers, 1000 USDC is sent to the FlashAccountant contract
-5. **Credit payment** - Attacker (or anyone) calls `completePayments([USDC])` which calculates payment = balance difference = 1000 USDC
-6. **Debt eliminated** - The attacker's debt is reduced by 1000 USDC (lines 299-307), even though the attacker didn't personally pay from their locked address
-7. **Unlock and theft** - Attacker unlocks successfully with zero debt, having stolen 1000 USDC from the protocol [4](#0-3) 
+1. **Setup**: Outer lock (ID 0) calls `forward(maliciousContract)` to delegate operations
+2. **Payment Tracking Started**: Malicious contract calls `startPayments([tokenX])`, storing balance at global slot `_PAYMENT_TOKEN_ADDRESS_OFFSET + tokenX`
+3. **Token Transfer**: Malicious contract transfers tokens to accountant (balance increases)
+4. **Nested Lock Created**: Malicious contract calls `lock()`, creating nested lock with ID 1
+5. **State Collision**: Within ID 1 callback:
+   - Calls `completePayments([tokenX])` which reads ID 0's payment tracking state
+   - Calculates payment based on ID 0's starting balance
+   - Reduces debt for ID 1 (wrong locker)
+   - Clears the shared payment tracking storage
+6. **Parent Lock Fails**: Back in ID 0 context:
+   - Calls `completePayments([tokenX])` but finds `lastBalance = 0` (was cleared)
+   - Payment calculation yields 0 due to condition failure
+   - ID 0's debt remains unreduced
+   - Lock exits with `DebtsNotZeroed` revert [4](#0-3) [5](#0-4) 
 
-**Security Property Broken:** This violates the **Solvency Invariant** - "Pool balances of token0 and token1 must NEVER go negative." By allowing lockers to reduce debt using externally-sourced tokens, attackers can withdraw more tokens than they paid for, leading to negative pool balances and protocol insolvency.
+**Security Property Broken:**
+Violates flash accounting integrity - debts are misattributed across lock contexts, causing legitimate operations with correct token payments to fail. This contradicts the fundamental principle that each lock context should have isolated accounting state.
 
 ## Impact Explanation
 
-- **Affected Assets**: All ERC20 tokens held by the FlashAccountant contract and managed through the flash accounting system. Any pool's token balances can be drained.
+**Affected Assets**: All tokens used in payment operations within nested lock contexts. The vulnerability affects any code path that combines `forward()` with nested locks and payment tracking.
 
-- **Damage Severity**: Complete - an attacker can drain the entire balance of any token by:
-  1. Locking and borrowing X tokens (creating +X debt)
-  2. Transferring X tokens from an external address they control
-  3. Having those tokens misattributed as payment, zeroing their debt
-  4. Unlocking with the borrowed X tokens
-  5. Repeating until all tokens are drained
+**Damage Severity**:
+- Legitimate transactions revert with `DebtsNotZeroed` despite correct token payments
+- Breaks flash accounting system integrity by allowing cross-context state interference
+- Enables denial-of-service attacks against users and extensions using forwarding
+- No direct fund theft (transaction reverts prevent state commitment)
 
-- **User Impact**: All users are affected. Liquidity providers lose their deposited tokens, traders cannot execute swaps, and the protocol becomes insolvent. The attack can target any token in any pool.
+**User Impact**: Users and extensions utilizing `forward()` for operations like TWAMM orders, MEV capture swaps, or custom extension logic are vulnerable to griefing attacks.
 
 ## Likelihood Explanation
 
-- **Attacker Profile**: Any unprivileged user can exploit this. The attacker only needs two addresses: one to act as the locker and another to send tokens (or can exploit accidental transfers from third parties).
+**Attacker Profile**: Any user or contract capable of calling `forward()` and creating nested locks. No special privileges required.
 
-- **Preconditions**: 
-  - FlashAccountant must have a lock active (trivial - attacker creates it)
-  - Attacker must have tokens in a separate address (or exploit accidental transfers)
-  - No special pool state or timing requirements
+**Preconditions**:
+1. Active lock context with `forward()` call to attacker-controlled contract
+2. Attacker calls `startPayments()` in forwarded context
+3. Attacker creates nested lock via `lock()`
+4. Nested lock calls `completePayments()`
 
-- **Execution Complexity**: Single transaction or simple multi-transaction sequence. The attacker:
-  1. Calls `lock()` with callback that borrows tokens
-  2. From separate address, transfers tokens to FlashAccountant  
-  3. Calls `completePayments()` to credit the transfer
-  4. Unlocks successfully
+**Execution Complexity**: Single transaction with straightforward call sequence. Can be executed by malicious contracts implementing `IForwardee` interface.
 
-- **Frequency**: Continuously exploitable. Each lock session allows the attack to be repeated for different tokens until the protocol is drained.
+**Economic Cost**: Only gas costs (~0.01-0.05 ETH), no capital requirements.
+
+**Frequency**: Exploitable on every transaction meeting preconditions. Pattern is specific but achievable.
+
+**Overall Likelihood**: MEDIUM - Requires deliberate exploit pattern but is technically feasible with no protections in place.
 
 ## Recommendation
 
-Add access control to `completePayments()` to ensure only the current locker can call it, and verify payment sources within the flash accounting flow. The recommended fix:
+**Primary Fix:**
+Index payment tracking storage by locker ID to match debt tracking architecture: [6](#0-5) 
 
+In `startPayments()`, modify line 249 to include locker ID in storage calculation:
 ```solidity
-// In src/base/FlashAccountant.sol, function completePayments, line 257:
+// Get locker ID before assembly block
+uint256 id = _getLocker().id();
+// Inside assembly:
+tstore(add(add(_PAYMENT_TOKEN_ADDRESS_OFFSET, shl(160, id)), token), add(tokenBalance, success))
+``` [7](#0-6) 
 
-// CURRENT (vulnerable):
-function completePayments() external {
-    uint256 id = _getLocker().id();
-    // ... rest of function
-
-// FIXED:
-function completePayments() external {
-    Locker locker = _requireLocker(); // Verify caller is the locker
-    uint256 id = locker.id();
-    // ... rest of function
-``` [5](#0-4) 
-
-This uses the existing `_requireLocker()` function which verifies `msg.sender` is the current locker address, preventing external parties from calling `completePayments()` and ensuring only intentional transfers from the locker are credited.
-
-**Alternative mitigation**: Track the expected transfer amount explicitly rather than relying on balance differences, though this requires more extensive refactoring of the flash accounting pattern.
-
-## Proof of Concept
-
+In `completePayments()`, modify line 267 to use locker ID (already retrieved at line 258):
 ```solidity
-// File: test/Exploit_ExternalTokenMisattribution.t.sol
-// Run with: forge test --match-test test_ExternalTokenMisattribution -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/base/FlashAccountant.sol";
-import "../src/base/BaseLocker.sol";
-import {Locker} from "../src/types/locker.sol";
-
-// Mock ERC20 for testing
-contract MockToken {
-    mapping(address => uint256) public balanceOf;
-    
-    function transfer(address to, uint256 amount) external returns (bool) {
-        balanceOf[msg.sender] -= amount;
-        balanceOf[to] += amount;
-        return true;
-    }
-    
-    function mint(address to, uint256 amount) external {
-        balanceOf[to] += amount;
-    }
-}
-
-contract TestAccountant is FlashAccountant {
-    function getLocker() external view returns (Locker) {
-        return _getLocker();
-    }
-    
-    function accountDebt(uint256 id, address token, int256 delta) external {
-        _accountDebt(id, token, delta);
-    }
-}
-
-contract AttackerLocker is BaseLocker {
-    MockToken public token;
-    address public externalAddress;
-    TestAccountant public accountant;
-    
-    constructor(TestAccountant _accountant, MockToken _token, address _external) 
-        BaseLocker(_accountant) 
-    {
-        accountant = _accountant;
-        token = _token;
-        externalAddress = _external;
-    }
-    
-    function attack() external {
-        lock("");
-    }
-    
-    function handleLockData(uint256 id, bytes memory) internal override returns (bytes memory) {
-        // Step 1: Create debt by withdrawing tokens (simulating a borrow)
-        accountant.accountDebt(id, address(token), 1000e18); // Create +1000 debt
-        
-        // Step 2: Start payment tracking
-        bytes memory startCall = abi.encodeWithSignature("startPayments(address)", address(token));
-        (bool success,) = address(accountant).call(startCall);
-        require(success, "startPayments failed");
-        
-        // Step 3: External address transfers tokens (simulating attacker's second address)
-        vm.prank(externalAddress);
-        token.transfer(address(accountant), 1000e18);
-        
-        // Step 4: Complete payments - this will credit the external transfer to us
-        bytes memory completeCall = abi.encodeWithSignature("completePayments(address)", address(token));
-        (success,) = address(accountant).call(completeCall);
-        require(success, "completePayments failed");
-        
-        // Debt should now be zero due to misattribution
-        return "";
-    }
-}
-
-contract Exploit_ExternalTokenMisattribution is Test {
-    TestAccountant public accountant;
-    MockToken public token;
-    AttackerLocker public attacker;
-    address public externalAddress;
-    
-    function setUp() public {
-        accountant = new TestAccountant();
-        token = new MockToken();
-        externalAddress = address(0x1234);
-        
-        // Setup: External address has tokens
-        token.mint(externalAddress, 10000e18);
-        
-        attacker = new AttackerLocker(accountant, token, externalAddress);
-    }
-    
-    function test_ExternalTokenMisattribution() public {
-        // SETUP: Verify initial state
-        uint256 attackerInitialBalance = token.balanceOf(address(attacker));
-        uint256 externalInitialBalance = token.balanceOf(externalAddress);
-        
-        assertEq(attackerInitialBalance, 0, "Attacker starts with no tokens");
-        assertEq(externalInitialBalance, 10000e18, "External address has tokens");
-        
-        // EXPLOIT: Execute attack
-        attacker.attack();
-        
-        // VERIFY: Attack succeeded - debt was zeroed using external tokens
-        // The attack creates 1000e18 debt, external address pays it, attacker unlocks successfully
-        // In a real scenario, attacker would withdraw the borrowed 1000e18 tokens
-        
-        // Verify external address paid
-        uint256 externalFinalBalance = token.balanceOf(externalAddress);
-        assertEq(
-            externalFinalBalance, 
-            9000e18, 
-            "External address lost 1000 tokens"
-        );
-        
-        // Verify accountant received the tokens
-        uint256 accountantBalance = token.balanceOf(address(accountant));
-        assertEq(
-            accountantBalance,
-            1000e18,
-            "Accountant received external tokens"
-        );
-        
-        // Critical: The attacker's debt was reduced to zero by external tokens
-        // In practice, attacker would have withdrawn 1000e18 tokens during the lock
-        // This proves tokens from external sources are misattributed to the locker
-    }
-}
+// Update storage offset calculation at line 267:
+let offset := add(add(_PAYMENT_TOKEN_ADDRESS_OFFSET, shl(160, id)), token)
 ```
 
-**Note**: The above PoC demonstrates the core vulnerability - external token transfers being misattributed to the locker. In a full exploit scenario against the live protocol, the attacker would combine this with actual borrowing operations (swaps, liquidity withdrawals) to extract tokens while having their debt paid by external sources they control.
+This ensures payment tracking is isolated per locker ID, preventing cross-context interference and maintaining consistency with debt tracking architecture.
+
+**Alternative Mitigation**: Add explicit validation to prevent `completePayments()` from accessing payment tracking state initialized by different locker IDs, though this is more complex and less gas-efficient than the primary fix.
+
+## Notes
+
+The vulnerability stems from an architectural inconsistency where payment tracking uses global storage (token-only indexing) while debt tracking correctly uses per-locker-ID storage. This mismatch is evidenced by comparing storage slot calculations: payment tracking at lines 249 and 267 versus debt tracking at line 299.
+
+The existing test suite (`test/base/FlashAccountant.t.sol`) includes nested lock tests but does not cover the specific pattern of calling `startPayments()` in a parent lock and `completePayments()` in a nested lock, which explains why this issue was not caught during testing.
+
+While the immediate impact is denial-of-service rather than direct fund theft, this represents a critical breakdown in the flash accounting system's integrity guarantees and violates the principle of lock context isolation that underpins the entire singleton architecture.
 
 ### Citations
 
-**File:** src/base/FlashAccountant.sol (L54-57)
+**File:** src/base/FlashAccountant.sol (L176-181)
 ```text
-    function _requireLocker() internal view returns (Locker locker) {
-        locker = _getLocker();
-        if (locker.addr() != msg.sender) revert LockerOnly();
-    }
+            if nonzeroDebtCount {
+                // cast sig "DebtsNotZeroed(uint256)"
+                mstore(0x00, 0x9731ba37)
+                mstore(0x20, id)
+                revert(0x1c, 0x24)
+            }
 ```
 
 **File:** src/base/FlashAccountant.sol (L224-254)

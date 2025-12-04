@@ -1,83 +1,257 @@
-# NoVulnerability found for this question.
+# Audit Report
 
-After conducting a comprehensive investigation of the protocol fee withdrawal mechanism and its interaction with pool accounting and flash loan operations, I found that the system is correctly implemented with proper safeguards.
+## Title
+Stale Tick Reference in MEVCapture Causes Cumulative Fee Overcharging for Multiple Swaps Within Same Block
 
-## Investigation Summary
+## Summary
+The MEVCapture extension updates its stored `tickLast` reference only once per block, causing subsequent swaps in the same block to calculate fees based on cumulative tick movement from the block start rather than individual swap movements. This results in users paying exponentially inflated fees (2x, 3x, 4x...) for the 2nd, 3rd, 4th... swaps in any block.
 
-**Protocol Fee Withdrawal Flow Analysis:**
+## Impact
+**Severity**: Medium
 
-The withdrawal at line 70 in `PositionsOwner.sol` initiates a secure two-step process: [1](#0-0) 
+Users executing swaps on MEVCapture pools after the first swap in a block are systematically overcharged fees. The fee calculation uses a stale `tickLast` value that doesn't reflect the pool's current state after previous swaps, causing the fee multiplier to compound across sequential swaps. For example, if three swaps each move the pool by 1 tick spacing, the fees charged are 1x (correct), 2x (100% overcharge), and 3x (200% overcharge) instead of 1x for all three. This violates the fee accounting accuracy expected by users and results in significant financial loss, particularly in high-activity blocks.
 
-This calls into the Positions contract's withdrawal handler: [2](#0-1) 
+## Finding Description
 
-**Key Security Properties Verified:**
+**Location:** `src/extensions/MEVCapture.sol`, function `handleForwardData()`, lines 177-215 [1](#0-0) 
 
-1. **Accounting Separation**: Protocol fees are stored in saved balances under `bytes32(0)` salt, completely separate from pool liquidity accounting: [3](#0-2) 
+**Intended Logic:** 
+According to the interface documentation, MEVCapture should "charge additional fees based on... tick movement during swaps" (singular), meaning each individual swap's price impact should determine its fee. [2](#0-1) 
 
-2. **Underflow Protection**: The `updateSavedBalances` function includes comprehensive underflow/overflow checks in its `addDelta` assembly function: [4](#0-3) 
+**Actual Logic:**
+The extension only updates `tickLast` when entering a new block (when `lastUpdateTime != currentTime` at line 191). For the first swap in a block, `tickLast` is set to the current pool tick before the swap (line 202), and the pool state is persisted (lines 203-206). However, after the swap executes (line 209) and fees are calculated (line 213), `tickLast` is never updated to reflect the new pool position. All subsequent swaps in the same block skip the state update block (lines 191-207) and calculate their fees using the stale `tickLast` value from the block start.
 
-3. **Debt Tracking Balance**: When protocol fees are withdrawn, `updateSavedBalances` with negative deltas DECREASES debt, while `withdrawTwo` INCREASES debt by the same amount, resulting in zero net debt change: [5](#0-4) 
+**Exploitation Path:**
 
-4. **Pool State Independence**: Pool operations calculate deltas based on mathematical state (sqrtRatio, liquidity, fees per liquidity), not physical token balances. The swap function updates debt based on calculated deltas: [6](#0-5) 
+1. **Block N begins**: Pool at tick 1000, MEVCapture state has `tickLast = 1000`, `lastUpdateTime = N-1`
+   
+2. **First swap** (any user via MEVCaptureRouter):
+   - `lastUpdateTime != currentTime` → state update block executes
+   - `tickLast` set to 1000 (current pool tick before swap)
+   - Swap moves pool from tick 1000 to tick 1020 (1 tick spacing, spacing=20)
+   - Fee multiplier = |1020 - 1000| / 20 = 1.0x ✓ Correct
+   - `tickLast` remains 1000 (not updated after swap)
 
-**Why No Vulnerability Exists:**
+3. **Second swap** (different user, same block):
+   - `lastUpdateTime == currentTime` → state update block SKIPPED
+   - `tickLast` still = 1000 (stale!)
+   - Swap moves pool from tick 1020 to tick 1040 (1 tick spacing)
+   - Fee multiplier = |1040 - 1000| / 20 = 2.0x ✗ Should be 1.0x
+   - User pays double the correct additional fee
 
-- **No Reserve Inflation**: Pools don't maintain a "reserve" concept that could be inflated. They operate on pure mathematical state.
-- **Separate Accounting Domains**: Protocol fees (saved balances) and pool liquidity (pool state) are tracked independently with no cross-contamination.
-- **Flash Loan Safety**: The flash accounting system enforces debt settlement before lock completion, preventing unauthorized token extraction.
-- **Physical Balance Irrelevance**: No pool operation checks the Core contract's physical token balance; all operations are delta-based with mandatory settlement.
+4. **Third swap** (same block):
+   - Fee multiplier = |1060 - 1000| / 20 = 3.0x ✗ Should be 1.0x
+   - User pays triple the correct additional fee [3](#0-2) 
+
+**Security Guarantee Broken:**
+The README states that position fee collection must be accurate (implied in main invariants section). Users are being charged based on stale state data rather than their actual swap's price impact, violating fundamental fee accounting principles.
+
+## Impact Explanation
+
+**Affected Assets**: All users swapping on MEVCapture pools; all MEVCapture pool liquidity providers receive inflated fees
+
+**Damage Severity**:
+- 2nd swap in any block: pays 2x the intended additional fee (100% overcharge)
+- 3rd swap in any block: pays 3x the intended additional fee (200% overcharge)  
+- Nth swap: pays Nx the intended fee ((N-1) × 100% overcharge)
+- With a 1% base pool fee and 1 tick spacing movement:
+  - Expected: 1% base + ~1% additional = ~2% total
+  - Actual for 2nd swap: 1% base + ~2% additional = ~3% total (50% overcharge)
+  - Actual for 3rd swap: 1% base + ~3% additional = ~4% total (100% overcharge)
+
+**User Impact**: Any user executing a swap after another swap has already occurred in the current block on any MEVCapture pool. This affects legitimate users, not attackers. In high-activity blocks with multiple swaps, multiple users are overcharged.
+
+**Trigger Conditions**: Occurs automatically whenever a MEVCapture pool processes its 2nd, 3rd, 4th... swap in any block.
+
+## Likelihood Explanation
+
+**Attacker Profile**: No attacker required - all users are automatically affected when swapping after the first swap in a block
+
+**Preconditions**:
+1. MEVCapture pool must be initialized (true for all MEVCapture pools)
+2. At least one swap must have already occurred in the current block
+3. Pool must have non-zero fee and concentrated liquidity (enforced at initialization) [4](#0-3) 
+
+**Execution Complexity**: Zero complexity - happens automatically to any swap routed through MEVCaptureRouter after the first swap in a block [5](#0-4) 
+
+**Economic Cost**: No additional cost beyond normal swap gas fees
+
+**Frequency**: Occurs on every swap after the first in each block across all MEVCapture pools. High-activity blocks on popular pools will see multiple users affected per block.
+
+**Overall Likelihood**: HIGH - Trivial to trigger, affects multiple users per active block
+
+## Recommendation
+
+**Primary Fix:**
+Update `tickLast` after each swap to reflect the current pool state, not just at the start of each block:
+
+```solidity
+// In src/extensions/MEVCapture.sol, function handleForwardData, after line 209:
+
+(PoolBalanceUpdate balanceUpdate, PoolState stateAfter) = CORE.swap(0, poolKey, params);
+
+// Update tickLast for next swap in same block
+int32 newTick = stateAfter.tick();
+
+// Calculate fee multiplier using the tick BEFORE this update
+uint256 feeMultiplierX64 =
+    (FixedPointMathLib.abs(newTick - tickLast) << 64) / poolKey.config.concentratedTickSpacing();
+
+// Update tickLast for next swap (whether in this block or next)
+tickLast = newTick;
+
+// Persist state if this was the first swap in a new block
+if (lastUpdateTime != currentTime) {
+    setPoolState({
+        poolId: poolId,
+        state: createMEVCapturePoolState({_lastUpdateTime: currentTime, _tickLast: tickLast})
+    });
+}
+```
+
+**Alternative Consideration:**
+If the design intent is to charge based on cumulative block movement (though no documentation suggests this), this should be clearly documented and the fairness to later swappers reconsidered, as they pay for others' price impact.
+
+## Proof of Concept
+
+The existing test suite includes `test_second_swap_with_additional_fees_gas_price()` which performs two swaps in the same block but doesn't verify the fee amounts match individual tick movements. A complete PoC would:
+
+1. Initialize a MEVCapture pool with known tick spacing (e.g., 20,000)
+2. Execute first swap moving 1 tick spacing
+3. Execute second swap (same block) also moving 1 tick spacing  
+4. Verify second swap pays ~2x fees instead of the same fees as first swap
+5. Execute third swap and observe ~3x fee escalation
+
+Expected behavior: All three swaps should pay approximately equal fees (each moves 1 tick spacing)
+Actual behavior: Second swap pays ~2x, third pays ~3x due to cumulative calculation from stale `tickLast`
 
 ## Notes
 
-The protocol's singleton architecture with separated accounting layers (pool state, saved balances, flash accounting) prevents the scenario described in the security question. Protocol fee withdrawal cannot cause a pool's reserve to "appear larger" because pools don't track reserves—they track mathematical relationships between tokens that are enforced through the flash accounting debt settlement mechanism.
+This vulnerability demonstrates the security risk of storing and reusing pool state (tick values) in extensions without updating after each operation. The MEVCapturePoolState type stores both `lastUpdateTime` and `tickLast` in a single bytes32 slot: [6](#0-5) 
+
+The design correctly uses `lastUpdateTime` to trigger state updates once per block, but fails to maintain `tickLast` accuracy after each swap within that block. This creates a mismatch between the extension's view of the pool state and the actual Core pool state, leading to incorrect fee calculations.
 
 ### Citations
 
-**File:** src/PositionsOwner.sol (L70-70)
+**File:** src/extensions/MEVCapture.sol (L64-81)
 ```text
-            POSITIONS.withdrawProtocolFees(token0, token1, uint128(amount0), uint128(amount1), address(BUYBACKS));
-```
+    function beforeInitializePool(address, PoolKey memory poolKey, int32 tick)
+        external
+        override(BaseExtension, IExtension)
+        onlyCore
+    {
+        if (poolKey.config.isStableswap()) {
+            revert ConcentratedLiquidityPoolsOnly();
+        }
+        if (poolKey.config.fee() == 0) {
+            // nothing to multiply == no-op extension
+            revert NonzeroFeesOnly();
+        }
 
-**File:** src/base/BasePositions.sol (L194-197)
-```text
-    /// @inheritdoc IPositions
-    function getProtocolFees(address token0, address token1) external view returns (uint128 amount0, uint128 amount1) {
-        (amount0, amount1) = CORE.savedBalances(address(this), token0, token1, bytes32(0));
+        setPoolState({
+            poolId: poolKey.toPoolId(),
+            state: createMEVCapturePoolState({_lastUpdateTime: uint32(block.timestamp), _tickLast: tick})
+        });
     }
 ```
 
-**File:** src/base/BasePositions.sol (L331-336)
+**File:** src/extensions/MEVCapture.sol (L177-215)
 ```text
-        } else if (callType == CALL_TYPE_WITHDRAW_PROTOCOL_FEES) {
-            (, address token0, address token1, uint128 amount0, uint128 amount1, address recipient) =
-                abi.decode(data, (uint256, address, address, uint128, uint128, address));
+    function handleForwardData(Locker, bytes memory data) internal override returns (bytes memory result) {
+        unchecked {
+            (PoolKey memory poolKey, SwapParameters params) = abi.decode(data, (PoolKey, SwapParameters));
 
-            CORE.updateSavedBalances(token0, token1, bytes32(0), -int256(uint256(amount0)), -int256(uint256(amount1)));
-            ACCOUNTANT.withdrawTwo(token0, token1, recipient, amount0, amount1);
-```
+            PoolId poolId = poolKey.toPoolId();
+            MEVCapturePoolState state = getPoolState(poolId);
+            uint32 lastUpdateTime = state.lastUpdateTime();
+            int32 tickLast = state.tickLast();
 
-**File:** src/Core.sol (L140-151)
-```text
-            function addDelta(u, i) -> result {
-                // full‐width sum mod 2^256
-                let sum := add(u, i)
-                // 1 if i<0 else 0
-                let sign := shr(255, i)
-                // if sum > type(uint128).max || (i>=0 && sum<u) || (i<0 && sum>u) ⇒ 256-bit wrap or underflow
-                if or(shr(128, sum), or(and(iszero(sign), lt(sum, u)), and(sign, gt(sum, u)))) {
-                    mstore(0x00, 0x1293d6fa) // `SavedBalanceOverflow()`
-                    revert(0x1c, 0x04)
+            uint32 currentTime = uint32(block.timestamp);
+
+            int256 saveDelta0;
+            int256 saveDelta1;
+
+            if (lastUpdateTime != currentTime) {
+                (int32 tick, uint128 fees0, uint128 fees1) =
+                    loadCoreState({poolId: poolId, token0: poolKey.token0, token1: poolKey.token1});
+
+                if (fees0 != 0 || fees1 != 0) {
+                    CORE.accumulateAsFees(poolKey, fees0, fees1);
+                    // never overflows int256 container
+                    saveDelta0 -= int256(uint256(fees0));
+                    saveDelta1 -= int256(uint256(fees1));
                 }
-                result := sum
+
+                tickLast = tick;
+                setPoolState({
+                    poolId: poolId,
+                    state: createMEVCapturePoolState({_lastUpdateTime: currentTime, _tickLast: tickLast})
+                });
             }
+
+            (PoolBalanceUpdate balanceUpdate, PoolState stateAfter) = CORE.swap(0, poolKey, params);
+
+            // however many tick spacings were crossed is the fee multiplier
+            uint256 feeMultiplierX64 =
+                (FixedPointMathLib.abs(stateAfter.tick() - tickLast) << 64) / poolKey.config.concentratedTickSpacing();
+            uint64 poolFee = poolKey.config.fee();
+            uint64 additionalFee = uint64(FixedPointMathLib.min(type(uint64).max, (feeMultiplierX64 * poolFee) >> 64));
 ```
 
-**File:** src/Core.sol (L170-170)
+**File:** src/interfaces/extensions/IMEVCapture.sol (L9-12)
 ```text
-        _updatePairDebtWithNative(id, token0, token1, delta0, delta1);
+/// @title MEV Capture Interface
+/// @notice Interface for the Ekubo MEV Capture Extension
+/// @dev Extension that charges additional fees based on the relative size of the priority fee and tick movement during swaps
+interface IMEVCapture is IExposedStorage, ILocker, IForwardee, IExtension {
 ```
 
-**File:** src/Core.sol (L834-834)
+**File:** src/MEVCaptureRouter.sol (L27-43)
 ```text
-                _updatePairDebtWithNative(locker.id(), token0, token1, balanceUpdate.delta0(), balanceUpdate.delta1());
+    function _swap(uint256 value, PoolKey memory poolKey, SwapParameters params)
+        internal
+        override
+        returns (PoolBalanceUpdate balanceUpdate, PoolState stateAfter)
+    {
+        if (poolKey.config.extension() != MEV_CAPTURE) {
+            (balanceUpdate, stateAfter) = CORE.swap(value, poolKey, params.withDefaultSqrtRatioLimit());
+        } else {
+            (balanceUpdate, stateAfter) = abi.decode(
+                CORE.forward(MEV_CAPTURE, abi.encode(poolKey, params.withDefaultSqrtRatioLimit())),
+                (PoolBalanceUpdate, PoolState)
+            );
+            if (value != 0) {
+                SafeTransferLib.safeTransferETH(address(CORE), value);
+            }
+        }
+    }
+```
+
+**File:** src/types/mevCapturePoolState.sol (L1-25)
+```text
+// SPDX-License-Identifier: ekubo-license-v1.eth
+pragma solidity >=0.8.30;
+
+type MEVCapturePoolState is bytes32;
+
+using {lastUpdateTime, tickLast} for MEVCapturePoolState global;
+
+function lastUpdateTime(MEVCapturePoolState state) pure returns (uint32 v) {
+    assembly ("memory-safe") {
+        v := shr(224, state)
+    }
+}
+
+function tickLast(MEVCapturePoolState state) pure returns (int32 v) {
+    assembly ("memory-safe") {
+        v := signextend(3, state)
+    }
+}
+
+function createMEVCapturePoolState(uint32 _lastUpdateTime, int32 _tickLast) pure returns (MEVCapturePoolState s) {
+    assembly ("memory-safe") {
+        // s = (lastUpdateTime << 224) | tickLast
+        s := or(shl(224, _lastUpdateTime), and(_tickLast, 0xffffffff))
+    }
+}
 ```

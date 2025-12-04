@@ -1,1 +1,0 @@
-Looking at this security question, I need to trace through the mathematical operations to determine if there's a genuine overflow risk.

@@ -1,414 +1,266 @@
-After conducting a thorough investigation of the `swap_6269342730` function and the specific casting operation at lines 811-812, I have identified a vulnerability related to asymmetric overflow handling that creates an accounting mismatch between pool state and user debt.
-
----
+# Audit Report
 
 ## Title
-Silent Truncation in Swap Calculations Creates Pool Price-Balance Mismatch
+NFT Burn/Re-mint Vulnerability Allows Original Minter to Steal Subsequent Owner's Position Liquidity
 
 ## Summary
-The swap function at [1](#0-0)  uses asymmetric overflow protection that clamps negative underflow but allows positive overflow to revert. When extreme exact-input swaps cause `calculatedAmount` to underflow below `type(int128).min`, the value is silently clamped while the pool's price state reflects the full unclamped swap, creating a discrepancy between recorded debt and actual pool state that violates the solvency invariant.
+The `burn()` function in `BaseNonfungibleToken.sol` lacks validation to ensure associated positions are empty before burning. Combined with deterministic NFT ID generation, this allows the original minter to re-mint the same NFT ID after a subsequent owner burns it, gaining unauthorized access to positions funded by that owner.
 
 ## Impact
-**Severity**: Medium
+**Severity**: High
+
+This represents direct theft of user funds. A subsequent NFT owner (Bob) who deposits liquidity and later burns the NFT loses 100% of deposited funds to the original minter (Alice) who can re-mint the same NFT ID and withdraw all liquidity. The impact is permanent and unrecoverable for the victim.
 
 ## Finding Description
-**Location:** [1](#0-0) 
 
-**Intended Logic:** The code should safely convert the accumulated swap output amount (`calculatedAmount`) from `int256` to `int128` while preventing overflow/underflow. The `max(type(int128).min, calculatedAmount)` appears intended to provide lower-bound protection.
+**Location:** `src/base/BaseNonfungibleToken.sol:133-135`, function `burn()`
 
-**Actual Logic:** The protection is asymmetric:
-- Negative underflow: Silently clamps to `type(int128).min` without reverting
-- Positive overflow: SafeCastLib reverts as expected
+**Intended Logic:** 
+The burn function is documented to "refund some gas after the NFT is no longer needed" with the ability to recreate the same ID by reusing the salt. [1](#0-0) 
 
-When clamping occurs during exact-input swaps, the pool's state variables [2](#0-1)  (`sqrtRatio`, `tick`, `liquidity`) are updated based on the **unclamped** `calculatedAmount` from the swap loop [3](#0-2) , but user debt is updated with the **clamped** value [4](#0-3) .
+**Actual Logic:**
+The burn function only verifies the caller is authorized for the NFT via the `authorizedForNft(id)` modifier, then immediately calls `_burn(id)` without any checks on associated position state. [2](#0-1) 
+
+Position data is stored in Core using a storage slot computed from `(poolId, Positions contract address, positionId)` where positionId is derived from the NFT ID. [3](#0-2)  The burn operation does not interact with Core storage or clear position data.
 
 **Exploitation Path:**
-1. Attacker identifies or creates a pool with extreme price ratio (e.g., token with high decimals paired with low-decimal token)
-2. Attacker executes massive exact-input swap selling `type(int128).max` of token1
-3. Swap loop calculates `calculatedAmount` < `type(int128).min` (e.g., -2e38)
-4. Value gets clamped to `-1.7e38` at line 811-812, but pool's `sqrtRatio` updates as if full `-2e38` swap occurred
-5. Pool price now reflects more token0 output than actually recorded in user debt
-6. Subsequent swaps trade at incorrect price, allowing extraction of the phantom difference
 
-**Security Property Broken:** Violates the solvency invariant [5](#0-4)  - the pool's price state suggests a token balance that doesn't match actual recorded debts, creating a scenario where the sum of deltas could result in negative pool balance.
+1. **Alice mints NFT**: Alice calls `mint(salt)` which generates a deterministic ID via `keccak256(minter, salt, chainid(), contract_address)`. [4](#0-3) 
+
+2. **Alice deposits liquidity**: Alice deposits tokens to a position. The position is stored in Core at a location computed from the Positions contract address and positionId derived from `bytes24(uint192(id))`. [5](#0-4) 
+
+3. **Alice transfers NFT to Bob**: Standard ERC721 transfer changes ownership to Bob.
+
+4. **Bob adds liquidity**: Bob calls `deposit()` which passes the `authorizedForNft(id)` check since he owns the NFT. [6](#0-5)  Bob adds to the same position (same positionId) increasing total liquidity.
+
+5. **Bob burns the NFT**: Bob calls `burn(id)` which succeeds because he is the current owner. The NFT is destroyed but the position data in Core remains intact. [2](#0-1) 
+
+6. **Alice re-mints same ID**: Alice calls `mint(salt)` with her original salt. The deterministic `saltToId()` function generates the same ID. Since the NFT no longer exists (Bob burned it), the mint succeeds. This behavior is confirmed by the existing test. [7](#0-6) 
+
+7. **Alice withdraws all liquidity**: Alice calls `withdraw()` which passes the `authorizedForNft(id)` check because she now owns the re-minted NFT. [8](#0-7)  The withdraw accesses the same position (same positionId derived from the NFT ID) and Alice extracts all liquidity including Bob's deposits.
+
+**Security Property Broken:**
+This violates the fundamental invariant that users maintain exclusive control over their deposited liquidity. Bob's liquidity becomes accessible to Alice through the reminting mechanism, despite Bob being the legitimate owner who funded the position.
 
 ## Impact Explanation
-- **Affected Assets**: Pools with extreme price ratios, particularly those involving high-decimal tokens (e.g., SHIB with 18 decimals and quadrillion supply)
-- **Damage Severity**: The phantom amount (difference between unclamped and clamped values) becomes extractable through arbitrage. In the example above, ~3e37 tokens worth of value becomes mispriced in the pool state.
-- **User Impact**: Liquidity providers in affected pools suffer losses as arbitrageurs extract value from the price-balance mismatch. The first user triggering clamping loses expected output, while subsequent traders gain from mispricing.
+
+**Affected Assets**: 
+- All liquidity positions in Positions contract where NFT ownership changed hands
+- All TWAMM orders in Orders contract (same vulnerability pattern) [9](#0-8) [10](#0-9) 
+
+**Damage Severity**:
+- Complete (100%) loss of liquidity deposited by any owner after NFT transfer
+- Original minter gains all liquidity from subsequent owners
+- If Bob deposits $1M in liquidity and burns the NFT, Alice can steal the entire $1M
+
+**User Impact**: 
+- NFT marketplace buyers who add liquidity then burn
+- Users receiving NFTs as gifts/transfers who misunderstand the burn mechanism  
+- Any user following UI that suggests burning "empty" NFTs
+- Applies protocol-wide to both Positions and Orders contracts
+
+**Trigger Conditions**: 
+Victim must burn the NFT without fully withdrawing all liquidity first. While this requires user error, the error is highly plausible because:
+- Documentation mentions gas refunds but not withdrawal requirements
+- No warnings or checks prevent burning with active positions
+- "No longer needed" is ambiguous and could be misinterpreted
+- Malicious UIs could deliberately mislead users
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any user who can execute swaps with sufficient capital in pools with extreme price ratios
-- **Preconditions**: 
-  - Pool must exist with price ratio enabling output amounts exceeding `type(int128).max` magnitude
-  - Attacker must have access to `type(int128).max` worth of input tokens
-  - Pool must have sufficient liquidity to support the massive swap
-- **Execution Complexity**: Single transaction swap operation
-- **Frequency**: Once per pool where conditions allow, but conditions are rare in practice
+
+**Attacker Profile**: 
+Any user who has ever minted a Position or Order NFT and subsequently transferred/sold it.
+
+**Preconditions**:
+1. Attacker mints NFT and optionally deposits initial liquidity
+2. Attacker transfers NFT to victim via sale, gift, or other mechanism  
+3. Victim deposits additional liquidity to the position
+4. Victim burns NFT without fully withdrawing (key precondition requiring user error)
+
+**Execution Complexity**: 
+Trivial. Attacker simply calls `mint(originalSalt)` after detecting the burn, then calls `withdraw()` to extract all liquidity. No special transaction ordering, front-running, or complex setup required.
+
+**Economic Cost**: 
+Only gas fees (~$0.01-$1 depending on network). No capital lockup or other economic barriers.
+
+**Frequency**: 
+Can be exploited once per NFT that gets burned. With active NFT trading markets for positions (a stated goal of having tradeable position NFTs), this attack vector could affect numerous users.
+
+**Overall Likelihood**: 
+MEDIUM - Requires victim error (burning without withdrawing), but the error is plausible given poor documentation and non-intuitive behavior. The high impact and trivial execution make this a serious threat.
 
 ## Recommendation
 
-Replace the asymmetric clamping with symmetric bounds checking that reverts on both underflow and overflow:
+**Primary Fix - Prevent Reminting of Burned IDs:**
+
+Add state tracking to permanently mark burned IDs as unmintable:
 
 ```solidity
-// In src/Core.sol, function swap_6269342730, lines 811-812:
+// In src/base/BaseNonfungibleToken.sol
 
-// CURRENT (vulnerable):
-// int128 calculatedAmountDelta =
-//     SafeCastLib.toInt128(FixedPointMathLib.max(type(int128).min, calculatedAmount));
+mapping(uint256 => bool) public burnedIds;
 
-// FIXED:
-// Use min() to also bound the upper end, or better yet, just use SafeCastLib directly
-// which will revert on both overflow and underflow
-int128 calculatedAmountDelta = SafeCastLib.toInt128(calculatedAmount);
-```
+function burn(uint256 id) external payable authorizedForNft(id) {
+    burnedIds[id] = true;
+    _burn(id);
+}
 
-**Rationale:** The `max()` operation is unnecessary - `SafeCastLib.toInt128()` already provides proper overflow protection for the positive case. The asymmetric handling creates the vulnerability. Removing the `max()` allows SafeCastLib to revert cleanly on both overflow and underflow, maintaining consistency between pool state and user debt tracking as enforced by the FlashAccountant assumption [6](#0-5) .
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_SwapTruncation.t.sol
-// Run with: forge test --match-test test_SwapSilentTruncation -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Router.sol";
-import "../src/Positions.sol";
-import {FullTest} from "./FullTest.sol";
-import {PoolKey} from "../src/types/poolKey.sol";
-import {createFullRangePoolConfig} from "../src/types/poolConfig.sol";
-import {MIN_TICK, MAX_TICK} from "../src/math/constants.sol";
-import {ONE} from "../src/types/sqrtRatio.sol";
-
-contract Exploit_SwapTruncation is FullTest {
-    function setUp() public override {
-        FullTest.setUp();
-        token0.approve(address(positions), type(uint256).max);
-        token1.approve(address(positions), type(uint256).max);
-        token0.approve(address(router), type(uint256).max);
-        token1.approve(address(router), type(uint256).max);
-    }
-    
-    function test_SwapSilentTruncation() public {
-        // SETUP: Create pool with extreme initial liquidity
-        PoolKey memory poolKey = PoolKey({
-            token0: address(token0),
-            token1: address(token1),
-            config: createFullRangePoolConfig({_fee: 0, _extension: address(0)})
-        });
-        
-        // Initialize with massive liquidity to enable huge swap
-        positions.maybeInitializePool(poolKey, 0);
-        
-        // Mint astronomical liquidity (would require tokens with very high supply)
-        // This demonstrates the theoretical vulnerability
-        vm.assume(false); // Skip in actual testing due to impractical amounts
-        
-        // EXPLOIT: Execute swap that would cause calculatedAmount < type(int128).min
-        // Expected: Should revert but instead silently clamps
-        // Result: Pool price updates fully but user debt is clamped
-        
-        // VERIFY: Pool state reflects full swap but debt is clamped
-        // This would create extractable arbitrage opportunity
-    }
+function mint(bytes32 salt) public payable returns (uint256 id) {
+    id = saltToId(msg.sender, salt);
+    require(!burnedIds[id], "ID previously burned");
+    _mint(msg.sender, id);
 }
 ```
 
-**Notes:**
-- PoC is illustrative due to impractical token amounts required (> 1.7e38)
-- Vulnerability is theoretically exploitable with tokens having extreme supply/decimals
-- The asymmetric protection suggests intentional design, but creates accounting mismatch
-- Consider test coverage with fuzzing for edge cases approaching int128 boundaries
+**Alternative Fix - Verify Positions Before Burning:**
+
+Override `burn()` in derived contracts to check position state:
+
+```solidity  
+// In src/base/BasePositions.sol
+
+function burn(uint256 id) external payable override authorizedForNft(id) {
+    // Verify no active positions exist
+    // Note: This requires iterating known pools or maintaining a position registry
+    require(!hasActivePositions(id), "Active positions exist");
+    super.burn(id);
+}
+```
+
+**Documentation Enhancement:**
+
+At minimum, update the burn function documentation to explicitly warn:
+- "WARNING: You must withdraw ALL liquidity from ALL positions before burning"
+- "Burning with active positions results in permanent loss of funds"
+- "Original minter can re-mint this ID and access positions"
+
+**Recommendation Priority:** 
+The primary fix (preventing reminting) is strongly preferred as it eliminates the vulnerability entirely without requiring users to verify complex position state across multiple pools.
+
+## Notes
+
+1. **Dual Contract Impact**: This vulnerability affects both `Positions.sol` and `Orders.sol` as both inherit from `BaseNonfungibleToken` with identical burn mechanisms and lack position/order validation. [9](#0-8) [10](#0-9) 
+
+2. **Position Data Persistence**: The Core contract only clears position data when `liquidityNext == 0` during explicit withdrawal operations. [11](#0-10)  The burn operation never triggers this cleanup path.
+
+3. **Design vs Implementation**: While the documentation explicitly states reminting is possible, it provides no security warnings about the implications. Even if reminting was an intentional design choice, the lack of safeguards against burning with active positions represents a critical implementation flaw that enables fund theft.
+
+4. **Test Coverage Gap**: The existing test suite confirms reminting works as documented but does not test the security implications when positions contain liquidity from multiple owners. The test `test_burn_can_be_minted()` validates the reminting mechanism but not its misuse potential.
 
 ### Citations
 
-**File:** src/Core.sol (L556-809)
+**File:** src/base/BaseNonfungibleToken.sol (L92-102)
 ```text
-                int256 calculatedAmount;
+    function saltToId(address minter, bytes32 salt) public view returns (uint256 result) {
+        assembly ("memory-safe") {
+            let free := mload(0x40)
+            mstore(free, minter)
+            mstore(add(free, 32), salt)
+            mstore(add(free, 64), chainid())
+            mstore(add(free, 96), address())
 
-                // fees per liquidity only for the input token
-                uint256 inputTokenFeesPerLiquidity;
-
-                // 0 = not loaded & not updated, 1 = loaded & not updated, 2 = loaded & updated
-                uint256 feesAccessed;
-
-                while (true) {
-                    int32 nextTick;
-                    bool isInitialized;
-                    SqrtRatio nextTickSqrtRatio;
-
-                    // For stableswap pools, determine active liquidity for this step
-                    uint128 stepLiquidity = liquidity;
-
-                    if (config.isStableswap()) {
-                        if (config.isFullRange()) {
-                            // special case since we don't need to compute min/max tick sqrt ratio
-                            (nextTick, nextTickSqrtRatio) =
-                                increasing ? (MAX_TICK, MAX_SQRT_RATIO) : (MIN_TICK, MIN_SQRT_RATIO);
-                        } else {
-                            (int32 lower, int32 upper) = config.stableswapActiveLiquidityTickRange();
-
-                            bool inRange;
-                            assembly ("memory-safe") {
-                                inRange := and(slt(tick, upper), iszero(slt(tick, lower)))
-                            }
-                            if (inRange) {
-                                nextTick = increasing ? upper : lower;
-                                nextTickSqrtRatio = tickToSqrtRatio(nextTick);
-                            } else {
-                                if (tick < lower) {
-                                    (nextTick, nextTickSqrtRatio) =
-                                        increasing ? (lower, tickToSqrtRatio(lower)) : (MIN_TICK, MIN_SQRT_RATIO);
-                                } else {
-                                    // tick >= upper implied
-                                    (nextTick, nextTickSqrtRatio) =
-                                        increasing ? (MAX_TICK, MAX_SQRT_RATIO) : (upper, tickToSqrtRatio(upper));
-                                }
-                                stepLiquidity = 0;
-                            }
-                        }
-                    } else {
-                        // concentrated liquidity pools use the tick bitmaps
-                        (nextTick, isInitialized) = increasing
-                            ? findNextInitializedTick(
-                                CoreStorageLayout.tickBitmapsSlot(poolId),
-                                tick,
-                                config.concentratedTickSpacing(),
-                                params.skipAhead()
-                            )
-                            : findPrevInitializedTick(
-                                CoreStorageLayout.tickBitmapsSlot(poolId),
-                                tick,
-                                config.concentratedTickSpacing(),
-                                params.skipAhead()
-                            );
-
-                        nextTickSqrtRatio = tickToSqrtRatio(nextTick);
-                    }
-
-                    SqrtRatio limitedNextSqrtRatio =
-                        increasing ? nextTickSqrtRatio.min(sqrtRatioLimit) : nextTickSqrtRatio.max(sqrtRatioLimit);
-
-                    SqrtRatio sqrtRatioNext;
-
-                    if (stepLiquidity == 0) {
-                        // if the pool is empty, the swap will always move all the way to the limit price
-                        sqrtRatioNext = limitedNextSqrtRatio;
-                    } else {
-                        // this amount is what moves the price
-                        int128 priceImpactAmount;
-                        if (isExactOut) {
-                            assembly ("memory-safe") {
-                                priceImpactAmount := amountRemaining
-                            }
-                        } else {
-                            uint128 amountU128;
-                            assembly ("memory-safe") {
-                                // cast is safe because amountRemaining is g.t. 0 and fits in int128
-                                amountU128 := amountRemaining
-                            }
-                            uint128 feeAmount = computeFee(amountU128, config.fee());
-                            assembly ("memory-safe") {
-                                // feeAmount will never exceed amountRemaining since fee is < 100%
-                                priceImpactAmount := sub(amountRemaining, feeAmount)
-                            }
-                        }
-
-                        SqrtRatio sqrtRatioNextFromAmount = isToken1
-                            ? nextSqrtRatioFromAmount1(sqrtRatio, stepLiquidity, priceImpactAmount)
-                            : nextSqrtRatioFromAmount0(sqrtRatio, stepLiquidity, priceImpactAmount);
-
-                        bool hitLimit;
-                        assembly ("memory-safe") {
-                            // Branchless limit check: (increasing && next > limit) || (!increasing && next < limit)
-                            let exceedsUp := and(increasing, gt(sqrtRatioNextFromAmount, limitedNextSqrtRatio))
-                            let exceedsDown :=
-                                and(iszero(increasing), lt(sqrtRatioNextFromAmount, limitedNextSqrtRatio))
-                            hitLimit := or(exceedsUp, exceedsDown)
-                        }
-
-                        // the change in fees per liquidity for this step of the iteration
-                        uint256 stepFeesPerLiquidity;
-
-                        if (hitLimit) {
-                            (uint256 sqrtRatioLower, uint256 sqrtRatioUpper) =
-                                sortAndConvertToFixedSqrtRatios(limitedNextSqrtRatio, sqrtRatio);
-                            (uint128 limitSpecifiedAmountDelta, uint128 limitCalculatedAmountDelta) = isToken1
-                                ? (
-                                    amount1DeltaSorted(sqrtRatioLower, sqrtRatioUpper, stepLiquidity, !isExactOut),
-                                    amount0DeltaSorted(sqrtRatioLower, sqrtRatioUpper, stepLiquidity, isExactOut)
-                                )
-                                : (
-                                    amount0DeltaSorted(sqrtRatioLower, sqrtRatioUpper, stepLiquidity, !isExactOut),
-                                    amount1DeltaSorted(sqrtRatioLower, sqrtRatioUpper, stepLiquidity, isExactOut)
-                                );
-
-                            if (isExactOut) {
-                                uint128 beforeFee = amountBeforeFee(limitCalculatedAmountDelta, config.fee());
-                                assembly ("memory-safe") {
-                                    calculatedAmount := add(calculatedAmount, beforeFee)
-                                    amountRemaining := add(amountRemaining, limitSpecifiedAmountDelta)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(beforeFee, limitCalculatedAmountDelta)),
-                                        stepLiquidity
-                                    )
-                                }
-                            } else {
-                                uint128 beforeFee = amountBeforeFee(limitSpecifiedAmountDelta, config.fee());
-                                assembly ("memory-safe") {
-                                    calculatedAmount := sub(calculatedAmount, limitCalculatedAmountDelta)
-                                    amountRemaining := sub(amountRemaining, beforeFee)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(beforeFee, limitSpecifiedAmountDelta)),
-                                        stepLiquidity
-                                    )
-                                }
-                            }
-
-                            sqrtRatioNext = limitedNextSqrtRatio;
-                        } else if (sqrtRatioNextFromAmount != sqrtRatio) {
-                            uint128 calculatedAmountWithoutFee = isToken1
-                                ? amount0Delta(sqrtRatioNextFromAmount, sqrtRatio, stepLiquidity, isExactOut)
-                                : amount1Delta(sqrtRatioNextFromAmount, sqrtRatio, stepLiquidity, isExactOut);
-
-                            if (isExactOut) {
-                                uint128 includingFee = amountBeforeFee(calculatedAmountWithoutFee, config.fee());
-                                assembly ("memory-safe") {
-                                    calculatedAmount := add(calculatedAmount, includingFee)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(includingFee, calculatedAmountWithoutFee)),
-                                        stepLiquidity
-                                    )
-                                }
-                            } else {
-                                assembly ("memory-safe") {
-                                    calculatedAmount := sub(calculatedAmount, calculatedAmountWithoutFee)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(amountRemaining, priceImpactAmount)),
-                                        stepLiquidity
-                                    )
-                                }
-                            }
-
-                            amountRemaining = 0;
-                            sqrtRatioNext = sqrtRatioNextFromAmount;
-                        } else {
-                            // for an exact output swap, the price should always move since we have to round away from the current price
-                            assert(!isExactOut);
-
-                            // consume the entire input amount as fees since the price did not move
-                            assembly ("memory-safe") {
-                                stepFeesPerLiquidity := div(shl(128, amountRemaining), stepLiquidity)
-                            }
-                            amountRemaining = 0;
-                            sqrtRatioNext = sqrtRatio;
-                        }
-
-                        // only if fees per liquidity was updated in this swap iteration
-                        if (stepFeesPerLiquidity != 0) {
-                            if (feesAccessed == 0) {
-                                // this loads only the input token fees per liquidity
-                                inputTokenFeesPerLiquidity = uint256(
-                                    CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).add(LibBit.rawToUint(increasing))
-                                        .load()
-                                ) + stepFeesPerLiquidity;
-                            } else {
-                                inputTokenFeesPerLiquidity += stepFeesPerLiquidity;
-                            }
-
-                            feesAccessed = 2;
-                        }
-                    }
-
-                    if (sqrtRatioNext == nextTickSqrtRatio) {
-                        sqrtRatio = sqrtRatioNext;
-                        assembly ("memory-safe") {
-                            // no overflow danger because nextTick is always inside the valid tick bounds
-                            tick := sub(nextTick, iszero(increasing))
-                        }
-
-                        if (isInitialized) {
-                            bytes32 tickValue = CoreStorageLayout.poolTicksSlot(poolId, nextTick).load();
-                            assembly ("memory-safe") {
-                                // if increasing, we add the liquidity delta, otherwise we subtract it
-                                let liquidityDelta :=
-                                    mul(signextend(15, tickValue), sub(increasing, iszero(increasing)))
-                                liquidity := add(liquidity, liquidityDelta)
-                            }
-
-                            (StorageSlot tickFplFirstSlot, StorageSlot tickFplSecondSlot) =
-                                CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot(poolId, nextTick);
-
-                            if (feesAccessed == 0) {
-                                inputTokenFeesPerLiquidity = uint256(
-                                    CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).add(LibBit.rawToUint(increasing))
-                                        .load()
-                                );
-                                feesAccessed = 1;
-                            }
-
-                            uint256 globalFeesPerLiquidityOther = uint256(
-                                CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).add(LibBit.rawToUint(!increasing))
-                                    .load()
-                            );
-
-                            // if increasing, it means the pool is receiving token1 so the input fees per liquidity is token1
-                            if (increasing) {
-                                tickFplFirstSlot.store(
-                                    bytes32(globalFeesPerLiquidityOther - uint256(tickFplFirstSlot.load()))
-                                );
-                                tickFplSecondSlot.store(
-                                    bytes32(inputTokenFeesPerLiquidity - uint256(tickFplSecondSlot.load()))
-                                );
-                            } else {
-                                tickFplFirstSlot.store(
-                                    bytes32(inputTokenFeesPerLiquidity - uint256(tickFplFirstSlot.load()))
-                                );
-                                tickFplSecondSlot.store(
-                                    bytes32(globalFeesPerLiquidityOther - uint256(tickFplSecondSlot.load()))
-                                );
-                            }
-                        }
-                    } else if (sqrtRatio != sqrtRatioNext) {
-                        sqrtRatio = sqrtRatioNext;
-                        tick = sqrtRatioToTick(sqrtRatio);
-                    }
-
-                    if (amountRemaining == 0 || sqrtRatio == sqrtRatioLimit) {
-                        break;
-                    }
-                }
+            result := keccak256(free, 128)
+        }
+    }
 ```
 
-**File:** src/Core.sol (L811-812)
+**File:** src/base/BaseNonfungibleToken.sol (L123-126)
 ```text
-                int128 calculatedAmountDelta =
-                    SafeCastLib.toInt128(FixedPointMathLib.max(type(int128).min, calculatedAmount));
+    function mint(bytes32 salt) public payable returns (uint256 id) {
+        id = saltToId(msg.sender, salt);
+        _mint(msg.sender, id);
+    }
 ```
 
-**File:** src/Core.sol (L824-826)
+**File:** src/base/BaseNonfungibleToken.sol (L128-132)
 ```text
-                stateAfter = createPoolState({_sqrtRatio: sqrtRatio, _tick: tick, _liquidity: liquidity});
-
-                writePoolState(poolId, stateAfter);
+    /// @inheritdoc IBaseNonfungibleToken
+    /// @dev Can be used to refund some gas after the NFT is no longer needed.
+    ///      The same ID can be recreated by the original minter by reusing the salt.
+    ///      Only the token owner or approved addresses can burn the token.
+    ///      No fees are collected; any msg.value sent is ignored.
 ```
 
-**File:** src/Core.sol (L834-834)
+**File:** src/base/BaseNonfungibleToken.sol (L133-135)
 ```text
-                _updatePairDebtWithNative(locker.id(), token0, token1, balanceUpdate.delta0(), balanceUpdate.delta1());
+    function burn(uint256 id) external payable authorizedForNft(id) {
+        _burn(id);
+    }
 ```
 
-**File:** README.md (L200-200)
-```markdown
-The sum of all swap deltas, position update deltas, and position fee collection should never at any time result in a pool with a balance less than zero of either token0 or token1.
+**File:** src/libraries/CoreStorageLayout.sol (L100-114)
+```text
+    function poolPositionsSlot(PoolId poolId, address owner, PositionId positionId)
+        internal
+        pure
+        returns (StorageSlot firstSlot)
+    {
+        assembly ("memory-safe") {
+            let free := mload(0x40)
+            mstore(free, positionId)
+            mstore(add(free, 0x20), poolId)
+            mstore(add(free, 0x40), owner)
+            mstore(0, keccak256(free, 0x60))
+            mstore(32, 1)
+            firstSlot := keccak256(0, 64)
+        }
+    }
 ```
 
-**File:** src/base/FlashAccountant.sol (L60-62)
+**File:** src/base/BasePositions.sol (L71-79)
 ```text
-    /// @dev We assume debtChange cannot exceed a 128 bits value, even though it uses a int256 container.
-    ///      This must be enforced at the places it is called for this contract's safety.
-    ///      Negative values erase debt, positive values add debt.
+    function deposit(
+        uint256 id,
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 maxAmount0,
+        uint128 maxAmount1,
+        uint128 minLiquidity
+    ) public payable authorizedForNft(id) returns (uint128 liquidity, uint128 amount0, uint128 amount1) {
+```
+
+**File:** src/base/BasePositions.sol (L120-128)
+```text
+    function withdraw(
+        uint256 id,
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 liquidity,
+        address recipient,
+        bool withFees
+    ) public payable authorizedForNft(id) returns (uint128 amount0, uint128 amount1) {
+```
+
+**File:** src/base/BasePositions.sol (L243-247)
+```text
+            PoolBalanceUpdate balanceUpdate = CORE.updatePosition(
+                poolKey,
+                createPositionId({_salt: bytes24(uint192(id)), _tickLower: tickLower, _tickUpper: tickUpper}),
+                int128(liquidity)
+            );
+```
+
+**File:** src/Positions.sol (L13-13)
+```text
+contract Positions is BasePositions {
+```
+
+**File:** src/Orders.sol (L24-24)
+```text
+contract Orders is IOrders, UsesCore, PayableMulticallable, BaseLocker, BaseNonfungibleToken {
+```
+
+**File:** src/Core.sol (L430-438)
+```text
+            if (liquidityNext == 0) {
+                position.liquidity = 0;
+                position.feesPerLiquidityInsideLast = FeesPerLiquidity(0, 0);
+            } else {
+                (uint128 fees0, uint128 fees1) = position.fees(feesPerLiquidityInside);
+                position.liquidity = liquidityNext;
+                position.feesPerLiquidityInsideLast =
+                    feesPerLiquidityInside.sub(feesPerLiquidityFromAmounts(fees0, fees1, liquidityNext));
+            }
 ```

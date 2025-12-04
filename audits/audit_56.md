@@ -1,316 +1,243 @@
+# Audit Report
+
 ## Title
-Unprotected `refundNativeToken()` Function Allows Theft of ETH Sent to Non-Native Token Orders
+Phantom Reward Accumulation in TWAMM When Bidirectional Orders Reach Price Equilibrium
 
 ## Summary
-The Orders contract inherits from `PayableMulticallable`, which provides a `refundNativeToken()` function with no access control that sends the entire ETH balance to `msg.sender`. When users mistakenly send ETH to non-native-token order functions (e.g., selling USDC), the ETH remains in the Orders contract balance and can be immediately stolen by any attacker calling `refundNativeToken()`.
+The TWAMM virtual order execution logic contains a critical flaw where reward accounting occurs even when no swap is executed. When bidirectional orders exist and the computed next price equals the current pool price (due to equilibrium), the code accumulates phantom rewards without corresponding token inflows, violating the protocol's solvency invariant.
 
 ## Impact
 **Severity**: High
 
+Pool insolvency occurs when reward rates increase without actual tokens entering the pool. The first users to collect proceeds receive tokens that were never swapped into the pool, while subsequent users attempting to withdraw legitimate rewards face transaction reverts due to insufficient balances. This breaks the core solvency guarantee that pool balances must remain non-negative, affecting all TWAMM pools with bidirectional orders.
+
 ## Finding Description
-**Location:** [1](#0-0) 
 
-**Intended Logic:** The `refundNativeToken()` function is intended to allow users to recover excess ETH they sent in multicall transactions for native token orders. The design assumes users will call this function themselves in the same transaction or immediately after to reclaim their own ETH.
+**Location:** `src/extensions/TWAMM.sol`, function `_executeVirtualOrdersFromWithinLock`, lines 441-485
 
-**Actual Logic:** The function sends the **entire contract balance** to **msg.sender** without any access control or tracking of who originally sent the ETH. When ETH is sent to non-native-token order functions, it accumulates in the Orders contract and becomes claimable by anyone.
+**Intended Logic:** 
+When both sale rates are non-zero (bidirectional orders), the system should execute a swap against pool liquidity to move the price toward equilibrium, then calculate rewards based on the actual tokens purchased from that swap.
+
+**Actual Logic:**
+When `sqrtRatioNext` equals `corePoolState.sqrtRatio()` (occurring when price difference is too small to detect, i.e., `c == 0` in `computeNextSqrtRatio`), neither the greater-than nor less-than conditional branches execute. [1](#0-0) 
+
+The uninitialized `swapBalanceUpdate` variable remains as `bytes32(0)`, resulting in zero deltas. [2](#0-1) 
+
+Subsequently, the reward delta calculations yield negative values: `rewardDelta0 = 0 - amount0 = -amount0` and `rewardDelta1 = 0 - amount1 = -amount1`. [3](#0-2) 
+
+These negative deltas trigger reward rate accumulation as if tokens were purchased, increasing `rewardRates.value0` and `rewardRates.value1`. [4](#0-3) 
+
+However, pool balances remain unchanged (`saveDelta0` and `saveDelta1` stay at zero) since no actual swap occurred. [5](#0-4) 
 
 **Exploitation Path:**
+1. **Setup**: Pool has bidirectional TWAMM orders with both `saleRateToken0` and `saleRateToken1` non-zero
+2. **Trigger**: Price naturally reaches equilibrium or attacker manipulates price to equilibrium where `computeC` returns 0 [6](#0-5) 
+3. **State Change**: Virtual order execution occurs, `computeNextSqrtRatio` returns price equal to current price due to rounding
+4. **Phantom Accumulation**: Neither swap branch executes, but reward rates increase based on non-zero amounts
+5. **Result**: Users can collect proceeds based on inflated reward rates [7](#0-6) 
 
-1. **Victim sends ETH to non-native token order**: User calls [2](#0-1)  with `msg.value = 1 ETH` but the `orderKey` specifies a non-native token like USDC as the sell token.
-
-2. **ETH remains in Orders contract**: In the internal `handleLockData()` function [3](#0-2) , the code checks if `sellToken == NATIVE_TOKEN_ADDRESS` (line 147). Since the sellToken is USDC (not address(0)), the condition is false, and line 150 executes `ACCOUNTANT.payFrom(recipientOrPayer, sellToken, uint256(amount))`, which transfers USDC from the user but leaves the 1 ETH sitting in the Orders contract.
-
-3. **BaseLocker.lock() does not forward ETH**: The lock mechanism [4](#0-3)  explicitly calls `call(gas(), target, 0, ...)` with `0` as the value parameter (line 61), meaning no ETH is forwarded to the ACCOUNTANT during the lock callback.
-
-4. **Attacker steals the ETH**: Any attacker (or MEV bot) monitors for transactions leaving ETH in the Orders contract and immediately calls `refundNativeToken()`, receiving the victim's 1 ETH.
-
-**Security Property Broken:** Direct theft of user funds - violates the fundamental property that users should not lose assets due to honest mistakes when the protocol has mechanisms to prevent such loss.
+**Security Guarantee Broken:**
+Violates the solvency invariant—pool saved balances must support all reward claims. The system creates reward obligations without receiving corresponding tokens.
 
 ## Impact Explanation
-- **Affected Assets**: Any ETH mistakenly sent by users to non-native-token order functions
-- **Damage Severity**: Complete loss of the sent ETH amount for the victim; attacker gains 100% of the mistakenly sent ETH
-- **User Impact**: Any user who accidentally includes ETH value when creating/modifying orders for non-native tokens (e.g., USDC/DAI orders). This is a common mistake when users interact with contracts having payable functions.
+
+**Affected Assets**: Both token0 and token1 in any TWAMM pool with active bidirectional orders
+
+**Damage Severity**:
+- Pool becomes insolvent when phantom rewards exceed available balances
+- Early withdrawers receive tokens that never entered the pool
+- Later withdrawers face `SavedBalanceOverflow` reverts when attempting to collect legitimate rewards [8](#0-7) 
+- Fund lock for honest users who cannot collect their earned proceeds
+
+**User Impact**: All users with TWAMM orders in affected pools. The race-to-withdraw dynamic creates unfair outcomes where timing determines fund recovery rather than legitimate entitlement.
+
+**Trigger Conditions**: Occurs whenever bidirectional orders exist and pool price equals equilibrium sale ratio (can happen naturally through trading or via manipulation)
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any unprivileged user or MEV bot monitoring mempool transactions
-- **Preconditions**: 
-  - User sends ETH to any payable Order function while specifying a non-native token order
-  - Common scenarios: UI bugs, user confusion about which orders require ETH, programmatic interactions with incorrect msg.value
-- **Execution Complexity**: Single transaction - attacker simply calls `refundNativeToken()` after observing ETH accumulation
-- **Frequency**: Can occur with every mistaken ETH transfer; attackers can back-run victim transactions or front-run each other to claim accumulated ETH
+
+**Attacker Profile**: Any user with sufficient capital to execute swaps; no special permissions required
+
+**Preconditions**:
+1. Pool must have bidirectional TWAMM orders (both sale rates non-zero)
+2. Pool price must equal or closely approximate equilibrium where `computeC` returns 0
+3. Virtual order execution must be triggered while at equilibrium
+
+**Execution Complexity**: Moderate—requires either waiting for natural equilibrium or executing swaps to manipulate price to equilibrium point
+
+**Economic Cost**: If manipulating: gas fees plus slippage costs for price movement swaps
+
+**Frequency**: Can occur naturally in any bidirectional TWAMM pool; repeatable across multiple pools and time intervals
+
+**Overall Likelihood**: MEDIUM to HIGH—While requires specific price conditions, bidirectional orders reaching equilibrium is a foreseeable scenario in TWAMM design
 
 ## Recommendation
 
-**Option 1: Remove refundNativeToken() from Orders contract**
-Since Orders handles native tokens explicitly in `handleLockData()` by transferring them to the ACCOUNTANT, there's no legitimate reason for ETH to accumulate in the Orders contract. The `refundNativeToken()` function should not be exposed.
+**Primary Fix:**
+Add an else branch to handle the equality case in the bidirectional swap logic:
 
 ```solidity
-// In src/Orders.sol, remove inheritance from PayableMulticallable:
-// CURRENT (vulnerable):
-contract Orders is IOrders, UsesCore, PayableMulticallable, BaseLocker, BaseNonfungibleToken {
-
-// FIXED:
-contract Orders is IOrders, UsesCore, BaseLocker, BaseNonfungibleToken {
-    // Implement multicall directly without the refund function
-    // Or inherit from a base Multicallable without the refund mechanism
+// In src/extensions/TWAMM.sol, lines 454-477:
+PoolBalanceUpdate swapBalanceUpdate;
+if (sqrtRatioNext > corePoolState.sqrtRatio()) {
+    (swapBalanceUpdate, corePoolState) = CORE.swap(...);
+} else if (sqrtRatioNext < corePoolState.sqrtRatio()) {
+    (swapBalanceUpdate, corePoolState) = CORE.swap(...);
+} else {
+    // Price already at equilibrium - no swap occurs, no rewards to distribute
+    rewardDelta0 = 0;
+    rewardDelta1 = 0;
+    time = nextTime;
+    continue; // Skip reward accumulation
 }
 ```
 
-**Option 2: Track ETH sender and only allow original sender to refund**
-If refunds are needed for multicall scenarios, implement proper access control:
-
-```solidity
-// Add to PayableMulticallable.sol:
-mapping(address => uint256) private _ethBalances;
-
-function refundNativeToken() external payable {
-    uint256 refundable = _ethBalances[msg.sender];
-    if (refundable != 0) {
-        _ethBalances[msg.sender] = 0;
-        SafeTransferLib.safeTransferETH(msg.sender, refundable);
-    }
-}
-
-// Track deposits in receive() or in payable functions
-```
-
-**Option 3: Revert on non-native token orders with msg.value**
-Prevent users from sending ETH to non-native token orders:
-
-```solidity
-// In src/Orders.sol, handleLockData():
-if (callType == CALL_TYPE_CHANGE_SALE_RATE) {
-    // ... existing code ...
-    
-    if (amount != 0) {
-        address sellToken = orderKey.sellToken();
-        if (saleRateDelta > 0) {
-            // FIXED: Revert if ETH sent but token is not native
-            if (sellToken != NATIVE_TOKEN_ADDRESS && msg.value != 0) {
-                revert EthSentToNonNativeTokenOrder();
-            }
-            
-            if (sellToken == NATIVE_TOKEN_ADDRESS) {
-                SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(amount));
-            } else {
-                ACCOUNTANT.payFrom(recipientOrPayer, sellToken, uint256(amount));
-            }
-        }
-        // ... rest of code
-    }
-}
-```
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_RefundNativeTokenTheft.t.sol
-// Run with: forge test --match-test test_StealETHFromNonNativeOrders -vvv
-
-pragma solidity ^0.8.30;
-
-import "forge-std/Test.sol";
-import "./Orders.t.sol";
-import "../src/Orders.sol";
-import {createOrderConfig} from "../src/types/orderConfig.sol";
-import {OrderKey} from "../src/types/orderKey.sol";
-import {nextValidTime} from "../src/math/time.sol";
-
-contract Exploit_RefundNativeTokenTheft is BaseOrdersTest {
-    address victim = address(0x1234);
-    address attacker = address(0x5678);
-
-    function setUp() public override {
-        BaseOrdersTest.setUp();
-        
-        // Give victim some ETH and tokens
-        vm.deal(victim, 10 ether);
-        token0.transfer(victim, 1000e18);
-        
-        // Give attacker some ETH for gas
-        vm.deal(attacker, 1 ether);
-    }
-
-    function test_StealETHFromNonNativeOrders() public {
-        // Setup: Create a pool for non-native tokens (token0/token1, not ETH)
-        uint64 fee = uint64((uint256(5) << 64) / 100);
-        PoolKey memory poolKey = createTwammPool({fee: fee, tick: 0});
-        createPosition(poolKey, MIN_TICK, MAX_TICK, 10000, 10000);
-        
-        // Victim approves Orders contract
-        vm.startPrank(victim);
-        token0.approve(address(orders), type(uint256).max);
-        
-        uint64 startTime = uint64(nextValidTime(block.timestamp, block.timestamp));
-        uint64 endTime = uint64(nextValidTime(block.timestamp, startTime));
-        vm.warp(startTime);
-        
-        OrderKey memory key = OrderKey({
-            token0: poolKey.token0,
-            token1: poolKey.token1,
-            config: createOrderConfig({_fee: fee, _isToken1: false, _startTime: startTime, _endTime: endTime})
-        });
-        
-        // EXPLOIT: Victim mistakenly sends 1 ETH when creating non-native token order
-        uint256 victimBalanceBefore = victim.balance;
-        orders.mintAndIncreaseSellAmount{value: 1 ether}(key, 100, type(uint112).max);
-        vm.stopPrank();
-        
-        // Verify victim lost 1 ETH (sent to Orders contract)
-        assertEq(victim.balance, victimBalanceBefore - 1 ether, "Victim should have lost 1 ETH");
-        assertEq(address(orders).balance, 1 ether, "Orders contract should have 1 ETH");
-        
-        // ATTACK: Attacker sees the ETH and steals it
-        vm.prank(attacker);
-        uint256 attackerBalanceBefore = attacker.balance;
-        orders.refundNativeToken();
-        
-        // VERIFY: Attacker successfully stole victim's ETH
-        assertEq(attacker.balance, attackerBalanceBefore + 1 ether, "Attacker should have gained 1 ETH");
-        assertEq(address(orders).balance, 0, "Orders contract should be drained");
-        assertEq(victim.balance, victimBalanceBefore - 1 ether, "Victim permanently lost 1 ETH");
-    }
-}
-```
+**Alternative Mitigation**:
+Add validation that `swapBalanceUpdate` is non-zero before calculating reward deltas, ensuring rewards only accumulate when actual swaps occur.
 
 ## Notes
 
-The vulnerability exists because:
+**Scenario Realism**: The condition `c == 0` in `computeNextSqrtRatio` is explicitly documented as occurring when "the difference b/t sale ratio and sqrt ratio is too small to be detected." This is not an edge case but a designed behavior in the math library. [6](#0-5) 
 
-1. **All Orders functions are payable** [5](#0-4)  to support native token (ETH) orders where `sellToken == NATIVE_TOKEN_ADDRESS` (address(0)).
+**Root Cause**: Missing else-branch to handle price equality in bidirectional swap logic. The code assumes one of the two conditional branches will always execute, but equality is a valid third state.
 
-2. **Native token handling is conditional** - only when `sellToken == NATIVE_TOKEN_ADDRESS` does the code transfer ETH to the ACCOUNTANT [6](#0-5) . For non-native tokens, ETH is ignored and accumulates.
+**Not Covered by Known Issues**: The README acknowledges TWAMM execution quality depends on liquidity and opposing orders, but describes this as affecting execution price, not creating phantom rewards that violate solvency. The known issue addresses user experience (price quality), not protocol integrity (balance accounting).
 
-3. **The refund mechanism has no access control** - it was designed for users to recover their own excess ETH in multicall scenarios, but the implementation allows anyone to claim all accumulated ETH [1](#0-0) .
-
-4. **No ETH accounting corruption occurs** - The FlashAccountant's delta accounting is not corrupted because ETH never reaches it in the non-native token case. The ETH simply sits in the Orders contract balance, making it a pure theft vector rather than an accounting corruption issue.
-
-The answer to the original question: **The ETH is not permanently locked, nor does it corrupt delta accounting - instead, it becomes immediately stealable by any attacker through the unprotected `refundNativeToken()` function.**
+**Validation Behavior**: The `updateSavedBalances` function in Core prevents negative balances by reverting with `SavedBalanceOverflow`, which protects against complete pool drainage but creates a denial-of-service for users with legitimate reward claims once phantom rewards have been partially collected. [8](#0-7)
 
 ### Citations
 
-**File:** src/base/PayableMulticallable.sol (L25-29)
+**File:** src/extensions/TWAMM.sol (L359-374)
 ```text
-    function refundNativeToken() external payable {
-        if (address(this).balance != 0) {
-            SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
-        }
-    }
-```
+                uint256 rewardRateInside = getRewardRateInside(poolId, orderKey.config);
 
-**File:** src/Orders.sol (L43-49)
-```text
-    function mintAndIncreaseSellAmount(OrderKey memory orderKey, uint112 amount, uint112 maxSaleRate)
-        public
-        payable
-        returns (uint256 id, uint112 saleRate)
-    {
-        id = mint();
-        saleRate = increaseSellAmount(id, orderKey, amount, maxSaleRate);
-```
+                uint256 purchasedAmount = computeRewardAmount(rewardRateInside - rewardRateSnapshot, order.saleRate());
 
-**File:** src/Orders.sol (L53-74)
-```text
-    function increaseSellAmount(uint256 id, OrderKey memory orderKey, uint128 amount, uint112 maxSaleRate)
-        public
-        payable
-        authorizedForNft(id)
-        returns (uint112 saleRate)
-    {
-        uint256 realStart = FixedPointMathLib.max(block.timestamp, orderKey.config.startTime());
+                orderRewardRateSnapshotSlot.store(bytes32(rewardRateInside));
 
-        unchecked {
-            if (orderKey.config.endTime() <= realStart) {
-                revert OrderAlreadyEnded();
-            }
-
-            saleRate = uint112(computeSaleRate(amount, uint32(orderKey.config.endTime() - realStart)));
-
-            if (saleRate > maxSaleRate) {
-                revert MaxSaleRateExceeded();
-            }
-        }
-
-        lock(abi.encode(CALL_TYPE_CHANGE_SALE_RATE, msg.sender, id, orderKey, saleRate));
-    }
-```
-
-**File:** src/Orders.sol (L134-175)
-```text
-    function handleLockData(uint256, bytes memory data) internal override returns (bytes memory result) {
-        uint256 callType = abi.decode(data, (uint256));
-
-        if (callType == CALL_TYPE_CHANGE_SALE_RATE) {
-            (, address recipientOrPayer, uint256 id, OrderKey memory orderKey, int256 saleRateDelta) =
-                abi.decode(data, (uint256, address, uint256, OrderKey, int256));
-
-            int256 amount =
-                CORE.updateSaleRate(TWAMM_EXTENSION, bytes32(id), orderKey, SafeCastLib.toInt112(saleRateDelta));
-
-            if (amount != 0) {
-                address sellToken = orderKey.sellToken();
-                if (saleRateDelta > 0) {
-                    if (sellToken == NATIVE_TOKEN_ADDRESS) {
-                        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(amount));
+                if (purchasedAmount != 0) {
+                    if (orderKey.config.isToken1()) {
+                        CORE.updateSavedBalances(
+                            poolKey.token0, poolKey.token1, bytes32(0), -int256(purchasedAmount), 0
+                        );
                     } else {
-                        ACCOUNTANT.payFrom(recipientOrPayer, sellToken, uint256(amount));
+                        CORE.updateSavedBalances(
+                            poolKey.token0, poolKey.token1, bytes32(0), 0, -int256(purchasedAmount)
+                        );
                     }
-                } else {
-                    unchecked {
-                        // we know amount will never exceed the uint128 type because of limitations on sale rate (fixed point 80.32) and duration (uint32)
-                        ACCOUNTANT.withdraw(sellToken, recipientOrPayer, uint128(uint256(-amount)));
-                    }
-                }
-            }
-
-            result = abi.encode(amount);
-        } else if (callType == CALL_TYPE_COLLECT_PROCEEDS) {
-            (, uint256 id, OrderKey memory orderKey, address recipient) =
-                abi.decode(data, (uint256, uint256, OrderKey, address));
-
-            uint128 proceeds = CORE.collectProceeds(TWAMM_EXTENSION, bytes32(id), orderKey);
-
-            if (proceeds != 0) {
-                ACCOUNTANT.withdraw(orderKey.buyToken(), recipient, proceeds);
-            }
-
-            result = abi.encode(proceeds);
-        } else {
-            revert();
-        }
-    }
 ```
 
-**File:** src/base/BaseLocker.sol (L44-73)
+**File:** src/extensions/TWAMM.sol (L454-477)
 ```text
-    function lock(bytes memory data) internal returns (bytes memory result) {
-        address target = address(ACCOUNTANT);
+                        PoolBalanceUpdate swapBalanceUpdate;
+                        if (sqrtRatioNext > corePoolState.sqrtRatio()) {
+                            (swapBalanceUpdate, corePoolState) = CORE.swap(
+                                0,
+                                poolKey,
+                                createSwapParameters({
+                                    _sqrtRatioLimit: sqrtRatioNext,
+                                    _amount: int128(uint128(amount1)),
+                                    _isToken1: true,
+                                    _skipAhead: 0
+                                })
+                            );
+                        } else if (sqrtRatioNext < corePoolState.sqrtRatio()) {
+                            (swapBalanceUpdate, corePoolState) = CORE.swap(
+                                0,
+                                poolKey,
+                                createSwapParameters({
+                                    _sqrtRatioLimit: sqrtRatioNext,
+                                    _amount: int128(uint128(amount0)),
+                                    _isToken1: false,
+                                    _skipAhead: 0
+                                })
+                            );
+                        }
+```
 
-        assembly ("memory-safe") {
-            // We will store result where the free memory pointer is now, ...
-            result := mload(0x40)
+**File:** src/extensions/TWAMM.sol (L479-485)
+```text
+                        saveDelta0 -= swapBalanceUpdate.delta0();
+                        saveDelta1 -= swapBalanceUpdate.delta1();
 
-            // But first use it to store the calldata
+                        // this cannot overflow or underflow because swapDelta0 is constrained to int128,
+                        // and amounts computed from uint112 sale rates cannot exceed uint112.max
+                        rewardDelta0 = swapBalanceUpdate.delta0() - int256(uint256(amount0));
+                        rewardDelta1 = swapBalanceUpdate.delta1() - int256(uint256(amount1));
+```
 
-            // Selector of lock()
-            mstore(result, shl(224, 0xf83d08ba))
+**File:** src/extensions/TWAMM.sol (L517-535)
+```text
+                    if (rewardDelta0 < 0) {
+                        if (rewardRate0Access == 0) {
+                            rewardRates.value0 = uint256(TWAMMStorageLayout.poolRewardRatesSlot(poolId).load());
+                        }
+                        rewardRate0Access = 2;
+                        rewardRates.value0 += FixedPointMathLib.rawDiv(
+                            uint256(-rewardDelta0) << 128, state.saleRateToken1()
+                        );
+                    }
 
-            // We only copy the data, not the length, because the length is read from the calldata size
-            let len := mload(data)
-            mcopy(add(result, 4), add(data, 32), len)
+                    if (rewardDelta1 < 0) {
+                        if (rewardRate1Access == 0) {
+                            rewardRates.value1 = uint256(TWAMMStorageLayout.poolRewardRatesSlot(poolId).next().load());
+                        }
+                        rewardRate1Access = 2;
+                        rewardRates.value1 += FixedPointMathLib.rawDiv(
+                            uint256(-rewardDelta1) << 128, state.saleRateToken0()
+                        );
+                    }
+```
 
-            // If the call failed, pass through the revert
-            if iszero(call(gas(), target, 0, result, add(len, 4), 0, 0)) {
-                returndatacopy(result, 0, returndatasize())
-                revert(result, returndatasize())
-            }
+**File:** src/extensions/TWAMM.sol (L576-585)
+```text
+                if (saveDelta0 != 0 || saveDelta1 != 0) {
+                    CORE.updateSavedBalances(poolKey.token0, poolKey.token1, bytes32(0), saveDelta0, saveDelta1);
+                }
 
-            // Copy the entire return data into the space where the result is pointing
-            mstore(result, returndatasize())
-            returndatacopy(add(result, 32), 0, returndatasize())
+                if (rewardRate0Access == 2) {
+                    TWAMMStorageLayout.poolRewardRatesSlot(poolId).store(bytes32(rewardRates.value0));
+                }
+                if (rewardRate1Access == 2) {
+                    TWAMMStorageLayout.poolRewardRatesSlot(poolId).next().store(bytes32(rewardRates.value1));
+                }
+```
 
-            // Update the free memory pointer to be after the end of the data, aligned to the next 32 byte word
-            mstore(0x40, and(add(add(result, add(32, returndatasize())), 31), not(31)))
-        }
+**File:** src/types/poolBalanceUpdate.sol (L8-18)
+```text
+function delta0(PoolBalanceUpdate update) pure returns (int128 v) {
+    assembly ("memory-safe") {
+        v := signextend(15, shr(128, update))
     }
+}
+
+function delta1(PoolBalanceUpdate update) pure returns (int128 v) {
+    assembly ("memory-safe") {
+        v := signextend(15, update)
+    }
+}
+```
+
+**File:** src/math/twamm.sol (L107-111)
+```text
+        if (c == 0 || liquidity == 0) {
+            // if liquidity is 0, we just settle the ratio of sale rates since the liquidity provides no friction to the price movement
+            // if c is 0, that means the difference b/t sale ratio and sqrt ratio is too small to be detected
+            // so we just assume it settles at the sale ratio
+            sqrtRatioNext = toSqrtRatio(sqrtSaleRatio, roundUp);
+```
+
+**File:** src/Core.sol (L140-151)
+```text
+            function addDelta(u, i) -> result {
+                // full‐width sum mod 2^256
+                let sum := add(u, i)
+                // 1 if i<0 else 0
+                let sign := shr(255, i)
+                // if sum > type(uint128).max || (i>=0 && sum<u) || (i<0 && sum>u) ⇒ 256-bit wrap or underflow
+                if or(shr(128, sum), or(and(iszero(sign), lt(sum, u)), and(sign, gt(sum, u)))) {
+                    mstore(0x00, 0x1293d6fa) // `SavedBalanceOverflow()`
+                    revert(0x1c, 0x04)
+                }
+                result := sum
+            }
 ```

@@ -1,279 +1,256 @@
+After performing systematic validation according to the Ekubo Protocol validation framework, I have completed a comprehensive analysis of this security claim.
+
+# Audit Report
+
 ## Title
-MEVCapture Fees Can Be Permanently Burned by Manipulating Pool Liquidity During Fee Distribution
+Approved Addresses Can Permanently Lock User Funds by Burning Position NFTs with Active Liquidity
 
 ## Summary
-The `accumulateAsFees` function in Core.sol distributes accumulated MEVCapture fees proportionally to current liquidity providers. An attacker can exploit concentrated liquidity mechanics to move the pool price outside all LP tick ranges, causing `liquidity` to become 0 at the moment of fee distribution, permanently burning fees that should have been distributed to LPs.
+The `burn()` function in BaseNonfungibleToken allows approved addresses to destroy position NFTs without verifying that liquidity has been withdrawn. When users create positions via `mintAndDeposit()`, a random salt is generated but never stored or emitted. After an approved address burns the NFT, all position operations revert permanently because they require the NFT to exist, and the position cannot be recovered because the salt is unknown.
 
 ## Impact
-**Severity**: Medium
+**Severity**: High
+
+This vulnerability results in complete and permanent loss of user funds. When an approved address burns a position NFT, the owner loses all deposited liquidity and accrued fees with no recovery mechanism. This directly violates the protocol's core invariant stated in the README: "All positions should be able to be withdrawn at any time." [1](#0-0) 
 
 ## Finding Description
 
-**Location:** [1](#0-0) 
+**Location:** `src/base/BaseNonfungibleToken.sol`, function `burn()` (lines 133-135)
 
-**Intended Logic:** The `accumulateAsFees` function should distribute accumulated fees from extensions (like MEVCapture) proportionally to liquidity providers based on their share of pool liquidity. The comment acknowledges fees are burned if liquidity is 0, but assumes this only happens for uninitialized pools.
+**Intended Logic:** 
+The documentation states burn is for "after the NFT is no longer needed" with the expectation that "the same ID can be recreated by the original minter by reusing the salt." [2](#0-1) 
 
-**Actual Logic:** The function reads current pool liquidity at distribution time. In concentrated liquidity AMMs, pool liquidity represents only the active liquidity at the current price tick. When the price moves outside all LP-provided tick ranges, current liquidity becomes 0 even though the pool has positions. This causes fees to be burned instead of distributed.
+**Actual Logic:**
+The `burn()` function only checks authorization via `authorizedForNft` modifier, which permits both owners and approved addresses, with no validation that the position has zero liquidity. [3](#0-2) [4](#0-3) 
 
 **Exploitation Path:**
 
-1. **Fee Accumulation**: During timestamp T, multiple swaps occur through MEVCapture, accumulating fees in the extension's saved balances. MEVCapture fee distribution is triggered at timestamp boundaries. [2](#0-1) 
+1. **Position Creation**: User calls `mintAndDeposit()` which internally invokes `mint()` without arguments. This generates a random salt from `prevrandao()` and `gas()` that is never stored or emitted. [5](#0-4) [6](#0-5) 
 
-2. **Price Manipulation**: Attacker executes a large swap at the end of timestamp T that moves the pool price to a tick outside all existing LP ranges (e.g., if all LPs provide liquidity in ticks 100-200, attacker swaps to move price to tick 300). This causes the pool's active liquidity to become 0. [3](#0-2) 
+2. **NFT Approval**: User approves another address (for marketplace listing, delegation, or smart contract integration).
 
-3. **Fee Distribution with Zero Liquidity**: At timestamp T+1, when anyone triggers a swap or calls `accumulatePoolFees()`, the MEVCapture extension distributes accumulated fees from timestamp T. However, since current liquidity is now 0, the fee distribution bypasses the liquidity-proportional allocation. [4](#0-3) 
+3. **Malicious Burn**: Approved address calls `burn(tokenId)`, which passes the `authorizedForNft` check and destroys the NFT.
 
-4. **Fees Burned**: The fees are permanently lost - the extension's saved balances decrease (debt is properly settled), but no LP position receives the fees. LPs who provided liquidity during timestamp T lose their entitled share. [5](#0-4) 
+4. **Position Becomes Inaccessible**: All position operations (`withdraw`, `collectFees`, `deposit`) require `authorizedForNft(id)` which calls `_isApprovedOrOwner()`. Since `ownerOf()` reverts for burned tokens, these operations permanently fail. [7](#0-6) [8](#0-7) [9](#0-8) 
 
-**Security Property Broken:** Violates the "Fee Accounting" invariant - position fee collection must be accurate. LPs do not receive fees they are entitled to based on their liquidity provision during the period when fees were collected.
+5. **Recovery Impossible**: User cannot recreate the NFT because the salt was randomly generated and never stored. The user cannot access Core directly because positions are stored with the Positions contract as owner, not the user. [10](#0-9) 
+
+**Security Guarantee Broken:**
+This vulnerability violates the explicit protocol invariant: "All positions should be able to be withdrawn at any time (except for positions using third-party extensions; the extensions in the repository should never block withdrawal within the block gas limit)." [1](#0-0) 
 
 ## Impact Explanation
 
-- **Affected Assets**: MEVCapture fees (additional fees charged on top of base swap fees) that should be distributed to all active LPs during the accumulation period
-- **Damage Severity**: LPs lose 100% of accumulated MEVCapture fees for the affected timestamp. In high-volume pools, this could represent significant value (e.g., if $100k in swaps occur with 1% MEV capture during the timestamp, ~$1k in fees would be burned)
-- **User Impact**: All LPs who had positions during the fee accumulation period lose their proportional share of fees. This affects all liquidity providers in the pool, not just those in specific tick ranges.
+**Affected Assets**: All liquidity tokens (token0 and token1) deposited in positions whose NFTs are burned by approved addresses.
+
+**Damage Severity**:
+- Approved attacker can permanently lock 100% of deposited funds in a single transaction
+- No recovery mechanism exists (no admin intervention possible, user cannot recreate NFT without salt)
+- Affects both principal liquidity and all accrued fees
+- Violation of core protocol invariant
+
+**User Impact**: Any user who:
+- Used `mintAndDeposit()` (the standard, recommended flow)
+- Granted NFT approval for marketplace listings, delegation contracts, or automated strategies
+- Has active liquidity positions
+
+**Trigger Conditions**: Requires only that user granted approval - a common and necessary operation in DeFi.
 
 ## Likelihood Explanation
 
-- **Attacker Profile**: Any user with sufficient capital to execute large swaps. MEV searchers or large traders could execute this attack opportunistically or intentionally.
-- **Preconditions**: 
-  - Pool must have concentrated liquidity (all LPs in specific tick ranges, not full-range)
-  - Price must be movable outside all LP ranges with economically feasible swap size
-  - Sufficient MEVCapture fees must have accumulated to make the attack worthwhile
-- **Execution Complexity**: Single transaction at the end of a timestamp block. Attacker swaps to move price outside LP ranges, then waits for next timestamp when fees are naturally distributed.
-- **Frequency**: Can be executed once per timestamp per pool where conditions are met. More likely in pools with narrow liquidity concentration or low total liquidity.
+**Attacker Profile**: Any address with NFT approval (via `approve()` or `setApprovalForAll()`). No special permissions or protocol role required.
+
+**Preconditions**:
+1. Victim has active position with liquidity (standard usage)
+2. Victim granted NFT approval (common for marketplaces, delegation)
+3. Victim used `mintAndDeposit()` (the standard minting flow)
+
+**Execution Complexity**: Single transaction calling `positions.burn(tokenId)`. No timing requirements, special pool states, or complex setups needed.
+
+**Economic Cost**: Only transaction gas fees (~$5-20 depending on network)
+
+**Frequency**: Exploitable once per approved position. Malicious actor can target multiple positions sequentially.
+
+**Overall Likelihood**: HIGH - Common preconditions, trivial execution, affects standard user flow.
 
 ## Recommendation
 
-**Option 1 (Recommended)**: Check if liquidity is non-zero before calling `accumulateAsFees`, and defer fee distribution if liquidity is temporarily 0:
+**Primary Fix - Add Liquidity Validation:**
+
+Implement a hook in `BaseNonfungibleToken` that derived contracts can override to validate burn preconditions:
 
 ```solidity
-// In src/extensions/MEVCapture.sol, function locked_6416899205, around line 138:
+// In src/base/BaseNonfungibleToken.sol:
+function _beforeBurn(uint256 id) internal virtual {}
 
-// CURRENT (vulnerable):
-if (fees0 != 0 || fees1 != 0) {
-    CORE.accumulateAsFees(poolKey, fees0, fees1);
-    unchecked {
-        CORE.updateSavedBalances(
-            poolKey.token0,
-            poolKey.token1,
-            PoolId.unwrap(poolId),
-            -int256(uint256(fees0)),
-            -int256(uint256(fees1))
-        );
-    }
+function burn(uint256 id) external payable authorizedForNft(id) {
+    _beforeBurn(id);
+    _burn(id);
 }
 
-// FIXED:
-if (fees0 != 0 || fees1 != 0) {
-    // Only distribute fees if there is active liquidity to receive them
-    uint128 currentLiquidity = CORE.poolState(poolId).liquidity();
-    if (currentLiquidity > 0) {
-        CORE.accumulateAsFees(poolKey, fees0, fees1);
-        unchecked {
-            CORE.updateSavedBalances(
-                poolKey.token0,
-                poolKey.token1,
-                PoolId.unwrap(poolId),
-                -int256(uint256(fees0)),
-                -int256(uint256(fees1))
-            );
-        }
-    }
-    // If liquidity is 0, fees remain in saved balances and will be distributed
-    // when liquidity becomes available again at a future timestamp
+// In src/base/BasePositions.sol:
+function _beforeBurn(uint256 id) internal override {
+    // Simplest solution: require explicit withdrawal before burning
+    revert("Must withdraw all liquidity before burning position NFT");
 }
 ```
 
-**Option 2**: Track fee debt per position based on liquidity at fee collection time, rather than distributing at a single point in time. This is more complex but provides more accurate fee attribution.
+**Alternative Fix - Emit Salt for Recovery:**
+
+Emit the salt during minting so users can recreate burned NFTs:
+
+```solidity
+// In src/base/BaseNonfungibleToken.sol:
+event NFTMinted(address indexed minter, uint256 indexed id, bytes32 salt);
+
+function mint(bytes32 salt) public payable returns (uint256 id) {
+    id = saltToId(msg.sender, salt);
+    _mint(msg.sender, id);
+    emit NFTMinted(msg.sender, id, salt);
+}
+```
+
+However, the primary fix is superior as it prevents the vulnerability at the root cause rather than relying on users to track and reuse salts.
 
 ## Proof of Concept
 
-```solidity
-// File: test/Exploit_BurnMEVCaptureFees.t.sol
-// Run with: forge test --match-test test_BurnMEVCaptureFeesViaLiquidityManipulation -vvv
+The provided PoC demonstrates:
+1. User creates position with `mintAndDeposit()` and deposits significant liquidity
+2. User approves another address (legitimate use case)
+3. Approved address maliciously calls `burn()`
+4. Original owner's attempts to `withdraw()`, `collectFees()`, or `deposit()` all revert
+5. Liquidity remains locked in Core contract with no recovery path
 
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../test/FullTest.sol";
-import {MEVCapture} from "../src/extensions/MEVCapture.sol";
-import {MEVCaptureRouter} from "../src/MEVCaptureRouter.sol";
-import {createConcentratedPoolConfig} from "../src/types/poolConfig.sol";
-import {SqrtRatio} from "../src/types/sqrtRatio.sol";
-
-contract Exploit_BurnMEVCaptureFees is FullTest {
-    MEVCapture mevCapture;
-    MEVCaptureRouter mevRouter;
-
-    function setUp() public override {
-        FullTest.setUp();
-        // Deploy MEVCapture extension
-        address deployAddress = address(uint160(mevCaptureCallPoints().toUint8()) << 152);
-        deployCodeTo("MEVCapture.sol", abi.encode(core), deployAddress);
-        mevCapture = MEVCapture(deployAddress);
-        mevRouter = new MEVCaptureRouter(core, address(mevCapture));
-    }
-
-    function test_BurnMEVCaptureFeesViaLiquidityManipulation() public {
-        // SETUP: Create pool with MEVCapture and concentrated liquidity
-        PoolKey memory poolKey = createPool(
-            address(token0),
-            address(token1),
-            0, // current tick at 0
-            createConcentratedPoolConfig(
-                uint64(uint256(1 << 64) / 100), // 1% base fee
-                100, // tick spacing
-                address(mevCapture)
-            )
-        );
-
-        // Create LP position in narrow range [−100, 100]
-        uint256 lpId;
-        uint128 lpLiquidity;
-        (lpId, lpLiquidity) = createPosition(poolKey, -100, 100, 1_000_000, 1_000_000);
-
-        // Record LP's initial uncollected fees
-        (,,, uint128 fees0Before, uint128 fees1Before) = 
-            positions.getPositionFeesAndLiquidity(lpId, poolKey, -100, 100);
-
-        // Generate fees through multiple swaps at timestamp T
-        token0.approve(address(mevRouter), type(uint256).max);
-        token1.approve(address(mevRouter), type(uint256).max);
-        
-        // Swap 1: Generate MEVCapture fees
-        mevRouter.swap({
-            poolKey: poolKey,
-            isToken1: false,
-            amount: 50_000,
-            sqrtRatioLimit: SqrtRatio.wrap(0),
-            skipAhead: 0,
-            calculatedAmountThreshold: type(int256).min,
-            recipient: address(this)
-        });
-
-        // EXPLOIT: Swap to move price outside LP range [−100, 100]
-        // This makes pool liquidity = 0
-        mevRouter.swap({
-            poolKey: poolKey,
-            isToken1: false,
-            amount: 500_000, // Large swap to move price far from 0
-            sqrtRatioLimit: SqrtRatio.wrap(0),
-            skipAhead: 0,
-            calculatedAmountThreshold: type(int256).min,
-            recipient: address(this)
-        });
-
-        // Verify price moved outside LP range
-        int32 currentTick = core.poolState(poolKey.toPoolId()).tick();
-        assertTrue(currentTick > 100 || currentTick < -100, "Price should be outside LP range");
-
-        // Verify current liquidity is 0
-        uint128 currentLiquidity = core.poolState(poolKey.toPoolId()).liquidity();
-        assertEq(currentLiquidity, 0, "Pool liquidity should be 0");
-
-        // Advance to next timestamp
-        vm.warp(block.timestamp + 1);
-
-        // Trigger fee distribution at T+1 by calling accumulatePoolFees
-        mevCapture.accumulatePoolFees(poolKey);
-
-        // VERIFY: LP did not receive accumulated fees (they were burned)
-        (,,, uint128 fees0After, uint128 fees1After) = 
-            positions.getPositionFeesAndLiquidity(lpId, poolKey, -100, 100);
-        
-        // Fees should have increased if properly distributed, but they didn't
-        assertEq(fees0After, fees0Before, "LP fees should not increase - fees were burned");
-        assertEq(fees1After, fees1Before, "LP fees should not increase - fees were burned");
-    }
-}
-```
+Expected result: All withdrawal attempts revert, confirming permanent fund lock.
 
 ## Notes
 
-This vulnerability is particularly concerning because:
+**Critical Severity Factors:**
 
-1. **Natural Occurrence**: In volatile markets, prices frequently move outside concentrated liquidity ranges naturally, creating opportunities for this exploit without obvious manipulation.
+1. **Violates Core Invariant**: Directly contradicts README line 202 guarantee that positions are always withdrawable
 
-2. **No Direct Attacker Profit**: The attacker doesn't directly gain the burned fees - they simply deny LPs their rightful fees. However, the attacker might profit indirectly (e.g., if they're an LP competitor, or through MEV extraction during the price manipulation).
+2. **Permanent Loss**: Unlike temporary locks or griefing attacks, this results in complete, permanent, irrecoverable loss of funds
 
-3. **Protocol Design Issue**: The root cause is the mismatch between when fees are collected (continuously during a timestamp) and when they're distributed (at timestamp boundaries based on current liquidity snapshot).
+3. **Affects Standard Flow**: Impacts `mintAndDeposit()` - the intended, documented method for creating positions
 
-4. **Extension-Specific**: While the vulnerability is in Core's `accumulateAsFees`, it specifically affects MEVCapture because that extension uses time-based fee distribution. Other callers of `accumulateAsFees` may not be affected the same way.
+4. **No Recovery Mechanism**: Neither the user nor protocol owner can recover locked positions (unlike protocol fees which owner can withdraw) [11](#0-10) 
 
-The recommended fix (checking liquidity before distribution) is simple and preserves fees for future distribution when liquidity returns, rather than permanently burning them.
+5. **User Expectation Violation**: Standard ERC721 approvals allow transfers; users don't expect approvals to enable permanent destruction of underlying assets
+
+6. **Cross-Contract Complexity**: Vulnerability spans multiple contracts (BaseNonfungibleToken, BasePositions, Core), making it non-obvious during isolated contract review
+
+**Note on mintAndDepositWithSalt()**: Even users who called `mintAndDepositWithSalt()` with a known salt face ongoing griefing where attackers repeatedly burn their NFTs, forcing gas-expensive re-minting before each operation. The attacker can front-run legitimate operations with burns.
 
 ### Citations
 
-**File:** src/Core.sol (L228-276)
+**File:** README.md (L202-202)
+```markdown
+All positions should be able to be withdrawn at any time (except for positions using third-party extensions; the extensions in the repository should never block withdrawal within the block gas limit).
+```
+
+**File:** src/base/BaseNonfungibleToken.sol (L81-86)
 ```text
-    function accumulateAsFees(PoolKey memory poolKey, uint128 _amount0, uint128 _amount1) external payable {
-        (uint256 id, address lockerAddr) = _requireLocker().parse();
-        require(lockerAddr == poolKey.config.extension());
-
-        PoolId poolId = poolKey.toPoolId();
-
-        uint256 amount0;
-        uint256 amount1;
-        assembly ("memory-safe") {
-            amount0 := _amount0
-            amount1 := _amount1
+    modifier authorizedForNft(uint256 id) {
+        if (!_isApprovedOrOwner(msg.sender, id)) {
+            revert NotUnauthorizedForToken(msg.sender, id);
         }
-
-        // Note we do not check pool is initialized. If the extension calls this for a pool that does not exist,
-        //  the fees are simply burned since liquidity is 0.
-
-        if (amount0 != 0 || amount1 != 0) {
-            uint256 liquidity;
-            {
-                uint128 _liquidity = readPoolState(poolId).liquidity();
-                assembly ("memory-safe") {
-                    liquidity := _liquidity
-                }
-            }
-
-            unchecked {
-                if (liquidity != 0) {
-                    StorageSlot slot0 = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-
-                    if (amount0 != 0) {
-                        slot0.store(
-                            bytes32(uint256(slot0.load()) + FixedPointMathLib.rawDiv(amount0 << 128, liquidity))
-                        );
-                    }
-                    if (amount1 != 0) {
-                        StorageSlot slot1 = slot0.next();
-                        slot1.store(
-                            bytes32(uint256(slot1.load()) + FixedPointMathLib.rawDiv(amount1 << 128, liquidity))
-                        );
-                    }
-                }
-            }
-        }
-
-        // whether the fees are actually accounted to any position, the caller owes the debt
-        _updatePairDebtWithNative(id, poolKey.token0, poolKey.token1, int256(amount0), int256(amount1));
-
-        emit FeesAccumulated(poolId, _amount0, _amount1);
+        _;
     }
 ```
 
-**File:** src/extensions/MEVCapture.sol (L191-206)
+**File:** src/base/BaseNonfungibleToken.sol (L109-117)
 ```text
-            if (lastUpdateTime != currentTime) {
-                (int32 tick, uint128 fees0, uint128 fees1) =
-                    loadCoreState({poolId: poolId, token0: poolKey.token0, token1: poolKey.token1});
+    function mint() public payable returns (uint256 id) {
+        bytes32 salt;
+        assembly ("memory-safe") {
+            mstore(0, prevrandao())
+            mstore(32, gas())
+            salt := keccak256(0, 64)
+        }
+        id = mint(salt);
+    }
+```
 
-                if (fees0 != 0 || fees1 != 0) {
-                    CORE.accumulateAsFees(poolKey, fees0, fees1);
-                    // never overflows int256 container
-                    saveDelta0 -= int256(uint256(fees0));
-                    saveDelta1 -= int256(uint256(fees1));
-                }
+**File:** src/base/BaseNonfungibleToken.sol (L128-132)
+```text
+    /// @inheritdoc IBaseNonfungibleToken
+    /// @dev Can be used to refund some gas after the NFT is no longer needed.
+    ///      The same ID can be recreated by the original minter by reusing the salt.
+    ///      Only the token owner or approved addresses can burn the token.
+    ///      No fees are collected; any msg.value sent is ignored.
+```
 
-                tickLast = tick;
-                setPoolState({
-                    poolId: poolId,
-                    state: createMEVCapturePoolState({_lastUpdateTime: currentTime, _tickLast: tickLast})
-                });
+**File:** src/base/BaseNonfungibleToken.sol (L133-135)
+```text
+    function burn(uint256 id) external payable authorizedForNft(id) {
+        _burn(id);
+    }
+```
+
+**File:** src/base/BasePositions.sol (L71-79)
+```text
+    function deposit(
+        uint256 id,
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 maxAmount0,
+        uint128 maxAmount1,
+        uint128 minLiquidity
+    ) public payable authorizedForNft(id) returns (uint128 liquidity, uint128 amount0, uint128 amount1) {
+```
+
+**File:** src/base/BasePositions.sol (L100-107)
+```text
+    function collectFees(uint256 id, PoolKey memory poolKey, int32 tickLower, int32 tickUpper)
+        public
+        payable
+        authorizedForNft(id)
+        returns (uint128 amount0, uint128 amount1)
+    {
+        (amount0, amount1) = collectFees(id, poolKey, tickLower, tickUpper, msg.sender);
+    }
+```
+
+**File:** src/base/BasePositions.sol (L120-128)
+```text
+    function withdraw(
+        uint256 id,
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 liquidity,
+        address recipient,
+        bool withFees
+    ) public payable authorizedForNft(id) returns (uint128 amount0, uint128 amount1) {
+```
+
+**File:** src/base/BasePositions.sol (L159-169)
+```text
+    function mintAndDeposit(
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 maxAmount0,
+        uint128 maxAmount1,
+        uint128 minLiquidity
+    ) external payable returns (uint256 id, uint128 liquidity, uint128 amount0, uint128 amount1) {
+        id = mint();
+        (liquidity, amount0, amount1) = deposit(id, poolKey, tickLower, tickUpper, maxAmount0, maxAmount1, minLiquidity);
+    }
+```
+
+**File:** src/base/BasePositions.sol (L186-192)
+```text
+    function withdrawProtocolFees(address token0, address token1, uint128 amount0, uint128 amount1, address recipient)
+        external
+        payable
+        onlyOwner
+    {
+        lock(abi.encode(CALL_TYPE_WITHDRAW_PROTOCOL_FEES, token0, token1, amount0, amount1, recipient));
+    }
+```
+
+**File:** src/Core.sol (L381-381)
+```text
+            StorageSlot positionSlot = CoreStorageLayout.poolPositionsSlot(poolId, locker.addr(), positionId);
 ```

@@ -1,230 +1,120 @@
-## Title
-Native Token Handling Asymmetry Allows ETH Loss and Theft in Router Contract
+# NoVulnerability found for this question.
 
-## Summary
-The Router.sol contract's `handleLockData` function contains an asymmetry in how native ETH is handled between different swap directions. When `isToken1=true` and `isExactOut=true` with `token0=NATIVE_TOKEN_ADDRESS`, the `value` variable is incorrectly set to 0, causing the Router to use its own ETH balance instead of the pre-sent amount, leading to user fund loss and potential theft by attackers.
+## Validation Summary
 
-## Impact
-**Severity**: High
+After thorough validation of the security claim against the Ekubo codebase, I confirm that the analysis is **mathematically and technically correct**. The checked subtraction overflow scenario cannot occur under the protocol's invariants.
 
-## Finding Description
-**Location:** `src/Router.sol` (contract Router, function handleLockData, lines 106-147) [1](#0-0) 
+## Verified Code Evidence
 
-**Intended Logic:** The Router should handle all native token swaps consistently, either by sending ETH upfront to Core.swap and settling via `valueDifference` logic, or by ensuring the user's msg.value covers the required payment amount.
+The analysis correctly identifies the key code locations:
 
-**Actual Logic:** The `value` variable is only set when `!params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS`, but there exists another scenario requiring ETH payment where this condition fails: when `isToken1=true` and `isExactOut=true` with `token0=NATIVE_TOKEN_ADDRESS`. In this case:
-1. `value` is set to 0 (line 106-110)
-2. Core.swap receives 0 ETH 
-3. `increasing = true XOR true = false` (line 112)
-4. The increasing=false branch executes (line 128-147)
-5. `valueDifference = 0 - delta0` becomes negative when delta0 > 0 (line 135)
-6. Router calls `SafeTransferLib.safeTransferETH(address(ACCOUNTANT), delta0)` (line 141)
-7. This uses the Router's own ETH balance, not the ETH from Core [2](#0-1) 
+**1. Checked Subtraction Location:** [1](#0-0) 
 
-**Exploitation Path:**
-1. **Victim Setup**: User calls `Router.swap{value: 10 ether}()` with parameters: `isToken1=true`, `isExactOut=true`, `poolKey.token0=NATIVE_TOKEN_ADDRESS`, intending to buy 1 ether worth of token1
-2. **Partial Use**: The swap calculates `delta0 = 1 ether` (actual ETH needed), but `value=0`, so only 1 ETH is transferred via `SafeTransferLib.safeTransferETH`, leaving 9 ETH stuck in Router contract
-3. **Attacker Exploitation**: Attacker calls `Router.swap{value: 0}()` with identical parameters requiring ETH payment
-4. **Theft**: Router uses the stuck 9 ETH from its balance to pay for attacker's swap, giving attacker free tokens
+**2. MaxLiquidity Constraint Enforcement:** [2](#0-1) 
 
-**Security Property Broken:** Violates the Solvency invariant - user funds (9 ETH) are permanently lost and can be stolen by attackers.
+**3. MaxLiquidity Calculation:** [3](#0-2) 
 
-## Impact Explanation
-- **Affected Assets**: All native ETH sent by users when performing swaps with `isToken1=true`, `isExactOut=true`, and `token0=NATIVE_TOKEN_ADDRESS`
-- **Damage Severity**: 
-  - Users lose 100% of excess ETH sent beyond the calculated `delta0` amount
-  - Attackers can drain accumulated ETH by performing identical swaps with `msg.value=0`
-  - No upper limit on loss - could be any amount of ETH
-- **User Impact**: Any user performing this specific swap type with excess ETH loses funds immediately. All users of this swap type are at risk.
+**4. Protocol Constants:** [4](#0-3) 
 
-## Likelihood Explanation
-- **Attacker Profile**: Any unprivileged user can exploit this. No special permissions or capital required beyond gas fees.
-- **Preconditions**: 
-  - Router must have accumulated ETH balance from previous victims
-  - Pool with native token0 must exist and be initialized
-  - Attacker needs to identify the Router has ETH balance (trivial via etherscan/block explorer)
-- **Execution Complexity**: Single transaction attack - call `Router.swap{value: 0}()` with correct parameters
-- **Frequency**: Can be exploited continuously - every time Router accumulates ETH from victims, attacker can drain it
+## Mathematical Verification
 
-## Recommendation
+The core mathematical relationship is sound:
 
-The root cause is that the `value` calculation doesn't account for all scenarios where native token0 needs to be paid. The fix should ensure `value` is set correctly for all payment scenarios:
+**Triangle Inequality:** For any tick, `|liquidityDelta| ≤ liquidityNet` must hold because:
+- `liquidityNet` represents the sum of absolute liquidity values: `Σ|L_i|`
+- `liquidityDelta` (the stored field) represents the algebraic sum: `Σ(±L_i)`
+- By triangle inequality: `|Σ(±L_i)| ≤ Σ|L_i|`
 
-**Option 1 - Comprehensive value calculation:**
-```solidity
-// In src/Router.sol, handleLockData function, lines 106-110:
+**Overflow Analysis:**
+- Maximum possible value: `|currentLiquidityDelta| ≤ maxLiquidity`
+- Worst-case operation: `maxLiquidity - (-maxLiquidity) = 2 × maxLiquidity`
+- With minimum tick spacing (1): `maxLiquidity ≈ 1.918 × 10³³`
+- With maximum tick spacing (698,605): `maxLiquidity ≈ 1.334 × 10³⁶`
+- Compare to `type(int128).max ≈ 1.701 × 10³⁸`
+- Worst case: `2 × 1.334 × 10³⁶ ≈ 2.668 × 10³⁶` which is only ~1.57% of `int128.max`
 
-// CURRENT (vulnerable):
-// Only sets value for one specific case
-uint256 value = FixedPointMathLib.ternary(
-    !params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS,
-    uint128(params.amount()),
-    0
-);
+**Constraint Enforcement:** [5](#0-4) 
 
-// FIXED:
-// Account for both cases where ETH needs to be sent upfront
-bool needsEthUpfront = poolKey.token0 == NATIVE_TOKEN_ADDRESS && (
-    (!params.isToken1() && !params.isExactOut()) ||  // Case 1: exact input of ETH
-    (params.isToken1() && params.isExactOut())       // Case 2: exact output of token1, paying with ETH
-);
-uint256 value = needsEthUpfront ? address(this).balance : 0;  // Use full Router balance or msg.value tracking
-```
+The protocol enforces `liquidityNetNext ≤ maxLiquidity` before the checked arithmetic, ensuring the overflow scenario is impossible.
 
-**Option 2 - Revert on unsupported pattern:**
-```solidity
-// Add validation before the swap
-if (poolKey.token0 == NATIVE_TOKEN_ADDRESS && params.isToken1() && params.isExactOut()) {
-    revert UnsupportedNativeTokenSwapDirection();
-}
-```
+## Notes
 
-**Option 3 - Consistent handling (recommended):**
-Refactor to always send available msg.value to Core.swap and handle refunds uniformly:
-```solidity
-uint256 value = poolKey.token0 == NATIVE_TOKEN_ADDRESS ? address(this).balance : 0;
-// Then handle refunds consistently in both branches
-```
+- The relationship between the two stored values (`liquidityDelta` and `liquidityNet` in the `TickInfo` structure) is defined in: [6](#0-5) 
+- The `addLiquidityDelta` function that updates `liquidityNet` includes its own overflow protection: [7](#0-6) 
+- Both lower and upper tick updates are subject to the same constraint check, maintaining the invariant across all position operations
 
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_RouterETHTheft.t.sol
-// Run with: forge test --match-test test_RouterETHTheft -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Router.sol";
-import "../src/types/poolKey.sol";
-import "../src/types/swapParameters.sol";
-import {NATIVE_TOKEN_ADDRESS} from "../src/math/constants.sol";
-
-contract Exploit_RouterETHTheft is Test {
-    Core core;
-    Router router;
-    PoolKey poolKey;
-    
-    address victim = address(0x1);
-    address attacker = address(0x2);
-    
-    function setUp() public {
-        // Deploy contracts
-        core = new Core();
-        router = new Router(core);
-        
-        // Setup pool with NATIVE as token0
-        poolKey = PoolKey({
-            token0: NATIVE_TOKEN_ADDRESS,
-            token1: address(0x999), // mock ERC20
-            config: PoolConfig.wrap(0)
-        });
-        
-        // Initialize pool
-        core.initializePool(poolKey, 0);
-        
-        // Fund victim and attacker
-        vm.deal(victim, 20 ether);
-        vm.deal(attacker, 1 ether);
-    }
-    
-    function test_RouterETHTheft() public {
-        // SETUP: Victim performs swap with excess ETH
-        vm.startPrank(victim);
-        
-        SwapParameters params = createSwapParameters({
-            _isToken1: true,           // Buying token1
-            _amount: -1 ether,         // Exact output (negative)
-            _sqrtRatioLimit: SqrtRatio.wrap(0),
-            _skipAhead: 0
-        });
-        
-        uint256 routerBalanceBefore = address(router).balance;
-        
-        // Victim sends 10 ETH but swap only needs ~1 ETH
-        router.swap{value: 10 ether}(poolKey, params, type(int256).min);
-        
-        uint256 routerBalanceAfter = address(router).balance;
-        uint256 stuckETH = routerBalanceAfter - routerBalanceBefore;
-        
-        vm.stopPrank();
-        
-        // VERIFY: ETH stuck in Router
-        assertGt(stuckETH, 8 ether, "ETH should be stuck in Router");
-        console.log("ETH stuck in Router:", stuckETH);
-        
-        // EXPLOIT: Attacker steals stuck ETH
-        vm.startPrank(attacker);
-        
-        uint256 attackerBalanceBefore = address(attacker).balance;
-        
-        // Attacker performs same swap with 0 value
-        router.swap{value: 0}(poolKey, params, type(int256).min);
-        
-        uint256 attackerBalanceAfter = address(attacker).balance;
-        
-        vm.stopPrank();
-        
-        // VERIFY: Attacker got tokens without paying
-        assertGt(routerBalanceAfter - address(router).balance, 0, "Router ETH was used");
-        console.log("Attacker essentially paid:", attackerBalanceBefore - attackerBalanceAfter);
-        console.log("Victim lost:", stuckETH);
-    }
-}
-```
-
-**Notes:**
-- The vulnerability specifically affects the combination of `isToken1=true`, `isExactOut=true`, and `token0=NATIVE_TOKEN_ADDRESS`
-- This violates the solvency invariant as user funds can be permanently lost
-- The asymmetry between the `increasing=true` and `increasing=false` branches creates this exploitable condition
-- The issue is in the core Router contract which is in scope and not related to any known issues
-- Simple user error (sending too much ETH) becomes a theft vector due to the design flaw
+The analysis correctly demonstrates that the protocol's design prevents the theoretical overflow scenario through multiple layers of protection.
 
 ### Citations
 
-**File:** src/Router.sol (L106-147)
+**File:** src/Core.sol (L291-291)
 ```text
-                uint256 value = FixedPointMathLib.ternary(
-                    !params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS,
-                    uint128(params.amount()),
-                    0
-                );
+        uint128 liquidityNetNext = addLiquidityDelta(currentLiquidityNet, liquidityDelta);
+```
 
-                bool increasing = params.isPriceIncreasing();
+**File:** src/Core.sol (L293-294)
+```text
+        int128 liquidityDeltaNext =
+            isUpper ? currentLiquidityDelta - liquidityDelta : currentLiquidityDelta + liquidityDelta;
+```
 
-                (PoolBalanceUpdate balanceUpdate,) = _swap(value, poolKey, params);
+**File:** src/Core.sol (L297-300)
+```text
+        uint128 maxLiquidity = poolConfig.concentratedMaxLiquidityPerTick();
+        if (liquidityNetNext > maxLiquidity) {
+            revert MaxLiquidityPerTickExceeded(tick, liquidityNetNext, maxLiquidity);
+        }
+```
 
-                int128 amountCalculated = params.isToken1() ? -balanceUpdate.delta0() : -balanceUpdate.delta1();
-                if (amountCalculated < calculatedAmountThreshold) {
-                    revert SlippageCheckFailed(calculatedAmountThreshold, amountCalculated);
-                }
+**File:** src/types/poolConfig.sol (L187-196)
+```text
+function concentratedMaxLiquidityPerTick(PoolConfig config) pure returns (uint128 maxLiquidity) {
+    uint32 _tickSpacing = config.concentratedTickSpacing();
 
-                if (increasing) {
-                    if (balanceUpdate.delta0() != 0) {
-                        ACCOUNTANT.withdraw(poolKey.token0, recipient, uint128(-balanceUpdate.delta0()));
-                    }
-                    if (balanceUpdate.delta1() != 0) {
-                        ACCOUNTANT.payFrom(swapper, poolKey.token1, uint128(balanceUpdate.delta1()));
-                    }
-                } else {
-                    if (balanceUpdate.delta1() != 0) {
-                        ACCOUNTANT.withdraw(poolKey.token1, recipient, uint128(-balanceUpdate.delta1()));
-                    }
+    assembly ("memory-safe") {
+        // Calculate total number of usable ticks: 1 + (MAX_TICK_MAGNITUDE / tickSpacing) * 2
+        // This represents all ticks from -MAX_TICK_MAGNITUDE to +MAX_TICK_MAGNITUDE, and tick 0
+        let numTicks := add(1, mul(div(MAX_TICK, _tickSpacing), 2))
 
-                    if (balanceUpdate.delta0() != 0) {
-                        if (poolKey.token0 == NATIVE_TOKEN_ADDRESS) {
-                            int256 valueDifference = int256(value) - int256(balanceUpdate.delta0());
+        maxLiquidity := div(sub(shl(128, 1), 1), numTicks)
+    }
+```
 
-                            // refund the overpaid ETH to the swapper
-                            if (valueDifference > 0) {
-                                ACCOUNTANT.withdraw(NATIVE_TOKEN_ADDRESS, swapper, uint128(uint256(valueDifference)));
-                            } else if (valueDifference < 0) {
-                                SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)));
-                            }
-                        } else {
-                            ACCOUNTANT.payFrom(swapper, poolKey.token0, uint128(balanceUpdate.delta0()));
-                        }
-                    }
-                }
+**File:** src/math/constants.sol (L10-22)
+```text
+int32 constant MIN_TICK = -88722835;
+
+// The maximum tick value supported by the protocol
+// Corresponds to the maximum possible price ratio in the protocol
+int32 constant MAX_TICK = 88722835;
+
+// The maximum tick magnitude (absolute value of MAX_TICK)
+// Used for validation and bounds checking in tick-related calculations
+uint32 constant MAX_TICK_MAGNITUDE = uint32(MAX_TICK);
+
+// The maximum allowed tick spacing for pools
+// Defines the upper limit for tick spacing configuration in pool creation
+uint32 constant MAX_TICK_SPACING = 698605;
+```
+
+**File:** src/types/tickInfo.sol (L20-25)
+```text
+function parse(TickInfo info) pure returns (int128 delta, uint128 net) {
+    assembly ("memory-safe") {
+        delta := signextend(15, info)
+        net := shr(128, info)
+    }
+}
+```
+
+**File:** src/math/liquidity.sol (L129-136)
+```text
+function addLiquidityDelta(uint128 liquidity, int128 liquidityDelta) pure returns (uint128 result) {
+    assembly ("memory-safe") {
+        result := add(liquidity, liquidityDelta)
+        if and(result, shl(128, 0xffffffffffffffffffffffffffffffff)) {
+            mstore(0, shl(224, 0x6d862c50))
+            revert(0, 4)
+        }
+    }
 ```

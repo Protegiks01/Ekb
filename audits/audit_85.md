@@ -1,191 +1,145 @@
+# Audit Report
+
 ## Title
-ETH Theft via Unprotected refundNativeToken() Function When msg.value Sent to Non-Native Token Swaps
+Excess Native Token Theft via Unprotected refundNativeToken() in Orders and BasePositions
 
 ## Summary
-When users send ETH (`msg.value`) with swaps that don't involve the native token as token0 in exact input mode, the ETH remains in the Router contract without being refunded. The public `refundNativeToken()` function allows any attacker to steal this accumulated ETH by calling it and receiving the entire Router balance.
+The `refundNativeToken()` function inherited from `PayableMulticallable` lacks access control, allowing any attacker to steal accumulated excess ETH from Orders and BasePositions contracts. When users send more ETH than required for TWAMM orders or position deposits, the surplus remains in the contract and becomes vulnerable to theft by any external caller.
 
 ## Impact
 **Severity**: High
 
+This vulnerability enables direct theft of user funds. Any user sending excess ETH to Orders.sol or BasePositions.sol (whether intentionally for safety margins or due to calculation complexity) will lose their surplus to the first attacker who calls `refundNativeToken()`. The function sends the ENTIRE contract balance to `msg.sender`, enabling attackers to accumulate theft across multiple users' excess payments. This represents 100% loss of excess funds for affected users with no recovery mechanism.
+
 ## Finding Description
-**Location:** `src/Router.sol` (function `handleLockData`, lines 106-146) and `src/base/PayableMulticallable.sol` (function `refundNativeToken`, lines 25-29)
 
-**Intended Logic:** The Router should handle native token payments for swaps and refund any excess ETH to the original sender. [1](#0-0) 
+**Location:** `src/base/PayableMulticallable.sol:25-29`, inherited by `src/Orders.sol` and `src/base/BasePositions.sol`
 
-**Actual Logic:** The refund mechanism only activates when `poolKey.token0 == NATIVE_TOKEN_ADDRESS`. When this condition is false but `msg.value` is sent, the ETH remains in the Router contract. [2](#0-1) 
+**Intended Logic:** 
+The `refundNativeToken()` function is designed to allow users to recover excess ETH sent for "transient payments" in multicall batches. The design assumes users will include this call in the same transaction to reclaim any unused ETH immediately. [1](#0-0) 
 
-The value sent to Core is calculated conditionally - if `poolKey.token0 != NATIVE_TOKEN_ADDRESS`, the value is set to 0, leaving the ETH in Router. [3](#0-2) 
-
-The `refundNativeToken()` function sends ALL the Router's balance to `msg.sender` without access control or verification that the caller was the original depositor. [4](#0-3) 
+**Actual Logic:**
+The function completely lacks access control and unconditionally sends the entire contract balance to ANY `msg.sender`, regardless of who originally sent the ETH. When users send ETH to Orders or BasePositions, only the calculated amount (determined by `CORE.updateSaleRate()` for orders or liquidity calculations for positions) gets transferred to the ACCOUNTANT. Any excess remains trapped in the contract. [2](#0-1) [3](#0-2) 
 
 **Exploitation Path:**
-1. Victim calls `Router.swap()` with `msg.value = 1 ETH` for a swap of TokenA → TokenB (where neither token is `NATIVE_TOKEN_ADDRESS`)
-2. Router receives 1 ETH, but the value calculation at lines 106-110 sets `value = 0` since `poolKey.token0 != NATIVE_TOKEN_ADDRESS`
-3. The swap executes via `_swap(0, poolKey, params)`, forwarding 0 ETH to Core
-4. At lines 143-145, since token0 is not native, code calls `ACCOUNTANT.payFrom(swapper, poolKey.token0, ...)` without touching the msg.value
-5. 1 ETH remains in Router contract (balance increases but never decreases)
-6. Attacker monitors Router balance and calls `refundNativeToken()` 
-7. Attacker receives the entire Router balance (1 ETH)
-8. Victim's funds are permanently stolen
+1. **Setup**: Alice calls `Orders.increaseSellAmount{value: 10 ETH}()` to create a TWAMM order, but the actual requirement calculated by `CORE.updateSaleRate()` is only 9.5 ETH (exact amounts are difficult to predict due to time-based sale rate calculations)
+2. **Funds Split**: Orders.sol transfers 9.5 ETH to ACCOUNTANT via `SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(amount))`, leaving 0.5 ETH in the Orders contract
+3. **Discovery**: Bob (attacker) monitors `Orders.balance` and observes the accumulated ETH (could be from multiple users)
+4. **Theft**: Bob calls `Orders.refundNativeToken()` with zero preconditions
+5. **Result**: Bob receives the entire balance (0.5 ETH) that belonged to Alice
 
-**Security Property Broken:** This violates the principle that user funds should never be directly stolen by unprivileged attackers. It also breaks the expected behavior that sending ETH with a transaction should either be used or refunded to the sender.
+**Security Property Broken:**
+Direct theft of user funds - violates the fundamental security expectation that user assets remain under their control unless explicitly transferred. The README states "All positions should be able to be withdrawn at any time" (line 202), but this applies to positions, not the ETH refund mechanism which has no such protection.
+
+**Design Inconsistency:**
+Router.sol implements the CORRECT pattern with automatic refunds within the same transaction: [4](#0-3) 
+
+Orders and BasePositions fail to implement this safe pattern, creating an exploitable security gap within the protocol.
 
 ## Impact Explanation
-- **Affected Assets**: All ETH (`msg.value`) sent by users to the Router for swaps not involving native token as token0
-- **Damage Severity**: Complete loss of ETH sent by victims. An attacker can steal 100% of accumulated ETH in the Router contract with a single function call. Multiple victims' ETH can accumulate before an attacker drains it all.
-- **User Impact**: Any user who sends ETH with a non-native token swap is vulnerable. This could affect:
-  - Users who mistakenly send ETH thinking it's needed for gas or swap execution
-  - Users swapping token1 for token0 (where params.isToken1() = true)
-  - Users performing exact output swaps (where params.isExactOut() = true)  
-  - Users performing multihop swaps (which always use value=0)
+
+**Affected Assets**: Native ETH (address(0)) sent to Orders and BasePositions contracts
+
+**Damage Severity**:
+- Attackers can steal 100% of all accumulated excess ETH from multiple users in a single call
+- For TWAMM orders, exact payment amounts are inherently difficult to calculate due to time-based sale rate conversions (80.32 fixed-point format with duration calculations)
+- Users sending "safe" excess amounts lose their entire surplus
+- No recovery mechanism exists - stolen funds are permanently lost
+- Cross-user theft: single call drains ALL accumulated excess from ALL users
+
+**User Impact**: 
+Any user who:
+- Sends excess ETH for safety margins when exact amounts are uncertain
+- Uses single transaction calls instead of multicall batches
+- Doesn't include `refundNativeToken()` in their multicall (no documentation requires this)
+- Gets front-run when attempting to call `refundNativeToken()` themselves
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any unprivileged user can exploit this by simply calling the public `refundNativeToken()` function
-- **Preconditions**: 
-  - At least one user must have sent ETH with a swap where `poolKey.token0 != NATIVE_TOKEN_ADDRESS` OR `params.isToken1()` OR `params.isExactOut()`
-  - Router contract must have non-zero ETH balance
-- **Execution Complexity**: Single function call with no parameters. Attacker can monitor Router balance and immediately steal any accumulated ETH.
-- **Frequency**: Can be exploited continuously - every time a user sends ETH with a vulnerable swap, an attacker can steal it. Attacker could also wait for multiple users' ETH to accumulate before draining in a single transaction.
+
+**Attacker Profile**: Any EOA or contract - zero special permissions or positions required
+
+**Preconditions**:
+1. Users send excess ETH to Orders or BasePositions (HIGH probability - sale rate calculations are complex, users naturally send extra for safety)
+2. Users don't call `refundNativeToken()` in the same transaction (HIGH probability - no enforcement exists, many users call functions directly)
+
+**Execution Complexity**: Trivial - single call to `refundNativeToken()` with no parameters, no state setup required
+
+**Economic Cost**: Only gas fees (~0.01 ETH on mainnet), zero capital lockup
+
+**Frequency**: Continuously exploitable - attacker can monitor mempool for transactions sending ETH to these contracts, front-run any legitimate refund attempts, or simply call whenever `contract.balance > 0`
+
+**Overall Likelihood**: HIGH - Trivial execution combined with high probability of users sending excess ETH for TWAMM orders where exact amounts depend on block.timestamp and complex calculations
 
 ## Recommendation
 
-```solidity
-// In src/base/PayableMulticallable.sol, function refundNativeToken, lines 25-29:
-
-// CURRENT (vulnerable):
-function refundNativeToken() external payable {
-    if (address(this).balance != 0) {
-        SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
-    }
-}
-
-// FIXED:
-// Option 1: Track ETH deposits per user
-mapping(address => uint256) private userEthBalance;
-
-function refundNativeToken() external payable {
-    uint256 refundAmount = userEthBalance[msg.sender];
-    if (refundAmount != 0) {
-        userEthBalance[msg.sender] = 0;
-        SafeTransferLib.safeTransferETH(msg.sender, refundAmount);
-    }
-}
-
-// And in Router.sol, track deposits:
-function swap(...) public payable returns (...) {
-    if (msg.value > 0) {
-        userEthBalance[msg.sender] += msg.value;
-    }
-    // ... rest of swap logic
-}
-```
-
-**Alternative mitigation**: Add validation in Router to revert if msg.value is sent when not required:
+**Primary Fix:**
+Implement automatic refund logic in Orders.sol and BasePositions.sol matching the safe pattern used in Router.sol. In the `handleLockData` function, immediately refund excess ETH to the original payer within the same transaction:
 
 ```solidity
-// In src/Router.sol, function handleLockData, after line 110:
-
-uint256 value = FixedPointMathLib.ternary(
-    !params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS,
-    uint128(params.amount()),
-    0
-);
-
-// Add this check:
-if (msg.value > 0 && value == 0) {
-    revert UnexpectedMsgValue();
-}
-```
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_ETHTheftViaRefund.t.sol
-// Run with: forge test --match-test test_stealETHViaRefundNativeToken -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "./FullTest.sol";
-import {Router, RouteNode, TokenAmount} from "../src/Router.sol";
-import {PoolKey} from "../src/types/poolKey.sol";
-import {SqrtRatio} from "../src/types/sqrtRatio.sol";
-
-contract Exploit_ETHTheft is FullTest {
-    address victim = makeAddr("victim");
-    address attacker = makeAddr("attacker");
-
-    function setUp() public override {
-        super.setUp();
-    }
-
-    function test_stealETHViaRefundNativeToken() public {
-        // SETUP: Create a pool with token0 and token1 (neither is native token)
-        PoolKey memory poolKey = createPool(0, 1 << 63, 100);
-        createPosition(poolKey, -100, 100, 1000, 1000);
-
-        // Fund victim with tokens and ETH
-        vm.deal(victim, 2 ether);
-        token0.mint(victim, 1000);
-
-        vm.startPrank(victim);
-        token0.approve(address(router), 1000);
-
-        // EXPLOIT: Victim mistakenly sends 1 ETH with a swap of token0 -> token1
-        // Since token0 is not NATIVE_TOKEN_ADDRESS, the ETH stays in Router
-        uint256 routerBalanceBefore = address(router).balance;
-        router.swap{value: 1 ether}(
-            RouteNode({poolKey: poolKey, sqrtRatioLimit: SqrtRatio.wrap(0), skipAhead: 0}),
-            TokenAmount({token: address(token0), amount: 100}),
-            type(int256).min
-        );
-        vm.stopPrank();
-
-        // VERIFY: ETH is now stuck in Router
-        assertEq(address(router).balance, routerBalanceBefore + 1 ether, "Router should have received ETH");
-        assertEq(victim.balance, 1 ether, "Victim should have 1 ETH left");
-
-        // ATTACK: Attacker calls refundNativeToken and steals the ETH
-        uint256 attackerBalanceBefore = attacker.balance;
-        vm.prank(attacker);
-        router.refundNativeToken();
-
-        // VERIFY: Attacker stole the victim's ETH
-        assertEq(attacker.balance, attackerBalanceBefore + 1 ether, "Attacker stole 1 ETH");
-        assertEq(address(router).balance, routerBalanceBefore, "Router balance drained");
+// In src/Orders.sol, function handleLockData, lines 146-151:
+if (saleRateDelta > 0) {
+    if (sellToken == NATIVE_TOKEN_ADDRESS) {
+        int256 valueDifference = int256(msg.value) - int256(uint256(amount));
         
-        // Victim cannot recover their ETH
-        vm.prank(victim);
-        router.refundNativeToken();
-        assertEq(victim.balance, 1 ether, "Victim cannot recover their stolen ETH");
+        if (valueDifference > 0) {
+            ACCOUNTANT.withdraw(NATIVE_TOKEN_ADDRESS, recipientOrPayer, uint128(uint256(valueDifference)));
+        } else if (valueDifference < 0) {
+            SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)));
+        } else {
+            SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(amount));
+        }
+    } else {
+        ACCOUNTANT.payFrom(recipientOrPayer, sellToken, uint256(amount));
     }
 }
 ```
+
+**Alternative Solutions**:
+1. Add sender tracking in PayableMulticallable to ensure only the original depositor can call `refundNativeToken()`
+2. Remove `refundNativeToken()` entirely and require exact payment amounts, reverting on excess
+3. Implement automatic cleanup at the end of each lock cycle
 
 ## Notes
 
-The vulnerability exists because:
+**Root Cause**: Orders and BasePositions inherit PayableMulticallable but fail to implement automatic refund logic like Router.sol, creating an inconsistent and exploitable security model across the protocol.
 
-1. **Conditional value forwarding**: The Router only forwards `msg.value` to Core when specific conditions are met (token0 is native, exact input, not token1). [2](#0-1) 
+**Affected Contracts**: Both Orders.sol and BasePositions.sol are vulnerable as they inherit PayableMulticallable and handle native token payments without automatic refunds.
 
-2. **Conditional refund logic**: The refund mechanism only executes when `poolKey.token0 == NATIVE_TOKEN_ADDRESS`. [5](#0-4) 
-
-3. **Unprotected refund function**: The `refundNativeToken()` function has no access control and sends all balance to any caller. [4](#0-3) 
-
-This creates a critical gap where ETH can be sent but not used, then stolen by any attacker. The vulnerability is particularly severe because it affects common swap scenarios and requires no special privileges to exploit.
+**Flash Accounting Invariant**: This vulnerability does NOT violate the flash accounting invariant - excess ETH remains in the Orders/BasePositions contracts (not ACCOUNTANT), and flash accounting deltas balance correctly. However, the lack of refund protection creates a separate HIGH severity vulnerability enabling direct theft.
 
 ### Citations
 
-**File:** src/Router.sol (L106-110)
+**File:** src/base/PayableMulticallable.sol (L21-29)
 ```text
-                uint256 value = FixedPointMathLib.ternary(
-                    !params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS,
-                    uint128(params.amount()),
-                    0
-                );
+    /// @notice Refunds any remaining native token balance to the caller
+    /// @dev Allows callers to recover ETH that was sent for transient payments but not fully consumed
+    ///      This is useful when exact payment amounts are difficult to calculate in advance
+    ///      Only refunds if there is a non-zero balance to avoid unnecessary gas costs
+    function refundNativeToken() external payable {
+        if (address(this).balance != 0) {
+            SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
+        }
+    }
 ```
 
-**File:** src/Router.sol (L134-146)
+**File:** src/Orders.sol (L146-151)
+```text
+                if (saleRateDelta > 0) {
+                    if (sellToken == NATIVE_TOKEN_ADDRESS) {
+                        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(amount));
+                    } else {
+                        ACCOUNTANT.payFrom(recipientOrPayer, sellToken, uint256(amount));
+                    }
+```
+
+**File:** src/base/BasePositions.sol (L256-258)
+```text
+                if (amount0 != 0) {
+                    SafeTransferLib.safeTransferETH(address(ACCOUNTANT), amount0);
+                }
+```
+
+**File:** src/Router.sol (L134-142)
 ```text
                         if (poolKey.token0 == NATIVE_TOKEN_ADDRESS) {
                             int256 valueDifference = int256(value) - int256(balanceUpdate.delta0());
@@ -196,17 +150,4 @@ This creates a critical gap where ETH can be sent but not used, then stolen by a
                             } else if (valueDifference < 0) {
                                 SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)));
                             }
-                        } else {
-                            ACCOUNTANT.payFrom(swapper, poolKey.token0, uint128(balanceUpdate.delta0()));
-                        }
-                    }
-```
-
-**File:** src/base/PayableMulticallable.sol (L25-29)
-```text
-    function refundNativeToken() external payable {
-        if (address(this).balance != 0) {
-            SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
-        }
-    }
 ```

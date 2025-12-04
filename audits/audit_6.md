@@ -1,478 +1,366 @@
+# Audit Report
+
 ## Title
-Unbounded Swap Loop Iterations with Tick Spacing = 1 Enables Pool-Wide Denial of Service
+Permanent Token Loss Due to Transient Storage Inconsistency in TokenWrapper
 
 ## Summary
-The `swap_6269342730` function's main swap loop can iterate an unbounded number of times when tick spacing is set to 1 and an attacker initializes many consecutive ticks. Each iteration crossing an initialized tick performs expensive storage operations (multiple SLOADs and SSTOREs), causing swaps to exceed block gas limits and rendering the pool unusable.
+The TokenWrapper contract implements a hybrid storage model where user balances use persistent storage (`_balanceOf`) while Core's balance uses transient storage (`coreBalance`). Users can directly call `transfer()` to send tokens to the Core address outside of a lock context, causing permanent and irrecoverable loss of funds when transient storage resets to zero at transaction end. This breaks the fundamental ERC20 accounting invariant where `totalSupply != sum of all balances`.
 
 ## Impact
-**Severity**: Medium
+**Severity**: High
+
+Permanent and complete loss of user funds with no recovery mechanism. Any user holding wrapped tokens can accidentally or intentionally destroy their tokens by transferring to the Core address. The total supply tracked in Core's persistent storage remains unchanged, but the actual circulating supply decreases, creating an unrecoverable accounting discrepancy that violates the core ERC20 invariant. This affects all TokenWrapper instances and can occur through simple user error, UI mistakes, or malicious griefing.
 
 ## Finding Description
-**Location:** [1](#0-0) 
 
-**Intended Logic:** The swap loop is designed to iterate through price ticks, processing liquidity changes at each initialized tick boundary until the swap amount is consumed or the price limit is reached. The `skipAhead` parameter is intended to provide gas optimization by limiting bitmap searches.
+**Location:** `src/TokenWrapper.sol`, functions `transfer()` (lines 96-117) and `transferFrom()` (lines 127-155) [1](#0-0) 
 
-**Actual Logic:** When tick spacing is set to 1 (the minimum allowed value), an attacker can initialize thousands of consecutive ticks by creating many small liquidity positions. The swap loop must iterate through every initialized tick encountered, performing expensive storage operations at each one. The `skipAhead` parameter only limits how far to search for the NEXT tick in the bitmap, but does NOT skip processing of initialized ticks once found.
+**Intended Logic:**
+The contract design assumes transfers to Core occur exclusively within lock contexts as part of the flash accounting system, where the transient `coreBalance` is properly managed and balanced to zero before transaction completion. [2](#0-1)  The comment at lines 97-98 explicitly states this assumption about payment flows netting to zero.
+
+**Actual Logic:**
+The contract declares it "Implements full ERC20 functionality" [3](#0-2)  but imposes no programmatic enforcement preventing direct transfers to Core. Users store balances in persistent storage `_balanceOf` [4](#0-3) , while Core uses transient storage `coreBalance` [5](#0-4) . The `balanceOf()` view function returns `coreBalance` for the Core address. [6](#0-5) 
 
 **Exploitation Path:**
-1. **Pool Creation**: Attacker creates a pool with tick spacing = 1 (allowed by validation at [2](#0-1) )
-2. **Tick Initialization**: Attacker creates 500+ positions with consecutive tick ranges (e.g., positions at [100,101], [102,103], [104,105]...), each with minimal liquidity below the per-tick limit defined at [3](#0-2) 
-3. **Swap Execution**: Victim attempts to swap through this price range, triggering the main loop at [1](#0-0) 
-4. **Gas Exhaustion**: The loop iterates through all initialized ticks, performing storage operations at [4](#0-3)  for each tick, consuming 20,000-30,000 gas per tick. With 1000+ ticks, total gas exceeds 25,000,000, causing out-of-gas errors.
+1. **Setup**: Alice wraps 100 underlying tokens through proper `TokenWrapperPeriphery.wrap()` flow within a lock context, receiving 100 wrapped tokens in `_balanceOf[Alice]` (persistent storage).
+2. **Trigger**: Alice directly calls `wrapper.transfer(address(core), 100)` outside any lock context.
+3. **State Change**: 
+   - Line 106: `_balanceOf[Alice]` decreases by 100 (persistent storage update)
+   - Line 110: `coreBalance` increases by 100 (transient storage update)
+   - Transaction completes successfully with no reverts
+4. **Transaction End**: Transient storage automatically resets to zero per EIP-1153 specification.
+5. **Result**: 
+   - `balanceOf(alice)` returns 0
+   - `balanceOf(core)` returns 0 (transient storage reset)
+   - `totalSupply()` returns 100 (unchanged, reads from `Core.savedBalances`) [7](#0-6) 
+   - 100 tokens permanently lost with no recovery mechanism
 
-**Security Property Broken:** Violates the invariant that "All positions should be able to be withdrawn at any time...within the block gas limit" (README line 202). While positions can technically be withdrawn, the pool becomes effectively frozen for swaps, preventing normal protocol operation.
+**Security Property Broken:**
+The fundamental ERC20 accounting invariant `totalSupply() == sum of all balances` is violated. The `totalSupply()` function reads from `Core.savedBalances` which is only updated via `updateSavedBalances()` during wrap/unwrap operations within lock contexts [8](#0-7) , not during regular transfers. Direct transfers to Core permanently decrease circulating balances without updating total supply.
 
 ## Impact Explanation
-- **Affected Assets**: All liquidity providers and traders in the affected pool cannot execute swaps through the griefed price range
-- **Damage Severity**: Complete DOS of swap functionality for the pool. If the griefed range includes the current price, the pool becomes entirely unusable. Liquidity providers cannot rebalance positions that require swaps.
-- **User Impact**: All users attempting to swap through the griefed tick range experience transaction failures, making the pool unusable for its primary function
+
+**Affected Assets**: All wrapped tokens in any TokenWrapper instance. Every user holding wrapped tokens is at risk.
+
+**Damage Severity**:
+- Complete and irreversible loss of transferred token amounts
+- No administrative function or recovery mechanism exists to restore lost tokens
+- The accounting discrepancy is permanent: `totalSupply()` shows higher value than actual sum of recoverable balances
+- Protocol-wide impact affecting all TokenWrapper instances deployed by `TokenWrapperFactory`
+
+**User Impact**: 
+- Accidental transfers to Core address (common user error with address input)
+- UI/frontend bugs displaying Core address as valid transfer destination  
+- Users unfamiliar with lock context requirements
+- Malicious actors can intentionally burn others' tokens if they obtain allowances
+
+**Trigger Conditions**: 
+Any user with non-zero wrapped token balance can trigger with a single transaction. No special state, timing, or permissions required.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any user with sufficient capital to create multiple positions (cost scales with number of ticks to initialize)
-- **Preconditions**: Pool must be initialized with tick spacing = 1. Attacker needs enough tokens to create liquidity positions (can use minimal amounts per position).
-- **Execution Complexity**: Single setup phase (creating positions) followed by guaranteed DOS on victim swaps. Attack persists until positions are burned.
-- **Frequency**: Once per pool. Attacker can target multiple pools. The DOS is permanent until the attacker removes their positions.
+
+**Attacker Profile**: 
+- Any externally owned account (EOA) or contract holding wrapped tokens
+- No special privileges, whitelisting, or setup required
+- Can be unintentional (user error) or intentional (griefing/destruction)
+
+**Preconditions**:
+1. User must possess wrapped tokens (obtained through proper `wrap()` flow)
+2. No other preconditions required
+
+**Execution Complexity**: 
+Single transaction calling standard ERC20 `transfer(address(core), amount)` or `transferFrom(from, address(core), amount)` function. Trivial to execute from any wallet interface.
+
+**Economic Cost**: 
+Only transaction gas fees (~30,000 gas for transfer). No capital lockup, no opportunity cost, no slippage.
+
+**Frequency**: 
+Can occur continuously, unlimited times per block, affecting any number of users simultaneously. No rate limiting, cooldown periods, or prevention mechanisms exist.
+
+**Overall Likelihood**: 
+HIGH - The combination of zero barriers to entry, trivial execution, and high probability of accidental occurrence (users transferring to wrong addresses) makes this highly likely to manifest in production.
 
 ## Recommendation
 
-Implement a minimum tick spacing greater than 1, or add a circuit breaker that limits the maximum number of tick crossings per swap:
+**Primary Fix:**
+Add access control to prevent transfers to Core outside lock contexts:
 
 ```solidity
-// In src/types/poolConfig.sol, function validate(), line 212:
+// In src/TokenWrapper.sol, function transfer(), lines 109-110:
 
 // CURRENT (vulnerable):
-if (config.concentratedTickSpacing() > MAX_TICK_SPACING || config.concentratedTickSpacing() == 0) {
-    revert InvalidTickSpacing();
+if (to == address(CORE)) {
+    coreBalance += amount;
 }
 
 // FIXED:
-uint32 MIN_TICK_SPACING = 10; // Prevents griefing with excessive ticks
-if (config.concentratedTickSpacing() > MAX_TICK_SPACING || 
-    config.concentratedTickSpacing() < MIN_TICK_SPACING) {
-    revert InvalidTickSpacing();
-}
-```
-
-Alternative mitigation: Add a tick crossing limit in the swap loop:
-
-```solidity
-// In src/Core.sol, in swap_6269342730 function, after line 563:
-
-uint256 ticksCrossed = 0;
-uint256 constant MAX_TICK_CROSSINGS = 100;
-
-while (true) {
-    // existing code...
-    
-    if (isInitialized) {
-        ticksCrossed++;
-        if (ticksCrossed > MAX_TICK_CROSSINGS) {
-            revert TooManyTicksCrossed();
-        }
-        // existing tick processing...
+if (to == address(CORE)) {
+    // Only Core itself can receive transfers (during flash accounting operations)
+    // Direct user transfers to Core would cause permanent token loss
+    if (msg.sender != address(CORE)) {
+        revert("TokenWrapper: cannot transfer to Core outside lock context");
     }
+    coreBalance += amount;
 }
 ```
+
+Apply identical fix to `transferFrom()` function at lines 148-149.
+
+**Alternative Mitigations**:
+1. Use persistent storage for Core's balance instead of transient storage (increases gas costs, defeats optimization purpose)
+2. Implement a redemption mechanism allowing Core owner to return mistakenly transferred tokens (complex governance implications)
+3. Override ERC20 metadata to warn users in token name/symbol (insufficient protection, doesn't prevent loss)
+
+**Additional Considerations**:
+- Add NatSpec documentation explicitly warning about this restriction
+- Update frontend interfaces to validate recipient addresses before transfer
+- Consider implementing a whitelist of safe transfer recipients
 
 ## Proof of Concept
 
 ```solidity
-// File: test/Exploit_SwapLoopDOS.t.sol
-// Run with: forge test --match-test test_SwapLoopDOS -vvv
+// File: test/TokenWrapperVulnerability.t.sol
+// Demonstrates permanent token loss from direct transfers to Core
 
-pragma solidity ^0.8.31;
+pragma solidity >=0.8.30;
 
-import {FullTest} from "./FullTest.sol";
-import {PoolKey} from "../src/types/poolKey.sol";
-import {createConcentratedPoolConfig} from "../src/types/poolConfig.sol";
-import {MIN_SQRT_RATIO, MAX_SQRT_RATIO} from "../src/types/sqrtRatio.sol";
+import "forge-std/Test.sol";
+import "../src/TokenWrapper.sol";
+import "../src/TokenWrapperFactory.sol";
+import "./TestToken.sol";
+import "./FullTest.sol";
 
-contract Exploit_SwapLoopDOS is FullTest {
+contract TokenWrapperVulnerabilityTest is FullTest {
+    TokenWrapperFactory factory;
+    TokenWrapperPeriphery periphery; 
+    TestToken underlying;
+    TokenWrapper wrapper;
+    address alice = address(0x1111);
     
     function setUp() public override {
         FullTest.setUp();
-        token0.approve(address(positions), type(uint256).max);
-        token1.approve(address(positions), type(uint256).max);
-        token0.approve(address(router), type(uint256).max);
-        token1.approve(address(router), type(uint256).max);
+        underlying = new TestToken(address(this));
+        factory = new TokenWrapperFactory(core);
+        periphery = new TokenWrapperPeriphery(core);
+        
+        // Deploy wrapper with unlock time in future
+        wrapper = factory.deployWrapper(IERC20(address(underlying)), block.timestamp + 365 days);
+        
+        // Setup: Wrap 1000 tokens for Alice through proper flow
+        underlying.transfer(alice, 1000);
+        vm.startPrank(alice);
+        underlying.approve(address(periphery), 1000);
+        periphery.wrap(wrapper, 1000);
+        vm.stopPrank();
+        
+        // Verify initial state
+        assertEq(wrapper.balanceOf(alice), 1000, "Alice should have 1000 wrapped tokens");
+        assertEq(wrapper.totalSupply(), 1000, "Total supply should be 1000");
     }
     
-    function test_SwapLoopDOS() public {
-        // SETUP: Create pool with minimum tick spacing
-        PoolKey memory poolKey = createPool({
-            tick: 0,
-            fee: 1000,
-            tickSpacing: 1  // Minimum allowed - vulnerable
-        });
+    function test_PermanentLossFromDirectTransferToCore() public {
+        uint256 totalSupplyBefore = wrapper.totalSupply();
         
-        // Initialize many consecutive ticks by creating positions
-        uint256 numPositions = 100; // In real attack: 500-1000+
-        for (uint256 i = 0; i < numPositions; i++) {
-            int32 tickLower = int32(int256(i * 2));
-            int32 tickUpper = tickLower + 1;
-            
-            // Create position with minimal liquidity
-            createPosition({
-                poolKey: poolKey,
-                tickLower: tickLower,
-                tickUpper: tickUpper,
-                amount0: 1000,
-                amount1: 1000
-            });
-        }
+        // EXPLOIT: Alice transfers 500 tokens directly to Core (outside lock context)
+        vm.prank(alice);
+        wrapper.transfer(address(core), 500);
         
-        // EXPLOIT: Attempt swap through initialized ticks
-        uint256 gasBefore = gasleft();
+        // VERIFY VULNERABILITY:
         
-        try router.swap{gas: 30_000_000}({
-            poolKey: poolKey,
-            isToken1: true,
-            amount: 10000,
-            sqrtRatioLimit: MAX_SQRT_RATIO,
-            skipAhead: 255,  // Even with max skipAhead, DOS occurs
-            calculatedAmountThreshold: type(int128).min,
-            recipient: address(0)
-        }) {
-            uint256 gasUsed = gasBefore - gasleft();
-            // VERIFY: Excessive gas consumption
-            // With 100 positions: ~2-3M gas
-            // With 1000 positions: would exceed 30M gas (block limit)
-            assertGt(gasUsed, 2_000_000, "Gas consumption exceeds normal swap");
-        } catch {
-            // Swap reverted due to out of gas
-            assertTrue(true, "Vulnerability confirmed: swap failed due to gas");
-        }
+        // 1. Alice's balance decreased (persistent storage updated)
+        assertEq(wrapper.balanceOf(alice), 500, "Alice's balance decreased");
+        
+        // 2. Core's balance is 0 (transient storage reset after transaction)
+        assertEq(wrapper.balanceOf(address(core)), 0, "Core balance is 0 - tokens disappeared");
+        
+        // 3. Total supply unchanged (reads from Core.savedBalances)
+        assertEq(wrapper.totalSupply(), totalSupplyBefore, "Total supply unchanged");
+        
+        // 4. CRITICAL: Accounting invariant broken
+        uint256 sumOfBalances = wrapper.balanceOf(alice) + wrapper.balanceOf(address(core));
+        assertLt(sumOfBalances, wrapper.totalSupply(), "VULNERABILITY: totalSupply > sum of balances");
+        
+        // 5. 500 tokens permanently lost and unrecoverable
+        assertEq(wrapper.totalSupply() - sumOfBalances, 500, "500 tokens permanently lost");
+    }
+    
+    function test_MultipleLossesCompound() public {
+        // Multiple users can lose tokens independently
+        address bob = address(0x2222);
+        underlying.transfer(bob, 500);
+        
+        vm.startPrank(bob);
+        underlying.approve(address(periphery), 500);
+        periphery.wrap(wrapper, 500);
+        vm.stopPrank();
+        
+        assertEq(wrapper.totalSupply(), 1500, "Total supply now 1500");
+        
+        // Both Alice and Bob lose tokens
+        vm.prank(alice);
+        wrapper.transfer(address(core), 300);
+        
+        vm.prank(bob);
+        wrapper.transfer(address(core), 200);
+        
+        // Total loss compounds
+        uint256 totalLost = 300 + 200;
+        uint256 totalRecoverable = wrapper.balanceOf(alice) + wrapper.balanceOf(bob) + wrapper.balanceOf(address(core));
+        
+        assertEq(wrapper.totalSupply() - totalRecoverable, totalLost, "500 tokens total permanently lost");
     }
 }
 ```
 
-**Notes:**
-- The `skipAhead` parameter only affects the bitmap search logic in [5](#0-4) , which finds the next initialized tick. It does NOT skip processing of initialized ticks in the main swap loop.
-- Test files like [6](#0-5)  already use defensive 15M gas limits, indicating awareness of potential gas issues.
-- The vulnerability exists because there is no limit on the number of initialized ticks per pool, only a limit on liquidity per tick at [7](#0-6) .
-- With tick spacing = 1, the full tick range (MIN_TICK to MAX_TICK) spans ~177 million possible ticks, allowing an attacker to initialize thousands of consecutive ticks economically.
+**Expected PoC Result:**
+- **If Vulnerable**: Tests pass, demonstrating tokens disappear with totalSupply > sum of balances
+- **If Fixed**: Transaction reverts with "cannot transfer to Core outside lock context" error
+
+## Notes
+
+This vulnerability arises from an architectural mismatch between storage types (persistent vs. transient) combined with unrestricted access to standard ERC20 transfer functions. While transient storage provides critical gas optimization for flash accounting within lock contexts, extending this optimization to user-facing transfers creates an unintended burn mechanism.
+
+The code comment at lines 97-98 acknowledges Core's special handling but assumes all Core transfers occur within payment flows that net to zero. This assumption lacks programmatic enforcement, making it an invalid security assumption. The contract's self-description as implementing "full ERC20 functionality" contradicts the implicit restriction that transfers to Core should only occur in specific contexts.
+
+The test file demonstrates intended usage through `TokenWrapperPeriphery` within proper lock contexts [9](#0-8) , but the base `transfer()` and `transferFrom()` functions remain publicly accessible without protection against this destructive edge case.
 
 ### Citations
 
-**File:** src/Core.sol (L297-299)
+**File:** src/TokenWrapper.sol (L18-19)
 ```text
-        uint128 maxLiquidity = poolConfig.concentratedMaxLiquidityPerTick();
-        if (liquidityNetNext > maxLiquidity) {
-            revert MaxLiquidityPerTickExceeded(tick, liquidityNetNext, maxLiquidity);
+/// @dev Wrapping and unwrapping happens via Ekubo Core#forward. Implements full ERC20 functionality
+contract TokenWrapper is UsesCore, IERC20, BaseForwardee {
 ```
 
-**File:** src/Core.sol (L564-808)
+**File:** src/TokenWrapper.sol (L52-52)
 ```text
-                while (true) {
-                    int32 nextTick;
-                    bool isInitialized;
-                    SqrtRatio nextTickSqrtRatio;
-
-                    // For stableswap pools, determine active liquidity for this step
-                    uint128 stepLiquidity = liquidity;
-
-                    if (config.isStableswap()) {
-                        if (config.isFullRange()) {
-                            // special case since we don't need to compute min/max tick sqrt ratio
-                            (nextTick, nextTickSqrtRatio) =
-                                increasing ? (MAX_TICK, MAX_SQRT_RATIO) : (MIN_TICK, MIN_SQRT_RATIO);
-                        } else {
-                            (int32 lower, int32 upper) = config.stableswapActiveLiquidityTickRange();
-
-                            bool inRange;
-                            assembly ("memory-safe") {
-                                inRange := and(slt(tick, upper), iszero(slt(tick, lower)))
-                            }
-                            if (inRange) {
-                                nextTick = increasing ? upper : lower;
-                                nextTickSqrtRatio = tickToSqrtRatio(nextTick);
-                            } else {
-                                if (tick < lower) {
-                                    (nextTick, nextTickSqrtRatio) =
-                                        increasing ? (lower, tickToSqrtRatio(lower)) : (MIN_TICK, MIN_SQRT_RATIO);
-                                } else {
-                                    // tick >= upper implied
-                                    (nextTick, nextTickSqrtRatio) =
-                                        increasing ? (MAX_TICK, MAX_SQRT_RATIO) : (upper, tickToSqrtRatio(upper));
-                                }
-                                stepLiquidity = 0;
-                            }
-                        }
-                    } else {
-                        // concentrated liquidity pools use the tick bitmaps
-                        (nextTick, isInitialized) = increasing
-                            ? findNextInitializedTick(
-                                CoreStorageLayout.tickBitmapsSlot(poolId),
-                                tick,
-                                config.concentratedTickSpacing(),
-                                params.skipAhead()
-                            )
-                            : findPrevInitializedTick(
-                                CoreStorageLayout.tickBitmapsSlot(poolId),
-                                tick,
-                                config.concentratedTickSpacing(),
-                                params.skipAhead()
-                            );
-
-                        nextTickSqrtRatio = tickToSqrtRatio(nextTick);
-                    }
-
-                    SqrtRatio limitedNextSqrtRatio =
-                        increasing ? nextTickSqrtRatio.min(sqrtRatioLimit) : nextTickSqrtRatio.max(sqrtRatioLimit);
-
-                    SqrtRatio sqrtRatioNext;
-
-                    if (stepLiquidity == 0) {
-                        // if the pool is empty, the swap will always move all the way to the limit price
-                        sqrtRatioNext = limitedNextSqrtRatio;
-                    } else {
-                        // this amount is what moves the price
-                        int128 priceImpactAmount;
-                        if (isExactOut) {
-                            assembly ("memory-safe") {
-                                priceImpactAmount := amountRemaining
-                            }
-                        } else {
-                            uint128 amountU128;
-                            assembly ("memory-safe") {
-                                // cast is safe because amountRemaining is g.t. 0 and fits in int128
-                                amountU128 := amountRemaining
-                            }
-                            uint128 feeAmount = computeFee(amountU128, config.fee());
-                            assembly ("memory-safe") {
-                                // feeAmount will never exceed amountRemaining since fee is < 100%
-                                priceImpactAmount := sub(amountRemaining, feeAmount)
-                            }
-                        }
-
-                        SqrtRatio sqrtRatioNextFromAmount = isToken1
-                            ? nextSqrtRatioFromAmount1(sqrtRatio, stepLiquidity, priceImpactAmount)
-                            : nextSqrtRatioFromAmount0(sqrtRatio, stepLiquidity, priceImpactAmount);
-
-                        bool hitLimit;
-                        assembly ("memory-safe") {
-                            // Branchless limit check: (increasing && next > limit) || (!increasing && next < limit)
-                            let exceedsUp := and(increasing, gt(sqrtRatioNextFromAmount, limitedNextSqrtRatio))
-                            let exceedsDown :=
-                                and(iszero(increasing), lt(sqrtRatioNextFromAmount, limitedNextSqrtRatio))
-                            hitLimit := or(exceedsUp, exceedsDown)
-                        }
-
-                        // the change in fees per liquidity for this step of the iteration
-                        uint256 stepFeesPerLiquidity;
-
-                        if (hitLimit) {
-                            (uint256 sqrtRatioLower, uint256 sqrtRatioUpper) =
-                                sortAndConvertToFixedSqrtRatios(limitedNextSqrtRatio, sqrtRatio);
-                            (uint128 limitSpecifiedAmountDelta, uint128 limitCalculatedAmountDelta) = isToken1
-                                ? (
-                                    amount1DeltaSorted(sqrtRatioLower, sqrtRatioUpper, stepLiquidity, !isExactOut),
-                                    amount0DeltaSorted(sqrtRatioLower, sqrtRatioUpper, stepLiquidity, isExactOut)
-                                )
-                                : (
-                                    amount0DeltaSorted(sqrtRatioLower, sqrtRatioUpper, stepLiquidity, !isExactOut),
-                                    amount1DeltaSorted(sqrtRatioLower, sqrtRatioUpper, stepLiquidity, isExactOut)
-                                );
-
-                            if (isExactOut) {
-                                uint128 beforeFee = amountBeforeFee(limitCalculatedAmountDelta, config.fee());
-                                assembly ("memory-safe") {
-                                    calculatedAmount := add(calculatedAmount, beforeFee)
-                                    amountRemaining := add(amountRemaining, limitSpecifiedAmountDelta)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(beforeFee, limitCalculatedAmountDelta)),
-                                        stepLiquidity
-                                    )
-                                }
-                            } else {
-                                uint128 beforeFee = amountBeforeFee(limitSpecifiedAmountDelta, config.fee());
-                                assembly ("memory-safe") {
-                                    calculatedAmount := sub(calculatedAmount, limitCalculatedAmountDelta)
-                                    amountRemaining := sub(amountRemaining, beforeFee)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(beforeFee, limitSpecifiedAmountDelta)),
-                                        stepLiquidity
-                                    )
-                                }
-                            }
-
-                            sqrtRatioNext = limitedNextSqrtRatio;
-                        } else if (sqrtRatioNextFromAmount != sqrtRatio) {
-                            uint128 calculatedAmountWithoutFee = isToken1
-                                ? amount0Delta(sqrtRatioNextFromAmount, sqrtRatio, stepLiquidity, isExactOut)
-                                : amount1Delta(sqrtRatioNextFromAmount, sqrtRatio, stepLiquidity, isExactOut);
-
-                            if (isExactOut) {
-                                uint128 includingFee = amountBeforeFee(calculatedAmountWithoutFee, config.fee());
-                                assembly ("memory-safe") {
-                                    calculatedAmount := add(calculatedAmount, includingFee)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(includingFee, calculatedAmountWithoutFee)),
-                                        stepLiquidity
-                                    )
-                                }
-                            } else {
-                                assembly ("memory-safe") {
-                                    calculatedAmount := sub(calculatedAmount, calculatedAmountWithoutFee)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(amountRemaining, priceImpactAmount)),
-                                        stepLiquidity
-                                    )
-                                }
-                            }
-
-                            amountRemaining = 0;
-                            sqrtRatioNext = sqrtRatioNextFromAmount;
-                        } else {
-                            // for an exact output swap, the price should always move since we have to round away from the current price
-                            assert(!isExactOut);
-
-                            // consume the entire input amount as fees since the price did not move
-                            assembly ("memory-safe") {
-                                stepFeesPerLiquidity := div(shl(128, amountRemaining), stepLiquidity)
-                            }
-                            amountRemaining = 0;
-                            sqrtRatioNext = sqrtRatio;
-                        }
-
-                        // only if fees per liquidity was updated in this swap iteration
-                        if (stepFeesPerLiquidity != 0) {
-                            if (feesAccessed == 0) {
-                                // this loads only the input token fees per liquidity
-                                inputTokenFeesPerLiquidity = uint256(
-                                    CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).add(LibBit.rawToUint(increasing))
-                                        .load()
-                                ) + stepFeesPerLiquidity;
-                            } else {
-                                inputTokenFeesPerLiquidity += stepFeesPerLiquidity;
-                            }
-
-                            feesAccessed = 2;
-                        }
-                    }
-
-                    if (sqrtRatioNext == nextTickSqrtRatio) {
-                        sqrtRatio = sqrtRatioNext;
-                        assembly ("memory-safe") {
-                            // no overflow danger because nextTick is always inside the valid tick bounds
-                            tick := sub(nextTick, iszero(increasing))
-                        }
-
-                        if (isInitialized) {
-                            bytes32 tickValue = CoreStorageLayout.poolTicksSlot(poolId, nextTick).load();
-                            assembly ("memory-safe") {
-                                // if increasing, we add the liquidity delta, otherwise we subtract it
-                                let liquidityDelta :=
-                                    mul(signextend(15, tickValue), sub(increasing, iszero(increasing)))
-                                liquidity := add(liquidity, liquidityDelta)
-                            }
-
-                            (StorageSlot tickFplFirstSlot, StorageSlot tickFplSecondSlot) =
-                                CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot(poolId, nextTick);
-
-                            if (feesAccessed == 0) {
-                                inputTokenFeesPerLiquidity = uint256(
-                                    CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).add(LibBit.rawToUint(increasing))
-                                        .load()
-                                );
-                                feesAccessed = 1;
-                            }
-
-                            uint256 globalFeesPerLiquidityOther = uint256(
-                                CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).add(LibBit.rawToUint(!increasing))
-                                    .load()
-                            );
-
-                            // if increasing, it means the pool is receiving token1 so the input fees per liquidity is token1
-                            if (increasing) {
-                                tickFplFirstSlot.store(
-                                    bytes32(globalFeesPerLiquidityOther - uint256(tickFplFirstSlot.load()))
-                                );
-                                tickFplSecondSlot.store(
-                                    bytes32(inputTokenFeesPerLiquidity - uint256(tickFplSecondSlot.load()))
-                                );
-                            } else {
-                                tickFplFirstSlot.store(
-                                    bytes32(inputTokenFeesPerLiquidity - uint256(tickFplFirstSlot.load()))
-                                );
-                                tickFplSecondSlot.store(
-                                    bytes32(globalFeesPerLiquidityOther - uint256(tickFplSecondSlot.load()))
-                                );
-                            }
-                        }
-                    } else if (sqrtRatio != sqrtRatioNext) {
-                        sqrtRatio = sqrtRatioNext;
-                        tick = sqrtRatioToTick(sqrtRatio);
-                    }
-
-                    if (amountRemaining == 0 || sqrtRatio == sqrtRatioLimit) {
-                        break;
-                    }
+    mapping(address account => uint256) private _balanceOf;
 ```
 
-**File:** src/types/poolConfig.sol (L187-196)
+**File:** src/TokenWrapper.sol (L54-56)
 ```text
-function concentratedMaxLiquidityPerTick(PoolConfig config) pure returns (uint128 maxLiquidity) {
-    uint32 _tickSpacing = config.concentratedTickSpacing();
+    /// @notice Transient balance for the Core contract
+    /// @dev Core never actually holds a real balance of this token, we just use this transient balance to enable low cost payments to core
+    uint256 private transient coreBalance;
+```
 
-    assembly ("memory-safe") {
-        // Calculate total number of usable ticks: 1 + (MAX_TICK_MAGNITUDE / tickSpacing) * 2
-        // This represents all ticks from -MAX_TICK_MAGNITUDE to +MAX_TICK_MAGNITUDE, and tick 0
-        let numTicks := add(1, mul(div(MAX_TICK, _tickSpacing), 2))
-
-        maxLiquidity := div(sub(shl(128, 1), 1), numTicks)
+**File:** src/TokenWrapper.sol (L60-63)
+```text
+    function balanceOf(address account) external view returns (uint256) {
+        if (account == address(CORE)) return coreBalance;
+        return _balanceOf[account];
     }
 ```
 
-**File:** src/types/poolConfig.sol (L212-212)
+**File:** src/TokenWrapper.sol (L67-76)
 ```text
-        if (config.concentratedTickSpacing() > MAX_TICK_SPACING || config.concentratedTickSpacing() == 0) {
+    function totalSupply() external view override returns (uint256) {
+        (uint128 supply,) = CORE.savedBalances({
+            owner: address(this),
+            token0: address(UNDERLYING_TOKEN),
+            token1: address(type(uint160).max),
+            salt: bytes32(0)
+        });
+
+        return supply;
+    }
 ```
 
-**File:** src/math/tickBitmap.sol (L42-80)
+**File:** src/TokenWrapper.sol (L96-117)
 ```text
-function findNextInitializedTick(StorageSlot slot, int32 fromTick, uint32 tickSpacing, uint256 skipAhead)
-    view
-    returns (int32 nextTick, bool isInitialized)
-{
-    unchecked {
-        nextTick = fromTick;
-
-        while (true) {
-            // convert the given tick to the bitmap position of the next nearest potential initialized tick
-            (uint256 word, uint256 index) = tickToBitmapWordAndIndex(nextTick + int32(tickSpacing), tickSpacing);
-
-            Bitmap bitmap = loadBitmap(slot, word);
-
-            // find the index of the previous tick in that word
-            uint256 nextIndex = bitmap.geSetBit(uint8(index));
-
-            // if we found one, return it
-            if (nextIndex != 0) {
-                (nextTick, isInitialized) = (bitmapWordAndIndexToTick(word, nextIndex - 1, tickSpacing), true);
-                break;
+    function transfer(address to, uint256 amount) external returns (bool) {
+        // note we do not need to check that core balance is sufficient as the sender
+        // even if the caller gets core to withdraw to itself, as part of a payment, it will net to 0 with the Core#withdraw call
+        if (msg.sender != address(CORE)) {
+            uint256 balance = _balanceOf[msg.sender];
+            if (balance < amount) {
+                revert InsufficientBalance();
             }
-
-            // otherwise, return the tick of the most significant bit in the word
-            nextTick = bitmapWordAndIndexToTick(word, 255, tickSpacing);
-
-            if (nextTick >= MAX_TICK) {
-                nextTick = MAX_TICK;
-                break;
+            // since we already checked balance >= amount
+            unchecked {
+                _balanceOf[msg.sender] = balance - amount;
             }
+        }
+        if (to == address(CORE)) {
+            coreBalance += amount;
+        } else if (to != address(0)) {
+            // we save storage writes on burn by checking to != address(0)
+            _balanceOf[to] += amount;
+        }
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+```
 
-            // if we are done searching, stop here
-            if (skipAhead == 0) {
-                break;
+**File:** src/TokenWrapper.sol (L171-177)
+```text
+        CORE.updateSavedBalances({
+            token0: address(UNDERLYING_TOKEN),
+            token1: address(type(uint160).max),
+            salt: bytes32(0),
+            delta0: amount,
+            delta1: 0
+        });
+```
+
+**File:** test/TokenWrapper.t.sol (L16-73)
+```text
+contract TokenWrapperPeriphery is BaseLocker {
+    using FlashAccountantLib for *;
+
+    constructor(ICore core) BaseLocker(core) {}
+
+    function wrap(TokenWrapper wrapper, uint128 amount) external {
+        lock(abi.encode(wrapper, msg.sender, msg.sender, int256(uint256(amount))));
+    }
+
+    function wrap(TokenWrapper wrapper, address recipient, uint128 amount) external {
+        lock(abi.encode(wrapper, msg.sender, recipient, int256(uint256(amount))));
+    }
+
+    function unwrap(TokenWrapper wrapper, uint128 amount) external {
+        lock(abi.encode(wrapper, msg.sender, msg.sender, -int256(uint256(amount))));
+    }
+
+    function unwrap(TokenWrapper wrapper, address recipient, uint128 amount) external {
+        lock(abi.encode(wrapper, msg.sender, recipient, -int256(uint256(amount))));
+    }
+
+    function handleLockData(uint256, bytes memory data) internal override returns (bytes memory) {
+        (TokenWrapper wrapper, address payer, address recipient, int256 amount) =
+            abi.decode(data, (TokenWrapper, address, address, int256));
+
+        if (amount >= 0) {
+            // this creates the deltas
+            ACCOUNTANT.forward(address(wrapper), abi.encode(amount));
+            // now withdraw to the recipient
+            if (uint128(uint256(amount)) > 0) {
+                ACCOUNTANT.withdraw(address(wrapper), recipient, uint128(uint256(amount)));
             }
-
-            skipAhead--;
+            // and pay the wrapped token from the payer
+            if (uint256(amount) != 0) {
+                if (address(wrapper.UNDERLYING_TOKEN()) == NATIVE_TOKEN_ADDRESS) {
+                    SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(amount));
+                } else {
+                    ACCOUNTANT.payFrom(payer, address(wrapper.UNDERLYING_TOKEN()), uint256(amount));
+                }
+            }
+        } else {
+            // this creates the deltas
+            ACCOUNTANT.forward(address(wrapper), abi.encode(amount));
+            // now withdraw to the recipient
+            if (uint128(uint256(-amount)) > 0) {
+                ACCOUNTANT.withdraw(address(wrapper.UNDERLYING_TOKEN()), recipient, uint128(uint256(-amount)));
+            }
+            // and pay the wrapped token from the payer
+            if (uint256(-amount) != 0) {
+                if (address(wrapper) == NATIVE_TOKEN_ADDRESS) {
+                    SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(-amount));
+                } else {
+                    ACCOUNTANT.payFrom(payer, address(wrapper), uint256(-amount));
+                }
+            }
         }
     }
 }
-```
-
-**File:** test/SolvencyInvariantTest.t.sol (L242-242)
-```text
-        try router.swap{gas: 15000000}({
 ```

@@ -1,1 +1,0 @@
-Looking at the security question about whether nested withdrawals through reentrancy can corrupt the `nzdCountSlot` update in `FlashAccountant.sol`, let me trace through the code carefully.

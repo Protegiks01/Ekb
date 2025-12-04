@@ -1,239 +1,101 @@
-## Title
-Small Swaps Can Be Completely Consumed as Fees Without Price Movement in High-Liquidity Pools
+# NoVulnerability found for this question.
 
-## Summary
-In `Core.sol` lines 724-734, when a swap's price impact amount is too small to move the price (due to integer division rounding in sqrt ratio calculations), the entire input amount is consumed as fees instead of the configured fee rate. This breaks user expectations and results in 100% effective fees for small swaps in high-liquidity pools, causing direct loss of user funds.
+## Analysis
 
-## Impact
-**Severity**: High
+After thorough validation of the claimed TWAMM reentrancy vulnerability, I must conclude that **the vulnerability does not exist** due to an intentional reentrancy guard in the codebase.
 
-## Finding Description
+### Critical Flaw in the Claim
 
-**Location:** `src/Core.sol`, function `swap_6269342730()`, lines 724-734 [1](#0-0) 
+The claim states: "During the CORE.swap calls (lines 456/489), the Core contract triggers the beforeSwap extension hook, which calls back into TWAMM's lockAndExecuteVirtualOrders."
 
-**Intended Logic:** For exact input swaps, the protocol should:
-1. Deduct the configured fee (e.g., 0.3%) from the input amount
-2. Use the remaining amount to move the price and calculate output
-3. Return the calculated output to the user
+However, this is **incorrect** based on the actual code execution path.
 
-**Actual Logic:** When the price impact amount is too small to move the price due to rounding:
-1. The sqrt ratio calculation returns the same value as the current price
-2. The code path at lines 728-732 consumes the ENTIRE `amountRemaining` as fees
-3. User receives zero output despite expecting tokens based on the current price
+### Why the Reentrancy Does NOT Occur
 
-**Exploitation Path:**
+**1. Locker State When _executeVirtualOrdersFromWithinLock Executes:**
 
-1. **Identify vulnerable pool**: Attacker finds or creates a pool with high liquidity (e.g., `liquidity ≥ 2^130`)
+When `_executeVirtualOrdersFromWithinLock` is executing, the current locker is **always TWAMM itself**, through two possible paths:
 
-2. **Small swap triggers vulnerability**: User (or attacker targeting a victim) submits a small swap:
-   - Input: 5 tokens with 0.3% fee
-   - Fee calculation: `feeAmount ≈ 1` token (from `computeFee`)
-   - Price impact amount: `priceImpactAmount = 5 - 1 = 4` tokens [2](#0-1) 
+- **Via forward mechanism:** [1](#0-0)  temporarily sets the locker to TWAMM when forwarding to it.
 
-3. **Sqrt ratio calculation rounds to zero**: In `nextSqrtRatioFromAmount1`:
-   - `quotient = (4 * 2^128) / 2^130 = 0` (integer division)
-   - Returns same `sqrtRatio` (no price movement) [3](#0-2) 
+- **Via lock mechanism:** [2](#0-1)  sets the locker to the caller (TWAMM) when `lockAndExecuteVirtualOrders` is called.
 
-4. **Entire amount consumed as fees**: Since `sqrtRatioNextFromAmount == sqrtRatio`:
-   - `hitLimit = false` (price didn't exceed limit)
-   - Skips the else-if branch at line 698
-   - Executes lines 728-732: consumes entire 5 tokens as fees
-   - User receives zero output [4](#0-3) 
+**2. The Reentrancy Guard:**
 
-**Security Property Broken:** Violates fee accounting integrity - users pay 100% effective fees instead of the configured rate, and the protocol behavior contradicts basic swap expectations where input should produce output at the current price.
+When CORE.swap is called from within `_executeVirtualOrdersFromWithinLock` [3](#0-2) , the Core contract checks whether to invoke beforeSwap using [4](#0-3) .
 
-## Impact Explanation
+This function returns TRUE only if:
+1. beforeSwap is enabled in the extension, AND
+2. **The locker address differs from the extension address**
 
-- **Affected Assets**: User input tokens in small swaps against high-liquidity pools
-- **Damage Severity**: Complete loss of input amount for affected swaps. For a 5-token swap in a pool with `liquidity = 2^130`, user loses 100% instead of paying 0.3% fees
-- **User Impact**: Any user performing small swaps directly through `Core.sol` or through contracts that don't implement proper minimum output checks. Disproportionately affects retail traders and small transactions
+The assembly check `iszero(eq(shl(96, locker), shl(96, extension)))` compares the address portion of the locker (a bytes32 containing both lock ID and address) with the extension address. [5](#0-4) 
 
-## Likelihood Explanation
+**3. Execution Path Result:**
 
-- **Attacker Profile**: Any user performing small swaps, or malicious LPs who can manipulate victims into small swaps
-- **Preconditions**: 
-  - Pool must have liquidity `≥ 2^128` (achievable in popular trading pairs)
-  - Swap amount must satisfy: `(amount - fee) * 2^128 < liquidity`
-  - For `liquidity = 2^130` and 0.3% fee: amounts ≤ 5 tokens are vulnerable
-- **Execution Complexity**: Single transaction; no special timing required
-- **Frequency**: Affects every small swap meeting the threshold in high-liquidity pools; can occur continuously
+Since the locker is TWAMM and the extension is TWAMM:
+- The check finds they are equal
+- `shouldCallBeforeSwap` returns **FALSE**
+- **beforeSwap is NOT called**
+- **No nested execution occurs**
+- **No state corruption happens**
 
-## Recommendation
+### Notes
 
-Add a check to revert or refund when the price cannot move despite having remaining input:
+The Ekubo protocol has been deliberately designed with this guard to prevent extensions from creating infinite recursion by calling their own hooks. The claim overlooks this critical protection mechanism and misunderstands how the locker state is managed during virtual order execution.
 
-```solidity
-// In src/Core.sol, function swap_6269342730, lines 724-734:
-
-// CURRENT (vulnerable):
-} else {
-    // for an exact output swap, the price should always move since we have to round away from the current price
-    assert(!isExactOut);
-
-    // consume the entire input amount as fees since the price did not move
-    assembly ("memory-safe") {
-        stepFeesPerLiquidity := div(shl(128, amountRemaining), stepLiquidity)
-    }
-    amountRemaining = 0;
-    sqrtRatioNext = sqrtRatio;
-}
-
-// FIXED:
-} else {
-    // for an exact output swap, the price should always move since we have to round away from the current price
-    assert(!isExactOut);
-
-    // If price cannot move, revert to prevent consuming input as fees
-    // This protects users from unexpected 100% fee scenarios
-    revert InsufficientAmountToMovePrice();
-    
-    // Alternative: Could refund the amount instead of reverting
-    // amountRemaining = 0; // Don't consume as fees
-    // sqrtRatioNext = sqrtRatio;
-    // break; // Exit swap loop
-}
-```
-
-**Alternative Mitigation:** Implement a minimum swap amount check at the pool level, or ensure Router-level slippage protection is mandatory for all user-facing interactions.
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_SmallSwapFeeBurn.t.sol
-// Run with: forge test --match-test test_SmallSwapCompletelyConsumedAsFees -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/types/poolKey.sol";
-import "../src/types/swapParameters.sol";
-
-contract Exploit_SmallSwapFeeBurn is Test {
-    ICore core;
-    address token0 = address(0x1);
-    address token1 = address(0x2);
-    PoolKey poolKey;
-    
-    function setUp() public {
-        // Deploy Core and initialize high-liquidity pool
-        core = new Core();
-        
-        // Create pool with liquidity = 2^130 (high liquidity scenario)
-        // Fee = 0.003 * 2^64 (0.3%)
-        uint128 highLiquidity = uint128(2**130);
-        
-        // Initialize pool and add high liquidity
-        // [initialization code - setup pool with highLiquidity]
-    }
-    
-    function test_SmallSwapCompletelyConsumedAsFees() public {
-        // SETUP: User wants to swap 5 tokens expecting ~4.985 tokens output (0.3% fee)
-        uint128 swapAmount = 5;
-        
-        // Record initial balances
-        uint256 userToken1BalanceBefore = IERC20(token1).balanceOf(address(this));
-        
-        // EXPLOIT: Execute small swap
-        SwapParameters memory params = createSwapParameters({
-            _amount: int128(swapAmount),
-            _isToken1: true,
-            _sqrtRatioLimit: SqrtRatio.wrap(0), // No limit
-            _skipAhead: 0
-        });
-        
-        (PoolBalanceUpdate memory update, ) = core.swap(0, poolKey, params);
-        
-        // VERIFY: User received ZERO output despite expecting ~4.985 tokens
-        int128 calculatedOutput = -update.delta0(); // Output in token0
-        
-        assertEq(calculatedOutput, 0, "User received zero output");
-        assertEq(update.delta1(), int128(swapAmount), "Entire input consumed");
-        
-        // User lost 100% of input as fees instead of 0.3%
-        uint256 userToken1BalanceAfter = IERC20(token1).balanceOf(address(this));
-        assertEq(userToken1BalanceBefore - userToken1BalanceAfter, swapAmount, 
-            "Vulnerability confirmed: 100% fee instead of 0.3%");
-    }
-}
-```
-
-## Notes
-
-**Critical Detail:** The vulnerability arises from the interaction between fee deduction and sqrt ratio precision limits. The threshold formula is:
-
-`vulnerable_amount < (liquidity / 2^128) + fee_amount`
-
-For realistic scenarios:
-- Pool with `liquidity = 2^130`: amounts ≤ 5 tokens vulnerable
-- Pool with `liquidity = 2^136`: amounts ≤ 320 tokens vulnerable
-- Higher liquidity = larger vulnerable threshold
-
-**Mitigation Priority:** This is a HIGH severity issue requiring immediate fix, as it causes direct user fund loss and violates fundamental swap mechanics. The Router's slippage protection provides partial mitigation for users who use it properly, but direct `Core.sol` interactions and integrations lacking slippage checks remain vulnerable.
+The check at `shouldCallBeforeSwap` is an intentional security feature, not a bug. It ensures that when an extension (like TWAMM) is performing internal operations that require swaps, those swaps don't trigger the extension's own hooks, which would be nonsensical and potentially dangerous.
 
 ### Citations
 
-**File:** src/Core.sol (L633-644)
+**File:** src/base/FlashAccountant.sol (L146-153)
 ```text
-                        } else {
-                            uint128 amountU128;
-                            assembly ("memory-safe") {
-                                // cast is safe because amountRemaining is g.t. 0 and fits in int128
-                                amountU128 := amountRemaining
-                            }
-                            uint128 feeAmount = computeFee(amountU128, config.fee());
-                            assembly ("memory-safe") {
-                                // feeAmount will never exceed amountRemaining since fee is < 100%
-                                priceImpactAmount := sub(amountRemaining, feeAmount)
-                            }
-                        }
+    function lock() external {
+        assembly ("memory-safe") {
+            let current := tload(_CURRENT_LOCKER_SLOT)
+
+            let id := shr(160, current)
+
+            // store the count
+            tstore(_CURRENT_LOCKER_SLOT, or(shl(160, add(id, 1)), caller()))
 ```
 
-**File:** src/Core.sol (L698-734)
+**File:** src/base/FlashAccountant.sol (L190-196)
 ```text
-                        } else if (sqrtRatioNextFromAmount != sqrtRatio) {
-                            uint128 calculatedAmountWithoutFee = isToken1
-                                ? amount0Delta(sqrtRatioNextFromAmount, sqrtRatio, stepLiquidity, isExactOut)
-                                : amount1Delta(sqrtRatioNextFromAmount, sqrtRatio, stepLiquidity, isExactOut);
+    function forward(address to) external {
+        Locker locker = _requireLocker();
 
-                            if (isExactOut) {
-                                uint128 includingFee = amountBeforeFee(calculatedAmountWithoutFee, config.fee());
-                                assembly ("memory-safe") {
-                                    calculatedAmount := add(calculatedAmount, includingFee)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(includingFee, calculatedAmountWithoutFee)),
-                                        stepLiquidity
-                                    )
-                                }
-                            } else {
-                                assembly ("memory-safe") {
-                                    calculatedAmount := sub(calculatedAmount, calculatedAmountWithoutFee)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(amountRemaining, priceImpactAmount)),
-                                        stepLiquidity
-                                    )
-                                }
-                            }
-
-                            amountRemaining = 0;
-                            sqrtRatioNext = sqrtRatioNextFromAmount;
-                        } else {
-                            // for an exact output swap, the price should always move since we have to round away from the current price
-                            assert(!isExactOut);
-
-                            // consume the entire input amount as fees since the price did not move
-                            assembly ("memory-safe") {
-                                stepFeesPerLiquidity := div(shl(128, amountRemaining), stepLiquidity)
-                            }
-                            amountRemaining = 0;
-                            sqrtRatioNext = sqrtRatio;
-                        }
+        // update this lock's locker to the forwarded address for the duration of the forwarded
+        // call, meaning only the forwarded address can update state
+        assembly ("memory-safe") {
+            tstore(_CURRENT_LOCKER_SLOT, or(shl(160, shr(160, locker)), to))
 ```
 
-**File:** src/math/sqrtRatio.sol (L90-93)
+**File:** src/extensions/TWAMM.sol (L456-465)
 ```text
-            uint256 quotient;
-            assembly ("memory-safe") {
-                quotient := div(shl(128, amount), liquidityU256)
-            }
+                            (swapBalanceUpdate, corePoolState) = CORE.swap(
+                                0,
+                                poolKey,
+                                createSwapParameters({
+                                    _sqrtRatioLimit: sqrtRatioNext,
+                                    _amount: int128(uint128(amount1)),
+                                    _isToken1: true,
+                                    _skipAhead: 0
+                                })
+                            );
+```
+
+**File:** src/libraries/ExtensionCallPointsLib.sol (L81-84)
+```text
+    function shouldCallBeforeSwap(IExtension extension, Locker locker) internal pure returns (bool yes) {
+        assembly ("memory-safe") {
+            yes := and(shr(158, extension), iszero(eq(shl(96, locker), shl(96, extension))))
+        }
+```
+
+**File:** src/types/locker.sol (L14-17)
+```text
+function addr(Locker locker) pure returns (address v) {
+    assembly ("memory-safe") {
+        v := shr(96, shl(96, locker))
+    }
 ```

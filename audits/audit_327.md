@@ -1,1 +1,0 @@
-Let me investigate the encoding symmetry by searching for usage of these functions.

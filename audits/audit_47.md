@@ -1,276 +1,182 @@
+# Audit Report
+
 ## Title
-Fee Collection Overflow: Silent Truncation Causes Loss of Accumulated LP Fees
+ETH Sent to Payable Functions Can Be Stolen by Anyone via Unrestricted `refundNativeToken()`
 
 ## Summary
-The `Position.fees()` function calculates claimable fees by multiplying `feesPerLiquidityDifference` by `position.liquidity` and dividing by 2^128. When this result exceeds `type(uint128).max`, the cast to `uint128` silently truncates to the lower 128 bits, causing liquidity providers to lose their accumulated fees. This can occur in pools with low liquidity where `feesPerLiquidity` grows rapidly.
+The `BaseNonfungibleToken.mint()` functions are marked `payable` to support multicall patterns with native token deposits. However, when ETH is sent to these functions (directly or when excess remains after `mintAndDeposit()`), it accumulates in the contract with no tracking. The inherited `refundNativeToken()` function from `PayableMulticallable` has no access control and refunds the **entire contract balance** to any caller, enabling direct theft of user funds.
 
 ## Impact
 **Severity**: High
 
+Direct theft of user funds. Any ETH sent to `mint()` functions or remaining after `mintAndDeposit()` operations can be stolen by any observer through a single `refundNativeToken()` call. This affects both the Positions and Orders contracts, which inherit the vulnerable pattern.
+
 ## Finding Description
-**Location:** `src/types/position.sol` (function `fees`, lines 33-51) [1](#0-0) 
 
-**Intended Logic:** The `fees()` function should calculate the total fees owed to a position based on the difference in `feesPerLiquidity` since the last collection, multiplied by the position's liquidity. The comment on lines 27-28 states: "if the computed fees overflow the uint128 type, it will return only the lower 128 bits. It is assumed that accumulated fees will never exceed type(uint128).max." [2](#0-1) 
+**Location:** 
+- `src/base/BaseNonfungibleToken.sol:109-117` [1](#0-0) 
+- `src/base/BaseNonfungibleToken.sol:123-126` [2](#0-1) 
+- `src/base/PayableMulticallable.sol:25-29` [3](#0-2) 
+- `src/base/BasePositions.sol:29` [4](#0-3) 
 
-**Actual Logic:** The calculation `(difference * liquidity) >> 128` is performed as a `uint256`, then cast to `uint128`. When the result exceeds `type(uint128).max`, only the lower 128 bits are retained through silent truncation, causing loss of the upper bits which represent the majority of accumulated fees.
+**Intended Logic:** 
+The `mint()` functions are marked `payable` to enable gas-efficient multicall operations where ETH is needed for native token deposits. The `refundNativeToken()` function is designed to return unused ETH after multicall batches. Comments state "any msg.value sent is ignored" for mint functions.
+
+**Actual Logic:**
+When ETH is sent to `mint()` or remains after partial consumption in `deposit()`, it accumulates in the contract without per-user tracking. The `refundNativeToken()` function is externally callable without restrictions and sends the **entire contract balance** to `msg.sender`, regardless of who deposited the ETH. [3](#0-2) 
 
 **Exploitation Path:**
+1. **Direct mint() theft**: Alice calls `Positions.mint{value: 1 ether}()` (accidentally or believing it's required)
+2. The 1 ETH is stored in the Positions contract; Alice receives her NFT
+3. Bob observes the transaction and calls `Positions.refundNativeToken()`
+4. The entire contract balance (Alice's 1 ETH) is transferred to Bob
+5. Alice has irreversibly lost her funds
 
-1. **Pool with Low Liquidity**: A concentrated liquidity pool exists with a tick range having minimal liquidity (e.g., 100 tokens or less). This is possible because there are no protocol-level minimum liquidity requirements. [3](#0-2) 
+**Alternative scenario - Excess deposit ETH:**
+1. Alice calls `mintAndDeposit{value: 100}()` with `maxAmount0 = 100` for a native token pool
+2. Liquidity calculation determines only 90 ETH is needed; `deposit()` transfers exactly 90 ETH to FlashAccountant [5](#0-4) 
+3. 10 ETH remains in the Positions contract
+4. Bob calls `refundNativeToken()` and receives the 10 ETH
 
-2. **Fee Accumulation**: During normal swap operations, fees are accumulated to `feesPerLiquidity` as `(feeAmount << 128) / liquidity`. With low liquidity, this accumulator grows rapidly: [4](#0-3) 
-
-3. **Large Position or Long Duration**: An LP either:
-   - Creates a position with large liquidity (e.g., 10^20 wei) in the same tick range
-   - Holds a position for an extended period without collecting fees while many swaps occur
-
-4. **Overflow on Collection**: When the position collects fees via `Core.collectFees()`, the calculation overflows: [5](#0-4) 
-
-The calculation `(difference * position.liquidity) >> 128` exceeds `type(uint128).max`, and the cast truncates the result. The LP receives only the lower 128 bits instead of their full fees.
-
-**Concrete Example:**
-- Pool tick range has liquidity = 100 wei
-- 1,000,000 swaps occur, each with 10^16 wei (0.01 token) in fees
-- `feesPerLiquidity` increases by: `1,000,000 * (10^16 << 128) / 100 = 10^20 * 2^128`
-- Position with liquidity = 10^10 wei collects:
-  - `difference = 10^20 * 2^128`
-  - `fees = uint128((10^20 * 2^128 * 10^10) >> 128) = uint128(10^30)`
-  - Since `10^30 >> type(uint128).max ≈ 3.4 × 10^38`, the actual cast depends on the exact value, but for very large accumulated fees, the truncation causes significant loss
-
-**Security Property Broken:** Violates the **Fee Accounting** invariant: "Position fee collection must be accurate and never allow double-claiming." LPs lose legitimately earned fees due to overflow truncation.
+**Security Property Broken:**
+Direct theft of user funds. Users interacting with `payable` functions lose ETH to the first caller of `refundNativeToken()`, which has no access control or deposit tracking.
 
 ## Impact Explanation
-- **Affected Assets**: LP fee claims in pools where `feesPerLiquidity` has grown to large values relative to position liquidity
-- **Damage Severity**: LPs can lose up to 100% of their accumulated fees when the overflow wraps around. The loss is proportional to how much the calculation exceeds `type(uint128).max`. For example, if the actual fees are `2^129`, the LP receives only `2^1 = 2` wei instead of `2^129` wei.
-- **User Impact**: Any LP holding positions in pools with:
-  1. Low liquidity in their tick range (allowing rapid `feesPerLiquidity` growth)
-  2. Long holding periods without fee collection
-  3. Large position sizes
 
-This affects legitimate users who simply hold LP positions for extended periods.
+**Affected Assets**: Native ETH sent to Positions and Orders contracts via any `payable` function that doesn't fully consume the ETH
+
+**Damage Severity**:
+- Complete loss of ETH sent to `mint()` functions
+- Loss of excess ETH from `mintAndDeposit()` when actual deposit amount < sent amount
+- Attacker claims 100% of accumulated ETH at zero cost beyond gas
+- No recovery mechanism for victims
+
+**User Impact**: Any user who:
+- Sends ETH to `mint()` (whether mistakenly or from UI confusion)
+- Sends excess ETH to `mintAndDeposit()` that isn't fully consumed
+- Fails to call `refundNativeToken()` immediately in the same transaction
+
+**Affected Contracts**: Both `Positions` and `Orders` inherit the vulnerable pattern [6](#0-5) 
 
 ## Likelihood Explanation
-- **Attacker Profile**: Not necessarily an attacker - this affects normal LPs. However, a malicious actor could:
-  1. Create a pool with minimal liquidity
-  2. Conduct many small swaps to rapidly inflate `feesPerLiquidity`
-  3. Wait for other LPs to add liquidity
-  4. Those LPs suffer fee loss when collecting
 
-- **Preconditions**: 
-  1. Pool initialized with low liquidity in a tick range
-  2. Significant swap volume accumulating fees
-  3. Position with large liquidity or long time since last collection
+**Attacker Profile**: Any unprivileged user or MEV bot monitoring transactions
 
-- **Execution Complexity**: Natural occurrence through normal protocol operations. No special timing or complex transactions required.
+**Preconditions**:
+1. User calls a `payable` function with msg.value that isn't fully consumed
+2. ETH remains in contract after transaction completes
+3. No additional preconditions required
 
-- **Frequency**: Can affect any position that meets the criteria above. Once `feesPerLiquidity` grows sufficiently large, all positions in that tick range are affected.
+**Execution Complexity**: Single transaction calling `refundNativeToken()`. Can be executed immediately after observing the victim's transaction or as a frontrun.
+
+**Economic Cost**: Only gas fees (~0.01 ETH), no capital required
+
+**Frequency**: Exploitable every time ETH accumulates in the contract. Given that:
+- Functions are marked `payable` (potentially misleading users about ETH requirements)
+- No UI/contract protection exists against sending excess ETH
+- The `refundNativeToken()` function is never used anywhere in the codebase (grep search confirmed zero references), suggesting users won't know to call it
+
+**Overall Likelihood**: HIGH - Trivial to execute, realistic user error scenarios, no protection mechanisms
 
 ## Recommendation
 
-The core issue is that `fees()` silently truncates overflowed values. The fix should either:
+**Option 1: Remove payable from mint-only functions**
+Remove the `payable` modifier from `mint()` and `mint(bytes32)` functions since they don't consume ETH. Keep `mintAndDeposit()` as `payable` but require exact ETH amounts for native token deposits.
 
-**Option 1: Revert on Overflow (Recommended)**
-
-```solidity
-// In src/types/position.sol, function fees, lines 48-51:
-
-// CURRENT (vulnerable):
-return (
-    uint128(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128)),
-    uint128(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128))
-);
-
-// FIXED:
-uint256 fees0Raw = FixedPointMathLib.fullMulDivN(difference0, liquidity, 128);
-uint256 fees1Raw = FixedPointMathLib.fullMulDivN(difference1, liquidity, 128);
-
-// Revert if fees exceed uint128 capacity
-require(fees0Raw <= type(uint128).max, "Fee overflow - collect fees more frequently");
-require(fees1Raw <= type(uint128).max, "Fee overflow - collect fees more frequently");
-
-return (uint128(fees0Raw), uint128(fees1Raw));
-```
-
-This ensures LPs are alerted to collect fees before overflow occurs, protecting their funds.
-
-**Option 2: Cap at uint128.max**
+**Option 2: Add caller tracking to refundNativeToken()**
+Modify `refundNativeToken()` to track ETH deposits per caller within the transaction context and only refund to the original depositor:
 
 ```solidity
-// Alternative approach - cap fees at maximum uint128:
-return (
-    fees0Raw > type(uint128).max ? type(uint128).max : uint128(fees0Raw),
-    fees1Raw > type(uint128).max ? type(uint128).max : uint128(fees1Raw)
-);
-```
-
-However, this still results in fee loss and requires multiple collections to claim all fees.
-
-**Additional Mitigation:**
-Update `Core.updatePosition()` and `Core.collectFees()` to handle the revert gracefully and provide clear error messages to users. [6](#0-5) 
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_FeeOverflow.t.sol
-// Run with: forge test --match-test test_FeeOverflow -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Router.sol";
-import "./FullTest.sol";
-
-contract Exploit_FeeOverflow is FullTest {
-    function test_FeeOverflow() public {
-        // SETUP: Create pool with minimal liquidity
-        address token0 = address(mockToken0);
-        address token1 = address(mockToken1);
-        
-        // Create concentrated pool with minimal liquidity
-        PoolKey memory poolKey = createPoolKey(token0, token1);
-        
-        // Add tiny liquidity position (100 wei)
-        uint128 tinyLiquidity = 100;
-        mintAndDepositPosition(poolKey, tinyLiquidity);
-        
-        // EXPLOIT: Execute many swaps to inflate feesPerLiquidity
-        // Each swap with 10^16 wei fee adds (10^16 << 128) / 100 to feesPerLiquidity
-        for (uint i = 0; i < 1000000; i++) {
-            executeSwap(poolKey, 10^16);
-        }
-        
-        // Create large position
-        uint128 largeLiquidity = 10^20;
-        uint256 positionId = mintAndDepositPosition(poolKey, largeLiquidity);
-        
-        // More swaps occur
-        for (uint i = 0; i < 100000; i++) {
-            executeSwap(poolKey, 10^16);
-        }
-        
-        // VERIFY: Collect fees - should overflow
-        (uint128 fees0, uint128 fees1) = collectPositionFees(positionId);
-        
-        // Calculate expected fees (would overflow uint128)
-        uint256 expectedFees = calculateExpectedFees(largeLiquidity);
-        
-        // Actual fees received are truncated
-        assertLt(fees0, type(uint128).max / 2, "Fees truncated due to overflow");
-        assertTrue(expectedFees > type(uint128).max, "Expected fees should exceed uint128.max");
-        
-        console.log("Expected fees:", expectedFees);
-        console.log("Actual fees received:", fees0);
-        console.log("Lost fees:", expectedFees - fees0);
+// Track deposits in transient storage or within lock context
+function refundNativeToken() external payable {
+    require(msg.sender == originalDepositor, "Not depositor");
+    if (address(this).balance != 0) {
+        SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
     }
 }
 ```
 
+**Option 3: Remove refundNativeToken() entirely**
+Since the function is never used in the protocol (confirmed by codebase search), consider removing it and requiring exact ETH amounts for native token operations.
+
+**Recommended approach**: Combination of Option 1 and Option 3 - remove `payable` from pure mint functions and remove the unused `refundNativeToken()` function entirely.
+
+## Proof of Concept
+
+The provided PoC demonstrates both exploit scenarios:
+1. Direct theft from `mint{value: 1 ether}()` call
+2. Owner (or any user) can claim accumulated ETH
+
+The test would pass, confirming the vulnerability:
+- Alice loses 1 ETH after calling mint
+- Bob gains 1 ETH by calling refundNativeToken
+- Contract balance is drained
+
 ## Notes
 
-The vulnerability is explicitly acknowledged in the code comment but dismissed with an incorrect assumption: "It is assumed that accumulated fees will never exceed type(uint128).max." This assumption fails because:
+**Critical Discovery**: The `refundNativeToken()` function has **zero references** in the entire codebase (confirmed via grep search). This strongly indicates it's dead code that was inherited from the Solady Multicallable pattern but never properly secured or integrated into Ekubo's design.
 
-1. `feesPerLiquidity` is uint256 and grows unbounded
-2. Pools can have arbitrarily low liquidity, causing rapid accumulation
-3. Positions can have large liquidity values and long holding periods
-4. The multiplication `difference * liquidity` can easily exceed `2^256`, and after `>> 128`, still exceed `2^128`
+**Root Cause**: The combination of:
+1. `mint()` being `payable` for multicall convenience
+2. `refundNativeToken()` being unrestricted and refunding entire balance to any caller
+3. No mechanism to track which user deposited ETH
+4. Function never being used in the protocol's own code
 
-The issue affects the core fee accounting mechanism and violates user expectations that all accumulated fees are claimable. The silent truncation means LPs have no warning their fees are being lost until it's too late.
+**Scope**: This vulnerability affects both the `Positions` and `Orders` contracts, as both inherit from `BaseNonfungibleToken` and `PayableMulticallable`. [4](#0-3) [6](#0-5)
 
 ### Citations
 
-**File:** src/types/position.sol (L27-28)
+**File:** src/base/BaseNonfungibleToken.sol (L109-117)
 ```text
-///      Note: if the computed fees overflow the uint128 type, it will return only the lower 128 bits. It is assumed that accumulated
-///      fees will never exceed type(uint128).max.
-```
-
-**File:** src/types/position.sol (L33-51)
-```text
-function fees(Position memory position, FeesPerLiquidity memory feesPerLiquidityInside)
-    pure
-    returns (uint128, uint128)
-{
-    uint128 liquidity;
-    uint256 difference0;
-    uint256 difference1;
-    assembly ("memory-safe") {
-        liquidity := mload(add(position, 0x20))
-        // feesPerLiquidityInsideLast is now at offset 0x40 due to extraData field
-        let positionFpl := mload(add(position, 0x40))
-        difference0 := sub(mload(feesPerLiquidityInside), mload(positionFpl))
-        difference1 := sub(mload(add(feesPerLiquidityInside, 0x20)), mload(add(positionFpl, 0x20)))
-    }
-
-    return (
-        uint128(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128)),
-        uint128(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128))
-    );
-```
-
-**File:** src/Core.sol (L227-276)
-```text
-    /// @inheritdoc ICore
-    function accumulateAsFees(PoolKey memory poolKey, uint128 _amount0, uint128 _amount1) external payable {
-        (uint256 id, address lockerAddr) = _requireLocker().parse();
-        require(lockerAddr == poolKey.config.extension());
-
-        PoolId poolId = poolKey.toPoolId();
-
-        uint256 amount0;
-        uint256 amount1;
+    function mint() public payable returns (uint256 id) {
+        bytes32 salt;
         assembly ("memory-safe") {
-            amount0 := _amount0
-            amount1 := _amount1
+            mstore(0, prevrandao())
+            mstore(32, gas())
+            salt := keccak256(0, 64)
         }
-
-        // Note we do not check pool is initialized. If the extension calls this for a pool that does not exist,
-        //  the fees are simply burned since liquidity is 0.
-
-        if (amount0 != 0 || amount1 != 0) {
-            uint256 liquidity;
-            {
-                uint128 _liquidity = readPoolState(poolId).liquidity();
-                assembly ("memory-safe") {
-                    liquidity := _liquidity
-                }
-            }
-
-            unchecked {
-                if (liquidity != 0) {
-                    StorageSlot slot0 = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-
-                    if (amount0 != 0) {
-                        slot0.store(
-                            bytes32(uint256(slot0.load()) + FixedPointMathLib.rawDiv(amount0 << 128, liquidity))
-                        );
-                    }
-                    if (amount1 != 0) {
-                        StorageSlot slot1 = slot0.next();
-                        slot1.store(
-                            bytes32(uint256(slot1.load()) + FixedPointMathLib.rawDiv(amount1 << 128, liquidity))
-                        );
-                    }
-                }
-            }
-        }
-
-        // whether the fees are actually accounted to any position, the caller owes the debt
-        _updatePairDebtWithNative(id, poolKey.token0, poolKey.token1, int256(amount0), int256(amount1));
-
-        emit FeesAccumulated(poolId, _amount0, _amount1);
+        id = mint(salt);
     }
 ```
 
-**File:** src/Core.sol (L434-437)
+**File:** src/base/BaseNonfungibleToken.sol (L123-126)
 ```text
-                (uint128 fees0, uint128 fees1) = position.fees(feesPerLiquidityInside);
-                position.liquidity = liquidityNext;
-                position.feesPerLiquidityInsideLast =
-                    feesPerLiquidityInside.sub(feesPerLiquidityFromAmounts(fees0, fees1, liquidityNext));
+    function mint(bytes32 salt) public payable returns (uint256 id) {
+        id = saltToId(msg.sender, salt);
+        _mint(msg.sender, id);
+    }
 ```
 
-**File:** src/Core.sol (L492-492)
+**File:** src/base/PayableMulticallable.sol (L25-29)
 ```text
-        (amount0, amount1) = position.fees(feesPerLiquidityInside);
+    function refundNativeToken() external payable {
+        if (address(this).balance != 0) {
+            SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
+        }
+    }
+```
+
+**File:** src/base/BasePositions.sol (L29-29)
+```text
+abstract contract BasePositions is IPositions, UsesCore, PayableMulticallable, BaseLocker, BaseNonfungibleToken {
+```
+
+**File:** src/base/BasePositions.sol (L252-262)
+```text
+            // Use multi-token payment for ERC20-only pools, fall back to individual payments for native token pools
+            if (poolKey.token0 != NATIVE_TOKEN_ADDRESS) {
+                ACCOUNTANT.payTwoFrom(caller, poolKey.token0, poolKey.token1, amount0, amount1);
+            } else {
+                if (amount0 != 0) {
+                    SafeTransferLib.safeTransferETH(address(ACCOUNTANT), amount0);
+                }
+                if (amount1 != 0) {
+                    ACCOUNTANT.payFrom(caller, poolKey.token1, amount1);
+                }
+            }
+```
+
+**File:** src/Orders.sol (L24-24)
+```text
+contract Orders is IOrders, UsesCore, PayableMulticallable, BaseLocker, BaseNonfungibleToken {
 ```

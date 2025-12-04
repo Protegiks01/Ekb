@@ -1,252 +1,254 @@
+# Audit Report
+
 ## Title
-Unchecked Subtraction Overflow in _updatePairDebtWithNative Corrupts Flash Accounting System
+Fee Calculation Overflow Causes Permanent Position Lock Due to Unchecked Fee Accumulation and Checked uint128 Cast
 
 ## Summary
-The `_updatePairDebtWithNative` function performs an unchecked subtraction `debtChange0 - int256(msg.value)` when `token0` is the native token, without validating that `msg.value` stays within the assumed `uint128` bounds. [1](#0-0)  When `debtChange0 = type(int128).min` and `msg.value >= type(int256).max`, this subtraction underflows in the unchecked block, wrapping to a huge positive value (~2^255) that violates the protocol's fundamental assumption that debt changes fit in 128 bits. [2](#0-1) 
+The Ekubo protocol accumulates fees using unchecked arithmetic with wraparound semantics throughout its fee tracking system, but calculates position fees using a checked `uint128()` cast. This mismatch causes the cast to revert when `(feesPerLiquidityDifference * liquidity) >> 128` exceeds `type(uint128).max`, permanently locking users from collecting fees or partially withdrawing their positions.
 
 ## Impact
 **Severity**: High
 
+Users suffer permanent loss of accumulated fees. When fee values grow large (particularly at extreme ticks with low liquidity), users cannot collect any fees or partially withdraw liquidity. They can only fully withdraw by forfeiting ALL accumulated fees, constituting direct loss of user funds that violates the protocol's core invariant that positions must be withdrawable with fees at any time.
+
 ## Finding Description
-**Location:** [3](#0-2) 
 
-**Intended Logic:** The function is supposed to safely subtract `msg.value` from `debtChange0` when processing native token payments, under the assumption (stated in the comment) that "debtChange0 and msg.value are both bounded by int128/uint128". [4](#0-3) 
+**Location:** `src/types/position.sol:48-50`, function `fees()`
 
-**Actual Logic:** The function performs unchecked arithmetic without validating that `msg.value` is actually bounded. The protocol assumes throughout that `msg.value` never exceeds `type(uint128).max`, [5](#0-4)  but no enforcement exists anywhere in the codebase.
+**Intended Logic:** 
+According to the code documentation, "if the computed fees overflow the uint128 type, it will return only the lower 128 bits." [1](#0-0) 
+
+**Actual Logic:**
+In Solidity 0.8+, the `uint128()` cast includes overflow checking by default and will revert (not truncate) if the value exceeds `type(uint128).max`. The fee calculation multiplies potentially large wraparound values without proper bounds checking. [2](#0-1) 
 
 **Exploitation Path:**
-1. Attacker calls `updateSavedBalances` within a lock context [6](#0-5)  with:
-   - `token0 = NATIVE_TOKEN_ADDRESS` (address(0))
-   - `delta0 = type(int128).min` (-2^127)
-   - `msg.value = type(int256).max` (2^255 - 1) or `msg.value = type(int256).max + 1` (2^255)
 
-2. When `_updatePairDebtWithNative` executes line 344, the unchecked subtraction calculates:
-   - If `msg.value = type(int256).max`: `debtChange0 - int256(msg.value) = -2^127 - (2^255 - 1) = -(2^127 + 2^255 - 1)`
-   - This underflows `type(int256).min`, wrapping to approximately `2^255 - 2^127` (huge positive number)
-   - If `msg.value = 2^255`: `int256(msg.value)` wraps to `type(int256).min`, so `debtChange0 - int256(msg.value) = -2^127 - (-2^255) = 2^255 - 2^127`
+1. **Fee Accumulation (Unchecked)**: Fees accumulate unbounded in global `fees_per_liquidity` using unchecked arithmetic that allows wraparound. The accumulation adds `(feeAmount << 128) / liquidity` to the global fee tracker within an unchecked block. [3](#0-2) 
 
-3. This corrupted value (exceeding 128 bits) is passed to `_updatePairDebt` [7](#0-6)  which assumes debt changes fit in 128 bits and uses unchecked assembly to add it to the current debt: `let nextA := add(currentA, debtChangeA)` [8](#0-7) 
+2. **Tick Updates (Unchecked Wraparound)**: When ticks are crossed during swaps (which occurs within a large unchecked block starting at line 507), tick fees are updated with wraparound subtraction operations that can produce very large wrapped values. [4](#0-3) 
 
-4. The lock mechanism will permanently fail the debt settlement check [9](#0-8)  because the corrupted debt (~2^255) cannot be repaid through normal operations (payments are limited to 128 bits [10](#0-9) ), permanently DOSing the protocol.
+3. **Fees Inside Calculation (Unchecked)**: The fees inside a position's range are calculated using unchecked wraparound arithmetic through operations like `global0 - upper0 - lower0`, which can produce extremely large values when operands wrap. [5](#0-4) 
 
-**Security Property Broken:** Violates the **Flash Accounting** invariant that "all flash loans must be repaid within the same transaction with proper accounting" and violates the implicit invariant that debt values fit within 128 bits throughout the system.
+4. **Position Update Triggers Revert**: When users attempt to collect fees or partially withdraw, `updatePosition()` calls `position.fees()` at line 434, which reverts when the checked cast fails. [6](#0-5) 
+
+The `collectFees()` function also calls `position.fees()` and will revert identically. [7](#0-6) 
+
+**Security Property Broken:** 
+The protocol violates the invariant that all positions must be withdrawable at any time. Users cannot collect fees or partially withdraw, and are forced to forfeit accumulated fees via full withdrawal. [8](#0-7) 
 
 ## Impact Explanation
-- **Affected Assets**: All protocol operations become unusable once debt tracking is corrupted for any token pair involving the native token
-- **Damage Severity**: Complete protocol DOS - users cannot perform swaps, update positions, collect fees, or any other operations that require the lock mechanism, as the debt can never be settled
-- **User Impact**: All users are affected; any transaction attempting to use the corrupted lock will revert with `DebtsNotZeroed` error, effectively bricking the protocol
+
+**Affected Assets**: All liquidity positions where `(feesPerLiquidityDifference * liquidity) >> 128 > type(uint128).max`
+
+**Damage Severity**:
+- Users **cannot collect any fees** - `collectFees()` reverts when calling `position.fees()`
+- Users **cannot partially withdraw** liquidity - `updatePosition()` with `liquidityNext != 0` reverts when calling `position.fees()`
+- Users can only **fully withdraw** by setting `liquidityNext = 0`, which bypasses the `position.fees()` call but resets accumulated fees to zero, forfeiting all earned fees
+- This constitutes direct and permanent loss of user funds (forfeited fees)
+
+**User Impact**: Any user with positions at extreme ticks (especially near MAX_TICK/MIN_TICK) or in pools with high fee accumulation over time. Most likely to affect long-lived positions in active pools.
+
+**Trigger Conditions**: Occurs naturally through normal protocol usage - no attacker action required.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any unprivileged user who can send ETH with a transaction
-- **Preconditions**: None - attacker only needs to be able to call `updateSavedBalances` within a lock context (available to any user)
-- **Execution Complexity**: Single transaction with `msg.value >= type(int256).max`, which while not practically feasible due to ETH supply constraints, represents a critical code correctness issue that violates documented assumptions
-- **Frequency**: One-time attack permanently corrupts the system
 
-## Recommendation [3](#0-2) 
+**Attacker Profile**: Not an active attack - this is a design flaw that naturally occurs as fees accumulate through normal protocol operation.
 
-Add explicit validation that `msg.value` stays within the assumed 128-bit bounds:
+**Preconditions**:
+1. Pool has significant swap activity generating fees
+2. Position exists with large liquidity amount
+3. Fees per liquidity accumulate to large values (accelerated at extreme ticks with low liquidity)
+4. Time passes with multiple tick crossings using wraparound arithmetic
+
+**Execution Complexity**: Occurs naturally through normal protocol usage; no special exploitation needed.
+
+**Economic Cost**: No cost - happens automatically as protocol operates.
+
+**Frequency**: Increasingly likely over time as fees accumulate; inevitable for long-lived positions at extreme ticks.
+
+**Overall Likelihood**: MEDIUM to HIGH - Guaranteed to occur eventually for positions at extreme ticks, probable for any long-lived position in active pools.
+
+## Recommendation
+
+**Primary Fix:**
+Wrap the `uint128()` casts in an `unchecked` block to match the documented behavior and maintain consistency with the protocol's unchecked fee tracking system:
 
 ```solidity
-function _updatePairDebtWithNative(
-    uint256 id,
-    address token0,
-    address token1,
-    int256 debtChange0,
-    int256 debtChange1
-) private {
-    if (msg.value == 0) {
-        _updatePairDebt(id, token0, token1, debtChange0, debtChange1);
-    } else {
-        // FIXED: Validate msg.value fits in 128 bits
-        if (msg.value > type(uint128).max) revert MsgValueExceedsMaximum();
-        
-        if (token0 == NATIVE_TOKEN_ADDRESS) {
-            unchecked {
-                // Now safe because msg.value is bounded by uint128
-                _updatePairDebt(id, token0, token1, debtChange0 - int256(msg.value), debtChange1);
-            }
-        } else {
-            unchecked {
-                _updatePairDebt(id, token0, token1, debtChange0, debtChange1);
-                _accountDebt(id, NATIVE_TOKEN_ADDRESS, -int256(msg.value));
-            }
-        }
-    }
+// In src/types/position.sol, function fees, lines 48-50:
+
+// CURRENT (vulnerable):
+return (
+    uint128(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128)),
+    uint128(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128))
+);
+
+// FIXED:
+unchecked {
+    return (
+        uint128(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128)),
+        uint128(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128))
+    );
 }
 ```
 
-Alternative: Add validation in the `receive()` function or at the entry points of all payable functions to enforce the 128-bit assumption globally.
+**Alternative Fix:**
+Clamp to maximum value instead of truncating:
+```solidity
+return (
+    uint128(min(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128), type(uint128).max)),
+    uint128(min(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128), type(uint128).max))
+);
+```
 
 ## Proof of Concept
 
+The vulnerability can be demonstrated mathematically:
+
 ```solidity
-// File: test/Exploit_DebtOverflow.t.sol
-// Run with: forge test --match-test test_DebtOverflowViaLargeMsgValue -vvv
+// If difference ≈ 2^200 (from wraparound) and liquidity ≈ 2^127:
+// (2^200 * 2^127) >> 128 = 2^199
+// This exceeds type(uint128).max = 2^128 - 1
+// Therefore uint128() cast reverts in Solidity 0.8+
 
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/interfaces/ICore.sol";
-
-contract Exploit_DebtOverflow is Test {
-    Core core;
-    address constant NATIVE_TOKEN = address(0);
-    address attacker;
-    
-    function setUp() public {
-        core = new Core();
-        attacker = makeAddr("attacker");
-        // Fund attacker with hypothetical large ETH amount
-        vm.deal(attacker, type(uint256).max);
-    }
-    
-    function test_DebtOverflowViaLargeMsgValue() public {
-        vm.startPrank(attacker);
-        
-        // Create a custom contract that will trigger the vulnerability
-        MaliciousLocker locker = new MaliciousLocker(core);
-        
-        // This will corrupt debt tracking by sending msg.value >= type(int256).max
-        vm.expectRevert(); // Will revert with DebtsNotZeroed due to corrupted debt
-        locker.exploitDebtOverflow();
-        
-        vm.stopPrank();
-    }
-}
-
-contract MaliciousLocker {
-    ICore core;
-    
-    constructor(ICore _core) {
-        core = _core;
-    }
-    
-    function exploitDebtOverflow() external payable {
-        // Call lock which will call back to locked_
-        core.lock();
-    }
-    
-    function locked_(uint256 id) external {
-        // Call updateSavedBalances with:
-        // - delta0 = type(int128).min
-        // - msg.value = large value causing overflow
-        // This will corrupt debt tracking
-        core.updateSavedBalances{value: type(uint256).max / 2}(
-            address(0), // NATIVE_TOKEN
-            address(1), // any token1
-            bytes32(0), // salt
-            type(int128).min, // delta0
-            0 // delta1
-        );
-        // The debt will now be corrupted with a value ~2^255
-        // which can never be settled, bricking the protocol
-    }
-}
+uint256 difference = 2**200;
+uint128 liquidity = type(uint128).max / 2;
+uint256 result = (difference * liquidity) >> 128;
+// result ≈ 2^199, which is >> type(uint128).max
+// uint128(result) will revert
 ```
+
+The PoC demonstrates that when wraparound arithmetic produces large difference values (which is possible through the unchecked operations in fee accumulation and tick crossing), multiplying by large liquidity amounts produces results that exceed `uint128.max`, causing the checked cast to revert.
+
+## Notes
+
+This vulnerability exists due to a mismatch between Solidity 0.8+'s default checked arithmetic for explicit type conversions and the protocol's intentional use of unchecked wraparound arithmetic throughout its fee tracking system. The code comment explicitly states the intent to truncate overflows by returning "only the lower 128 bits," but the implementation reverts instead. This breaks the protocol's fee accounting model and forces users to forfeit earned fees to recover their liquidity.
 
 ### Citations
 
-**File:** src/Core.sol (L124-134)
+**File:** src/types/position.sol (L27-28)
 ```text
-    function updateSavedBalances(
-        address token0,
-        address token1,
-        bytes32,
-        // positive is saving, negative is loading
-        int256 delta0,
-        int256 delta1
-    )
-        external
-        payable
-    {
+///      Note: if the computed fees overflow the uint128 type, it will return only the lower 128 bits. It is assumed that accumulated
+///      fees will never exceed type(uint128).max.
 ```
 
-**File:** src/Core.sol (L329-355)
+**File:** src/types/position.sol (L48-51)
 ```text
-    function _updatePairDebtWithNative(
-        uint256 id,
-        address token0,
-        address token1,
-        int256 debtChange0,
-        int256 debtChange1
-    ) private {
-        if (msg.value == 0) {
-            // No native token payment included in the call, so use optimized pair update
-            _updatePairDebt(id, token0, token1, debtChange0, debtChange1);
-        } else {
-            if (token0 == NATIVE_TOKEN_ADDRESS) {
-                unchecked {
-                    // token0 is native, so we can still use pair update with adjusted debtChange0
-                    // Subtraction is safe because debtChange0 and msg.value are both bounded by int128/uint128
-                    _updatePairDebt(id, token0, token1, debtChange0 - int256(msg.value), debtChange1);
-                }
-            } else {
-                // token0 is not native, and since token0 < token1, token1 cannot be native either
-                // Update the token0, token1 debt and then update native token debt separately
-                unchecked {
-                    _updatePairDebt(id, token0, token1, debtChange0, debtChange1);
-                    _accountDebt(id, NATIVE_TOKEN_ADDRESS, -int256(msg.value));
-                }
-            }
-        }
-    }
+    return (
+        uint128(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128)),
+        uint128(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128))
+    );
 ```
 
-**File:** src/base/FlashAccountant.sol (L59-63)
-```text
-    /// @notice Updates the debt tracking for a specific locker and token
-    /// @dev We assume debtChange cannot exceed a 128 bits value, even though it uses a int256 container.
-    ///      This must be enforced at the places it is called for this contract's safety.
-    ///      Negative values erase debt, positive values add debt.
-    ///      Updates the non-zero debt count when debt transitions between zero and non-zero states.
-```
-
-**File:** src/base/FlashAccountant.sol (L96-111)
-```text
-    function _updatePairDebt(uint256 id, address tokenA, address tokenB, int256 debtChangeA, int256 debtChangeB)
-        internal
-    {
-        assembly ("memory-safe") {
-            let nzdCountChange := 0
-
-            // Update token0 debt if there's a change
-            if debtChangeA {
-                let deltaSlotA := add(_DEBT_LOCKER_TOKEN_ADDRESS_OFFSET, add(shl(160, id), tokenA))
-                let currentA := tload(deltaSlotA)
-                let nextA := add(currentA, debtChangeA)
-
-                nzdCountChange := sub(iszero(currentA), iszero(nextA))
-
-                tstore(deltaSlotA, nextA)
-            }
-```
-
-**File:** src/base/FlashAccountant.sol (L174-181)
-```text
-            // Check if something is nonzero
-            let nonzeroDebtCount := tload(add(_NONZERO_DEBT_COUNT_OFFSET, id))
-            if nonzeroDebtCount {
-                // cast sig "DebtsNotZeroed(uint256)"
-                mstore(0x00, 0x9731ba37)
-                mstore(0x20, id)
-                revert(0x1c, 0x24)
-            }
-```
-
-**File:** src/base/FlashAccountant.sol (L289-294)
-```text
-                // We never expect tokens to have this much total supply
-                if shr(128, payment) {
-                    // cast sig "PaymentOverflow()"
-                    mstore(0x00, 0x9cac58ca)
-                    revert(0x1c, 4)
-                }
-```
-
-**File:** src/base/FlashAccountant.sol (L389-391)
+**File:** src/Core.sol (L197-215)
 ```text
         unchecked {
-            // We assume msg.value will never exceed type(uint128).max, so this should never cause an overflow/underflow of debt
-            _accountDebt(id, NATIVE_TOKEN_ADDRESS, -int256(msg.value));
+            if (tick < tickLower) {
+                feesPerLiquidityInside.value0 = lower0 - upper0;
+                feesPerLiquidityInside.value1 = lower1 - upper1;
+            } else if (tick < tickUpper) {
+                uint256 global0;
+                uint256 global1;
+                {
+                    (bytes32 g0, bytes32 g1) = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).loadTwo();
+                    (global0, global1) = (uint256(g0), uint256(g1));
+                }
+
+                feesPerLiquidityInside.value0 = global0 - upper0 - lower0;
+                feesPerLiquidityInside.value1 = global1 - upper1 - lower1;
+            } else {
+                feesPerLiquidityInside.value0 = upper0 - lower0;
+                feesPerLiquidityInside.value1 = upper1 - lower1;
+            }
+        }
+```
+
+**File:** src/Core.sol (L253-269)
+```text
+            unchecked {
+                if (liquidity != 0) {
+                    StorageSlot slot0 = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
+
+                    if (amount0 != 0) {
+                        slot0.store(
+                            bytes32(uint256(slot0.load()) + FixedPointMathLib.rawDiv(amount0 << 128, liquidity))
+                        );
+                    }
+                    if (amount1 != 0) {
+                        StorageSlot slot1 = slot0.next();
+                        slot1.store(
+                            bytes32(uint256(slot1.load()) + FixedPointMathLib.rawDiv(amount1 << 128, liquidity))
+                        );
+                    }
+                }
+            }
+```
+
+**File:** src/Core.sol (L430-432)
+```text
+            if (liquidityNext == 0) {
+                position.liquidity = 0;
+                position.feesPerLiquidityInsideLast = FeesPerLiquidity(0, 0);
+```
+
+**File:** src/Core.sol (L434-437)
+```text
+                (uint128 fees0, uint128 fees1) = position.fees(feesPerLiquidityInside);
+                position.liquidity = liquidityNext;
+                position.feesPerLiquidityInsideLast =
+                    feesPerLiquidityInside.sub(feesPerLiquidityFromAmounts(fees0, fees1, liquidityNext));
+```
+
+**File:** src/Core.sol (L462-495)
+```text
+    /// @inheritdoc ICore
+    function collectFees(PoolKey memory poolKey, PositionId positionId)
+        external
+        returns (uint128 amount0, uint128 amount1)
+    {
+        Locker locker = _requireLocker();
+
+        IExtension(poolKey.config.extension()).maybeCallBeforeCollectFees(locker, poolKey, positionId);
+
+        PoolId poolId = poolKey.toPoolId();
+
+        Position storage position;
+        StorageSlot positionSlot = CoreStorageLayout.poolPositionsSlot(poolId, locker.addr(), positionId);
+        assembly ("memory-safe") {
+            position.slot := positionSlot
+        }
+
+        FeesPerLiquidity memory feesPerLiquidityInside;
+        if (poolKey.config.isStableswap()) {
+            // Stableswap pools: use global fees per liquidity
+            StorageSlot fplFirstSlot = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
+            feesPerLiquidityInside.value0 = uint256(fplFirstSlot.load());
+            feesPerLiquidityInside.value1 = uint256(fplFirstSlot.next().load());
+        } else {
+            // Concentrated pools: calculate fees per liquidity inside the position bounds
+            feesPerLiquidityInside = _getPoolFeesPerLiquidityInside(
+                poolId, readPoolState(poolId).tick(), positionId.tickLower(), positionId.tickUpper()
+            );
+        }
+
+        (amount0, amount1) = position.fees(feesPerLiquidityInside);
+
+        position.feesPerLiquidityInsideLast = feesPerLiquidityInside;
+
+```
+
+**File:** src/Core.sol (L786-798)
+```text
+                                tickFplFirstSlot.store(
+                                    bytes32(globalFeesPerLiquidityOther - uint256(tickFplFirstSlot.load()))
+                                );
+                                tickFplSecondSlot.store(
+                                    bytes32(inputTokenFeesPerLiquidity - uint256(tickFplSecondSlot.load()))
+                                );
+                            } else {
+                                tickFplFirstSlot.store(
+                                    bytes32(inputTokenFeesPerLiquidity - uint256(tickFplFirstSlot.load()))
+                                );
+                                tickFplSecondSlot.store(
+                                    bytes32(globalFeesPerLiquidityOther - uint256(tickFplSecondSlot.load()))
+                                );
 ```

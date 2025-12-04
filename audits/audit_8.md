@@ -1,253 +1,166 @@
+# Audit Report
+
 ## Title
-Out-of-Bounds Tick Storage Causes Pool State Corruption and Oracle Data Poisoning
+Integer Boundary Asymmetry in TokenWrapper Causes Permanent Token Lock for Amounts at 2^127
 
 ## Summary
-When a stableswap pool swap crosses the MIN_TICK boundary in the decreasing direction, the arithmetic at line 756 computes `tick = MIN_TICK - 1`, which is below the protocol's minimum valid tick value. This invalid tick is stored in the pool state and recorded by the Oracle extension, corrupting cumulative price data and causing DoS of downstream price query functionality.
+TokenWrapper.handleForwardData() contains an integer boundary asymmetry where wrapping exactly 2^127 token units succeeds but unwrapping permanently fails due to SafeCastLib overflow, causing irreversible loss of user funds with no recovery mechanism.
 
 ## Impact
-**Severity**: Medium
+**Severity**: High
+
+Users who wrap exactly 2^127 token units (type(int128).max + 1) lose permanent access to their underlying tokens. The tokens become locked in the Core contract with no recovery path, even after the unlock time expires. This represents 100% permanent loss of the wrapped amount.
 
 ## Finding Description
-**Location:** `src/Core.sol` in function `swap_6269342730()`, specifically lines 572-577 and line 756 [1](#0-0) [2](#0-1) 
 
-**Intended Logic:** The comment at line 755 states "no overflow danger because nextTick is always inside the valid tick bounds." The code should maintain tick values within the range [MIN_TICK, MAX_TICK] = [-88722835, 88722835]. [3](#0-2) 
+**Location:** `src/TokenWrapper.sol:163-182`, function `handleForwardData()` [1](#0-0) 
 
-**Actual Logic:** When a stableswap pool (including full-range pools) has a swap in the decreasing direction that reaches MIN_SQRT_RATIO, the code sets `nextTick = MIN_TICK`. Then at line 756, the assembly computes:
-```
-tick := sub(nextTick, iszero(increasing))
-// When increasing = false: tick = MIN_TICK - 1 = -88722836
-```
+**Intended Logic:**
+According to the function documentation at lines 158-160, wrapped tokens should be unwrappable after the unlock time expires: "For unwrap: the specified amount of the underlying will be credited to the locker and the same amount of this wrapper token will be debited, iff block.timestamp > unlockTime and at least that much token has been wrapped." [2](#0-1) 
 
-This produces a tick value of -88722836, which is **one below MIN_TICK** (-88722835) and violates the protocol's valid tick bounds.
+**Actual Logic:**
+The function uses `SafeCastLib.toInt128(-amount)` at line 179 for both operations. Due to two's complement asymmetry in int128 representation:
+- int128 range: [-2^127, 2^127-1]
+- type(int128).min = -2^127 (valid)
+- type(int128).max = 2^127-1 (valid)
+
+When wrapping with amount = 2^127:
+- Line 179 calculates: `SafeCastLib.toInt128(-2^127)`
+- Result: -2^127 = type(int128).min ✓ (valid int128)
+
+When unwrapping with amount = -2^127:
+- Line 179 calculates: `SafeCastLib.toInt128(-(-2^127))` = `SafeCastLib.toInt128(2^127)`
+- Result: 2^127 > type(int128).max ✗ (overflow, reverts)
 
 **Exploitation Path:**
-1. A full-range stableswap pool exists (created via `createFullRangePoolConfig`)
-2. Attacker initiates a large swap in the decreasing direction (selling token0 for token1) that pushes the price to MIN_SQRT_RATIO
-3. The swap reaches exactly `sqrtRatioNext == MIN_SQRT_RATIO` at line 752
-4. Line 756 executes with `nextTick = MIN_TICK` and `increasing = false`, computing `tick = MIN_TICK - 1 = -88722836`
-5. Line 824 stores this invalid pool state: [4](#0-3) 
+1. User initiates wrap by calling Core.lock() which forwards to TokenWrapper with amount = 2^127
+2. Line 171-177: updateSavedBalances succeeds (2^127 < uint128.max)
+3. Line 179: SafeCastLib.toInt128(-2^127) succeeds (equals type(int128).min)
+4. Wrap completes, user receives 2^127 wrapper tokens
+5. After unlock time, user attempts unwrap with amount = -2^127
+6. Line 167-169: Timestamp check passes
+7. Line 171-177: updateSavedBalances would succeed
+8. Line 179: SafeCastLib.toInt128(2^127) reverts with overflow
+9. Unwrap permanently fails - tokens irretrievably locked
 
-6. If the pool has the Oracle extension enabled, line 125 records this invalid tick in cumulative Oracle data: [5](#0-4) 
+**Security Property Broken:**
+Violates README line 202 principle that positions should be withdrawable. While TokenWrapper isn't technically a position, the design intent that wrapped tokens become unwrappable after unlock time is violated.
 
-7. When `PriceFetcher` queries historical TWAP data and calls `tickToSqrtRatio()` on the average tick derived from corrupted Oracle data, it reverts with `InvalidTick`: [6](#0-5) [7](#0-6) 
+**Code Evidence:**
+The vulnerability exists at the SafeCastLib.toInt128 call on line 179: [3](#0-2) 
 
-**Security Property Broken:** The protocol's tick invariant is violated - all ticks must satisfy `abs(tick) <= MAX_TICK_MAGNITUDE`. The stored tick -88722836 has absolute value 88722836, which exceeds MAX_TICK_MAGNITUDE (88722835).
+**Supporting Evidence from Test Suite:**
+The existing test file deliberately bounds wrap amounts to type(int128).max, proving developers recognized this as the safe limit but failed to enforce it in the contract: [4](#0-3) [5](#0-4) 
 
 ## Impact Explanation
-- **Affected Assets**: Stableswap pools (especially full-range pools) and their Oracle data. Any downstream protocols or contracts relying on PriceFetcher for TWAP price data are affected.
-- **Damage Severity**: 
-  - Pool state is corrupted with an out-of-bounds tick value
-  - Oracle cumulative data becomes poisoned with invalid tick values
-  - PriceFetcher queries revert, causing DoS of price oracle functionality for the affected pool
-  - While direct fund loss is not immediate, the corrupted state creates undefined behavior that violates protocol invariants
-- **User Impact**: All users of the affected pool and any protocols/integrations relying on its Oracle data for pricing. The DoS affects price queries until the pool state "heals" via a future swap that recomputes a valid tick.
+
+**Affected Assets**: Any ERC20 token wrapped via TokenWrapper with amount = 2^127 raw units
+- For 18-decimal tokens: ~170 billion tokens
+- For 6-decimal tokens: ~170 quintillion tokens (unrealistic)
+- More realistic for high-supply tokens with fewer decimals
+
+**Damage Severity**:
+- 100% permanent loss of wrapped tokens
+- Tokens locked in Core contract forever
+- No admin functions or emergency withdrawal mechanisms exist
+- Affects individual users who wrap this specific boundary amount
+
+**User Impact**: Any user wrapping exactly 2^127 token units loses permanent access to underlying tokens. While the amount is large, it's within valid int256 range and could be attempted by users testing maximum safe values or automated systems.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any user with sufficient capital to move a stableswap pool's price to MIN_SQRT_RATIO
-- **Preconditions**: 
-  - Stableswap pool (full-range or with active liquidity range) must exist
-  - Pool must have low enough liquidity or high enough trade size to reach MIN_SQRT_RATIO
-  - For Oracle corruption, pool must have Oracle extension enabled
-- **Execution Complexity**: Single swap transaction that reaches the price limit
-- **Frequency**: Can be triggered once per pool reaching the extreme price boundary. The corrupted state persists until a future swap moves the price away from MIN_SQRT_RATIO and recomputes a valid tick at line 803. [8](#0-7) 
+
+**Attacker Profile**: Any user with sufficient tokens; no special privileges required
+
+**Preconditions**:
+1. TokenWrapper deployed (any underlying token, any unlock time)
+2. User has 2^127 units of underlying token
+3. No other special state required
+
+**Execution Complexity**: Single wrap transaction succeeds via normal contract interaction. Subsequent unwrap attempts permanently fail.
+
+**Economic Cost**: Only gas fees for initial wrap transaction
+
+**Frequency**: Deterministic failure for this exact boundary value. While 2^127 is large for most tokens, it represents the maximum "safe" looking value (type(int128).max + 1) that users testing boundaries might attempt.
+
+**Overall Likelihood**: Medium - Requires specific boundary value but no other constraints
 
 ## Recommendation
 
-In `src/Core.sol`, function `swap_6269342730`, line 756:
+Add explicit validation to enforce symmetric int128 bounds:
 
-**CURRENT (vulnerable):**
 ```solidity
-assembly ("memory-safe") {
-    // no overflow danger because nextTick is always inside the valid tick bounds
-    tick := sub(nextTick, iszero(increasing))
+// In src/TokenWrapper.sol, function handleForwardData, after line 164:
+
+(int256 amount) = abi.decode(data, (int256));
+
+// Enforce symmetric int128 bounds to ensure both wrap and unwrap succeed
+if (amount > int256(uint256(uint128(type(int128).max)))) {
+    revert AmountTooLarge();
+}
+
+if (amount < -int256(uint256(uint128(type(int128).max)))) {
+    revert AmountTooLarge();
+}
+
+// unwrap
+if (amount < 0) {
+    if (block.timestamp < UNLOCK_TIME) revert TooEarly();
 }
 ```
 
-**FIXED:**
+Add custom error:
 ```solidity
-assembly ("memory-safe") {
-    // Compute tick with bounds checking to prevent underflow below MIN_TICK
-    let computedTick := sub(nextTick, iszero(increasing))
-    // Clamp to MIN_TICK if the subtraction would go out of bounds
-    tick := add(computedTick, mul(slt(computedTick, MIN_TICK), sub(MIN_TICK, computedTick)))
-}
+error AmountTooLarge();
 ```
 
-**Alternative mitigation:** Modify the stableswap boundary logic at lines 575-576 to never set `nextTick` to exactly MIN_TICK when decreasing, instead using `MIN_TICK + 1` as the effective lower boundary for swap calculations.
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_OutOfBoundsTick.t.sol
-// Run with: forge test --match-test test_OutOfBoundsTickCorruption -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Router.sol";
-import "../src/types/poolConfig.sol";
-import "../src/math/constants.sol";
-
-contract Exploit_OutOfBoundsTick is Test {
-    Core core;
-    Router router;
-    
-    address token0 = address(0); // NATIVE_TOKEN
-    address token1 = address(0x123);
-    
-    function setUp() public {
-        // Deploy Core and Router
-        core = new Core();
-        router = new Router(core);
-        
-        // Create full-range stableswap pool
-        PoolConfig config = createFullRangePoolConfig(0, address(0));
-        PoolKey memory poolKey = PoolKey({
-            token0: token0,
-            token1: token1,
-            config: config
-        });
-        
-        // Initialize pool at a high tick (far from MIN_TICK)
-        core.lock(
-            address(router),
-            abi.encodeCall(router.initializePool, (poolKey, int32(1000000)))
-        );
-        
-        // Add liquidity
-        // (simplified - actual implementation would need proper liquidity provision)
-    }
-    
-    function test_OutOfBoundsTickCorruption() public {
-        // SETUP: Pool exists at high tick value
-        PoolKey memory poolKey = PoolKey({
-            token0: token0,
-            token1: token1,
-            config: createFullRangePoolConfig(0, address(0))
-        });
-        
-        PoolId poolId = poolKey.toPoolId();
-        PoolState stateBefore = core.poolState(poolId);
-        int32 tickBefore = stateBefore.tick();
-        
-        console.log("Tick before exploit:", tickBefore);
-        
-        // EXPLOIT: Perform massive swap to push price to MIN_SQRT_RATIO
-        SwapParameters memory params = SwapParameters({
-            amount: type(int128).max, // Large swap
-            isToken1: false, // Selling token0
-            sqrtRatioLimit: MIN_SQRT_RATIO // Target minimum price
-        });
-        
-        core.lock(
-            address(this),
-            abi.encodeCall(core.swap_6269342730, (poolKey, params))
-        );
-        
-        // VERIFY: Pool state now has out-of-bounds tick
-        PoolState stateAfter = core.poolState(poolId);
-        int32 tickAfter = stateAfter.tick();
-        
-        console.log("Tick after exploit:", tickAfter);
-        console.log("MIN_TICK:", MIN_TICK);
-        console.log("Tick is out of bounds:", tickAfter < MIN_TICK);
-        
-        // Verify the vulnerability
-        assertEq(tickAfter, MIN_TICK - 1, "Tick should be MIN_TICK - 1");
-        assertTrue(tickAfter < MIN_TICK, "Vulnerability confirmed: tick is below MIN_TICK");
-        
-        // Verify tickToSqrtRatio would revert on this tick
-        vm.expectRevert(abi.encodeWithSelector(InvalidTick.selector, tickAfter));
-        tickToSqrtRatio(tickAfter);
-    }
-}
-```
+This ensures wrapped amounts stay within the range where negation fits in int128 for both wrap and unwrap operations.
 
 ## Notes
 
-This vulnerability demonstrates a critical oversight in the tick boundary arithmetic. While the code includes a comment claiming "no overflow danger because nextTick is always inside the valid tick bounds," this assumption is violated when `nextTick = MIN_TICK` and the code subtracts 1 in the decreasing direction.
+This vulnerability exists due to the asymmetry in two's complement integer representation where the negative range includes one more value than the positive range. The contract allows wrapping at the boundary where `-amount` equals type(int128).min (valid), but prevents unwrapping where `-amount` equals type(int128).max + 1 (invalid).
 
-The symmetric case for MAX_TICK does **not** have this issue because when `increasing = true`, the formula computes `tick = MAX_TICK - 0 = MAX_TICK`, which remains valid.
-
-The issue is particularly concerning for full-range stableswap pools with the Oracle extension, as it permanently corrupts the Oracle's cumulative tick data until the pool state heals naturally through a future swap. This violates the Oracle's purpose of providing manipulation-resistant price data.
+The existing test suite's deliberate bounding to type(int128).max confirms this is a bug rather than intended behavior. The fix is straightforward: validate amounts stay within symmetric int128 bounds before the negation operation.
 
 ### Citations
 
-**File:** src/Core.sol (L572-577)
+**File:** src/TokenWrapper.sol (L158-161)
 ```text
-                    if (config.isStableswap()) {
-                        if (config.isFullRange()) {
-                            // special case since we don't need to compute min/max tick sqrt ratio
-                            (nextTick, nextTickSqrtRatio) =
-                                increasing ? (MAX_TICK, MAX_SQRT_RATIO) : (MIN_TICK, MIN_SQRT_RATIO);
-                        } else {
+    /// @dev Encode (int256 delta) in the forwarded data, where a positive amount means wrapping and a negative amount means unwrapping
+    /// For wrap: the specified amount of this wrapper token will be credited to the locker and the same amount of underlying will be debited
+    /// For unwrap: the specified amount of the underlying will be credited to the locker and the same amount of this wrapper token will be debited, iff block.timestamp > unlockTime and at least that much token has been wrapped
+    /// @param data Encoded int256 delta (positive for wrap, negative for unwrap)
 ```
 
-**File:** src/Core.sol (L752-757)
+**File:** src/TokenWrapper.sol (L163-182)
 ```text
-                    if (sqrtRatioNext == nextTickSqrtRatio) {
-                        sqrtRatio = sqrtRatioNext;
-                        assembly ("memory-safe") {
-                            // no overflow danger because nextTick is always inside the valid tick bounds
-                            tick := sub(nextTick, iszero(increasing))
-                        }
+    function handleForwardData(Locker, bytes memory data) internal override returns (bytes memory) {
+        (int256 amount) = abi.decode(data, (int256));
+
+        // unwrap
+        if (amount < 0) {
+            if (block.timestamp < UNLOCK_TIME) revert TooEarly();
+        }
+
+        CORE.updateSavedBalances({
+            token0: address(UNDERLYING_TOKEN),
+            token1: address(type(uint160).max),
+            salt: bytes32(0),
+            delta0: amount,
+            delta1: 0
+        });
+
+        CORE.updateDebt(SafeCastLib.toInt128(-amount));
+
+        return bytes("");
+    }
 ```
 
-**File:** src/Core.sol (L801-804)
+**File:** test/TokenWrapper.t.sol (L115-115)
 ```text
-                    } else if (sqrtRatio != sqrtRatioNext) {
-                        sqrtRatio = sqrtRatioNext;
-                        tick = sqrtRatioToTick(sqrtRatio);
-                    }
+        wrapAmount = uint128(bound(wrapAmount, 0, uint128(type(int128).max)));
 ```
 
-**File:** src/Core.sol (L824-826)
+**File:** test/TokenWrapper.t.sol (L139-139)
 ```text
-                stateAfter = createPoolState({_sqrtRatio: sqrtRatio, _tick: tick, _liquidity: liquidity});
-
-                writePoolState(poolId, stateAfter);
-```
-
-**File:** src/math/constants.sol (L8-14)
-```text
-// The minimum tick value supported by the protocol
-// Corresponds to the minimum possible price ratio in the protocol
-int32 constant MIN_TICK = -88722835;
-
-// The maximum tick value supported by the protocol
-// Corresponds to the maximum possible price ratio in the protocol
-int32 constant MAX_TICK = 88722835;
-```
-
-**File:** src/extensions/Oracle.sol (L113-126)
-```text
-            PoolState state = CORE.poolState(poolId);
-
-            uint128 liquidity = state.liquidity();
-            uint256 nonZeroLiquidity;
-            assembly ("memory-safe") {
-                nonZeroLiquidity := add(liquidity, iszero(liquidity))
-            }
-
-            Snapshot snapshot = createSnapshot({
-                _timestamp: uint32(block.timestamp),
-                _secondsPerLiquidityCumulative: last.secondsPerLiquidityCumulative()
-                    + uint160(FixedPointMathLib.rawDiv(uint256(timePassed) << 128, nonZeroLiquidity)),
-                _tickCumulative: last.tickCumulative() + int64(uint64(timePassed)) * state.tick()
-            });
-```
-
-**File:** src/math/ticks.sol (L22-25)
-```text
-function tickToSqrtRatio(int32 tick) pure returns (SqrtRatio r) {
-    unchecked {
-        uint256 t = FixedPointMathLib.abs(tick);
-        if (t > MAX_TICK_MAGNITUDE) revert InvalidTick(tick);
-```
-
-**File:** src/lens/PriceFetcher.sol (L111-112)
-```text
-                uint128 amountBase = amount1Delta(tickToSqrtRatio(base.tick), MIN_SQRT_RATIO, base.liquidity, false);
-                uint128 amountQuote = amount1Delta(tickToSqrtRatio(quote.tick), MIN_SQRT_RATIO, quote.liquidity, false);
+        wrapAmount = uint128(bound(wrapAmount, 1, uint128(type(int128).max)));
 ```

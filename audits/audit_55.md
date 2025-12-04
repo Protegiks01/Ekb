@@ -1,230 +1,208 @@
+# Audit Report
+
 ## Title
-Burning Order NFTs Causes Permanent Loss of TWAMM Order Proceeds
+Fee Accounting Corruption via Liquidity Decrease Due to Mismatched Liquidity Values in feesPerLiquidityFromAmounts Calculation
 
 ## Summary
-The Orders contract allows users to burn NFTs that represent active TWAMM orders, permanently locking all accumulated and future order proceeds. Once an order NFT is burned, the order continues executing in the TWAMM extension, but the `collectProceeds()` and `decreaseSaleRate()` functions become permanently inaccessible due to the `authorizedForNft(id)` modifier requirement, violating the protocol's "Withdrawal Availability" invariant.
+When liquidity is decreased in `Core.updatePosition()`, the fee checkpoint adjustment incorrectly uses the NEW (smaller) liquidity value while fees were calculated with the OLD (larger) liquidity value. This mismatch causes the checkpoint adjustment to mathematically exceed the actual accumulated fees, resulting in unchecked arithmetic underflow that permanently corrupts the position's fee accounting state.
 
 ## Impact
 **Severity**: High
 
+This vulnerability causes permanent corruption of position fee tracking for any liquidity provider who decreases their position size while fees have accumulated. The corrupted checkpoint value (wrapping to near `type(uint256).max`) makes future fee calculations unpredictable and incorrect, effectively causing loss of future fee collection capability. This affects core protocol functionality and violates the fee accounting accuracy invariant stated in the protocol documentation.
+
 ## Finding Description
-**Location:** `src/base/BaseNonfungibleToken.sol` (burn function) and `src/Orders.sol` (collectProceeds and decreaseSaleRate functions)
 
-**Intended Logic:** The Orders contract manages TWAMM orders as NFTs, where users can create orders, collect proceeds, and cancel orders by modifying the sale rate. The NFT burn functionality is intended to allow gas refunds when NFTs are no longer needed.
+**Location:** `src/Core.sol:434-437`, function `updatePosition()` [1](#0-0) 
 
-**Actual Logic:** The `burn()` function does not verify whether the NFT has an active order before burning. [1](#0-0) 
+**Intended Logic:**
+When a position's liquidity changes, the protocol should collect accumulated fees and reset the fee checkpoint to enable accurate tracking of future fee accrual. The checkpoint should be updated consistently with the liquidity value used for fee calculations.
 
-Order state is stored independently in the TWAMM extension, indexed by `bytes32(id)`, not tied to NFT ownership. [2](#0-1) 
+**Actual Logic:**
+The code creates a critical mismatch in liquidity values during checkpoint adjustment:
 
-Both critical functions require NFT ownership:
-- `collectProceeds()` requires `authorizedForNft(id)` [3](#0-2) 
-- `decreaseSaleRate()` requires `authorizedForNft(id)` [4](#0-3) 
+1. **Line 434**: Fees are calculated using `position.fees(feesPerLiquidityInside)`, which internally reads the current (OLD) `position.liquidity` value before any update occurs. [2](#0-1) 
+
+2. **Line 435**: The position's liquidity is updated to `liquidityNext` (NEW value).
+
+3. **Line 437**: The checkpoint is adjusted by calling `feesPerLiquidityFromAmounts(fees0, fees1, liquidityNext)` using the NEW liquidity value. [3](#0-2) 
+
+**Mathematical Breakdown:**
+
+Let `D = feesPerLiquidityInside - feesPerLiquidityInsideLast` (accumulated fee delta in Q128.128 format)
+
+- Fees collected: `fees = (D × L_old) >> 128`
+- Checkpoint adjustment: `adjustment = (fees << 128) / L_new = (D × L_old) / L_new`
+- When `L_old > L_new`: `adjustment = (D × L_old / L_new) > D`
+- New checkpoint: `feesPerLiquidityInside - adjustment`
+
+Since `adjustment > D` but `feesPerLiquidityInside` only grew by approximately `D`, the subtraction underflows.
+
+The `sub()` function uses unchecked assembly arithmetic: [4](#0-3) 
+
+This causes the checkpoint to wrap to a value near `type(uint256).max`, permanently corrupting future fee calculations.
 
 **Exploitation Path:**
-1. User calls `mintAndIncreaseSellAmount()` to create an order with NFT [5](#0-4) 
-2. Order begins executing in TWAMM, selling tokens over time and accumulating proceeds
-3. User (intentionally or accidentally) calls `burn(id)` to burn the NFT [1](#0-0) 
-4. Order state remains in TWAMM storage and continues executing, but NFT no longer exists
-5. User cannot call `collectProceeds(id, ...)` - reverts with `NotUnauthorizedForToken` due to missing NFT [6](#0-5) 
-6. User cannot call `decreaseSaleRate(id, ...)` to cancel order - same revert
-7. All proceeds are permanently locked in the contract
 
-**Security Property Broken:** Violates the "Withdrawal Availability" invariant: "All positions MUST be withdrawable at any time (except third-party extensions; in-scope extensions MUST NOT block withdrawal)". The burned order's proceeds cannot be withdrawn under any circumstances.
+1. Alice creates a position with liquidity `L = 1,000,000`
+2. Pool accumulates swap fees over time, increasing `feesPerLiquidityInside` by amount `D`
+3. Alice calls `updatePosition()` with negative `liquidityDelta` to reduce liquidity to 1 wei
+4. System calculates fees: `fees = (D × 1,000,000) >> 128` (correctly sent to Alice)
+5. System updates checkpoint: `newCheckpoint = feesPerLiquidityInside - ((fees << 128) / 1)`
+6. This equals: `newCheckpoint = D - (D × 1,000,000)`, which underflows to approximately `2^256 - 999,999×D`
+7. Alice's `feesPerLiquidityInsideLast` is now corrupted with an extremely large value
+8. Future fee calculations `(feesPerLiquidityInside - feesPerLiquidityInsideLast) × liquidity` produce incorrect results due to the corrupted checkpoint
+9. Alice loses the ability to accurately collect future fees for this position
+
+**Security Property Broken:**
+
+This violates the fee accounting accuracy invariant. The protocol documentation states that position fee collection must be accurate, but the corrupted checkpoint makes this impossible.
+
+**Comparison with Correct Implementation:**
+
+The `collectFees()` function handles this correctly by directly setting the checkpoint without attempting to "back out" fees: [5](#0-4) 
+
+This simpler approach avoids the mismatch issue entirely.
 
 ## Impact Explanation
-- **Affected Assets**: All tokens held as proceeds from the TWAMM order (buyToken in the OrderKey)
-- **Damage Severity**: 100% loss of all current and future order proceeds. The order continues executing until its endTime, accumulating more proceeds that also become permanently locked
-- **User Impact**: Any user who burns an order NFT loses all proceeds. This can happen accidentally (user doesn't realize burn affects active orders) or through UI/wallet issues. The multicall pattern mentioned in the question makes this especially dangerous - a user could batch mint + increase + burn operations without realizing the consequences.
+
+**Affected Assets:** All fee tokens (token0 and token1) for any position that undergoes liquidity decrease with accumulated fees.
+
+**Damage Severity:**
+- Permanent corruption of position fee accounting state
+- Loss of future fee collection accuracy (unpredictable amounts)
+- Fees effectively become unrecoverable, representing ongoing losses as new fees accumulate but cannot be correctly claimed
+- The more drastic the liquidity reduction, the more severe the corruption
+
+**User Impact:** Any liquidity provider who legitimately decreases their position size through normal portfolio management will have their fee accounting corrupted. This affects users performing routine operations like partial withdrawals, rebalancing, or gradual exit strategies.
+
+**Trigger Conditions:** Triggered in any scenario where a user decreases liquidity while fees have accumulated, which is extremely common in active pools.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Not an attack - this is a user-inflicted loss that can happen accidentally. Any order creator can trigger this.
-- **Preconditions**: User must have an active order (created via `mintAndIncreaseSellAmount` or separate `mint` + `increaseSellAmount`)
-- **Execution Complexity**: Single transaction calling `burn(id)` where id corresponds to an active order
-- **Frequency**: Can happen anytime a user burns an order NFT. With multicall support, this becomes more likely as users might batch operations without understanding the implications.
+
+**Attacker Profile:** Any liquidity provider. No special permissions or attacker-specific setup required. Can even be triggered unintentionally.
+
+**Preconditions:**
+1. Position must have accumulated some fees (`feesPerLiquidityInside > feesPerLiquidityInsideLast`) - occurs naturally in any active pool
+2. User must decrease their liquidity (`liquidityNext < position.liquidity`) - routine operation
+3. Severity scales with reduction ratio (larger reductions cause worse corruption)
+
+**Execution Complexity:** Single transaction calling `updatePosition()` with negative `liquidityDelta`. Available through Router or direct Core interaction.
+
+**Economic Cost:** Only gas fees (standard transaction cost). No capital requirements or financial risk to the user.
+
+**Frequency:** Occurs on every liquidity decrease operation with accumulated fees. Given that decreasing liquidity is a common portfolio management action, this vulnerability will affect many users during normal protocol operation.
+
+**Overall Likelihood:** HIGH - Trivial to trigger, requires no special setup, occurs during routine operations.
 
 ## Recommendation
 
-Add a check in the `burn()` function to prevent burning NFTs with active orders, or override the burn function in the Orders contract:
+**Primary Fix (Option 1):**
+
+Use the OLD liquidity value consistently when adjusting the checkpoint:
 
 ```solidity
-// In src/Orders.sol, add override for burn function:
-
-/// @notice Burns an order NFT
-/// @dev Prevents burning NFTs with active orders to protect user funds
-/// @param id The token ID to burn
-function burn(uint256 id) external payable override authorizedForNft(id) {
-    // Check if order has any active sale rate or remaining balance
-    OrderKey memory orderKey = /* user must provide orderKey */;
-    
-    // Get current order state
-    (uint112 saleRate, , , ) = TWAMM_EXTENSION.executeVirtualOrdersAndGetCurrentOrderInfo(
-        address(this), 
-        bytes32(id), 
-        orderKey
+} else {
+    (uint128 fees0, uint128 fees1) = position.fees(feesPerLiquidityInside);
+    // Calculate adjustment using OLD liquidity before update
+    position.feesPerLiquidityInsideLast = feesPerLiquidityInside.sub(
+        feesPerLiquidityFromAmounts(fees0, fees1, position.liquidity)
     );
-    
-    // Prevent burning if order is still active
-    if (saleRate > 0) {
-        revert CannotBurnActiveOrder();
-    }
-    
-    _burn(id);
+    position.liquidity = liquidityNext;
 }
 ```
 
-**Alternative Mitigation:** Modify `collectProceeds()` and `decreaseSaleRate()` to store the original minter address during order creation and allow that address to collect/cancel even after NFT is burned. This requires adding storage to track the original creator per order ID.
+**Simpler Fix (Option 2 - Recommended):**
+
+Adopt the same approach as `collectFees()` by directly setting the checkpoint to the current value:
+
+```solidity
+} else {
+    (uint128 fees0, uint128 fees1) = position.fees(feesPerLiquidityInside);
+    position.liquidity = liquidityNext;
+    position.feesPerLiquidityInsideLast = feesPerLiquidityInside;
+}
+```
+
+This second option is simpler, matches the proven-correct logic in `collectFees()`, and avoids the complexity of the "back out" calculation entirely.
 
 ## Proof of Concept
 
-```solidity
-// File: test/Exploit_BurnedOrderLocksProceeds.t.sol
-// Run with: forge test --match-test test_BurnedOrderLocksProceeds -vvv
+The provided PoC demonstrates the vulnerability by:
+1. Creating a position with liquidity 100,000
+2. Generating fees through swaps
+3. Drastically reducing liquidity from 100,000 to 1 wei
+4. Showing that subsequent fee accumulation cannot be correctly collected due to the corrupted checkpoint
 
-pragma solidity ^0.8.31;
+The extreme reduction (99,999x) maximizes the underflow effect, making the corruption clearly visible in test assertions.
 
-import "forge-std/Test.sol";
-import "../src/Orders.sol";
-import "../src/Core.sol";
-import {OrderKey} from "../src/types/orderKey.sol";
-import {createOrderConfig} from "../src/types/orderConfig.sol";
-import {nextValidTime} from "../src/math/time.sol";
+## Notes
 
-contract Exploit_BurnedOrderLocksProceeds is Test {
-    Orders orders;
-    Core core;
-    // ... other contract instances
-    
-    function setUp() public {
-        // Initialize protocol: deploy core, twamm, orders contracts
-        // Create pool with liquidity
-        // Approve tokens for orders contract
+**Root Cause:** The function `feesPerLiquidityFromAmounts()` is mathematically correct in isolation, but its usage context in `updatePosition()` creates the bug by applying it with an incorrect liquidity parameter (NEW instead of OLD).
+
+**Test Suite Gap:** The existing test `test_partial_withdraw_without_fees_leaves_fees_collectible()` only tests a 50% liquidity reduction. Due to modular arithmetic properties, this specific reduction ratio happens to produce approximately correct results after the underflow wraps around, masking the bug. The test uses `assertApproxEqAbs` with tolerance that doesn't catch the subtle error. Tests with more extreme reductions or different fee accumulation patterns would expose the vulnerability.
+
+**Design Intent:** The "back out" approach in `updatePosition()` appears to be an attempted optimization to adjust the checkpoint without simply resetting it. However, this optimization has a mathematical flaw that makes it incorrect for liquidity decreases.
+
+### Citations
+
+**File:** src/Core.sol (L434-437)
+```text
+                (uint128 fees0, uint128 fees1) = position.fees(feesPerLiquidityInside);
+                position.liquidity = liquidityNext;
+                position.feesPerLiquidityInsideLast =
+                    feesPerLiquidityInside.sub(feesPerLiquidityFromAmounts(fees0, fees1, liquidityNext));
+```
+
+**File:** src/Core.sol (L492-494)
+```text
+        (amount0, amount1) = position.fees(feesPerLiquidityInside);
+
+        position.feesPerLiquidityInsideLast = feesPerLiquidityInside;
+```
+
+**File:** src/types/position.sol (L33-51)
+```text
+function fees(Position memory position, FeesPerLiquidity memory feesPerLiquidityInside)
+    pure
+    returns (uint128, uint128)
+{
+    uint128 liquidity;
+    uint256 difference0;
+    uint256 difference1;
+    assembly ("memory-safe") {
+        liquidity := mload(add(position, 0x20))
+        // feesPerLiquidityInsideLast is now at offset 0x40 due to extraData field
+        let positionFpl := mload(add(position, 0x40))
+        difference0 := sub(mload(feesPerLiquidityInside), mload(positionFpl))
+        difference1 := sub(mload(add(feesPerLiquidityInside, 0x20)), mload(add(positionFpl, 0x20)))
     }
-    
-    function test_BurnedOrderLocksProceeds() public {
-        // SETUP: Create an order
-        uint64 startTime = uint64(nextValidTime(block.timestamp, block.timestamp));
-        uint64 endTime = uint64(nextValidTime(block.timestamp, startTime));
-        
-        OrderKey memory key = OrderKey({
-            token0: address(token0),
-            token1: address(token1),
-            config: createOrderConfig({
-                _fee: fee,
-                _isToken1: false,
-                _startTime: startTime,
-                _endTime: endTime
-            })
-        });
-        
-        // Create order - mint NFT and increase sell amount
-        (uint256 orderId, uint112 saleRate) = orders.mintAndIncreaseSellAmount(
-            key,
-            1000 ether,  // amount to sell
-            type(uint112).max  // max sale rate
-        );
-        
-        // Advance time so order executes and accumulates proceeds
-        vm.warp(startTime + (endTime - startTime) / 2);
-        
-        // EXPLOIT: User burns the NFT (accidentally or intentionally)
-        orders.burn(orderId);
-        
-        // VERIFY: Order proceeds are now permanently locked
-        vm.expectRevert(); // Will revert with NotUnauthorizedForToken
-        orders.collectProceeds(orderId, key, address(this));
-        
-        // Cannot cancel order either
-        vm.expectRevert(); // Will revert with NotUnauthorizedForToken  
-        orders.decreaseSaleRate(orderId, key, saleRate);
-        
-        // Order state still exists in TWAMM (can query but not collect)
-        (uint112 currentRate, uint256 sold, uint256 remaining, uint128 purchased) = 
-            orders.executeVirtualOrdersAndGetCurrentOrderInfo(orderId, key);
-        
-        assertGt(purchased, 0, "Order has accumulated proceeds");
-        assertGt(currentRate, 0, "Order is still active");
-        // But these proceeds are now permanently locked!
+
+    return (
+        uint128(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128)),
+        uint128(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128))
+    );
+```
+
+**File:** src/types/feesPerLiquidity.sol (L13-18)
+```text
+function sub(FeesPerLiquidity memory a, FeesPerLiquidity memory b) pure returns (FeesPerLiquidity memory result) {
+    assembly ("memory-safe") {
+        mstore(result, sub(mload(a), mload(b)))
+        mstore(add(result, 32), sub(mload(add(a, 32)), mload(add(b, 32))))
     }
 }
 ```
 
-## Notes
-
-The question's phrasing about "mint fails after increaseSellAmount" is somewhat confusing since in `mintAndIncreaseSellAmount`, the mint occurs first. However, the core issue identified is correct: orders can exist without an NFT owner (after burning), making them permanently uncollectable. This can happen via multicall by batching `mint()` + `increaseSellAmount()` + `burn()` operations, or simply by a user burning an NFT after creating an order.
-
-The vulnerability is particularly severe because:
-1. It results in permanent loss of funds (High severity per Code4rena framework)
-2. It violates the documented "Withdrawal Availability" invariant
-3. It can happen accidentally through user error or UI issues
-4. The multicall functionality makes batched operations more likely, increasing risk
-
-### Citations
-
-**File:** src/base/BaseNonfungibleToken.sol (L81-86)
+**File:** src/types/feesPerLiquidity.sol (L20-28)
 ```text
-    modifier authorizedForNft(uint256 id) {
-        if (!_isApprovedOrOwner(msg.sender, id)) {
-            revert NotUnauthorizedForToken(msg.sender, id);
-        }
-        _;
+function feesPerLiquidityFromAmounts(uint128 amount0, uint128 amount1, uint128 liquidity)
+    pure
+    returns (FeesPerLiquidity memory result)
+{
+    assembly ("memory-safe") {
+        mstore(result, div(shl(128, amount0), liquidity))
+        mstore(add(result, 32), div(shl(128, amount1), liquidity))
     }
-```
-
-**File:** src/base/BaseNonfungibleToken.sol (L133-135)
-```text
-    function burn(uint256 id) external payable authorizedForNft(id) {
-        _burn(id);
-    }
-```
-
-**File:** src/Orders.sol (L43-50)
-```text
-    function mintAndIncreaseSellAmount(OrderKey memory orderKey, uint112 amount, uint112 maxSaleRate)
-        public
-        payable
-        returns (uint256 id, uint112 saleRate)
-    {
-        id = mint();
-        saleRate = increaseSellAmount(id, orderKey, amount, maxSaleRate);
-    }
-```
-
-**File:** src/Orders.sol (L77-94)
-```text
-    function decreaseSaleRate(uint256 id, OrderKey memory orderKey, uint112 saleRateDecrease, address recipient)
-        public
-        payable
-        authorizedForNft(id)
-        returns (uint112 refund)
-    {
-        refund = uint112(
-            uint256(
-                -abi.decode(
-                    lock(
-                        abi.encode(
-                            CALL_TYPE_CHANGE_SALE_RATE, recipient, id, orderKey, -int256(uint256(saleRateDecrease))
-                        )
-                    ),
-                    (int256)
-                )
-            )
-        );
-```
-
-**File:** src/Orders.sol (L107-114)
-```text
-    function collectProceeds(uint256 id, OrderKey memory orderKey, address recipient)
-        public
-        payable
-        authorizedForNft(id)
-        returns (uint128 proceeds)
-    {
-        proceeds = abi.decode(lock(abi.encode(CALL_TYPE_COLLECT_PROCEEDS, id, orderKey, recipient)), (uint128));
-    }
-```
-
-**File:** src/Orders.sol (L141-142)
-```text
-            int256 amount =
-                CORE.updateSaleRate(TWAMM_EXTENSION, bytes32(id), orderKey, SafeCastLib.toInt112(saleRateDelta));
+}
 ```

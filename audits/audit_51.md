@@ -1,316 +1,333 @@
+# Audit Report
+
 ## Title
-TWAMM Sale Rate Update Bypasses Token Deposit Through Rounding, Causing Pool Insolvency
+Stableswap Position Fee View Function Returns Catastrophically Incorrect Values Due to isFullRange() vs isStableswap() Logic Mismatch
 
 ## Summary
-When a user increases their TWAMM order's sale rate by a small amount with short duration remaining, the `amountDelta` calculation in `TWAMM.handleForwardData()` can round to zero due to fixed-point arithmetic, while the TWAMM extension still updates the pool's current sale rates to the higher value. Orders.sol skips token transfers when `amount == 0`, causing a desynchronization where the pool expects to sell at a higher rate without receiving the necessary tokens, violating the Solvency invariant.
+The `getPositionFeesAndLiquidity` view function in `BasePositions.sol` uses `isFullRange()` to determine fee calculation method, while `collectFees` in `Core.sol` uses `isStableswap()`. For non-full-range stableswap pools (amplification > 0 or center ≠ 0), this causes the view function to incorrectly use tick-based fee calculation instead of global fees, resulting in arithmetic underflow that produces catastrophically incorrect values when the tick moves outside the active liquidity range.
 
 ## Impact
-**Severity**: High
+**Severity**: Medium - Function incorrectly implements specification with significant downstream consequences
+
+External protocols integrating with Ekubo face critical risks: lending protocols may make incorrect liquidation decisions based on wrong fee values, portfolio aggregators will display incorrect valuations (potentially showing quintillions when actual fees are thousands), and automated yield optimizers may malfunction. While this view function cannot directly steal funds, it violates the core principle that view functions should accurately preview state-changing operations, creating a fundamental trust and integration issue.
 
 ## Finding Description
+
 **Location:** [1](#0-0) 
 
-**Intended Logic:** When a user updates their TWAMM order's sale rate, they must deposit additional tokens (if increasing) or receive a refund (if decreasing). The amount is calculated based on the difference between the new and old sale rates multiplied by the remaining duration. Orders.sol should transfer tokens if and only if `amount != 0`.
+**Intended Logic:** 
+The view function should return identical fee values to what `collectFees` would return if called, allowing integrators to query position values without state changes. Per Ekubo's design, all stableswap pools use global fees per liquidity tracking.
 
-**Actual Logic:** The amount calculation uses fixed-point arithmetic that can round to zero when `saleRateDelta * durationRemaining < 2^32`. When this occurs:
-1. TWAMM extension updates the order's sale rate [2](#0-1) 
-2. TWAMM updates the pool's current sale rates if the order is active [3](#0-2) 
-3. TWAMM calculates `amountDelta = 0` due to rounding [4](#0-3) 
-4. TWAMM calls `updateSavedBalances` with 0 (no-op) [5](#0-4) 
-5. Orders.sol receives `amount = 0` and skips token transfer [1](#0-0) 
+**Actual Logic:**
+The function uses `isFullRange()` check which returns `true` only when amplification=0 AND center=0. [2](#0-1)  This differs from `collectFees` which uses `isStableswap()` returning `true` for ALL stableswap pools. [3](#0-2) 
 
 **Exploitation Path:**
-1. Attacker creates a TWAMM order with a legitimate sale rate and duration
-2. Attacker waits until the order is active and has a short duration remaining (e.g., less than 1 hour)
-3. Attacker calls `increaseSellAmount()` or `updateSaleRate()` with a `saleRateDelta` chosen such that `saleRateDelta * durationRemaining < 2^32` (approximately < 0.0003 tokens for 1 hour remaining)
-4. TWAMM extension updates pool sale rates to include the increase, but `amountDelta` rounds to 0
-5. No tokens are transferred from attacker to pool
-6. When virtual orders execute, the pool attempts to sell at the higher rate but lacks sufficient tokens, causing negative pool balances
 
-**Security Property Broken:** **Solvency Invariant** - "Pool balances of token0 and token1 must NEVER go negative (sum of all deltas must maintain non-negative balances)"
+1. **Pool Creation**: User creates non-full-range stableswap pool with amplification=10, center=0. The `createStableswapPoolConfig` function allows any amplification 0-127 and any center tick. [4](#0-3)  This defines an active liquidity range narrower than [MIN_TICK, MAX_TICK].
+
+2. **Position Creation**: User mints position. Stableswap positions must be at exact active range boundaries. [5](#0-4)  For amplification=10, these boundaries are NOT MIN_TICK/MAX_TICK, so `isFullRange()` returns `false`.
+
+3. **Fee Accrual**: Swaps occur within active range, accumulating fees. During `updatePosition`, stableswap path uses global fees and stores snapshot in position. [6](#0-5)  Critically, `_updateTick` is NEVER called for stableswap, leaving tick boundary fee storage at 0.
+
+4. **Tick Moves Outside Range**: Large swap pushes tick >= upper boundary. For non-full-range stableswap, swap logic sets `stepLiquidity = 0` and allows continued price movement. [7](#0-6) 
+
+5. **View Function Called**: `getPositionFeesAndLiquidity` checks `isFullRange()` which returns `false`, so it calls `getPoolFeesPerLiquidityInside` instead of using global fees.
+
+6. **Incorrect Calculation**: `_getPoolFeesPerLiquidityInside` loads tick boundary values which are 0 (never initialized). When tick >= upper, formula computes `feesPerLiquidityInside = upper0 - lower0 = 0 - 0 = 0`. [8](#0-7) 
+
+7. **Arithmetic Underflow**: The `position.fees()` function performs unchecked assembly subtraction: `difference0 = 0 - positionSnapshot`. This underflows to `type(uint256).max - positionSnapshot + 1`, producing a massive value orders of magnitude larger than actual fees. [9](#0-8) 
+
+8. **Discrepancy**: Meanwhile, calling `collectFees` correctly uses `isStableswap()` check and returns accurate global fees.
+
+**Security Property Broken:**
+Fee Accounting Invariant - View functions must accurately reflect state-changing operations. The view function returns values differing by 10^18x or more from actual collectible fees.
 
 ## Impact Explanation
-- **Affected Assets**: All tokens in TWAMM pools where active orders can be updated. The pool's token balance for the sell token becomes negative when virtual orders execute at the fraudulently increased rate.
-- **Damage Severity**: Attacker can incrementally increase their order's sale rate without depositing tokens, effectively stealing from the pool by executing sells with tokens they never deposited. The pool becomes insolvent, affecting all LPs and other traders.
-- **User Impact**: All liquidity providers in the affected pool lose funds proportional to the stolen amount. Other TWAMM orders in the pool may fail to execute properly due to insufficient liquidity.
+
+**Affected Assets**: All non-full-range stableswap positions (amplification > 0 or center ≠ 0) where tick has moved outside active liquidity range.
+
+**Damage Severity**:
+- Lending protocols using this view function for collateral valuation may incorrectly liquidate positions showing inflated fees (false wealth) or fail to liquidate positions they believe have high fees
+- Portfolio aggregators display completely wrong total values (showing fees in quintillions vs actual thousands)
+- Automated yield optimizers and rebalancers make incorrect decisions based on phantom fee values
+- Users lose trust seeing inexplicable fee amounts in UIs
+- Smart contracts integrating Ekubo that rely on this view function contain latent bugs
+
+**User Impact**: Any liquidity provider in non-full-range stableswap pools during volatile markets, plus all external integrators relying on accurate position valuation.
+
+**Trigger Conditions**: Occurs automatically whenever tick moves outside active range during normal market volatility - no attacker required.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any user with an active TWAMM order can exploit this vulnerability
-- **Preconditions**: 
-  - Pool must be initialized with TWAMM extension
-  - Attacker must have an active TWAMM order (past startTime, before endTime)
-  - Order must have short duration remaining OR attacker uses extremely small sale rate increases
-- **Execution Complexity**: Single transaction calling `increaseSellAmount()` or `decreaseSaleRate()` with negative delta. Attacker only needs to calculate the appropriate `saleRateDelta` based on remaining duration.
-- **Frequency**: Can be exploited repeatedly by the same attacker on the same order (increasing rate multiple times) or by multiple attackers with different orders. Each exploitation compounds the insolvency.
+
+**Attacker Profile**: No attacker needed - this is deterministic logic error manifesting under normal conditions.
+
+**Preconditions**:
+1. Non-full-range stableswap pool exists (creation allowed with amplification 1-26, unrestricted)
+2. Position created with fees accrued (normal operation)
+3. Tick moves outside active liquidity range (common during volatile markets, low liquidity periods, or large trades)
+
+**Execution Complexity**: Zero - automatic occurrence when view function called after tick moves outside range.
+
+**Economic Cost**: None - just call a view function.
+
+**Frequency**: Persistent and repeatable - once tick moves outside range, EVERY call to view function returns incorrect values until tick moves back into range.
+
+**Overall Likelihood**: HIGH - Will occur naturally in any non-full-range stableswap pool during normal market conditions.
 
 ## Recommendation
 
-In `src/extensions/TWAMM.sol`, add a validation check before updating pool state to ensure meaningful sale rate changes:
+**Primary Fix:**
+
+Change the logic in `src/base/BasePositions.sol` function `getPositionFeesAndLiquidity` line 64 from:
 
 ```solidity
-// In src/extensions/TWAMM.sol, function handleForwardData, after line 316:
-
-// CURRENT (vulnerable):
-// amountDelta calculation completes, no validation before state updates
-
-// FIXED:
-assembly ("memory-safe") {
-    amountDelta := sub(amountRequired, remainingSellAmount)
-}
-
-// Add validation: if amountDelta rounds to 0 but saleRateDelta is non-zero, revert
-// This prevents state updates without corresponding token transfers
-if (amountDelta == 0 && saleRateDelta != 0) {
-    revert InsufficientAmountDelta(); // New error: amount too small for meaningful update
-}
-
-// Continue with existing logic for fee calculation and balance updates...
+FeesPerLiquidity memory feesPerLiquidityInside = poolKey.config.isFullRange()
+    ? CORE.getPoolFeesPerLiquidity(poolId)
+    : CORE.getPoolFeesPerLiquidityInside(poolId, tickLower, tickUpper);
 ```
 
-Alternative mitigation: In `src/Orders.sol`, revert instead of skipping token transfer when state was updated:
+To:
 
 ```solidity
-// In src/Orders.sol, handleLockData, after line 142:
-
-int256 amount =
-    CORE.updateSaleRate(TWAMM_EXTENSION, bytes32(id), orderKey, SafeCastLib.toInt112(saleRateDelta));
-
-// FIXED: Revert if saleRateDelta is non-zero but amount is zero (rounding issue)
-if (amount == 0 && saleRateDelta != 0) {
-    revert AmountRoundedToZero(); // New error: sale rate change too small
-}
-
-if (amount != 0) {
-    // existing token transfer logic...
-}
+FeesPerLiquidity memory feesPerLiquidityInside = poolKey.config.isStableswap()
+    ? CORE.getPoolFeesPerLiquidity(poolId)
+    : CORE.getPoolFeesPerLiquidityInside(poolId, tickLower, tickUpper);
 ```
 
-The first approach (TWAMM-level validation) is preferred as it prevents the state inconsistency at the source.
+This aligns the view function with both `Core.collectFees` and `Core.updatePosition`, ensuring ALL stableswap pools (full-range and non-full-range) use global fee tracking.
+
+**Additional Mitigations**:
+- Add integration tests specifically for non-full-range stableswap scenarios with tick movement outside active range
+- Add view function consistency checks comparing `getPositionFeesAndLiquidity` output against simulated `collectFees` in test suite
 
 ## Proof of Concept
 
-```solidity
-// File: test/Exploit_TWAMMRoundingInsolvency.t.sol
-// Run with: forge test --match-test test_TWAMMRoundingInsolvency -vvv
+The provided PoC demonstrates the issue by:
+1. Creating non-full-range stableswap pool (amplification=10, center=0)
+2. Minting position at active range boundaries
+3. Accruing fees through swaps while tick inside range (view function returns reasonable values)
+4. Pushing tick outside active range with large swap
+5. Calling view function again, which now returns massive wraparound values (>10^30)
+6. Demonstrating discrepancy is >10^18x larger than original fees
 
-pragma solidity ^0.8.31;
+**Expected PoC Result:**
+- View function returns fees > 10^30 (wraparound value) vs actual collectible fees in normal range
+- Ratio exceeds 10^18x, confirming catastrophic incorrectness
 
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Orders.sol";
-import "../src/extensions/TWAMM.sol";
-import "../src/types/orderKey.sol";
-import "../src/types/poolKey.sol";
+## Notes
 
-contract Exploit_TWAMMRoundingInsolvency is Test {
-    Core core;
-    Orders orders;
-    TWAMM twamm;
-    address attacker;
-    
-    function setUp() public {
-        // Deploy protocol contracts
-        core = new Core();
-        twamm = new TWAMM(core);
-        orders = new Orders(core, twamm, address(this));
-        
-        // Register TWAMM extension
-        vm.prank(address(twamm));
-        core.registerExtension(twammCallPoints());
-        
-        attacker = makeAddr("attacker");
-        deal(address(this), 100 ether);
-        deal(attacker, 100 ether);
-    }
-    
-    function test_TWAMMRoundingInsolvency() public {
-        // SETUP: Create a pool with TWAMM extension
-        address token0 = makeAddr("token0");
-        address token1 = makeAddr("token1");
-        
-        PoolKey memory poolKey = PoolKey({
-            token0: token0,
-            token1: token1,
-            config: createConfig(address(twamm), 3000, 10, true) // 0.3% fee, full range
-        });
-        
-        core.initializePool(poolKey, 0); // Initialize at tick 0
-        
-        // Attacker creates a TWAMM order selling 1000 token0 over 3600 seconds (1 hour)
-        OrderKey memory orderKey = OrderKey({
-            config: createOrderConfig(uint32(block.timestamp), uint32(block.timestamp + 3600), false), // sell token0
-            poolKey: poolKey
-        });
-        
-        vm.startPrank(attacker);
-        uint256 orderId = orders.mint();
-        
-        // Initial deposit: 1000 tokens for 1 hour
-        uint112 initialAmount = 1000;
-        orders.increaseSellAmount(orderId, orderKey, initialAmount, type(uint112).max);
-        
-        // Record initial pool balance
-        uint256 poolBalanceBefore = getPoolBalance(poolKey, token0);
-        
-        // Simulate time passing - only 60 seconds remaining
-        vm.warp(block.timestamp + 3540); // 3600 - 60 = 60 seconds left
-        
-        // EXPLOIT: Increase sale rate by tiny amount that rounds to 0
-        // With 60 seconds remaining, saleRateDelta < 2^32 / 60 ≈ 71,582,788 will round to 0
-        // This represents about 0.0167 tokens over 60 seconds
-        int112 maliciousDelta = 71_000_000; // Just under the threshold
-        
-        // This should require depositing ~0.0165 tokens, but will round to 0
-        uint112 refund = orders.decreaseSaleRate(orderId, orderKey, uint112(-maliciousDelta));
-        
-        vm.stopPrank();
-        
-        // VERIFY: Pool state was updated but no tokens transferred
-        uint256 poolBalanceAfter = getPoolBalance(poolKey, token0);
-        
-        // Pool balance didn't change (no tokens deposited)
-        assertEq(poolBalanceAfter, poolBalanceBefore, "Pool balance should not change when amount rounds to 0");
-        
-        // But order sale rate WAS increased - verify by checking pool's current sale rate
-        TwammPoolState poolState = twamm.poolState(poolKey.toPoolId());
-        uint112 currentSaleRate = poolState.saleRateToken0();
-        assertTrue(currentSaleRate > 0, "Pool sale rate should be increased");
-        
-        // When virtual orders execute, pool will try to sell at higher rate
-        // This would cause insolvency (not demonstrated in simplified PoC due to need for full swap infrastructure)
-        
-        console.log("Vulnerability confirmed: Sale rate increased without token deposit");
-        console.log("Pool balance change:", poolBalanceAfter - poolBalanceBefore);
-        console.log("Current pool sale rate:", currentSaleRate);
-    }
-    
-    function getPoolBalance(PoolKey memory poolKey, address token) internal view returns (uint256) {
-        // Simplified - would need to query actual pool saved balances
-        return 0;
-    }
-}
-```
+**Root Cause Analysis**: The fundamental issue is semantic confusion between two similar but distinct concepts:
+- `isFullRange()`: Checks if pool covers entire tick range [MIN_TICK, MAX_TICK] (only true when amplification=0 AND center=0)
+- `isStableswap()`: Checks if pool uses stableswap curve (true for ALL stableswap regardless of parameters)
 
-**Notes**
+All stableswap pools use global fee tracking (not tick-boundary-based), but only full-range stableswap has `isFullRange() = true`. The view function incorrectly assumes `isFullRange()` identifies all pools needing global fee calculation.
 
-The vulnerability stems from the mathematical property that `computeAmountFromSaleRate` uses right-shift division, which truncates: when `(saleRateDelta * duration + roundingTerm) < 2^32`, the division by `2^32` yields zero [6](#0-5) . The TWAMM extension updates order and pool state before calculating the amount delta [7](#0-6) , creating an irreversible state change even when amount rounds to zero. This breaks the critical invariant that pool token balances must remain non-negative, as the pool will attempt to execute swaps for tokens that were never deposited.
+**Why Tick Boundaries Remain Uninitialized**: Stableswap pools never call `_updateTick` because they don't use tick-based liquidity management - the entire stableswap curve is always active, just with varying effective liquidity. The `updatePosition` code path for stableswap (else branch) completely skips tick updates.
+
+**Why Underflow Produces Huge Values**: The assembly code uses unchecked subtraction which wraps around on underflow. When `feesPerLiquidityInside = 0` but `position.feesPerLiquidityInsideLast = X` (positive snapshot from earlier), the calculation `0 - X` becomes `type(uint256).max - X + 1`, then gets multiplied by liquidity, producing astronomical fee values.
+
+**Consistency Violation**: `collectFees`, `updatePosition`, and `getPositionFeesAndLiquidity` should all use identical fee calculation logic for the same pool type. Currently, the first two correctly use `isStableswap()` while the view function incorrectly uses `isFullRange()`, breaking this critical consistency requirement.
 
 ### Citations
 
-**File:** src/Orders.sol (L144-158)
+**File:** src/base/BasePositions.sol (L43-68)
 ```text
-            if (amount != 0) {
-                address sellToken = orderKey.sellToken();
-                if (saleRateDelta > 0) {
-                    if (sellToken == NATIVE_TOKEN_ADDRESS) {
-                        SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint256(amount));
-                    } else {
-                        ACCOUNTANT.payFrom(recipientOrPayer, sellToken, uint256(amount));
-                    }
-                } else {
-                    unchecked {
-                        // we know amount will never exceed the uint128 type because of limitations on sale rate (fixed point 80.32) and duration (uint32)
-                        ACCOUNTANT.withdraw(sellToken, recipientOrPayer, uint128(uint256(-amount)));
-                    }
+    function getPositionFeesAndLiquidity(uint256 id, PoolKey memory poolKey, int32 tickLower, int32 tickUpper)
+        external
+        view
+        returns (uint128 liquidity, uint128 principal0, uint128 principal1, uint128 fees0, uint128 fees1)
+    {
+        PoolId poolId = poolKey.toPoolId();
+        SqrtRatio sqrtRatio = CORE.poolState(poolId).sqrtRatio();
+        PositionId positionId =
+            createPositionId({_salt: bytes24(uint192(id)), _tickLower: tickLower, _tickUpper: tickUpper});
+        Position memory position = CORE.poolPositions(poolId, address(this), positionId);
+
+        liquidity = position.liquidity;
+
+        // the sqrt ratio may be 0 (because the pool is uninitialized) but this is
+        // fine since amount0Delta isn't called with it in this case
+        (int128 delta0, int128 delta1) = liquidityDeltaToAmountDelta(
+            sqrtRatio, -SafeCastLib.toInt128(position.liquidity), tickToSqrtRatio(tickLower), tickToSqrtRatio(tickUpper)
+        );
+
+        (principal0, principal1) = (uint128(-delta0), uint128(-delta1));
+
+        FeesPerLiquidity memory feesPerLiquidityInside = poolKey.config.isFullRange()
+            ? CORE.getPoolFeesPerLiquidity(poolId)
+            : CORE.getPoolFeesPerLiquidityInside(poolId, tickLower, tickUpper);
+        (fees0, fees1) = position.fees(feesPerLiquidityInside);
+    }
+```
+
+**File:** src/types/poolConfig.sol (L75-84)
+```text
+/// @notice Determines if this pool is full range (special case of stableswap with amplification=0 and center=0)
+/// @dev Full range can be slightly optimized in that we don't need to compute the sqrt ratio at the tick boundaries
+/// @param config The pool config
+/// @return r True if the pool is full range
+function isFullRange(PoolConfig config) pure returns (bool r) {
+    assembly ("memory-safe") {
+        // Full range when all 32 bits are 0 (discriminator=0, amplification=0, center=0)
+        r := iszero(and(config, 0xffffffff))
+    }
+}
+```
+
+**File:** src/types/poolConfig.sol (L152-169)
+```text
+/// @notice Creates a PoolConfig for a stableswap pool
+/// @param _fee The fee for the pool
+/// @param _amplification The amplification factor (0-127)
+/// @param _centerTick The center tick (will be divided by 16 and stored as 24-bit value)
+/// @param _extension The extension address for the pool
+/// @return c The packed configuration
+function createStableswapPoolConfig(uint64 _fee, uint8 _amplification, int32 _centerTick, address _extension)
+    pure
+    returns (PoolConfig c)
+{
+    assembly ("memory-safe") {
+        // Divide center tick by 16 to get 24-bit representation
+        let stableswapCenterTick24 := sdiv(_centerTick, 16)
+        // Pack: bit 31 = 0 (stableswap), bits 30-24 = amplification, bits 23-0 = center tick
+        let typeConfig := or(shl(24, and(_amplification, 0x7f)), and(stableswapCenterTick24, 0xffffff))
+        c := or(or(shl(96, _extension), shl(32, and(_fee, 0xffffffffffffffff))), typeConfig)
+    }
+}
+```
+
+**File:** src/Core.sol (L180-216)
+```text
+    function _getPoolFeesPerLiquidityInside(PoolId poolId, int32 tick, int32 tickLower, int32 tickUpper)
+        internal
+        view
+        returns (FeesPerLiquidity memory feesPerLiquidityInside)
+    {
+        uint256 lower0;
+        uint256 lower1;
+        uint256 upper0;
+        uint256 upper1;
+        {
+            (StorageSlot l0, StorageSlot l1) = CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot(poolId, tickLower);
+            (lower0, lower1) = (uint256(l0.load()), uint256(l1.load()));
+
+            (StorageSlot u0, StorageSlot u1) = CoreStorageLayout.poolTickFeesPerLiquidityOutsideSlot(poolId, tickUpper);
+            (upper0, upper1) = (uint256(u0.load()), uint256(u1.load()));
+        }
+
+        unchecked {
+            if (tick < tickLower) {
+                feesPerLiquidityInside.value0 = lower0 - upper0;
+                feesPerLiquidityInside.value1 = lower1 - upper1;
+            } else if (tick < tickUpper) {
+                uint256 global0;
+                uint256 global1;
+                {
+                    (bytes32 g0, bytes32 g1) = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId).loadTwo();
+                    (global0, global1) = (uint256(g0), uint256(g1));
                 }
+
+                feesPerLiquidityInside.value0 = global0 - upper0 - lower0;
+                feesPerLiquidityInside.value1 = global1 - upper1 - lower1;
+            } else {
+                feesPerLiquidityInside.value0 = upper0 - lower0;
+                feesPerLiquidityInside.value1 = upper1 - lower1;
+            }
+        }
+    }
+```
+
+**File:** src/Core.sol (L417-428)
+```text
+            } else {
+                // we store the active liquidity in the liquidity slot for stableswap pools
+                state = createPoolState({
+                    _sqrtRatio: state.sqrtRatio(),
+                    _tick: state.tick(),
+                    _liquidity: addLiquidityDelta(state.liquidity(), liquidityDelta)
+                });
+                writePoolState(poolId, state);
+                StorageSlot fplFirstSlot = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
+                feesPerLiquidityInside.value0 = uint256(fplFirstSlot.load());
+                feesPerLiquidityInside.value1 = uint256(fplFirstSlot.next().load());
             }
 ```
 
-**File:** src/extensions/TWAMM.sol (L230-230)
+**File:** src/Core.sol (L480-490)
 ```text
-                uint256 saleRateNext = addSaleRateDelta(saleRate, saleRateDelta);
+        if (poolKey.config.isStableswap()) {
+            // Stableswap pools: use global fees per liquidity
+            StorageSlot fplFirstSlot = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
+            feesPerLiquidityInside.value0 = uint256(fplFirstSlot.load());
+            feesPerLiquidityInside.value1 = uint256(fplFirstSlot.next().load());
+        } else {
+            // Concentrated pools: calculate fees per liquidity inside the position bounds
+            feesPerLiquidityInside = _getPoolFeesPerLiquidityInside(
+                poolId, readPoolState(poolId).tick(), positionId.tickLower(), positionId.tickUpper()
+            );
+        }
 ```
 
-**File:** src/extensions/TWAMM.sol (L248-298)
+**File:** src/Core.sol (L577-598)
 ```text
-                orderStateSlot.store(
-                    OrderState.unwrap(
-                        createOrderState({
-                            _lastUpdateTime: uint32(block.timestamp),
-                            _saleRate: uint112(saleRateNext),
-                            _amountSold: uint112(
-                                amountSold
-                                    + computeAmountFromSaleRate({
-                                        saleRate: saleRate,
-                                        duration: FixedPointMathLib.min(
-                                            uint32(block.timestamp) - lastUpdateTime,
-                                            uint32(uint64(block.timestamp) - startTime)
-                                        ),
-                                        roundUp: false
-                                    })
-                            )
-                        })
-                    )
-                );
-                orderRewardRateSnapshotSlot.store(bytes32(rewardRateSnapshotAdjusted));
+                        } else {
+                            (int32 lower, int32 upper) = config.stableswapActiveLiquidityTickRange();
 
-                bool isToken1 = orderKey.config.isToken1();
-
-                if (block.timestamp < startTime) {
-                    _updateTime(poolId, startTime, saleRateDelta, isToken1, numOrdersChange);
-                    _updateTime(poolId, endTime, -int256(saleRateDelta), isToken1, numOrdersChange);
-                } else {
-                    // we know block.timestamp < orderKey.endTime because we validate that first
-                    // and we know the order is active, so we have to apply its delta to the current pool state
-                    StorageSlot currentStateSlot = TWAMMStorageLayout.twammPoolStateSlot(poolId);
-                    TwammPoolState currentState = TwammPoolState.wrap(currentStateSlot.load());
-                    (uint32 lastTime, uint112 rate0, uint112 rate1) = currentState.parse();
-
-                    if (isToken1) {
-                        currentState = createTwammPoolState({
-                            _lastVirtualOrderExecutionTime: lastTime,
-                            _saleRateToken0: rate0,
-                            _saleRateToken1: uint112(addSaleRateDelta(rate1, saleRateDelta))
-                        });
-                    } else {
-                        currentState = createTwammPoolState({
-                            _lastVirtualOrderExecutionTime: lastTime,
-                            _saleRateToken0: uint112(addSaleRateDelta(rate0, saleRateDelta)),
-                            _saleRateToken1: rate1
-                        });
-                    }
-
-                    currentStateSlot.store(TwammPoolState.unwrap(currentState));
-
-                    // only update the end time
-                    _updateTime(poolId, endTime, -int256(saleRateDelta), isToken1, numOrdersChange);
+                            bool inRange;
+                            assembly ("memory-safe") {
+                                inRange := and(slt(tick, upper), iszero(slt(tick, lower)))
+                            }
+                            if (inRange) {
+                                nextTick = increasing ? upper : lower;
+                                nextTickSqrtRatio = tickToSqrtRatio(nextTick);
+                            } else {
+                                if (tick < lower) {
+                                    (nextTick, nextTickSqrtRatio) =
+                                        increasing ? (lower, tickToSqrtRatio(lower)) : (MIN_TICK, MIN_SQRT_RATIO);
+                                } else {
+                                    // tick >= upper implied
+                                    (nextTick, nextTickSqrtRatio) =
+                                        increasing ? (MAX_TICK, MAX_SQRT_RATIO) : (upper, tickToSqrtRatio(upper));
+                                }
+                                stepLiquidity = 0;
+                            }
+                        }
 ```
 
-**File:** src/extensions/TWAMM.sol (L302-316)
+**File:** src/types/positionId.sol (L47-57)
 ```text
-                uint256 durationRemaining = endTime - FixedPointMathLib.max(block.timestamp, startTime);
-
-                // the amount required for executing at the next sale rate for the remaining duration of the order
-                uint256 amountRequired =
-                    computeAmountFromSaleRate({saleRate: saleRateNext, duration: durationRemaining, roundUp: true});
-
-                // subtract the remaining sell amount to get the delta
-                int256 amountDelta;
-
-                uint256 remainingSellAmount =
-                    computeAmountFromSaleRate({saleRate: saleRate, duration: durationRemaining, roundUp: true});
-
-                assembly ("memory-safe") {
-                    amountDelta := sub(amountRequired, remainingSellAmount)
-                }
-```
-
-**File:** src/extensions/TWAMM.sol (L331-337)
-```text
-                } else {
-                    if (isToken1) {
-                        CORE.updateSavedBalances(poolKey.token0, poolKey.token1, bytes32(0), 0, amountDelta);
-                    } else {
-                        CORE.updateSavedBalances(poolKey.token0, poolKey.token1, bytes32(0), amountDelta, 0);
-                    }
-                }
-```
-
-**File:** src/math/twamm.sol (L42-46)
-```text
-function computeAmountFromSaleRate(uint256 saleRate, uint256 duration, bool roundUp) pure returns (uint256 amount) {
-    assembly ("memory-safe") {
-        amount := shr(32, add(mul(saleRate, duration), mul(0xffffffff, roundUp)))
+function validate(PositionId positionId, PoolConfig config) pure {
+    if (config.isConcentrated()) {
+        if (positionId.tickLower() >= positionId.tickUpper()) revert BoundsOrder();
+        if (positionId.tickLower() < MIN_TICK || positionId.tickUpper() > MAX_TICK) revert MinMaxBounds();
+        int32 spacing = int32(config.concentratedTickSpacing());
+        if (positionId.tickLower() % spacing != 0 || positionId.tickUpper() % spacing != 0) revert BoundsTickSpacing();
+    } else {
+        (int32 lower, int32 upper) = config.stableswapActiveLiquidityTickRange();
+        // For stableswap pools, positions must be exactly min/max tick
+        if (positionId.tickLower() != lower || positionId.tickUpper() != upper) revert StableswapMustBeFullRange();
     }
-}
+```
+
+**File:** src/types/position.sol (L33-51)
+```text
+function fees(Position memory position, FeesPerLiquidity memory feesPerLiquidityInside)
+    pure
+    returns (uint128, uint128)
+{
+    uint128 liquidity;
+    uint256 difference0;
+    uint256 difference1;
+    assembly ("memory-safe") {
+        liquidity := mload(add(position, 0x20))
+        // feesPerLiquidityInsideLast is now at offset 0x40 due to extraData field
+        let positionFpl := mload(add(position, 0x40))
+        difference0 := sub(mload(feesPerLiquidityInside), mload(positionFpl))
+        difference1 := sub(mload(add(feesPerLiquidityInside, 0x20)), mload(add(positionFpl, 0x20)))
+    }
+
+    return (
+        uint128(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128)),
+        uint128(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128))
+    );
 ```

@@ -1,163 +1,164 @@
+# Audit Report
+
 ## Title
-Fee Accounting Error in Exact Input Swaps Due to Rounding Loss Not Being Credited to LPs
+MEVCapture Cumulative Fee Calculation: Subsequent Swaps in Same Block Pay Fees Based on Total Tick Movement
 
 ## Summary
-In `swap_6269342730` at lines 712-719, the assembly block computes `stepFeesPerLiquidity` using the pre-calculated `priceImpactAmount` rather than the actual effective input amount after rounding. This causes LPs to be systematically underpaid fees on every exact input swap that doesn't hit a price limit, as rounding losses in the sqrt ratio and delta calculations are not credited as fees.
+The MEVCapture extension's `handleForwardData()` function updates `tickLast` only once per block, causing subsequent swaps within the same block to pay fees calculated on cumulative tick movement from all prior swaps rather than just their individual price impact. This results in users paying disproportionately inflated fees.
 
 ## Impact
 **Severity**: Medium
 
+Users executing swaps after other swaps in the same block pay fees based on total tick movement from the block's start, not just their own swap's price impact. This can result in 2x-10x inflated fees depending on prior swap activity. While users still receive their expected swap output, they pay significantly higher fees than warranted by their individual market impact. The excess fees are distributed to liquidity providers as intended by the protocol design, but the fee calculation methodology is unfair and creates griefing vectors.
+
 ## Finding Description
-**Location:** `src/Core.sol`, function `swap_6269342730`, lines 712-719 [1](#0-0) 
 
-**Intended Logic:** For exact input swaps, the fee should be calculated as the difference between the total input amount consumed and the actual amount that moved the price (after accounting for all rounding).
+**Location:** `src/extensions/MEVCapture.sol:177-260`, function `handleForwardData()`
 
-**Actual Logic:** The code calculates the fee using `priceImpactAmount` which was computed BEFORE the actual price movement. Due to rounding down in both `nextSqrtRatioFromAmount` [2](#0-1)  and `amountDelta` [3](#0-2) , the actual effective input is less than `priceImpactAmount`, meaning more should go to fees than is credited.
+**Intended Logic:** 
+The MEVCapture extension should charge additional fees proportional to each swap's individual tick movement to capture MEV value fairly.
+
+**Actual Logic:**
+The state update mechanism only executes when the block timestamp changes. [1](#0-0) 
+
+On the first swap in a new block, `tickLast` is set to the current pool tick (before the swap executes), and `lastUpdateTime` is updated to the current block timestamp. [2](#0-1) 
+
+The swap then executes, moving the pool tick. [3](#0-2) 
+
+The fee multiplier is calculated based on the difference between the post-swap tick and `tickLast`. [4](#0-3) 
+
+For subsequent swaps in the same block, the condition `lastUpdateTime != currentTime` evaluates to false, so the state update block is skipped and `tickLast` remains unchanged from the start of the block. These swaps are charged fees based on the total tick movement from the block's starting position, including movements caused by prior swaps.
 
 **Exploitation Path:**
-1. User initiates exact input swap with `amountRemaining = 1000` tokens
-2. At L639, `feeAmount = computeFee(1000, fee) = 3` (example with 0.3% fee) [4](#0-3) 
-3. At L642, `priceImpactAmount = 1000 - 3 = 997` [5](#0-4) 
-4. At L646-648, new sqrt ratio calculated using `priceImpactAmount = 997`, with rounding down: `quotient = floor(997 * 2^128 / liquidity)` [2](#0-1) 
-5. At L699-701, output calculated from sqrt ratio change, with another rounding down [6](#0-5) 
-6. Due to double rounding, effective input is ~996, not 997
-7. At L715-718, fee calculated as `1000 - 997 = 3` instead of actual `1000 - 996 = 4` [7](#0-6) 
-8. LP loses 1 wei in fees; this accumulates across all swaps
+1. **Block N, Initial State**: Pool at tick 100, MEVCapturePoolState has tickLast = 100, lastUpdateTime = N-1
+2. **User A's Swap (Block N)**: Condition `(N-1) != N` is TRUE → tickLast updated to 100 (current pool tick) → Swap executes moving tick 100→110 → Fee calculated as `|110 - 100| = 10` tick spaces → User A pays fair fee
+3. **User B's Swap (Block N, immediately after)**: Condition `N != N` is FALSE → tickLast remains 100 (not updated to 110) → Pool currently at tick 110 → Swap executes moving tick 110→120 → Fee calculated as `|120 - 100| = 20` tick spaces → User B pays double fee (20 spaces instead of 10)
+4. **Result**: User B is charged for 20 tick spaces when they only moved 10, effectively paying for User A's price impact in addition to their own.
 
-**Security Property Broken:** Violates the **Fee Accounting** invariant - "Position fee collection must be accurate and never allow double-claiming". LPs are systematically underpaid fees due to rounding losses not being credited.
+**Security Property Broken:**
+Fair fee attribution - users should be charged fees proportional to their own market impact, not the cumulative impact of unrelated prior swaps within the same block.
 
 ## Impact Explanation
-- **Affected Assets**: LP fee earnings on all exact input swaps
-- **Damage Severity**: LPs lose small amounts (typically < 1 wei) per swap, but this accumulates across millions of swaps. For a pool with $1M daily volume and average swap of $100, that's ~10,000 swaps/day, potentially losing 10,000 wei/day or more
-- **User Impact**: All LPs are affected on every exact input swap that doesn't hit a price limit. The lost fees remain in the pool as "unaccounted" balance but aren't claimable by anyone
+
+**Affected Assets**: All users swapping through MEVCapture pools when multiple swaps occur in the same block.
+
+**Damage Severity**:
+- Users pay inflated fees ranging from 2x to 10x+ depending on prior swap activity in the block
+- In scenarios where a large swap precedes smaller swaps, subsequent users pay fees far exceeding their actual price impact
+- Example: First swap moves 50 tick spaces, second swap moves 5 tick spaces → second user charged for 55 spaces (11x inflation)
+
+**User Impact**: Any user whose swap transaction is included in the same block after another swap to the same MEVCapture pool. This is a common occurrence in active pools on high-throughput blocks.
+
+**Trigger Conditions**: Occurs naturally whenever multiple swaps target the same MEVCapture pool within a single block - no special attacker action required, though can be deliberately triggered via front-running.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Not an active exploit - this is a systematic accounting error affecting all normal users
-- **Preconditions**: Any pool with liquidity, executing exact input swaps
-- **Execution Complexity**: Happens automatically on every exact input swap that completes without hitting a price limit
-- **Frequency**: Occurs on the majority of swaps (those that don't hit limits)
+
+**Attacker Profile**: Any user with the ability to submit transactions; can be exploited passively (normal market activity) or actively (deliberate front-running for griefing).
+
+**Preconditions**:
+1. MEVCapture pool with active trading
+2. Multiple swap transactions targeting the same pool within the same block
+3. No additional requirements
+
+**Execution Complexity**: Trivial - occurs naturally in active markets or can be deliberately triggered by submitting a large swap transaction ahead of victim's transaction.
+
+**Economic Cost**: Only gas fees for transaction submission; no capital lockup or special resources required.
+
+**Frequency**: Occurs on every block where multiple users swap in the same MEVCapture pool, which is common for actively traded pools.
+
+**Overall Likelihood**: HIGH - Trivially exploitable condition that occurs naturally in normal market operation.
 
 ## Recommendation
-The fix should recalculate the fee based on the actual amount consumed, similar to the hit-limit case:
+
+**Primary Fix: Update tickLast after each swap**
+
+After the swap execution, update the pool state with the post-swap tick so subsequent swaps in the same block use the correct baseline:
 
 ```solidity
-// In src/Core.sol, function swap_6269342730, lines 712-719:
+// In src/extensions/MEVCapture.sol, handleForwardData function
+// After line 209 (swap execution), before fee calculation, add:
 
-// CURRENT (vulnerable):
-// Uses pre-calculated priceImpactAmount
-assembly ("memory-safe") {
-    calculatedAmount := sub(calculatedAmount, calculatedAmountWithoutFee)
-    stepFeesPerLiquidity := div(
-        shl(128, sub(amountRemaining, priceImpactAmount)),
-        stepLiquidity
-    )
-}
-
-// FIXED:
-// Recalculate fee based on actual consumption, similar to L686 pattern
-// First, calculate what the input amount should be for the actual output
-uint128 actualInput = isToken1
-    ? amount1Delta(sqrtRatioNextFromAmount, sqrtRatio, stepLiquidity, false)
-    : amount0Delta(sqrtRatioNextFromAmount, sqrtRatio, stepLiquidity, false);
-uint128 totalWithFee = amountBeforeFee(actualInput, config.fee());
-assembly ("memory-safe") {
-    calculatedAmount := sub(calculatedAmount, calculatedAmountWithoutFee)
-    stepFeesPerLiquidity := div(
-        shl(128, sub(totalWithFee, actualInput)),
-        stepLiquidity
-    )
-}
-// Note: Also update amountRemaining appropriately
+setPoolState({
+    poolId: poolId,
+    state: createMEVCapturePoolState({
+        _lastUpdateTime: currentTime, 
+        _tickLast: stateAfter.tick()  // Update to post-swap tick
+    })
+});
 ```
 
-Alternative: Calculate the effective input by reverse-calculating from the sqrt ratio change, then properly account for the rounding difference as fees.
+**Alternative Fix: Use per-swap tick baseline**
+
+Load the current pool tick immediately before each swap execution rather than at the block boundary:
+
+```solidity
+// Replace lines 191-207 with per-swap tick loading
+(int32 tickBeforeSwap, uint128 fees0, uint128 fees1) =
+    loadCoreState({poolId: poolId, token0: poolKey.token0, token1: poolKey.token1});
+
+if (fees0 != 0 || fees1 != 0) {
+    CORE.accumulateAsFees(poolKey, fees0, fees1);
+    saveDelta0 -= int256(uint256(fees0));
+    saveDelta1 -= int256(uint256(fees1));
+}
+
+// Execute swap
+(PoolBalanceUpdate balanceUpdate, PoolState stateAfter) = CORE.swap(0, poolKey, params);
+
+// Calculate fee based on THIS swap's movement only
+uint256 feeMultiplierX64 = (FixedPointMathLib.abs(stateAfter.tick() - tickBeforeSwap) << 64) 
+    / poolKey.config.concentratedTickSpacing();
+```
 
 ## Proof of Concept
-```solidity
-// File: test/Exploit_FeeRoundingLoss.t.sol
-// Run with: forge test --match-test test_FeeRoundingLoss -vvv
 
-pragma solidity ^0.8.31;
+The provided PoC demonstrates the concept but would require refinement to account for actual pool initialization state. The vulnerability can be verified by:
 
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/types/poolKey.sol";
+1. Creating a MEVCapture pool with liquidity
+2. Executing two swaps in the same transaction/block
+3. Comparing the fees paid by the second swap against the tick movement it actually caused
+4. Observing that the second swap pays fees based on cumulative movement from both swaps
 
-contract Exploit_FeeRoundingLoss is Test {
-    Core core;
-    
-    function setUp() public {
-        core = new Core();
-        // Initialize pool with liquidity
-        // This would require full protocol setup with tokens, liquidity provision
-    }
-    
-    function test_FeeRoundingLoss() public {
-        // SETUP: Pool with concentrated liquidity
-        // User wants to swap 1000 tokens exact input
-        
-        // EXPLOIT: Execute exact input swap
-        // Due to rounding in nextSqrtRatioFromAmount and amountDelta,
-        // effective input < priceImpactAmount
-        
-        // VERIFY: Check that fees per liquidity is less than it should be
-        // Expected: fee = amountRemaining - effectiveInput (accounting for rounding)
-        // Actual: fee = amountRemaining - priceImpactAmount (ignoring rounding loss)
-        
-        // The difference accumulates in pool balance but is not claimable
-        // Multiple swaps will show increasing "dust" balance
-        
-        // This demonstrates LPs are systematically underpaid
-    }
-}
-```
+**Expected Result**: Second swap pays fees calculated on total tick movement (both swaps) rather than just its own movement.
 
-**Note:** The PoC would require full protocol setup with token deployments, pool initialization, and liquidity provision to demonstrate the rounding loss accumulation across multiple swaps. The key assertion would compare the actual fees credited versus the expected fees accounting for rounding.
+## Notes
+
+The vulnerability stems from a gas optimization decision to update `MEVCapturePoolState` only once per block. However, this creates an unfair fee distribution where later swappers subsidize earlier swappers' price impact. 
+
+While the excess fees are distributed to liquidity providers as intended by the protocol (not stolen by an attacker), the fee calculation methodology violates basic fairness principles and creates a griefing vector where malicious actors can front-run victims with large swaps to inflate the victims' fees.
+
+The issue is isolated to fee calculation and does not affect the core swap functionality, user principal, or protocol solvency. Users still receive their expected swap outputs; they simply pay higher-than-warranted fees.
 
 ### Citations
 
-**File:** src/Core.sol (L639-639)
+**File:** src/extensions/MEVCapture.sol (L191-207)
 ```text
-                            uint128 feeAmount = computeFee(amountU128, config.fee());
-```
+            if (lastUpdateTime != currentTime) {
+                (int32 tick, uint128 fees0, uint128 fees1) =
+                    loadCoreState({poolId: poolId, token0: poolKey.token0, token1: poolKey.token1});
 
-**File:** src/Core.sol (L640-643)
-```text
-                            assembly ("memory-safe") {
-                                // feeAmount will never exceed amountRemaining since fee is < 100%
-                                priceImpactAmount := sub(amountRemaining, feeAmount)
-                            }
-```
+                if (fees0 != 0 || fees1 != 0) {
+                    CORE.accumulateAsFees(poolKey, fees0, fees1);
+                    // never overflows int256 container
+                    saveDelta0 -= int256(uint256(fees0));
+                    saveDelta1 -= int256(uint256(fees1));
+                }
 
-**File:** src/Core.sol (L699-701)
-```text
-                            uint128 calculatedAmountWithoutFee = isToken1
-                                ? amount0Delta(sqrtRatioNextFromAmount, sqrtRatio, stepLiquidity, isExactOut)
-                                : amount1Delta(sqrtRatioNextFromAmount, sqrtRatio, stepLiquidity, isExactOut);
-```
-
-**File:** src/Core.sol (L712-719)
-```text
-                            } else {
-                                assembly ("memory-safe") {
-                                    calculatedAmount := sub(calculatedAmount, calculatedAmountWithoutFee)
-                                    stepFeesPerLiquidity := div(
-                                        shl(128, sub(amountRemaining, priceImpactAmount)),
-                                        stepLiquidity
-                                    )
-                                }
-```
-
-**File:** src/math/sqrtRatio.sol (L90-93)
-```text
-            uint256 quotient;
-            assembly ("memory-safe") {
-                quotient := div(shl(128, amount), liquidityU256)
+                tickLast = tick;
+                setPoolState({
+                    poolId: poolId,
+                    state: createMEVCapturePoolState({_lastUpdateTime: currentTime, _tickLast: tickLast})
+                });
             }
 ```
 
-**File:** src/math/delta.sol (L106-107)
+**File:** src/extensions/MEVCapture.sol (L209-209)
 ```text
-        } else {
-            uint256 result = FixedPointMathLib.fullMulDivN(difference, liquidityU256, 128);
+            (PoolBalanceUpdate balanceUpdate, PoolState stateAfter) = CORE.swap(0, poolKey, params);
+```
+
+**File:** src/extensions/MEVCapture.sol (L212-213)
+```text
+            uint256 feeMultiplierX64 =
+                (FixedPointMathLib.abs(stateAfter.tick() - tickLast) << 64) / poolKey.config.concentratedTickSpacing();
 ```

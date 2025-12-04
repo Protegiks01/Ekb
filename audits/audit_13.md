@@ -1,249 +1,208 @@
+# Audit Report
+
 ## Title
-Unchecked Liquidity Overflow in Swap Tick Crossing Corrupts Pool State and Violates Solvency Invariant
+Original Minter Can Steal Transferred Positions via Burn-and-Re-mint Attack
 
 ## Summary
-In `swap_6269342730`, when crossing initialized ticks (lines 759-766), the code updates pool liquidity using unchecked assembly addition without validating overflow/underflow. While the `signextend(15, tickValue)` correctly extracts the int128 liquidityDelta, the subsequent `add(liquidity, liquidityDelta)` can overflow uint128 bounds or underflow below zero. The corrupted value is then silently truncated by `createPoolState`, permanently corrupting the pool's active liquidity and violating the solvency invariant.
+The deterministic NFT ID generation in `BaseNonfungibleToken` allows original minters to recreate burned NFTs using the same salt, even after transferring ownership. When a new owner burns an NFT with an active position or order, the original minter can re-mint the identical NFT ID and gain unauthorized access to withdraw the position's funds. This creates a rug-pull vector where malicious actors can sell position NFTs and later reclaim them after the buyer burns the token.
 
 ## Impact
 **Severity**: High
 
+This vulnerability enables direct theft of user funds from liquidity positions and TWAMM orders. An attacker who mints and transfers an NFT retains permanent backdoor access through deterministic ID recreation. When the new owner burns the NFT (encouraged by gas refund comments in the code), the attacker can re-mint and withdraw all liquidity and accumulated fees. The victim loses 100% of their position value with no recovery mechanism. This affects both the Positions and Orders contracts, creating systemic risk for any NFT marketplace or DeFi protocol integrating with Ekubo positions.
+
 ## Finding Description
-**Location:** `src/Core.sol`, function `swap_6269342730`, lines 763-765 [1](#0-0) 
 
-**Intended Logic:** When a swap crosses an initialized tick, the code should safely update the pool's active liquidity by adding or subtracting the tick's liquidityDelta value, ensuring the result remains within valid uint128 bounds (0 to 2^128-1).
+**Location:** `src/base/BaseNonfungibleToken.sol` (lines 123-126), function `mint(bytes32 salt)`
 
-**Actual Logic:** The code uses unchecked assembly arithmetic (`add(liquidity, liquidityDelta)`) without validating that the result fits in uint128. When the result overflows (exceeds 2^128-1) or underflows (becomes negative), it produces an invalid 256-bit value. Later, when `createPoolState` is called at line 824, it silently truncates the upper 128 bits via the masking operation `shr(128, shl(128, _liquidity))`, storing a corrupted liquidity value in the pool state. [2](#0-1) 
+**Intended Logic:** 
+The NFT system uses deterministic IDs for gas efficiency and predictability. The comment at line 130 states burned NFTs can be "recreated by the original minter by reusing the salt" to enable gas refunds after positions are withdrawn. [1](#0-0) 
 
-**Contrast with Safe Implementation:** The protocol provides `addLiquidityDelta()` that explicitly validates overflow/underflow and reverts with `LiquidityDeltaOverflow` error. This safe function is used in `updatePosition` when modifying pool state: [3](#0-2) [4](#0-3) 
-
-However, the swap function bypasses this protection entirely.
+**Actual Logic:**
+The `mint(bytes32 salt)` function generates IDs using `saltToId(msg.sender, salt)` which incorporates only the caller's address, not tracking transfer history or current ownership. [2](#0-1)  The ID computation uses `keccak256(minter, salt, chainid, address())` [3](#0-2) , creating a permanent association between the original minter and the ID. The `burn` function only destroys NFT ownership without checking position status or preventing re-minting. [4](#0-3) 
 
 **Exploitation Path:**
 
-1. **Setup**: Attacker creates positions that establish a tick with extreme liquidityDelta value (close to type(int128).max = 2^127-1 or type(int128).min = -2^127) by accumulating multiple position boundaries at the same tick. The `maxLiquidityPerTick` constraint only validates `liquidityNet`, not the accumulated `liquidityDelta`: [5](#0-4) 
+1. **Setup**: Alice mints NFT with `salt_X` → receives deterministic ID = `keccak256(Alice, salt_X, chainid, contract)`
+2. **Position Creation**: Alice deposits significant liquidity using `mintAndDepositWithSalt` [5](#0-4) . Position is stored in Core contract keyed by the NFT ID (first 24 bytes) + tick range.
+3. **Transfer**: Alice transfers NFT to Bob via standard ERC721 transfer. Bob now owns the NFT and can manage the position through `authorizedForNft` checks. [6](#0-5) 
+4. **Burn**: Bob burns the NFT to claim gas refunds or by mistake. The burn function only calls `_burn(id)` without validating position status or deleting Core state. Position data remains intact in Core storage.
+5. **Re-mint**: Alice calls `mint(salt_X)` with the original salt. Since the ID is deterministic and the NFT no longer exists, `_mint` succeeds and Alice receives the **exact same NFT ID**.
+6. **Theft**: Alice calls `withdraw` [7](#0-6) , passes the `authorizedForNft` check (she owns the NFT), and withdraws Bob's entire position including all accumulated fees.
 
-2. **State Manipulation**: Wait for or create pool conditions where active liquidity is at an extreme (either very high near type(uint128).max or very low near 0).
-
-3. **Trigger Swap**: Execute a swap that crosses the prepared tick. The unchecked addition causes overflow/underflow:
-   - **Overflow case**: `liquidity = 2^128 - 1000`, `liquidityDelta = 2^127 - 1`, result = `2^128 + 2^127 - 1001` (exceeds uint128)
-   - **Underflow case**: `liquidity = 1000`, `liquidityDelta = -2^127`, result = `1000 - 2^127` (negative, wraps in modular arithmetic)
-
-4. **Corruption**: The invalid 256-bit value is masked to 128 bits in `createPoolState`, producing:
-   - **Overflow**: Wraps down from near-max to approximately `2^127 - 1001` (~1.7e38)
-   - **Underflow**: Wraps up from small value to approximately `2^127 + 1000` (~1.7e38)
-
-The pool's liquidity is now permanently corrupted, causing all subsequent swaps to use incorrect liquidity values for price impact calculations.
-
-**Security Property Broken:** 
-- **Solvency Invariant**: Pool balances must never go negative. Corrupted liquidity causes incorrect token amount calculations in swaps, potentially allowing users to extract more tokens than they should receive or deposit fewer tokens than required.
-- **Withdrawal Availability**: With corrupted liquidity, position withdrawals may calculate incorrect token amounts, preventing users from withdrawing their fair share or allowing them to withdraw more than entitled.
+**Security Guarantee Broken:**
+- **Withdrawal Availability Invariant**: "All positions should be able to be withdrawn at any time" (README line 202) - Bob cannot withdraw after burning, but Alice can steal the position.
+- **NFT Ownership Integrity**: Transferred NFT ownership should be exclusive. The original minter retains permanent "admin access" to any NFT they create.
+- **Direct Theft of User Funds**: Unauthorized withdrawal of positions that rightfully belong to the current (burned) NFT holder.
 
 ## Impact Explanation
 
-- **Affected Assets**: All tokens in the affected pool and all LPs with positions in that pool are at risk.
+**Affected Assets**: All liquidity positions managed by the Positions contract and TWAMM orders in the Orders contract. Any user who receives an NFT via transfer (purchase, gift, collateral) is at risk.
 
-- **Damage Severity**: 
-  - Pool becomes mathematically insolvent when liquidity wraps to an incorrect value
-  - Swaps execute with wrong price calculations, causing either theft (user receives too much) or loss (user receives too little)
-  - For overflow from ~2^128 to ~2^127: Pool liquidity appears ~50% of actual, causing users to receive ~2x expected token amounts in swaps (draining pool)
-  - For underflow from small values to ~2^127: Pool liquidity appears artificially inflated, causing users to receive far less than expected (effective DOS)
+**Damage Severity**:
+- Complete loss of position liquidity and accumulated fees (100% of position value)
+- For a $1M position, victim loses $1M
+- Attacker can drain positions immediately after burn with zero capital requirement
+- No recovery mechanism exists once theft occurs
 
-- **User Impact**: 
-  - All users executing swaps through the corrupted pool receive incorrect amounts
-  - All LPs in the pool face potential fund loss when withdrawing positions
-  - The pool may require emergency intervention to prevent complete drainage
-  - Impact persists until pool is reinitialized (requires all positions to close)
+**User Impact**: 
+- Any user who purchases/receives transferred NFTs and subsequently burns them
+- Creates a rug-pull attack vector: malicious users sell valuable position NFTs on marketplaces, wait for buyers to burn them (for gas refunds or after position becomes unprofitable), then reclaim and drain the positions
+- Affects DeFi protocols that accept Ekubo position NFTs as collateral
+
+**Trigger Conditions**: 
+- Victim must burn an NFT that was previously transferred to them
+- The comment "Can be used to refund some gas after the NFT is no longer needed" actively encourages this behavior
+- No warnings exist about the security implications of burning transferred NFTs
 
 ## Likelihood Explanation
 
-- **Attacker Profile**: Any user with sufficient capital to create large positions. The attacker needs enough tokens to establish positions with high liquidity values.
+**Attacker Profile**: Original NFT minter - requires no special privileges, any user who mints an NFT can execute this attack
 
-- **Preconditions**: 
-  - Pool must have either very high active liquidity (near type(uint128).max) OR very low liquidity (near 0)
-  - A tick must have extreme accumulated liquidityDelta value (achievable by creating multiple positions sharing the same tick boundary)
-  - The `liquidityNet` at that tick must stay within `maxLiquidityPerTick` bounds (this is possible because liquidityDelta and liquidityNet accumulate differently for upper vs lower bounds) [6](#0-5) 
+**Preconditions**:
+1. Attacker mints NFT with deterministic salt and deposits valuable position
+2. Attacker transfers NFT to victim (via sale, gift, or DeFi protocol interaction)
+3. Victim burns the NFT (encouraged by gas refund comment, or after position becomes unprofitable)
 
-- **Execution Complexity**: Single transaction. Attacker executes a swap that crosses the prepared tick.
+**Execution Complexity**: 
+- Trivial - single transaction calling `mint(salt)` with the original salt
+- Can be automated with monitoring bots to immediately front-run position theft when any transferred NFT is burned
+- No economic cost beyond gas fees (~$10-50)
 
-- **Frequency**: Can be exploited once per prepared tick. However, a single exploit permanently corrupts the pool's liquidity state, affecting all subsequent operations until the pool is reinitialized.
+**Frequency**: 
+- Can be exploited once per NFT transfer-and-burn cycle
+- With NFT marketplaces and DeFi integrations, creates persistent attack surface
+- Multiple positions per NFT possible (different tick ranges), amplifying potential theft
+
+**Overall Likelihood**: HIGH - Simple execution, actively encouraged by code comments, affects all transferred NFTs with active positions
 
 ## Recommendation
 
-Replace the unchecked assembly addition with a call to the existing `addLiquidityDelta` function:
+**Primary Fix - Track Transfer History (Recommended)**:
+Add storage mapping to prevent re-minting of transferred NFTs:
 
 ```solidity
-// In src/Core.sol, function swap_6269342730, lines 759-766:
+// In src/base/BaseNonfungibleToken.sol
+mapping(uint256 => bool) private _hasBeenTransferred;
 
-// CURRENT (vulnerable):
-if (isInitialized) {
-    bytes32 tickValue = CoreStorageLayout.poolTicksSlot(poolId, nextTick).load();
-    assembly ("memory-safe") {
-        // if increasing, we add the liquidity delta, otherwise we subtract it
-        let liquidityDelta :=
-            mul(signextend(15, tickValue), sub(increasing, iszero(increasing)))
-        liquidity := add(liquidity, liquidityDelta)
+function _beforeTokenTransfer(address from, address to, uint256 id) internal virtual {
+    if (from != address(0) && to != address(0) && from != to) {
+        _hasBeenTransferred[id] = true;
     }
+}
 
-// FIXED:
-if (isInitialized) {
-    bytes32 tickValue = CoreStorageLayout.poolTicksSlot(poolId, nextTick).load();
-    int128 tickLiquidityDelta = TickInfo.wrap(tickValue).liquidityDelta();
-    
-    // Apply direction: add when increasing, subtract when decreasing
-    int128 liquidityDeltaToApply = increasing ? tickLiquidityDelta : -tickLiquidityDelta;
-    
-    // Use safe function that validates overflow/underflow
-    liquidity = addLiquidityDelta(liquidity, liquidityDeltaToApply);
-```
-
-This change:
-1. Extracts the liquidityDelta using the existing safe `liquidityDelta()` function from TickInfo type
-2. Applies the direction multiplier in checked Solidity arithmetic (will revert on int128 overflow for -type(int128).min case)
-3. Uses `addLiquidityDelta()` which validates the result fits in uint128 and reverts with `LiquidityDeltaOverflow` if not
-
-Alternative mitigation: Add explicit overflow check in assembly while maintaining gas optimization, but this is more error-prone than using the existing safe function.
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_LiquidityOverflow.t.sol
-// Run with: forge test --match-test test_liquidityOverflowCorruption -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Positions.sol";
-import "./TestToken.sol";
-
-contract Exploit_LiquidityOverflow is Test {
-    Core core;
-    Positions positions;
-    TestToken token0;
-    TestToken token1;
-    
-    function setUp() public {
-        core = new Core();
-        positions = new Positions(core, address(this), 0, 0);
-        token0 = new TestToken(address(this));
-        token1 = new TestToken(address(this));
-        
-        if (address(token0) > address(token1)) {
-            (token0, token1) = (token1, token0);
-        }
-        
-        // Mint large amounts for testing
-        token0.mint(address(this), type(uint128).max);
-        token1.mint(address(this), type(uint128).max);
-    }
-    
-    function test_liquidityOverflowCorruption() public {
-        // SETUP: Create pool and position to establish extreme liquidity state
-        // 1. Initialize pool at mid-price
-        // 2. Create large position to push active liquidity near type(uint128).max
-        // 3. Create another position with boundary at a specific tick to set large liquidityDelta
-        // 4. Execute swap crossing that tick
-        
-        // NOTE: Full PoC would require setting up the exact pool state
-        // This demonstrates the vulnerability concept:
-        
-        uint128 startLiquidity = type(uint128).max - 1000;
-        int128 tickLiquidityDelta = type(int128).max; // Large positive delta
-        
-        // Simulate the vulnerable assembly operation
-        uint256 result;
-        assembly {
-            // This is what swap_6269342730 does - unchecked add
-            result := add(startLiquidity, tickLiquidityDelta)
-        }
-        
-        // Result overflows uint128
-        assertGt(result, type(uint128).max, "Result should overflow uint128");
-        
-        // Simulate the masking in createPoolState
-        uint128 corruptedLiquidity;
-        assembly {
-            corruptedLiquidity := shr(128, shl(128, result))
-        }
-        
-        // Verify corruption: liquidity has wrapped around
-        assertLt(corruptedLiquidity, startLiquidity, "Liquidity wrapped from high to low");
-        assertEq(corruptedLiquidity, uint128(result), "Truncation matches lower 128 bits");
-        
-        // Calculate expected correct behavior (should revert)
-        // addLiquidityDelta(startLiquidity, tickLiquidityDelta) would revert with LiquidityDeltaOverflow
-        
-        console.log("Original liquidity:", startLiquidity);
-        console.log("Corrupted liquidity:", corruptedLiquidity);
-        console.log("Vulnerability confirmed: Pool liquidity corrupted by overflow");
-    }
+function mint(bytes32 salt) public payable returns (uint256 id) {
+    id = saltToId(msg.sender, salt);
+    require(!_hasBeenTransferred[id], "Cannot re-mint transferred NFT");
+    _mint(msg.sender, id);
 }
 ```
 
-**Notes:**
-- The sign extension `signextend(15, tickValue)` is **CORRECT** - it properly extracts the int128 liquidityDelta from the lower 128 bits of the bytes32 tickValue with proper sign handling for negative values
-- The vulnerability is **NOT** in the sign extension but in the missing overflow validation after the addition
-- The `liquidityNet` validation in `_updateTick` does not prevent extreme `liquidityDelta` values because they accumulate differently (subtracting for upper bounds vs adding for lower bounds)
-- This is a critical deviation from the safe pattern used elsewhere in the codebase (e.g., in `updatePosition`)
+**Alternative Fix - Force Position Withdrawal on Burn**:
+Override burn in BasePositions to automatically withdraw all positions before burning, preventing orphaned positions:
+
+```solidity
+// In src/base/BasePositions.sol
+function burn(uint256 id) external payable override authorizedForNft(id) {
+    // Require all positions withdrawn before burn
+    // Or auto-withdraw all positions (requires tracking positions per NFT)
+    _burn(id);
+}
+```
+
+**Additional Mitigations**:
+- Add explicit documentation warning against burning NFTs with active positions
+- Consider removing deterministic salt-based minting for transferred NFTs
+- Implement position-to-owner mapping that invalidates on transfer
+
+## Notes
+
+The vulnerability stems from the design decision to allow deterministic NFT ID generation for gas refunds, without accounting for the security implications of NFT transfers. The explicit comment "The same ID can be recreated by the original minter by reusing the salt" confirms this behavior is intentional, but it fundamentally breaks NFT ownership guarantees.
+
+Once an NFT is transferred, the previous owner should have no special privileges over it. The current implementation creates a permanent backdoor where original minters retain "superuser" access to any NFT they create, violating the core principle of NFT ownership and creating a systemic rug-pull vulnerability.
+
+The attack is economically rational: sell high-value position NFTs, wait for buyers to burn them (either for gas refunds as encouraged by the code, or after positions become unprofitable), then immediately reclaim and drain the positions. This can be automated and scales across all transferred NFTs in the protocol.
 
 ### Citations
 
-**File:** src/Core.sol (L290-300)
+**File:** src/base/BaseNonfungibleToken.sol (L81-86)
 ```text
-        (int128 currentLiquidityDelta, uint128 currentLiquidityNet) = TickInfo.wrap(tickInfoSlot.load()).parse();
-        uint128 liquidityNetNext = addLiquidityDelta(currentLiquidityNet, liquidityDelta);
-        // this is checked math
-        int128 liquidityDeltaNext =
-            isUpper ? currentLiquidityDelta - liquidityDelta : currentLiquidityDelta + liquidityDelta;
-
-        // Check that liquidityNet doesn't exceed max liquidity per tick
-        uint128 maxLiquidity = poolConfig.concentratedMaxLiquidityPerTick();
-        if (liquidityNetNext > maxLiquidity) {
-            revert MaxLiquidityPerTickExceeded(tick, liquidityNetNext, maxLiquidity);
+    modifier authorizedForNft(uint256 id) {
+        if (!_isApprovedOrOwner(msg.sender, id)) {
+            revert NotUnauthorizedForToken(msg.sender, id);
         }
-```
-
-**File:** src/Core.sol (L409-416)
-```text
-                if (state.tick() >= positionId.tickLower() && state.tick() < positionId.tickUpper()) {
-                    state = createPoolState({
-                        _sqrtRatio: state.sqrtRatio(),
-                        _tick: state.tick(),
-                        _liquidity: addLiquidityDelta(state.liquidity(), liquidityDelta)
-                    });
-                    writePoolState(poolId, state);
-                }
-```
-
-**File:** src/Core.sol (L759-766)
-```text
-                        if (isInitialized) {
-                            bytes32 tickValue = CoreStorageLayout.poolTicksSlot(poolId, nextTick).load();
-                            assembly ("memory-safe") {
-                                // if increasing, we add the liquidity delta, otherwise we subtract it
-                                let liquidityDelta :=
-                                    mul(signextend(15, tickValue), sub(increasing, iszero(increasing)))
-                                liquidity := add(liquidity, liquidityDelta)
-                            }
-```
-
-**File:** src/types/poolState.sol (L42-46)
-```text
-function createPoolState(SqrtRatio _sqrtRatio, int32 _tick, uint128 _liquidity) pure returns (PoolState s) {
-    assembly ("memory-safe") {
-        // s = (sqrtRatio << 160) | (_tick << 128) | liquidity
-        s := or(shl(160, _sqrtRatio), or(shl(128, and(_tick, 0xFFFFFFFF)), shr(128, shl(128, _liquidity))))
+        _;
     }
 ```
 
-**File:** src/math/liquidity.sol (L129-136)
+**File:** src/base/BaseNonfungibleToken.sol (L92-102)
 ```text
-function addLiquidityDelta(uint128 liquidity, int128 liquidityDelta) pure returns (uint128 result) {
-    assembly ("memory-safe") {
-        result := add(liquidity, liquidityDelta)
-        if and(result, shl(128, 0xffffffffffffffffffffffffffffffff)) {
-            mstore(0, shl(224, 0x6d862c50))
-            revert(0, 4)
+    function saltToId(address minter, bytes32 salt) public view returns (uint256 result) {
+        assembly ("memory-safe") {
+            let free := mload(0x40)
+            mstore(free, minter)
+            mstore(add(free, 32), salt)
+            mstore(add(free, 64), chainid())
+            mstore(add(free, 96), address())
+
+            result := keccak256(free, 128)
         }
+    }
+```
+
+**File:** src/base/BaseNonfungibleToken.sol (L123-126)
+```text
+    function mint(bytes32 salt) public payable returns (uint256 id) {
+        id = saltToId(msg.sender, salt);
+        _mint(msg.sender, id);
+    }
+```
+
+**File:** src/base/BaseNonfungibleToken.sol (L128-131)
+```text
+    /// @inheritdoc IBaseNonfungibleToken
+    /// @dev Can be used to refund some gas after the NFT is no longer needed.
+    ///      The same ID can be recreated by the original minter by reusing the salt.
+    ///      Only the token owner or approved addresses can burn the token.
+```
+
+**File:** src/base/BaseNonfungibleToken.sol (L133-135)
+```text
+    function burn(uint256 id) external payable authorizedForNft(id) {
+        _burn(id);
+    }
+```
+
+**File:** src/base/BasePositions.sol (L120-133)
+```text
+    function withdraw(
+        uint256 id,
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 liquidity,
+        address recipient,
+        bool withFees
+    ) public payable authorizedForNft(id) returns (uint128 amount0, uint128 amount1) {
+        (amount0, amount1) = abi.decode(
+            lock(abi.encode(CALL_TYPE_WITHDRAW, id, poolKey, tickLower, tickUpper, liquidity, recipient, withFees)),
+            (uint128, uint128)
+        );
+    }
+```
+
+**File:** src/base/BasePositions.sol (L172-183)
+```text
+    function mintAndDepositWithSalt(
+        bytes32 salt,
+        PoolKey memory poolKey,
+        int32 tickLower,
+        int32 tickUpper,
+        uint128 maxAmount0,
+        uint128 maxAmount1,
+        uint128 minLiquidity
+    ) external payable returns (uint256 id, uint128 liquidity, uint128 amount0, uint128 amount1) {
+        id = mint(salt);
+        (liquidity, amount0, amount1) = deposit(id, poolKey, tickLower, tickUpper, maxAmount0, maxAmount1, minLiquidity);
     }
 ```

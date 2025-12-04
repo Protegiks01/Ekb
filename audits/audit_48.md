@@ -1,276 +1,172 @@
+# Audit Report
+
 ## Title
-Fee Collection Overflow: Silent Truncation Causes Loss of Accumulated LP Fees
+Silent uint128 Overflow in computeRewardAmount Causes Permanent Loss of TWAMM Order Proceeds
 
 ## Summary
-The `Position.fees()` function calculates claimable fees by multiplying `feesPerLiquidityDifference` by `position.liquidity` and dividing by 2^128. When this result exceeds `type(uint128).max`, the cast to `uint128` silently truncates to the lower 128 bits, causing liquidity providers to lose their accumulated fees. This can occur in pools with low liquidity where `feesPerLiquidity` grows rapidly.
+The `computeRewardAmount` function in `src/math/twamm.sol` performs an unsafe cast to `uint128` that silently truncates proceeds when accumulated reward rates exceed specific thresholds. This causes users to permanently lose buyToken proceeds above `type(uint128).max` when collecting from TWAMM orders, violating the core invariant that users should be able to collect all accumulated proceeds.
 
 ## Impact
 **Severity**: High
 
+Users permanently lose all proceeds above `type(uint128).max` when the accumulated pool reward rate causes `(rewardRate * saleRate) >> 128` to exceed the uint128 maximum. The lost funds cannot be recovered, as the overflow happens during the calculation itself, and only the truncated value flows through the withdrawal process. This affects any pool where cumulative TWAMM trading volume causes reward rate accumulation beyond the overflow threshold.
+
 ## Finding Description
-**Location:** `src/types/position.sol` (function `fees`, lines 33-51) [1](#0-0) 
 
-**Intended Logic:** The `fees()` function should calculate the total fees owed to a position based on the difference in `feesPerLiquidity` since the last collection, multiplied by the position's liquidity. The comment on lines 27-28 states: "if the computed fees overflow the uint128 type, it will return only the lower 128 bits. It is assumed that accumulated fees will never exceed type(uint128).max." [2](#0-1) 
+**Location:** `src/math/twamm.sol:48-52`, function `computeRewardAmount()`
 
-**Actual Logic:** The calculation `(difference * liquidity) >> 128` is performed as a `uint256`, then cast to `uint128`. When the result exceeds `type(uint128).max`, only the lower 128 bits are retained through silent truncation, causing loss of the upper bits which represent the majority of accumulated fees.
+**Intended Logic:** 
+The function is designed to compute reward amounts as `(rewardRate * saleRate) >> 128` and return the proceeds to be collected by TWAMM order owners. The function comment states: "saleRate is assumed to be <= type(uint112).max, thus this function is never expected to overflow." [1](#0-0) 
+
+**Actual Logic:**
+While `saleRate` is indeed constrained to `≤ type(uint112).max`, the `rewardRate` parameter is stored as `uint256` and grows unboundedly as virtual orders execute over time. The reward rate accumulates via the formula shown in the TWAMM extension: [2](#0-1) 
+
+When the multiplication result after right-shifting exceeds `type(uint128).max`, the explicit `uint128` cast silently truncates the result. The codebase's own test suite documents this overflow behavior: [3](#0-2) 
 
 **Exploitation Path:**
 
-1. **Pool with Low Liquidity**: A concentrated liquidity pool exists with a tick range having minimal liquidity (e.g., 100 tokens or less). This is possible because there are no protocol-level minimum liquidity requirements. [3](#0-2) 
+1. **Reward Rate Accumulation**: Over time, as virtual orders execute in a pool, the global reward rate accumulates. Each execution adds `(purchasedAmount << 128) / counterpartySaleRate` to the reward rate, which is stored as unbounded `uint256` in storage.
 
-2. **Fee Accumulation**: During normal swap operations, fees are accumulated to `feesPerLiquidity` as `(feeAmount << 128) / liquidity`. With low liquidity, this accumulator grows rapidly: [4](#0-3) 
+2. **Overflow Trigger**: When an order owner calls `collectProceeds`, the TWAMM extension calculates the proceeds using the accumulated reward rate: [4](#0-3) 
 
-3. **Large Position or Long Duration**: An LP either:
-   - Creates a position with large liquidity (e.g., 10^20 wei) in the same tick range
-   - Holds a position for an extended period without collecting fees while many swaps occur
+3. **Silent Truncation**: If `(rewardRateInside - rewardRateSnapshot) * order.saleRate() >> 128` exceeds `type(uint128).max`, the `computeRewardAmount` function returns a truncated value. This truncated value flows through the entire call chain without any overflow detection.
 
-4. **Overflow on Collection**: When the position collects fees via `Core.collectFees()`, the calculation overflows: [5](#0-4) 
+4. **Loss of Proceeds**: The Orders contract receives the truncated uint128 value and withdraws only this amount to the user: [5](#0-4) 
 
-The calculation `(difference * position.liquidity) >> 128` exceeds `type(uint128).max`, and the cast truncates the result. The LP receives only the lower 128 bits instead of their full fees.
+The call chain enforces uint128 throughout: [6](#0-5) 
 
-**Concrete Example:**
-- Pool tick range has liquidity = 100 wei
-- 1,000,000 swaps occur, each with 10^16 wei (0.01 token) in fees
-- `feesPerLiquidity` increases by: `1,000,000 * (10^16 << 128) / 100 = 10^20 * 2^128`
-- Position with liquidity = 10^10 wei collects:
-  - `difference = 10^20 * 2^128`
-  - `fees = uint128((10^20 * 2^128 * 10^10) >> 128) = uint128(10^30)`
-  - Since `10^30 >> type(uint128).max ≈ 3.4 × 10^38`, the actual cast depends on the exact value, but for very large accumulated fees, the truncation causes significant loss
-
-**Security Property Broken:** Violates the **Fee Accounting** invariant: "Position fee collection must be accurate and never allow double-claiming." LPs lose legitimately earned fees due to overflow truncation.
+**Security Property Broken:**
+This violates the fundamental invariant that users should be able to collect all accumulated proceeds from their TWAMM orders. The protocol fails to maintain user fund accounting integrity when reward rates exceed the overflow threshold.
 
 ## Impact Explanation
-- **Affected Assets**: LP fee claims in pools where `feesPerLiquidity` has grown to large values relative to position liquidity
-- **Damage Severity**: LPs can lose up to 100% of their accumulated fees when the overflow wraps around. The loss is proportional to how much the calculation exceeds `type(uint128).max`. For example, if the actual fees are `2^129`, the LP receives only `2^1 = 2` wei instead of `2^129` wei.
-- **User Impact**: Any LP holding positions in pools with:
-  1. Low liquidity in their tick range (allowing rapid `feesPerLiquidity` growth)
-  2. Long holding periods without fee collection
-  3. Large position sizes
 
-This affects legitimate users who simply hold LP positions for extended periods.
+**Affected Assets**: All buyToken proceeds in TWAMM orders within pools where cumulative reward rates cause overflow. This affects high-volume trading pairs processing sufficient cumulative TWAMM volume.
+
+**Damage Severity**:
+Users lose 100% of their proceeds above `type(uint128).max`. When overflow occurs at the boundary:
+- True proceeds = 2^128 tokens
+- Truncated proceeds = 0 tokens  
+- Loss = 100% (entire proceeds)
+
+For proceeds exceeding the threshold by larger amounts, the loss represents all bits above bit 127 of the true amount.
+
+**User Impact**: Any TWAMM order owner attempting to collect proceeds after the pool's reward rate reaches the overflow threshold permanently loses the excess portion of their accumulated buyToken. This affects all users in the pool, not just specific orders.
+
+**Trigger Conditions**: No special user action required - overflow occurs automatically through normal protocol operation as pools accumulate sufficient trading volume.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Not necessarily an attacker - this affects normal LPs. However, a malicious actor could:
-  1. Create a pool with minimal liquidity
-  2. Conduct many small swaps to rapidly inflate `feesPerLiquidity`
-  3. Wait for other LPs to add liquidity
-  4. Those LPs suffer fee loss when collecting
 
-- **Preconditions**: 
-  1. Pool initialized with low liquidity in a tick range
-  2. Significant swap volume accumulating fees
-  3. Position with large liquidity or long time since last collection
+**Attacker Profile**: No attacker required - this is a systemic accounting error affecting all users in high-volume pools.
 
-- **Execution Complexity**: Natural occurrence through normal protocol operations. No special timing or complex transactions required.
+**Preconditions**:
+1. Pool must be initialized with TWAMM extension
+2. Cumulative virtual order executions must accumulate `rewardRate` to threshold levels
+3. Specific volume requirements depend on:
+   - Token decimals (6-decimal tokens like USDC more vulnerable than 18-decimal)
+   - Counterparty sale rate distribution (smaller opposing orders accelerate accumulation)
+   - Time horizon (accumulation is global and monotonic)
 
-- **Frequency**: Can affect any position that meets the criteria above. Once `feesPerLiquidity` grows sufficiently large, all positions in that tick range are affected.
+**Execution Complexity**: Automatic - occurs through normal `collectProceeds` calls once threshold is reached.
+
+**Frequency**: Permanent once threshold is reached for a pool. All subsequent `collectProceeds` calls on affected pools suffer from truncation.
+
+**Overall Likelihood**: MEDIUM - Requires sustained high cumulative volume. More likely in pools with lower-decimal tokens and periods of imbalanced order flow. Achievable in major pools over extended timeframes, though not immediate.
 
 ## Recommendation
 
-The core issue is that `fees()` silently truncates overflowed values. The fix should either:
-
-**Option 1: Revert on Overflow (Recommended)**
-
-```solidity
-// In src/types/position.sol, function fees, lines 48-51:
-
-// CURRENT (vulnerable):
-return (
-    uint128(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128)),
-    uint128(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128))
-);
-
-// FIXED:
-uint256 fees0Raw = FixedPointMathLib.fullMulDivN(difference0, liquidity, 128);
-uint256 fees1Raw = FixedPointMathLib.fullMulDivN(difference1, liquidity, 128);
-
-// Revert if fees exceed uint128 capacity
-require(fees0Raw <= type(uint128).max, "Fee overflow - collect fees more frequently");
-require(fees1Raw <= type(uint128).max, "Fee overflow - collect fees more frequently");
-
-return (uint128(fees0Raw), uint128(fees1Raw));
-```
-
-This ensures LPs are alerted to collect fees before overflow occurs, protecting their funds.
-
-**Option 2: Cap at uint128.max**
+**Primary Fix:**
+Change `computeRewardAmount` return type from `uint128` to `uint256` to accommodate full reward calculation:
 
 ```solidity
-// Alternative approach - cap fees at maximum uint128:
-return (
-    fees0Raw > type(uint128).max ? type(uint128).max : uint128(fees0Raw),
-    fees1Raw > type(uint128).max ? type(uint128).max : uint128(fees1Raw)
-);
-```
-
-However, this still results in fee loss and requires multiple collections to claim all fees.
-
-**Additional Mitigation:**
-Update `Core.updatePosition()` and `Core.collectFees()` to handle the revert gracefully and provide clear error messages to users. [6](#0-5) 
-
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_FeeOverflow.t.sol
-// Run with: forge test --match-test test_FeeOverflow -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Router.sol";
-import "./FullTest.sol";
-
-contract Exploit_FeeOverflow is FullTest {
-    function test_FeeOverflow() public {
-        // SETUP: Create pool with minimal liquidity
-        address token0 = address(mockToken0);
-        address token1 = address(mockToken1);
-        
-        // Create concentrated pool with minimal liquidity
-        PoolKey memory poolKey = createPoolKey(token0, token1);
-        
-        // Add tiny liquidity position (100 wei)
-        uint128 tinyLiquidity = 100;
-        mintAndDepositPosition(poolKey, tinyLiquidity);
-        
-        // EXPLOIT: Execute many swaps to inflate feesPerLiquidity
-        // Each swap with 10^16 wei fee adds (10^16 << 128) / 100 to feesPerLiquidity
-        for (uint i = 0; i < 1000000; i++) {
-            executeSwap(poolKey, 10^16);
-        }
-        
-        // Create large position
-        uint128 largeLiquidity = 10^20;
-        uint256 positionId = mintAndDepositPosition(poolKey, largeLiquidity);
-        
-        // More swaps occur
-        for (uint i = 0; i < 100000; i++) {
-            executeSwap(poolKey, 10^16);
-        }
-        
-        // VERIFY: Collect fees - should overflow
-        (uint128 fees0, uint128 fees1) = collectPositionFees(positionId);
-        
-        // Calculate expected fees (would overflow uint128)
-        uint256 expectedFees = calculateExpectedFees(largeLiquidity);
-        
-        // Actual fees received are truncated
-        assertLt(fees0, type(uint128).max / 2, "Fees truncated due to overflow");
-        assertTrue(expectedFees > type(uint128).max, "Expected fees should exceed uint128.max");
-        
-        console.log("Expected fees:", expectedFees);
-        console.log("Actual fees received:", fees0);
-        console.log("Lost fees:", expectedFees - fees0);
-    }
+// In src/math/twamm.sol, function computeRewardAmount()
+function computeRewardAmount(uint256 rewardRate, uint256 saleRate) pure returns (uint256) {
+    return FixedPointMathLib.fullMulDivN(rewardRate, saleRate, 128);
 }
 ```
 
-## Notes
+**Additional Required Changes:**
+1. Update all functions in the call chain to handle `uint256` proceeds:
+   - `TWAMMLib.collectProceeds()` return type
+   - `Orders.collectProceeds()` return type
+   - `Orders.handleLockData()` proceeds variable type
+   - `TWAMM.handleForwardData()` purchasedAmount handling
 
-The vulnerability is explicitly acknowledged in the code comment but dismissed with an incorrect assumption: "It is assumed that accumulated fees will never exceed type(uint128).max." This assumption fails because:
+2. Add explicit overflow check before withdrawal if `ACCOUNTANT.withdraw()` is constrained to uint128:
+```solidity
+if (proceeds > type(uint128).max) {
+    revert ProceedsOverflow();
+}
+```
 
-1. `feesPerLiquidity` is uint256 and grows unbounded
-2. Pools can have arbitrarily low liquidity, causing rapid accumulation
-3. Positions can have large liquidity values and long holding periods
-4. The multiplication `difference * liquidity` can easily exceed `2^256`, and after `>> 128`, still exceed `2^128`
+**Alternative Mitigation:**
+Cap reward rate accumulation at a safe threshold (e.g., 2^140) to prevent overflow while maintaining accounting within uint128 bounds. This trades off protocol scalability for safety.
 
-The issue affects the core fee accounting mechanism and violates user expectations that all accumulated fees are claimable. The silent truncation means LPs have no warning their fees are being lost until it's too late.
+## Proof of Concept
+
+The vulnerability is demonstrated by the existing test in the codebase at `test/math/twamm.t.sol:56`, which shows that with `rewardRate = 1 << 146` and `saleRate = 1 << 110`, the function returns 0 due to uint128 overflow. This represents a scenario where the true proceeds should be 2^128, but the truncation results in complete loss.
+
+**Notes:**
+
+1. The function comment claiming "never expected to overflow" is demonstrably incorrect - it only accounts for `saleRate` constraints while ignoring unbounded `rewardRate` growth.
+
+2. The reward rate is stored as `uint256` in pool storage with no upper bound, making overflow mathematically certain given sufficient cumulative trading volume.
+
+3. The existing test documents the overflow behavior but does not assert it as correct, suggesting this may have been identified but not fully addressed.
+
+4. The likelihood varies significantly based on token decimals and trading patterns, with 6-decimal tokens (USDC, USDT) being substantially more vulnerable than 18-decimal tokens (ETH, most ERC20s).
+
+5. Once a pool reaches the overflow threshold, the issue affects ALL users collecting proceeds, not just specific orders, making this a systemic accounting failure rather than an isolated edge case.
 
 ### Citations
 
-**File:** src/types/position.sol (L27-28)
+**File:** src/math/twamm.sol (L48-52)
 ```text
-///      Note: if the computed fees overflow the uint128 type, it will return only the lower 128 bits. It is assumed that accumulated
-///      fees will never exceed type(uint128).max.
+/// @dev Computes reward amount = (rewardRate * saleRate) >> 128.
+/// @dev saleRate is assumed to be <= type(uint112).max, thus this function is never expected to overflow
+function computeRewardAmount(uint256 rewardRate, uint256 saleRate) pure returns (uint128) {
+    return uint128(FixedPointMathLib.fullMulDivN(rewardRate, saleRate, 128));
+}
 ```
 
-**File:** src/types/position.sol (L33-51)
+**File:** src/extensions/TWAMM.sol (L361-361)
 ```text
-function fees(Position memory position, FeesPerLiquidity memory feesPerLiquidityInside)
-    pure
-    returns (uint128, uint128)
-{
-    uint128 liquidity;
-    uint256 difference0;
-    uint256 difference1;
-    assembly ("memory-safe") {
-        liquidity := mload(add(position, 0x20))
-        // feesPerLiquidityInsideLast is now at offset 0x40 due to extraData field
-        let positionFpl := mload(add(position, 0x40))
-        difference0 := sub(mload(feesPerLiquidityInside), mload(positionFpl))
-        difference1 := sub(mload(add(feesPerLiquidityInside, 0x20)), mload(add(positionFpl, 0x20)))
-    }
-
-    return (
-        uint128(FixedPointMathLib.fullMulDivN(difference0, liquidity, 128)),
-        uint128(FixedPointMathLib.fullMulDivN(difference1, liquidity, 128))
-    );
+                uint256 purchasedAmount = computeRewardAmount(rewardRateInside - rewardRateSnapshot, order.saleRate());
 ```
 
-**File:** src/Core.sol (L227-276)
+**File:** src/extensions/TWAMM.sol (L517-525)
 ```text
-    /// @inheritdoc ICore
-    function accumulateAsFees(PoolKey memory poolKey, uint128 _amount0, uint128 _amount1) external payable {
-        (uint256 id, address lockerAddr) = _requireLocker().parse();
-        require(lockerAddr == poolKey.config.extension());
-
-        PoolId poolId = poolKey.toPoolId();
-
-        uint256 amount0;
-        uint256 amount1;
-        assembly ("memory-safe") {
-            amount0 := _amount0
-            amount1 := _amount1
-        }
-
-        // Note we do not check pool is initialized. If the extension calls this for a pool that does not exist,
-        //  the fees are simply burned since liquidity is 0.
-
-        if (amount0 != 0 || amount1 != 0) {
-            uint256 liquidity;
-            {
-                uint128 _liquidity = readPoolState(poolId).liquidity();
-                assembly ("memory-safe") {
-                    liquidity := _liquidity
-                }
-            }
-
-            unchecked {
-                if (liquidity != 0) {
-                    StorageSlot slot0 = CoreStorageLayout.poolFeesPerLiquiditySlot(poolId);
-
-                    if (amount0 != 0) {
-                        slot0.store(
-                            bytes32(uint256(slot0.load()) + FixedPointMathLib.rawDiv(amount0 << 128, liquidity))
+                    if (rewardDelta0 < 0) {
+                        if (rewardRate0Access == 0) {
+                            rewardRates.value0 = uint256(TWAMMStorageLayout.poolRewardRatesSlot(poolId).load());
+                        }
+                        rewardRate0Access = 2;
+                        rewardRates.value0 += FixedPointMathLib.rawDiv(
+                            uint256(-rewardDelta0) << 128, state.saleRateToken1()
                         );
                     }
-                    if (amount1 != 0) {
-                        StorageSlot slot1 = slot0.next();
-                        slot1.store(
-                            bytes32(uint256(slot1.load()) + FixedPointMathLib.rawDiv(amount1 << 128, liquidity))
-                        );
-                    }
-                }
+```
+
+**File:** test/math/twamm.t.sol (L55-56)
+```text
+        // overflows the uint128 container
+        assertEq(computeRewardAmount({rewardRate: 1 << 146, saleRate: 1 << 110}), 0);
+```
+
+**File:** src/Orders.sol (L165-169)
+```text
+            uint128 proceeds = CORE.collectProceeds(TWAMM_EXTENSION, bytes32(id), orderKey);
+
+            if (proceeds != 0) {
+                ACCOUNTANT.withdraw(orderKey.buyToken(), recipient, proceeds);
             }
-        }
+```
 
-        // whether the fees are actually accounted to any position, the caller owes the debt
-        _updatePairDebtWithNative(id, poolKey.token0, poolKey.token1, int256(amount0), int256(amount1));
-
-        emit FeesAccumulated(poolId, _amount0, _amount1);
+**File:** src/libraries/TWAMMLib.sol (L139-144)
+```text
+    function collectProceeds(ICore core, ITWAMM twamm, bytes32 salt, OrderKey memory orderKey)
+        internal
+        returns (uint128 proceeds)
+    {
+        proceeds = abi.decode(core.forward(address(twamm), abi.encode(uint256(1), salt, orderKey)), (uint128));
     }
-```
-
-**File:** src/Core.sol (L434-437)
-```text
-                (uint128 fees0, uint128 fees1) = position.fees(feesPerLiquidityInside);
-                position.liquidity = liquidityNext;
-                position.feesPerLiquidityInsideLast =
-                    feesPerLiquidityInside.sub(feesPerLiquidityFromAmounts(fees0, fees1, liquidityNext));
-```
-
-**File:** src/Core.sol (L492-492)
-```text
-        (amount0, amount1) = position.fees(feesPerLiquidityInside);
 ```

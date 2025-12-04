@@ -1,226 +1,167 @@
+# Audit Report
+
 ## Title
-Precision Loss in SqrtRatio Conversion Causes Assertion Failure for Small Exact Output Swaps
+Router Accumulated ETH Can Be Stolen Via Exact-Output Swaps With Zero Payment
 
 ## Summary
-The Core contract's swap function contains an assertion that fails when exact output swaps with very small amounts result in no detectable price movement due to precision loss in the `toSqrtRatio` conversion. This causes legitimate swaps to revert unexpectedly, potentially breaking multicall operations and external integrations that rely on swap success.
+The Router contract allows attackers to steal accumulated ETH by executing exact-output swaps with zero `msg.value`. When `valueDifference` becomes negative, the Router incorrectly sends ETH from its own balance to settle the swap debt, enabling theft of ETH left by previous users.
 
 ## Impact
-**Severity**: Medium
+**Severity**: High
+
+Attackers can drain the entire ETH balance accumulated in the Router contract from users who overpaid on swaps. This is direct theft of user funds where any user's leftover ETH becomes available for subsequent attackers to consume through exact-output swaps without payment. The loss equals `min(required_eth_for_swap, router.balance)` per attack and can be repeated as long as the Router holds ETH.
 
 ## Finding Description
-**Location:** `src/Core.sol` in the `swap_6269342730()` function [1](#0-0) 
 
-**Intended Logic:** The code assumes that exact output swaps will always result in a detectable price movement because the `nextSqrtRatioFromAmount0/1` functions round away from the current price. The assertion at line 726 enforces this assumption. [2](#0-1) 
+**Location:** `src/Router.sol:106-146`, function `handleLockData()`
 
-**Actual Logic:** The `nextSqrtRatioFromAmount0` and `nextSqrtRatioFromAmount1` functions calculate the next price in 64.128 fixed-point precision, but then convert it to a compact 96-bit representation using `toSqrtRatio`. This conversion involves bit-shifting that loses precision: [3](#0-2) 
+**Intended Logic:** 
+For swaps involving native ETH (token0 = NATIVE_TOKEN_ADDRESS), the Router should:
+1. Forward the user's `msg.value` to Core for debt settlement
+2. Refund excess ETH if user overpaid
+3. Revert if user didn't send enough ETH
 
-The conversion shifts bits by different amounts depending on the region:
-- Region < 2^128: shifts by 34 bits (minimum detectable change: 2^34)
-- Region < 2^160: shifts by 66 bits (minimum detectable change: 2^66)  
-- Region < 2^192: shifts by 98 bits (minimum detectable change: 2^98)
-
-For `nextSqrtRatioFromAmount1` with a small negative amount (exact output): [4](#0-3) 
-
-The quotient calculation `ceil((amount << 128) / liquidity)` can be smaller than the precision threshold. For example, with `amount = 1` wei and `liquidity > 2^30` (≈1 billion wei) in the highest precision region, the quotient becomes smaller than 2^98, resulting in `sqrtRatioNext == sqrtRatio` after conversion.
+**Actual Logic:**
+For exact-output swaps where token0 is ETH, the Router sets `value = 0` [1](#0-0) , meaning no ETH is forwarded to Core upfront. After the swap executes, when `valueDifference < 0` (user underpaid), the Router sends ETH from its own accumulated balance to the Accountant [2](#0-1)  without verifying this ETH came from the current user.
 
 **Exploitation Path:**
-1. Pool exists with high liquidity (e.g., > 1 billion wei for region 11, > 2^62 for region 10, or > 2^94 for region 01)
-2. User initiates an exact output swap for a very small amount (e.g., 1 wei)
-3. `nextSqrtRatioFromAmount0/1` calculates a price change smaller than the precision threshold
-4. After `toSqrtRatio` conversion, `sqrtRatioNextFromAmount == sqrtRatio`
-5. The condition at line 698 evaluates to false, entering the else block at line 724
-6. Assertion `assert(!isExactOut)` fails at line 726
-7. Transaction reverts with assertion failure
 
-**Security Property Broken:** The documented assumption that "for an exact output swap, the price should always move since we have to round away from the current price" is violated due to precision loss in the compact representation conversion.
+1. **Setup - Victim Leaves ETH:**
+   - Alice calls `Router.swap{value: 2 ETH}()` for exact-input swap needing 1 ETH
+   - Router forwards 1 ETH to Core (via `value` parameter)
+   - 1 ETH remains in Router's balance
+   - Alice doesn't call `refundNativeToken()` [3](#0-2) 
+
+2. **Attack - Steal Accumulated ETH:**
+   - Bob calls `Router.swap{value: 0}()` for exact-output swap where token0 is ETH
+   - Router sets `value = 0` because `isExactOut() = true`
+   - Router calls `Core.swap{value: 0}()` (forwarding 0 ETH)
+   - Core creates debt of 1 ETH (balanceUpdate.delta0() = 1)
+   - Back in Router: `valueDifference = int256(0) - int256(1) = -1` [4](#0-3) 
+   - Router sends 1 ETH from its balance to Accountant
+   - Accountant reduces Bob's debt by 1 ETH [5](#0-4) 
+   - Lock completes successfully with zero debt
+   - Bob receives token1 output without paying any ETH
+
+3. **Result:**
+   - Bob received tokens worth 1 ETH
+   - Bob paid 0 ETH
+   - Alice's 1 ETH was stolen from Router's balance
+
+**Security Property Broken:**
+Users' ETH held in the Router contract should only be refundable to the original sender, not consumable by subsequent unrelated transactions. The Router acts as an unintended shared wallet where any user's funds can be stolen.
 
 ## Impact Explanation
-- **Affected Assets**: Any pools with sufficient liquidity where users attempt small exact output swaps
-- **Damage Severity**: Transactions revert unexpectedly, breaking composability. If this swap is part of a multicall operation, flash loan repayment, or external protocol's critical logic (like liquidations), the entire transaction fails. While not a direct fund loss, it creates DOS conditions and breaks expected protocol behavior.
-- **User Impact**: Users attempting legitimate small exact output swaps will experience unexpected reverts. External protocols relying on Ekubo for critical operations (liquidations, arbitrage, rebalancing) may fail if their operations involve small exact output swaps.
+
+**Affected Assets**: Native ETH (NATIVE_TOKEN_ADDRESS) accumulated in Router from users who sent excess `msg.value` and didn't immediately call `refundNativeToken()`.
+
+**Damage Severity**:
+- Attackers can drain the entire Router ETH balance in a single transaction
+- Loss per attack: min(required_eth_for_swap, router.balance)
+- Attack is repeatable and can be frontrun by multiple attackers
+- All users who overpay on swaps are vulnerable unless they immediately call refund
+
+**User Impact**: Any user sending excess ETH to Router becomes a victim. The vulnerability creates a race condition where the first attacker to execute an exact-output swap with zero payment steals accumulated ETH. Given Router is used by all protocol users, this affects a broad user base.
+
+**Trigger Conditions**: Attacker can execute anytime Router.balance > 0, which occurs whenever users send more ETH than needed for their swaps.
 
 ## Likelihood Explanation
-- **Attacker Profile**: Any user can trigger this, either unintentionally through small swaps or maliciously for griefing
-- **Preconditions**: Pool must have high liquidity relative to the swap amount. For the highest precision region (most common), liquidity > ~1 billion wei is sufficient for 1 wei swaps
-- **Execution Complexity**: Single transaction with exact output parameters
-- **Frequency**: Can be triggered repeatedly for any qualifying pool
+
+**Attacker Profile**: Any EOA or contract with no special permissions required.
+
+**Preconditions**:
+1. Router must have accumulated ETH balance (common - users frequently send rounded amounts like 1 ETH for swaps needing 0.9 ETH)
+2. Pool with token0 = NATIVE_TOKEN_ADDRESS must exist (standard)
+3. Pool must have sufficient liquidity for the swap (typical for active pools)
+
+**Execution Complexity**: Single transaction calling `Router.swap()` with:
+- `msg.value = 0`
+- Exact-output swap parameters (negative amount)
+- token0 = NATIVE_TOKEN_ADDRESS
+
+**Economic Cost**: Only gas fees (~0.01 ETH), no capital required since attacker sends 0 ETH.
+
+**Frequency**: Repeatable continuously as long as Router holds ETH. Multiple attackers can compete to drain the balance.
+
+**Overall Likelihood**: HIGH - Simple to execute, common preconditions, significant financial incentive.
 
 ## Recommendation
 
-Add a minimum swap amount check or handle the edge case gracefully instead of using an assertion:
+**Primary Fix:**
+The Router must never use its own accumulated balance to pay for user swaps. For exact-output swaps where ETH is required, the Router should revert when the user hasn't sent sufficient ETH:
 
 ```solidity
-// In src/Core.sol, function swap_6269342730, around line 724-734:
+// In src/Router.sol, function handleLockData, lines 138-142:
 
 // CURRENT (vulnerable):
-// The code uses assert(!isExactOut) which panics on failure
-
-// FIXED OPTION 1: Skip the swap iteration if no price movement occurs
-} else if (sqrtRatioNextFromAmount != sqrtRatio) {
-    // normal swap logic
-} else {
-    // Price didn't move - for exact output, this shouldn't happen but can due to precision
-    // For exact input, consume remaining as fees; for exact output, end the swap
-    if (isExactOut) {
-        // No price movement possible for this amount, end the swap
-        amountRemaining = 0;
-        sqrtRatioNext = sqrtRatio;
-    } else {
-        // consume the entire input amount as fees since the price did not move
-        assembly ("memory-safe") {
-            stepFeesPerLiquidity := div(shl(128, amountRemaining), stepLiquidity)
-        }
-        amountRemaining = 0;
-        sqrtRatioNext = sqrtRatio;
-    }
+} else if (valueDifference < 0) {
+    SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)));
 }
 
-// FIXED OPTION 2: Add minimum swap amount validation
-// At the start of swap_6269342730, after line 536:
-if (isExactOut && amountRemaining > -MIN_EXACT_OUTPUT_AMOUNT) {
-    revert SwapAmountTooSmall();
+// FIXED:
+} else if (valueDifference < 0) {
+    // User didn't send enough ETH - revert transaction
+    // Do NOT use accumulated ETH from Router's balance
+    revert InsufficientETHProvided(uint256(-valueDifference), value);
 }
 ```
 
-Alternative: Document this as expected behavior and recommend minimum swap amounts in integration guidelines.
+**Alternative Mitigation:**
+For exact-output swaps where required ETH is unknown upfront:
+1. Require users to send a maximum amount via `msg.value`
+2. Always refund excess in the same transaction
+3. Never accumulate ETH in the Router between transactions
 
-## Proof of Concept
-
-```solidity
-// File: test/Exploit_PrecisionLossAssertionFailure.t.sol
-// Run with: forge test --match-test test_PrecisionLossAssertionFailure -vvv
-
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/Core.sol";
-import "../src/Router.sol";
-
-contract Exploit_PrecisionLossAssertionFailure is Test {
-    Core core;
-    Router router;
-    
-    function setUp() public {
-        // Deploy Core and Router
-        core = new Core();
-        router = new Router(ICore(address(core)));
-        
-        // Setup a pool with high liquidity
-        // This would involve initializing pool and adding liquidity
-        // The exact setup depends on pool initialization helpers
-    }
-    
-    function test_PrecisionLossAssertionFailure() public {
-        // SETUP: Pool with high liquidity (e.g., 10^15 wei or more)
-        // assuming liquidity > 2^30 in the compact sqrtRatio region 11
-        
-        // EXPLOIT: Attempt exact output swap for 1 wei
-        // Construct SwapParameters with:
-        // - amount = -1 (exact output of 1 wei)
-        // - appropriate sqrtRatioLimit
-        // - isToken1 = true/false depending on which token
-        
-        // Expected: Transaction reverts with assertion failure
-        // vm.expectRevert();
-        // core.swap_6269342730(...);
-        
-        // VERIFY: The swap reverts due to assertion failure at line 726
-        // In a real scenario with sufficient liquidity, calling swap with
-        // exact output amount of 1 wei would trigger the assertion
-    }
-}
-```
+**Additional Safeguard:**
+Add a dedicated `msg.value` tracking mechanism per lock ID to ensure only the current user's ETH is consumed for their swap.
 
 ## Notes
 
-This vulnerability represents a correctness issue in the swap logic where the protocol's documented assumption (that exact output swaps always move price) doesn't hold due to precision limitations of the compact sqrtRatio representation. While it doesn't directly steal funds, it creates unexpected revert conditions that can:
+The vulnerability stems from the Router treating its accumulated ETH balance as a shared pool rather than tracking per-user contributions. The root cause is at lines 106-110 where `value = 0` for exact-output swaps [1](#0-0) , combined with lines 140-142 where the Router unconditionally sends from its own balance when `valueDifference < 0` [2](#0-1) .
 
-1. Break multicall operations bundling multiple swaps
-2. Cause failures in external protocols relying on Ekubo swaps for critical operations
-3. Be exploited for griefing attacks by intentionally triggering assertion failures
-4. Violate composability expectations in DeFi
-
-The issue is more likely to occur in pools with very high liquidity or when swapping very small amounts, but these are realistic scenarios especially for popular trading pairs or dust amount cleanup operations. The use of `assert()` (which consumes all remaining gas) rather than `require()` makes the impact worse, as it prevents graceful error handling.
+This vulnerability can be triggered in `CALL_TYPE_SINGLE_SWAP` flow and potentially in `CALL_TYPE_MULTIHOP_SWAP` where ETH is the input token. The design implicitly assumes users will immediately call `refundNativeToken()` after each transaction, but this is neither enforced nor guaranteed, creating a security vulnerability where user funds can be stolen.
 
 ### Citations
 
-**File:** src/Core.sol (L646-648)
+**File:** src/Router.sol (L106-110)
 ```text
-                        SqrtRatio sqrtRatioNextFromAmount = isToken1
-                            ? nextSqrtRatioFromAmount1(sqrtRatio, stepLiquidity, priceImpactAmount)
-                            : nextSqrtRatioFromAmount0(sqrtRatio, stepLiquidity, priceImpactAmount);
+                uint256 value = FixedPointMathLib.ternary(
+                    !params.isToken1() && !params.isExactOut() && poolKey.token0 == NATIVE_TOKEN_ADDRESS,
+                    uint128(params.amount()),
+                    0
+                );
 ```
 
-**File:** src/Core.sol (L724-734)
+**File:** src/Router.sol (L135-135)
 ```text
-                        } else {
-                            // for an exact output swap, the price should always move since we have to round away from the current price
-                            assert(!isExactOut);
+                            int256 valueDifference = int256(value) - int256(balanceUpdate.delta0());
+```
 
-                            // consume the entire input amount as fees since the price did not move
-                            assembly ("memory-safe") {
-                                stepFeesPerLiquidity := div(shl(128, amountRemaining), stepLiquidity)
+**File:** src/Router.sol (L140-142)
+```text
+                            } else if (valueDifference < 0) {
+                                SafeTransferLib.safeTransferETH(address(ACCOUNTANT), uint128(uint256(-valueDifference)));
                             }
-                            amountRemaining = 0;
-                            sqrtRatioNext = sqrtRatio;
-                        }
 ```
 
-**File:** src/types/sqrtRatio.sol (L59-99)
+**File:** src/base/PayableMulticallable.sol (L25-29)
 ```text
-function toSqrtRatio(uint256 sqrtRatio, bool roundUp) pure returns (SqrtRatio r) {
-    assembly ("memory-safe") {
-        function compute(sr, ru) -> v {
-            // rup = 0x00...00 when false, 0xff...ff when true
-            let rup := sub(0, ru)
-
-            // Region: < 2**96  (shift = 2)
-            let addmask := and(0x3, rup) // (1<<s)-1 if ru
-            if lt(add(sr, addmask), shl(96, 1)) {
-                v := shr(2, add(sr, addmask))
-                leave
-            }
-
-            // Region: < 2**128 (shift = 34)  + set bit 94
-            addmask := and(0x3ffffffff, rup)
-            if lt(add(sr, addmask), shl(128, 1)) {
-                v := or(shl(94, 1), shr(34, add(sr, addmask)))
-                leave
-            }
-
-            // Region: < 2**160 (shift = 66)  + set bit 95
-            addmask := and(0x3ffffffffffffffff, rup)
-            if lt(add(sr, addmask), shl(160, 1)) {
-                v := or(shl(95, 1), shr(66, add(sr, addmask)))
-                leave
-            }
-
-            // Region: < 2**192 (shift = 98)  + set bits 95|94
-            addmask := and(0x3ffffffffffffffffffffffff, rup)
-            if lt(add(sr, addmask), shl(192, 1)) {
-                v := or(shl(94, 3), shr(98, add(sr, addmask))) // 3<<94 == bit95|bit94
-                leave
-            }
-
-            // cast sig "ValueOverflowsSqrtRatioContainer()"
-            mstore(0, shl(224, 0xa10459f4))
-            revert(0, 4)
+    function refundNativeToken() external payable {
+        if (address(this).balance != 0) {
+            SafeTransferLib.safeTransferETH(msg.sender, address(this).balance);
         }
-        r := compute(sqrtRatio, roundUp)
     }
-}
 ```
 
-**File:** src/math/sqrtRatio.sol (L79-88)
+**File:** src/base/FlashAccountant.sol (L384-392)
 ```text
-        if (amount < 0) {
-            uint256 quotient;
-            assembly ("memory-safe") {
-                let numerator := shl(128, sub(0, amount))
-                quotient := add(div(numerator, liquidityU256), iszero(iszero(mod(numerator, liquidityU256))))
-            }
+    receive() external payable {
+        uint256 id = _getLocker().id();
 
-            uint256 sqrtRatioNextFixed = FixedPointMathLib.zeroFloorSub(sqrtRatio, quotient);
-
-            sqrtRatioNext = toSqrtRatio(sqrtRatioNextFixed, false);
+        // Note because we use msg.value here, this contract can never be multicallable, i.e. it should never expose the ability
+        //      to delegatecall itself more than once in a single call
+        unchecked {
+            // We assume msg.value will never exceed type(uint128).max, so this should never cause an overflow/underflow of debt
+            _accountDebt(id, NATIVE_TOKEN_ADDRESS, -int256(msg.value));
+        }
 ```

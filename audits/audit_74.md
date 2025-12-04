@@ -1,217 +1,206 @@
+# Audit Report
+
 ## Title
-Silent Uint128 Downcast Overflow in RevenueBuybacks.roll() Causes Revenue Loss via Incorrect TWAMM Order Creation
+TWAMM Extension Causes Price Change Between Liquidity Calculation and Deposit Execution, Leading to Unexpected Reverts and Slippage Bypass
 
 ## Summary
-The `RevenueBuybacks.roll()` function reads the contract's token balance as a `uint256` but unsafely downcasts it to `uint128` when calling `ORDERS.increaseSellAmount()`. If accumulated revenue exceeds `type(uint128).max`, the downcast silently wraps around, creating TWAMM orders with drastically incorrect sale rates and causing permanent loss of protocol revenue.
+The `deposit()` function in BasePositions reads the pool price and calculates liquidity outside the lock, but TWAMM's `beforeUpdatePosition` hook executes virtual orders that change the price before token amounts are calculated, causing users to either experience unexpected transaction reverts or pay significantly different token ratios than validated by their slippage checks.
 
 ## Impact
-**Severity**: High
+**Severity**: Medium
+
+Users attempting to deposit liquidity to TWAMM pools face two critical issues: (1) transactions revert with `TransferFromFailed` despite passing slippage validation when users approve exact maxAmount values, causing gas loss and failed deposits, or (2) users who over-approve tokens pay substantially more than intended (potentially 10-20%+ more of one token) as the slippage protection on `minLiquidity` does not protect against token ratio changes induced by TWAMM virtual order execution between price validation and deposit execution.
 
 ## Finding Description
-**Location:** `src/RevenueBuybacks.sol` (function `roll()`, lines 103 and 134-136) [1](#0-0) [2](#0-1) 
 
-**Intended Logic:** The `roll()` function should create or extend TWAMM buyback orders using the full balance of revenue tokens accumulated in the contract, with the sale rate calculated as `(amount << 32) / duration`.
+**Location:** `src/base/BasePositions.sol` (deposit function, lines 70-97), `src/Core.sol` (updatePosition function, lines 367-379)
 
-**Actual Logic:** When `amountToSpend` exceeds `type(uint128).max` (~3.4e38), the explicit cast `uint128(amountToSpend)` performs silent truncation (Solidity 0.8.x checks arithmetic overflow but NOT explicit type casts). The truncated value is passed to `increaseSellAmount()`, which then calls `computeSaleRate()` with the wrapped-around amount. [3](#0-2) [4](#0-3) 
+**Intended Logic:**
+The deposit function should calculate maximum liquidity based on current price, validate slippage protection, and execute the deposit at the expected price with the validated token amounts.
+
+**Actual Logic:**
+The critical flaw is that `maxAmount0` and `maxAmount1` are used to calculate liquidity outside the lock but are not passed into the lock or validated against actual amounts after TWAMM execution changes the price.
+
+**Execution Flow:**
+
+1. **Price Read Outside Lock**: At line 80, `sqrtRatio` is read from pool state [1](#0-0) 
+
+2. **Liquidity Calculation**: Lines 82-83 calculate liquidity using this price and maxAmounts [2](#0-1) 
+
+3. **Slippage Validation**: Lines 85-87 validate only that liquidity meets minimum [3](#0-2) 
+
+4. **Lock Called Without maxAmounts**: Line 94 encodes only the calculated liquidity value, NOT the maxAmount parameters [4](#0-3) 
+
+5. **Extension Hook Executes**: Inside `updatePosition`, the TWAMM extension's `beforeUpdatePosition` hook is called BEFORE reading pool state [5](#0-4) 
+
+6. **TWAMM Execution**: The hook calls `lockAndExecuteVirtualOrders` [6](#0-5)  which executes pending virtual orders via swaps [7](#0-6)  changing the pool price
+
+7. **Price Read After Hook**: Pool state is read AGAIN with the new post-TWAMM price [8](#0-7) 
+
+8. **Amount Calculation at New Price**: Token amounts are calculated using the NEW price but with liquidity calculated from the OLD price [9](#0-8) 
+
+9. **Unvalidated Transfers**: The calculated amounts are transferred without checking against maxAmount0 or maxAmount1 [10](#0-9) 
 
 **Exploitation Path:**
-1. Revenue accumulates in `RevenueBuybacks` contract beyond `type(uint128).max` through multiple `withdrawAndRoll()` calls, direct token transfers, or ETH deposits via `receive()`
-2. Anyone calls `RevenueBuybacks.roll(token)` 
-3. Line 103 reads `amountToSpend` as full `uint256` balance (e.g., `type(uint128).max + 1e18`)
-4. Line 135 downcasts to `uint128(amountToSpend)`, which wraps to `1e18`
-5. `computeSaleRate(1e18, duration)` calculates a massively incorrect sale rate based on the truncated amount
-6. The TWAMM order is created with the wrong rate; excess revenue (`type(uint128).max`) is effectively lost in the contract with no way to include it in orders
 
-**Security Property Broken:** This violates protocol revenue integrity and causes permanent loss of accumulated protocol fees, impacting the protocol's ability to execute buybacks as designed.
+1. Pool with TWAMM extension has pending virtual orders (normal operating state)
+2. User calls `deposit(id, poolKey, tickLower, tickUpper, maxAmount0=100, maxAmount1=100, minLiquidity=95)`
+3. Current pool price is 1:1, liquidity calculated as 100
+4. Slippage check passes (100 ≥ 95)
+5. During `updatePosition`, TWAMM executes virtual orders, changing price to 1.2:1
+6. System now needs amount0=95, amount1=110 for liquidity=100 at new price
+7. If user approved exactly 100 of each: transfer fails with `TransferFromFailed` despite passing slippage check
+8. If user over-approved: transfer succeeds but user pays 110 instead of expected 100 (10% more)
+
+**Security Property Broken:**
+The deposit function violates the implicit guarantee that `maxAmount0` and `maxAmount1` represent maximum token amounts the user will pay. The slippage protection on `minLiquidity` is insufficient as it only validates the liquidity quantity, not the token ratio required to achieve that liquidity.
 
 ## Impact Explanation
-- **Affected Assets**: Any revenue token configured for buybacks (ERC20 or native ETH) where accumulated balance exceeds `type(uint128).max`
-- **Damage Severity**: For a token with 18 decimals, `type(uint128).max ≈ 3.4e20` tokens. If the contract accumulates 3.4e20 + 1e18 tokens and `roll()` is called, only 1e18 tokens are included in the order—99.9999997% of revenue is lost. For lower decimal tokens or scenarios with prolonged accumulation, this threshold is more easily reached.
-- **User Impact**: Protocol-wide impact—all users suffer from reduced buyback effectiveness. The lost revenue cannot be recovered through normal operations, as subsequent `roll()` calls will continue to use the remaining balance (which is still > `type(uint128).max`) and keep wrapping.
+
+**Affected Assets**: User tokens being deposited to TWAMM pools, liquidity positions
+
+**Damage Severity**:
+- Users experience unexpected transaction reverts when deposits should succeed based on slippage validation, losing gas fees and missing liquidity provision opportunities
+- Users who over-approve tokens pay substantially more than intended (10-20%+ more of one token depending on price movement)
+- All deposits to TWAMM pools with pending virtual orders are affected (normal operating state)
+
+**User Impact**: Every user attempting to deposit liquidity to TWAMM pools when virtual orders are pending
+
+**Trigger Conditions**: Automatic on any deposit operation when TWAMM has pending virtual orders to execute
 
 ## Likelihood Explanation
-- **Attacker Profile**: Not an intentional attack—this is a protocol design flaw triggered by normal operations. Anyone can call `roll()` (line 90 is a public function), and the vulnerability is triggered automatically when conditions are met.
-- **Preconditions**: 
-  - Revenue accumulation exceeds `type(uint128).max` for any configured token
-  - This can occur through: (1) Multiple fee withdrawals without intermediate `roll()` calls, (2) Direct token transfers to `RevenueBuybacks`, (3) For ETH, multiple deposits via `receive()` function [5](#0-4) 
-- **Execution Complexity**: Single transaction—simply calling `roll(token)` when balance > `type(uint128).max`
-- **Frequency**: Can occur once per token when the threshold is crossed, potentially multiple times if additional revenue continues to accumulate
+
+**Attacker Profile**: No attacker required—this is a design flaw affecting normal user operations
+
+**Preconditions**:
+1. Pool uses TWAMM extension (in-scope)
+2. TWAMM has pending virtual orders to execute (normal operating state for TWAMM)
+
+**Execution Complexity**: Happens automatically during normal deposit operations, no special setup required
+
+**Economic Cost**: No additional cost—occurs during standard user deposits
+
+**Frequency**: Every deposit to TWAMM pools when virtual orders are pending (common scenario for active TWAMM pools)
+
+**Overall Likelihood**: HIGH for TWAMM pools with active orders
 
 ## Recommendation
 
+**Primary Fix (Recommended):**
+Pass `maxAmount0` and `maxAmount1` into the lock and validate actual amounts against these maxima after `updatePosition` calculates the required amounts:
+
 ```solidity
-// In src/RevenueBuybacks.sol, function roll(), lines 133-137:
+// In src/base/BasePositions.sol, line 94:
+// CURRENT: lock(abi.encode(CALL_TYPE_DEPOSIT, msg.sender, id, poolKey, tickLower, tickUpper, liquidity))
+// FIXED: Include maxAmounts in encoded data
+lock(abi.encode(CALL_TYPE_DEPOSIT, msg.sender, id, poolKey, tickLower, tickUpper, liquidity, maxAmount0, maxAmount1))
 
-// CURRENT (vulnerable):
-if (amountToSpend != 0) {
-    saleRate = ORDERS.increaseSellAmount{value: isEth ? amountToSpend : 0}(
-        NFT_ID, _createOrderKey(token, state.fee(), 0, endTime), uint128(amountToSpend), type(uint112).max
-    );
-}
-
-// FIXED:
-if (amountToSpend != 0) {
-    // Cap amount at type(uint128).max to prevent silent downcast truncation
-    // Any excess remains in the contract for the next roll() call
-    uint128 amountCapped = amountToSpend > type(uint128).max 
-        ? type(uint128).max 
-        : uint128(amountToSpend);
-    
-    saleRate = ORDERS.increaseSellAmount{value: isEth ? uint256(amountCapped) : 0}(
-        NFT_ID, _createOrderKey(token, state.fee(), 0, endTime), amountCapped, type(uint112).max
-    );
+// In handleLockData after line 250:
+// Add validation before transfers
+if (amount0 > maxAmount0 || amount1 > maxAmount1) {
+    revert DepositExceedsMaxAmounts(amount0, amount1, maxAmount0, maxAmount1);
 }
 ```
 
-**Alternative mitigation**: Use SafeCastLib from Solady (already imported in the contract) which performs checked downcasts:
-```solidity
-saleRate = ORDERS.increaseSellAmount{value: isEth ? amountToSpend : 0}(
-    NFT_ID, _createOrderKey(token, state.fee(), 0, endTime), 
-    SafeCastLib.toUint128(amountToSpend), // Reverts if overflow
-    type(uint112).max
-);
-```
-
-## Proof of Concept
+**Alternative Fix:**
+Move liquidity calculation inside the lock after extension hooks execute:
 
 ```solidity
-// File: test/Exploit_SilentDowncastOverflow.t.sol
-// Run with: forge test --match-test test_SilentDowncastOverflow -vvv
+// In deposit(), pass maxAmounts instead of pre-calculated liquidity
+lock(abi.encode(CALL_TYPE_DEPOSIT, msg.sender, id, poolKey, tickLower, tickUpper, maxAmount0, maxAmount1, minLiquidity))
 
-pragma solidity ^0.8.31;
-
-import "forge-std/Test.sol";
-import "../src/RevenueBuybacks.sol";
-import "../src/Orders.sol";
-import "../src/Core.sol";
-import "../src/extensions/TWAMM.sol";
-
-contract Exploit_SilentDowncastOverflow is Test {
-    RevenueBuybacks buybacks;
-    Orders orders;
-    Core core;
-    TWAMM twamm;
-    
-    address constant BUY_TOKEN = address(0x1);
-    address constant REVENUE_TOKEN = address(0x2);
-    
-    function setUp() public {
-        // Deploy protocol contracts
-        core = new Core(address(this));
-        twamm = new TWAMM();
-        orders = new Orders(core, twamm, address(this));
-        buybacks = new RevenueBuybacks(address(this), orders, BUY_TOKEN);
-        
-        // Configure buyback for REVENUE_TOKEN
-        buybacks.configure(REVENUE_TOKEN, 86400, 3600, 3000); // 1 day target, 1 hour min
-    }
-    
-    function test_SilentDowncastOverflow() public {
-        // SETUP: Send tokens exceeding type(uint128).max to RevenueBuybacks
-        uint256 excessAmount = uint256(type(uint128).max) + 1e18; // type(uint128).max + 1 ETH
-        
-        // Simulate accumulated revenue (using deal for demonstration)
-        vm.deal(address(buybacks), excessAmount);
-        
-        uint256 balanceBefore = address(buybacks).balance;
-        console.log("Balance before roll:", balanceBefore);
-        console.log("type(uint128).max:  ", type(uint128).max);
-        
-        // EXPLOIT: Call roll() - this should use full balance but will truncate
-        vm.expectRevert(); // We expect this to fail in TWAMM due to pool not initialized
-        // In a real scenario with initialized pool, this would succeed with wrong amount
-        (uint64 endTime, uint112 saleRate) = buybacks.roll(NATIVE_TOKEN_ADDRESS);
-        
-        // VERIFY: The downcast wrapped around
-        // If this didn't revert, the order would be created with:
-        // amount = uint128(excessAmount) = excessAmount % (type(uint128).max + 1) = 1e18
-        // saleRate = (1e18 << 32) / duration
-        // Instead of: saleRate = (excessAmount << 32) / duration
-        
-        uint128 truncatedAmount = uint128(excessAmount);
-        console.log("Truncated amount:   ", truncatedAmount);
-        console.log("Lost amount:        ", excessAmount - truncatedAmount);
-        
-        assertEq(truncatedAmount, 1e18, "Downcast wrapped around to 1 ETH");
-        assertEq(excessAmount - truncatedAmount, type(uint128).max, 
-            "type(uint128).max worth of revenue would be lost");
-    }
-}
+// In handleLockData, call updatePosition first to let TWAMM execute
+// Then read fresh pool state and calculate liquidity
+// Then call updatePosition with the freshly calculated liquidity
 ```
 
 ## Notes
 
-The vulnerability is particularly insidious because:
+This vulnerability is specific to pools using the TWAMM extension, which is an in-scope extension developed by the protocol team (not third-party). The issue stems from the architectural decision to execute extension hooks (which can change pool state) between price reading and position updates.
 
-1. **Silent Failure**: Solidity 0.8.x's overflow protection does NOT apply to explicit type casts—they silently truncate. This is a well-known gotcha that developers often miss.
+The README mentions "TWAMM execution price degradation" (lines 52-62), but this refers to TWAMM order execution quality, not the impact of TWAMM execution on deposit operations. This is a distinct issue not covered by known issues.
 
-2. **No Reversion Path**: The `computeSaleRate()` function checks if the result exceeds `type(uint112).max` and reverts, but this check operates on the ALREADY-TRUNCATED amount. For most realistic durations, even a wrapped-around small amount will produce a valid sale rate < `type(uint112).max`.
-
-3. **Accumulation Vectors**: Revenue can accumulate beyond `type(uint128).max` through:
-   - The `PositionsOwner.withdrawAndRoll()` function withdraws fees but if `roll()` reverts or is not called, multiple withdrawals accumulate [6](#0-5) 
-   - Direct token transfers to `RevenueBuybacks` (donations, airdrops, mistaken transfers)
-   - For native ETH, the `receive()` function accepts unlimited deposits
-
-4. **Impact Scope**: While `type(uint128).max` seems astronomically large for 18-decimal tokens, consider:
-   - Lower decimal tokens (e.g., USDC with 6 decimals: `type(uint128).max` ≈ 3.4e32 USDC—still large but more realistic over years)
-   - High-value tokens where even 1 unit = significant value
-   - Protocol deployed long-term where fees accumulate over months/years without intervention
-
-5. **Recovery Difficulty**: Once this occurs, the excess funds are stuck in the contract. The owner can use `take()` to recover them, but this requires manual intervention and awareness of the issue. [7](#0-6)
+The slippage protection on `minLiquidity` alone is insufficient because it only validates the liquidity amount, not the actual token ratio needed. Users cannot adequately protect themselves since the price change happens after their slippage check passes but before deposit execution, and the maxAmount parameters are not enforced at the critical point.
 
 ### Citations
 
-**File:** src/RevenueBuybacks.sol (L57-60)
+**File:** src/base/BasePositions.sol (L80-80)
 ```text
-    function take(address token, uint256 amount) external onlyOwner {
-        // Transfer to msg.sender since only the owner can call this function
-        SafeTransferLib.safeTransfer(token, msg.sender, amount);
-    }
+        SqrtRatio sqrtRatio = CORE.poolState(poolKey.toPoolId()).sqrtRatio();
 ```
 
-**File:** src/RevenueBuybacks.sol (L82-82)
+**File:** src/base/BasePositions.sol (L82-83)
 ```text
-    receive() external payable {}
+        liquidity =
+            maxLiquidity(sqrtRatio, tickToSqrtRatio(tickLower), tickToSqrtRatio(tickUpper), maxAmount0, maxAmount1);
 ```
 
-**File:** src/RevenueBuybacks.sol (L103-103)
+**File:** src/base/BasePositions.sol (L85-87)
 ```text
-            uint256 amountToSpend = isEth ? address(this).balance : SafeTransferLib.balanceOf(token, address(this));
-```
-
-**File:** src/RevenueBuybacks.sol (L134-136)
-```text
-                saleRate = ORDERS.increaseSellAmount{value: isEth ? amountToSpend : 0}(
-                    NFT_ID, _createOrderKey(token, state.fee(), 0, endTime), uint128(amountToSpend), type(uint112).max
-                );
-```
-
-**File:** src/math/twamm.sol (L13-22)
-```text
-function computeSaleRate(uint256 amount, uint256 duration) pure returns (uint256 saleRate) {
-    assembly ("memory-safe") {
-        saleRate := div(shl(32, amount), duration)
-        if shr(112, saleRate) {
-            // cast sig "SaleRateOverflow()"
-            mstore(0, shl(224, 0x83c87460))
-            revert(0, 4)
+        if (liquidity < minLiquidity) {
+            revert DepositFailedDueToSlippage(liquidity, minLiquidity);
         }
-    }
-}
 ```
 
-**File:** src/Orders.sol (L66-66)
+**File:** src/base/BasePositions.sol (L94-94)
 ```text
-            saleRate = uint112(computeSaleRate(amount, uint32(orderKey.config.endTime() - realStart)));
+            lock(abi.encode(CALL_TYPE_DEPOSIT, msg.sender, id, poolKey, tickLower, tickUpper, liquidity)),
 ```
 
-**File:** src/PositionsOwner.sol (L69-75)
+**File:** src/base/BasePositions.sol (L249-254)
 ```text
-        if (amount0 != 0 || amount1 != 0) {
-            POSITIONS.withdrawProtocolFees(token0, token1, uint128(amount0), uint128(amount1), address(BUYBACKS));
-        }
+            uint128 amount0 = uint128(balanceUpdate.delta0());
+            uint128 amount1 = uint128(balanceUpdate.delta1());
 
-        // Call roll for both tokens
-        BUYBACKS.roll(token0);
-        BUYBACKS.roll(token1);
+            // Use multi-token payment for ERC20-only pools, fall back to individual payments for native token pools
+            if (poolKey.token0 != NATIVE_TOKEN_ADDRESS) {
+                ACCOUNTANT.payTwoFrom(caller, poolKey.token0, poolKey.token1, amount0, amount1);
+```
+
+**File:** src/Core.sol (L367-368)
+```text
+        IExtension(poolKey.config.extension())
+            .maybeCallBeforeUpdatePosition(locker, poolKey, positionId, liquidityDelta);
+```
+
+**File:** src/Core.sol (L371-371)
+```text
+        PoolState state = readPoolState(poolId);
+```
+
+**File:** src/Core.sol (L378-379)
+```text
+            (int128 delta0, int128 delta1) =
+                liquidityDeltaToAmountDelta(state.sqrtRatio(), liquidityDelta, sqrtRatioLower, sqrtRatioUpper);
+```
+
+**File:** src/extensions/TWAMM.sol (L456-477)
+```text
+                            (swapBalanceUpdate, corePoolState) = CORE.swap(
+                                0,
+                                poolKey,
+                                createSwapParameters({
+                                    _sqrtRatioLimit: sqrtRatioNext,
+                                    _amount: int128(uint128(amount1)),
+                                    _isToken1: true,
+                                    _skipAhead: 0
+                                })
+                            );
+                        } else if (sqrtRatioNext < corePoolState.sqrtRatio()) {
+                            (swapBalanceUpdate, corePoolState) = CORE.swap(
+                                0,
+                                poolKey,
+                                createSwapParameters({
+                                    _sqrtRatioLimit: sqrtRatioNext,
+                                    _amount: int128(uint128(amount0)),
+                                    _isToken1: false,
+                                    _skipAhead: 0
+                                })
+                            );
+                        }
+```
+
+**File:** src/extensions/TWAMM.sol (L656-656)
+```text
+        lockAndExecuteVirtualOrders(poolKey);
 ```

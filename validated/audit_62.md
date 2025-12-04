@@ -1,1 +1,0 @@
-I'll perform a systematic validation of this TWAMM reward theft claim.
